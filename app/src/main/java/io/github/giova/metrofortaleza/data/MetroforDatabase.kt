@@ -29,7 +29,11 @@ internal object MetroforDatabase {
      */
     fun open(context: Context): Pair<SQLiteDatabase, ScheduleSource> {
         val app = context.applicationContext
-        val (file, source) = ScheduleStore.current(app)
+        // Grade baixada corrompida: descarta e usa a do APK até baixar de novo.
+        val downloaded = ScheduleStore.current(app)?.takeIf { (file, _) ->
+            isValid(file).also { ok -> if (!ok) ScheduleStore.forget(app, ScheduleStore.todayType()) }
+        }
+        val (file, source) = downloaded
             ?: (bundledFile(app) to ScheduleSource(ScheduleSource.Kind.BUNDLED, date = null, syncedAt = 0L))
         return openFile(file) to source
     }
@@ -42,7 +46,7 @@ internal object MetroforDatabase {
     fun openTomorrow(context: Context): SQLiteDatabase? {
         val app = context.applicationContext
         val type = ScheduleStore.tomorrowType()
-        val file = ScheduleStore.stored(app, type)
+        val file = ScheduleStore.stored(app, type)?.takeIf(::isValid)
             ?: bundledFile(app).takeIf { type == DayType.WEEKDAY }
             ?: return null
         return openFile(file)
@@ -59,7 +63,9 @@ internal object MetroforDatabase {
         val assetVersion = app.assets.open(VERSION_ASSET_NAME).use {
             it.readBytes().decodeToString().trim()
         }
-        if (!file.exists() || prefs.getString(KEY_INSTALLED_VERSION, null) != assetVersion) {
+        // Recopia também se a cópia estiver ruim (0 bytes, sem tabelas): já
+        // vimos uma assim derrubar o app ao abrir, sem saber como se formou.
+        if (!file.exists() || prefs.getString(KEY_INSTALLED_VERSION, null) != assetVersion || !isValid(file)) {
             copyAsset(app, file)
             prefs.edit { putString(KEY_INSTALLED_VERSION, assetVersion) }
         }
@@ -77,6 +83,23 @@ internal object MetroforDatabase {
         opened.getOrPut(key) {
             SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READONLY)
         }
+    }
+
+    /**
+     * Se [file] é um banco de horários utilizável: tem tamanho e as tabelas que
+     * o app consulta. Um arquivo vazio abre "com sucesso" no SQLite e só falha
+     * na primeira consulta — por isso conferir antes.
+     */
+    private fun isValid(file: File): Boolean {
+        if (!file.isFile || file.length() == 0L) return false
+        return runCatching {
+            SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READONLY).use { db ->
+                db.rawQuery(
+                    "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name IN ('route', 'stop', 'departure')",
+                    null,
+                ).use { it.moveToFirst() && it.getInt(0) == 3 }
+            }
+        }.getOrDefault(false)
     }
 
     private fun copyAsset(context: Context, target: File) {

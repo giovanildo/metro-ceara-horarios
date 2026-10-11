@@ -146,6 +146,15 @@ object ScheduleStore {
         SSLContext.getInstance("TLS").apply { init(null, arrayOf(trustAll), SecureRandom()) }
     }
 
+    /** Apaga a grade guardada de [type] (arquivo e datas), por exemplo se ela estiver corrompida. */
+    fun forget(context: Context, type: DayType) {
+        file(context, type).delete()
+        prefs(context).edit {
+            remove(keyDate(type))
+            remove(keySyncedAt(type))
+        }
+    }
+
     private fun file(context: Context, type: DayType) =
         File(context.applicationContext.noBackupFilesDir, "schedules/${type.name.lowercase()}.db")
 

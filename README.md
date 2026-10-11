@@ -260,6 +260,11 @@ Detalhes que valem saber:
   tipo de dia de amanhã, e não da de hoje repetida: num domingo de eleição,
   segunda mostra a grade de dia útil. Se amanhã for sábado ou domingo e essa
   grade nunca tiver sido baixada, o app não inventa horário.
+- **Banco corrompido não derruba o app.** Antes de abrir um banco, o app confere
+  se ele tem tamanho e as tabelas de horário. Uma cópia ruim do banco do APK é
+  refeita a partir do APK; uma grade baixada ruim é descartada, e o app usa a do
+  APK até baixar de novo. (Já vimos, no emulador, a cópia do APK ficar com 0
+  bytes e o app fechar ao abrir — sem descobrir como se formou.)
 - **Bicicletar** não vem do GTFS: as estações são copiadas do banco do APK.
 - **Gere o banco do APK num dia útil.** Rodar `tools/build_db.py` num sábado ou
   domingo embarcaria a grade daquele dia como reserva para todos os dias.
