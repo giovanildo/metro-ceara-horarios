@@ -1,0 +1,1 @@
+• Para quem desenvolve o app: registro de testes de campo escondido na tela Sobre, que ajuda a melhorar o modo viagem e os horários. Fica desligado e não muda nada para quem usa.
