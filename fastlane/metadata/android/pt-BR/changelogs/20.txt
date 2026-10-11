@@ -1,0 +1,2 @@
+• Mais estabilidade: se o arquivo de horários vier incompleto ou estragado, o app mantém os horários que já tinha, e nunca fecha sozinho por causa disso.
+• Regras de bike no metrô organizadas para facilitar mudanças futuras.
