@@ -31,7 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.giova.metrofortaleza.R
-import io.github.giova.metrofortaleza.data.BIKE_BOARDING_ROUTE_IDS
+import io.github.giova.metrofortaleza.data.bikeRuleFor
 import io.github.giova.metrofortaleza.data.bikeBoarding
 import io.github.giova.metrofortaleza.data.nowDayOfWeek
 import io.github.giova.metrofortaleza.data.Station
@@ -208,9 +208,10 @@ private fun StationSummary(
             // No domingo especial a regra de bike é desconhecida: melhor calar. E
             // sem mais partidas hoje, "pode embarcar" não faria sentido.
             val runningToday = departures.any { it.departure?.tomorrow == false }
-            if (!sunday && runningToday && station.routeId in BIKE_BOARDING_ROUTE_IDS) {
+            val bikeRule = bikeRuleFor(station.stopName, station.routeName)
+            if (!sunday && runningToday && bikeRule != null) {
                 BikeBoardingNotice(
-                    rule = remember(now) { bikeBoarding(nowDayOfWeek(), now) },
+                    rule = remember(now, bikeRule) { bikeBoarding(bikeRule, nowDayOfWeek(), now) },
                     vehicle = vehicleName(station.routeName),
                     modifier = Modifier.padding(top = 6.dp),
                 )

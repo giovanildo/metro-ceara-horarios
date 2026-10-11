@@ -43,7 +43,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.giova.metrofortaleza.R
-import io.github.giova.metrofortaleza.data.BIKE_BOARDING_ROUTE_IDS
+import io.github.giova.metrofortaleza.data.bikeRuleFor
 import io.github.giova.metrofortaleza.data.bikeBoarding
 import io.github.giova.metrofortaleza.data.nowDayOfWeek
 import io.github.giova.metrofortaleza.data.Departure
@@ -128,7 +128,7 @@ fun DeparturesScreen(
         directions.any { d -> departuresFor(d).any { it >= now } }
     }
     val bikeRule = remember(route.id, now, runningToday) {
-        if (!sunday && runningToday && route.id in BIKE_BOARDING_ROUTE_IDS) bikeBoarding(nowDayOfWeek(), now) else null
+        bikeRuleFor(stop.name, route.name)?.takeIf { !sunday && runningToday }?.let { bikeBoarding(it, nowDayOfWeek(), now) }
     }
 
     Scaffold(

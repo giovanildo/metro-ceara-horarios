@@ -171,8 +171,17 @@ janelas vêm do regulamento
 (Metrofor, 2023): segunda a sexta das 9h às 15h e a partir das 20h; sábado a
 partir das 15h. Os VLTs não aparecem no regulamento, por isso ficam de fora; no
 domingo o aviso de bike some, porque nesse dia só há operação especial e a regra
-dela não é conhecida. As regras estão fixas em `data/BikeBoarding.kt` — se o
-Metrofor mudar o regulamento, é lá que se mexe.
+dela não é conhecida.
+
+As regras são **parâmetros** reunidos no topo de `data/BikeBoarding.kt`, na
+seção "PARÂMETROS": cada regra (`BikeRule`) tem janelas de horário (`BikeWindow`,
+"HH:MM" de início e fim, ou só início = até o fim da operação) para dia útil,
+sábado e domingo. Há uma tabela **por linha** (`BIKE_RULES_BY_LINE`, hoje Sul,
+Oeste e Nordeste com o regulamento de 2023; linha fora dela não tem aviso) e
+outra de **exceções por estação** (`BIKE_RULES_BY_STATION`, vazia hoje), que
+vale antes da da linha. Mudou o regulamento ou alguma estação tem regra própria:
+é só editar essas tabelas. Ficam fora das Configurações de propósito — são regra
+do Metrofor, não preferência de quem usa o app.
 
 Um ícone de **engrenagem** no topo abre as **Configurações**, com as distâncias
 e os tempos que antes eram fixos no código (`data/Settings.kt`; padrões entre
