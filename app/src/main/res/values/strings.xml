@@ -165,4 +165,15 @@
     <string name="about_share_qr">QR code para baixar o app</string>
     <string name="about_share_button">Divulgar o app</string>
     <string name="about_share_message">🚇 Metrô Fortaleza: horários do metrô e do VLT no celular, com aviso antes de descer. App Android gratuito e sem anúncios (não oficial). Veja e baixe: %1$s</string>
+    <string name="dev_unlocked">Opções de desenvolvedor ativadas</string>
+    <string name="dev_title">Opções de desenvolvedor</string>
+    <string name="dev_log">Registro de testes</string>
+    <string name="dev_log_desc">Grava downloads de horários, localização, viagens e erros, com posições de GPS exatas. Fica só no aparelho.</string>
+    <string name="dev_log_size">Guardado: %1$s KB em %2$d dia(s) (máximo 7 dias)</string>
+    <string name="dev_save">Salvar na pasta Downloads</string>
+    <string name="dev_saved">Salvo em %1$s</string>
+    <string name="dev_save_failed">Não deu para salvar o registro</string>
+    <string name="dev_clear">Apagar registro</string>
+    <string name="dev_cleared">Registro apagado</string>
+    <string name="dev_empty">O registro está vazio</string>
 </resources>

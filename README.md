@@ -416,6 +416,31 @@ em 36 de propósito: subir o `targetSdk` muda comportamento em tempo de
 execução, e o app ainda não foi testado em aparelho. É a origem do único aviso
 de lint que sobrou.
 
+## Registro de testes de campo (só para desenvolvimento)
+
+Escondido de quem usa o app: na tela **Sobre**, toque 7 vezes na linha da
+versão para liberar as **Opções de desenvolvedor**. Lá dá para ligar o
+**Registro de testes**, ver quanto está guardado, **salvar na pasta Downloads**
+e apagar. Desligado por padrão; quando desligado não grava nada.
+
+Ligado, grava um evento por linha (JSON) em `files/devlog/AAAA-MM-DD.jsonl`,
+no fuso de Fortaleza, guardando no máximo 7 dias e 5 MB (sai o mais antigo).
+O botão de salvar junta tudo em `Download/metro-fortaleza-log-AAAA-MM-DD.log`
+(no Android 9 ou anterior, na pasta do app em `Android/data/…/files/Download`).
+Nada sai do aparelho sozinho: o arquivo é copiado pelo cabo ou pelo
+gerenciador de arquivos.
+
+Eventos (`"ev"`): `app_start` (versão, Android, aparelho), `schedule_source`
+(de onde veio a grade em uso), `sync_start`/`sync_ok`/`sync_fail` (download dos
+horários; o `sync_ok` resume viagens e horários por linha), `loc_request`/
+`loc_ok`/`loc_fail` (pedido de localização, provedor, tempo, precisão),
+`home_gps` (posição exata e estação mais próxima na tela inicial),
+`trip_start` (linha, paradas e horários previstos, aviso), `trip_gps` (cada
+posição durante a viagem), `trip_progress` (mudança de estação, se veio do GPS
+ou da tabela, atraso, GPS sem sinal), `trip_alert`, `trip_station`,
+`trip_turnaround`, `trip_end` (motivo), `crash` (erro que derrubou o app) e
+`log_on`/`log_off`.
+
 ## Página de apresentação
 
 `docs/` é a página pública do app (GitHub Pages, publicada a partir de

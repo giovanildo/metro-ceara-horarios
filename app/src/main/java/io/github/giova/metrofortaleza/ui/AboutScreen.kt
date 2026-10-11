@@ -47,6 +47,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.giova.metrofortaleza.R
+import java.io.File
+import io.github.giova.metrofortaleza.data.DevLog
+import android.content.ContentValues
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
+import androidx.compose.material3.Switch
 
 /** Chave Pix para doações. Vazia = a seção de doação não aparece. */
 private const val PIX_KEY = "giovanildos@gmail.com"
@@ -61,6 +72,8 @@ private const val SITE_URL = "https://giovanildo.github.io/metro-fortaleza-horar
 @Composable
 fun AboutScreen(onBack: () -> Unit) {
     val context = LocalContext.current
+    var versionTaps by remember { mutableIntStateOf(0) }
+    val devUnlocked by DevLog.unlocked.collectAsState()
     val version = remember {
         runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }
             .getOrNull().orEmpty()
@@ -96,6 +109,15 @@ fun AboutScreen(onBack: () -> Unit) {
                     text = stringResource(R.string.about_version, version),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    // Como no Android: 7 toques na versão liberam as opções de desenvolvedor.
+                    modifier = Modifier.clickable {
+                        if (devUnlocked) return@clickable
+                        versionTaps++
+                        if (versionTaps >= 7) {
+                            DevLog.unlock(context)
+                            Toast.makeText(context, R.string.dev_unlocked, Toast.LENGTH_SHORT).show()
+                        }
+                    },
                 )
             }
 
@@ -201,8 +223,82 @@ fun AboutScreen(onBack: () -> Unit) {
                     }
                 }
             }
+
+            if (devUnlocked) DevOptions()
         }
     }
+}
+
+/** Opções de desenvolvedor: o registro de testes de campo. Só aparece depois dos 7 toques. */
+@Composable
+private fun DevOptions() {
+    val context = LocalContext.current
+    val logOn by DevLog.enabledFlow.collectAsState()
+    var refresh by remember { mutableIntStateOf(0) }
+    val (bytes, days) = remember(refresh, logOn) { DevLog.stats() }
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(stringResource(R.string.dev_title), style = MaterialTheme.typography.titleMedium)
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(stringResource(R.string.dev_log), style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        text = stringResource(R.string.dev_log_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Switch(checked = logOn, onCheckedChange = {
+                    DevLog.setEnabled(context, it)
+                    refresh++
+                })
+            }
+            Text(
+                text = stringResource(R.string.dev_log_size, "%.1f".format(bytes / 1024.0), days),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
+                Button(onClick = { saveLog(context) }) { Text(stringResource(R.string.dev_save)) }
+                OutlinedButton(onClick = {
+                    DevLog.clear()
+                    refresh++
+                    Toast.makeText(context, R.string.dev_cleared, Toast.LENGTH_SHORT).show()
+                }) { Text(stringResource(R.string.dev_clear)) }
+            }
+        }
+    }
+}
+
+/**
+ * Salva o registro na pasta Downloads do próprio celular, sem passar por nenhum
+ * app ou serviço. Antes do Android 10 (sem acesso livre a Downloads), vai para a
+ * pasta do app em Android/data, que também aparece pelo cabo USB.
+ */
+private fun saveLog(context: Context) {
+    val file = DevLog.export(File(context.cacheDir, "devlog-export"))
+    if (file == null) {
+        Toast.makeText(context, R.string.dev_empty, Toast.LENGTH_SHORT).show()
+        return
+    }
+    val where = runCatching {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val values = ContentValues().apply {
+                put(MediaStore.Downloads.DISPLAY_NAME, file.name)
+                // Tipo genérico: com "text/plain" o Android trocaria a extensão para .txt.
+                put(MediaStore.Downloads.MIME_TYPE, "application/octet-stream")
+            }
+            val resolver = context.contentResolver
+            val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)!!
+            resolver.openOutputStream(uri)!!.use { out -> file.inputStream().use { it.copyTo(out) } }
+            "Download/" + file.name
+        } else {
+            val dir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)!!
+            file.copyTo(File(dir, file.name), overwrite = true).absolutePath
+        }
+    }.also { file.delete() }.getOrNull()
+    val message = if (where != null) context.getString(R.string.dev_saved, where) else context.getString(R.string.dev_save_failed)
+    Toast.makeText(context, message, Toast.LENGTH_LONG).show()
 }
 
 @Composable
