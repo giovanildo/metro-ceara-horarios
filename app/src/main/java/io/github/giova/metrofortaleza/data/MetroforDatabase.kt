@@ -90,6 +90,14 @@ internal object MetroforDatabase {
      * o app consulta. Um arquivo vazio abre "com sucesso" no SQLite e só falha
      * na primeira consulta — por isso conferir antes.
      */
+    /** Utilizável e com pelo menos uma linha e uma viagem: serve para substituir a grade atual. */
+    fun hasSchedule(file: File): Boolean = isValid(file) && runCatching {
+        SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READONLY).use { db ->
+            db.rawQuery("SELECT (SELECT COUNT(*) FROM route) > 0 AND (SELECT COUNT(*) FROM departure) > 0", null)
+                .use { it.moveToFirst() && it.getInt(0) == 1 }
+        }
+    }.getOrDefault(false)
+
     private fun isValid(file: File): Boolean {
         if (!file.isFile || file.length() == 0L) return false
         return runCatching {

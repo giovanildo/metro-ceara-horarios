@@ -260,6 +260,13 @@ Detalhes que valem saber:
   tipo de dia de amanhã, e não da de hoje repetida: num domingo de eleição,
   segunda mostra a grade de dia útil. Se amanhã for sábado ou domingo e essa
   grade nunca tiver sido baixada, o app não inventa horário.
+- **Download ruim nunca substitui a grade boa.** A grade nova é montada num
+  arquivo temporário e só entra no lugar da atual se passar por três checagens:
+  o tamanho recebido bate com o anunciado pelo servidor (conexão que cai no meio
+  pode entregar menos bytes sem erro); o zip está completo (o índice no fim do
+  arquivo existe e promete o mesmo número de arquivos que foram lidos); e o
+  banco montado tem linhas e viagens. Qualquer falha mantém a cópia que já
+  existe, e o app tenta de novo depois.
 - **Banco corrompido não derruba o app.** Antes de abrir um banco, o app confere
   se ele tem tamanho e as tabelas de horário. Uma cópia ruim do banco do APK é
   refeita a partir do APK; uma grade baixada ruim é descartada, e o app usa a do

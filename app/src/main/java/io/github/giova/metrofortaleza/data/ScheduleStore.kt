@@ -94,7 +94,8 @@ object ScheduleStore {
 
     /**
      * Baixa o feed, monta o banco e troca a grade de hoje. Bloqueia: chamar
-     * fora da main. Qualquer falha lança exceção e mantém a grade anterior.
+     * fora da main. Qualquer falha — download cortado, zip incompleto, banco
+     * sem viagens — lança exceção e mantém a grade anterior intacta.
      */
     fun sync(context: Context, bikeSource: File?) {
         prefs(context).edit { putLong(KEY_LAST_ATTEMPT, System.currentTimeMillis()) }
@@ -106,6 +107,9 @@ object ScheduleStore {
         val temp = File(target.parentFile, "${target.name}.tmp")
         try {
             GtfsImporter.import(zip, temp, bikeSource, FEED_URL)
+            // Só troca se o banco novo é utilizável e tem viagens; senão fica a
+            // grade que já existe.
+            check(MetroforDatabase.hasSchedule(temp)) { "grade baixada sem viagens ou corrompida" }
             // Renomear no fim: um banco pela metade nunca fica no lugar do bom.
             check(temp.renameTo(target)) { "não foi possível instalar ${target.name}" }
         } finally {
@@ -130,7 +134,13 @@ object ScheduleStore {
         connection.setRequestProperty("User-Agent", "metro-fortaleza-horarios/1.0")
         return try {
             check(connection.responseCode == 200) { "HTTP ${connection.responseCode}" }
-            connection.inputStream.use { it.readBytes() }
+            val bytes = connection.inputStream.use { it.readBytes() }
+            // Conexão que cai no meio pode entregar menos bytes sem dar erro.
+            val expected = connection.contentLengthLong
+            check(expected <= 0 || bytes.size.toLong() == expected) {
+                "download incompleto: ${bytes.size} de $expected bytes"
+            }
+            bytes
         } finally {
             connection.disconnect()
         }

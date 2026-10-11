@@ -213,15 +213,41 @@ internal object GtfsImporter {
         statement.close()
     }
 
-    private fun unzip(bytes: ByteArray): Map<String, String> = buildMap {
-        ZipInputStream(ByteArrayInputStream(bytes)).use { zip ->
-            while (true) {
-                val entry = zip.nextEntry ?: break
-                if (!entry.isDirectory) {
-                    put(entry.name.substringAfterLast('/'), zip.readBytes().decodeToString())
+    private fun unzip(bytes: ByteArray): Map<String, String> {
+        // O zip termina com um índice ("diretório central") que diz quantos
+        // arquivos ele tem. Download cortado não tem esse fim, ou tem menos
+        // arquivos lidos do que o índice promete.
+        val promised = zipEntryCount(bytes) ?: error("zip incompleto: sem o índice final")
+        var read = 0
+        val files = buildMap {
+            ZipInputStream(ByteArrayInputStream(bytes)).use { zip ->
+                while (true) {
+                    val entry = zip.nextEntry ?: break
+                    read++
+                    if (!entry.isDirectory) {
+                        put(entry.name.substringAfterLast('/'), zip.readBytes().decodeToString())
+                    }
                 }
             }
         }
+        check(read == promised) { "zip incompleto: $read de $promised arquivos" }
+        return files
+    }
+
+    /** Quantos arquivos o índice final do zip promete, ou `null` se o índice não existe. */
+    private fun zipEntryCount(bytes: ByteArray): Int? {
+        // Registro "end of central directory": assinatura PK\x05\x06, total na posição +10.
+        var i = bytes.size - 22
+        val stop = maxOf(0, bytes.size - 22 - 65_535)
+        while (i >= stop) {
+            if (bytes[i] == 0x50.toByte() && bytes[i + 1] == 0x4b.toByte() &&
+                bytes[i + 2] == 0x05.toByte() && bytes[i + 3] == 0x06.toByte()
+            ) {
+                return (bytes[i + 10].toInt() and 0xff) or ((bytes[i + 11].toInt() and 0xff) shl 8)
+            }
+            i--
+        }
+        return null
     }
 
     /** CSV do GTFS (RFC 4180): aspas, vírgulas dentro de aspas, CRLF e BOM. */
