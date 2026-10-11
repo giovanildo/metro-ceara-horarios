@@ -9,6 +9,11 @@ import android.os.IBinder
 import androidx.core.app.ServiceCompat
 import io.github.giova.metrofortaleza.R
 import io.github.giova.metrofortaleza.data.LocationSource
+import kotlin.math.roundToInt
+import io.github.giova.metrofortaleza.data.formatTime
+import io.github.giova.metrofortaleza.data.distanceMeters
+import io.github.giova.metrofortaleza.data.TripFix
+import io.github.giova.metrofortaleza.data.DevLog
 import io.github.giova.metrofortaleza.data.SettingsStore
 import io.github.giova.metrofortaleza.data.TripEstimator
 import io.github.giova.metrofortaleza.data.TripPlan
@@ -37,6 +42,7 @@ class TripService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == ACTION_STOP) {
+            DevLog.log("trip_end", "reason" to "user")
             finish()
             return START_NOT_STICKY
         }
@@ -48,6 +54,16 @@ class TripService : Service() {
         TripNotifications.createChannels(this)
         val settings = SettingsStore.get(this)
         val estimator = TripEstimator(plan, gpsLostMinutes = settings.gpsLostSeconds / 60.0)
+        DevLog.log(
+            "trip_start", "line" to plan.routeName, "headsign" to plan.headsign,
+            "from" to plan.origin.name, "to" to plan.destination.name,
+            "dep" to formatTime(plan.origin.scheduled), "arr" to formatTime(plan.destination.scheduled),
+            "stops" to plan.stops.joinToString(" > ") { "${it.name} ${formatTime(it.scheduled)}" },
+            "via_terminal" to plan.terminal?.takeIf { plan.viaTerminal }?.name,
+            "alert_at" to plan.stops[plan.alertIndex].name,
+            "sound" to TripTracker.isSoundEnabled(this), "station_alerts" to TripTracker.isStationAlertsEnabled(this),
+        )
+        var lastLogged: Triple<Int, TripFix, Boolean>? = null
         var trip = ActiveTrip(plan, estimator.progress(nowMinutes()), alerted = false, arrived = false)
         val started = runCatching {
             ServiceCompat.startForeground(
@@ -81,6 +97,7 @@ class TripService : Service() {
                     trip = trip.copy(progress = progress)
                     val sound = TripTracker.isSoundEnabled(this@TripService)
                     TripNotifications.alert(this@TripService, trip, sound)
+                    DevLog.log("trip_alert", "station" to plan.stops.getOrNull(progress.index)?.name, "presumed" to progress.presumed)
                     if (sound) voice?.speak(spokenAlert(trip))
                 }
                 // Estação nova alcançada. Na estação do aviso principal, ele já basta.
@@ -92,6 +109,7 @@ class TripService : Service() {
                     if (plan.viaTerminal && previous < turn && progress.index >= turn) {
                         val reached = trip.copy(progress = progress)
                         val text = TripNotifications.turnaround(this@TripService, reached)
+                        DevLog.log("trip_turnaround", "text" to text)
                         if (TripTracker.isSoundEnabled(this@TripService)) voice?.speak(text)
                     }
                     // A partida do terminal é a mesma estação: não anunciar de novo.
@@ -108,8 +126,20 @@ class TripService : Service() {
                     ) {
                         val reached = trip.copy(progress = progress)
                         TripNotifications.station(this@TripService, reached)
+                        DevLog.log("trip_station", "station" to plan.stops.getOrNull(progress.index)?.name, "presumed" to progress.presumed)
                         voice?.speak(spokenStation(reached))
                     }
+                }
+                val state = Triple(progress.index, progress.fix, progress.gpsSilentMinutes != null)
+                if (state != lastLogged) {
+                    lastLogged = state
+                    DevLog.log(
+                        "trip_progress", "index" to progress.index,
+                        "station" to plan.stops.getOrNull(progress.index)?.name,
+                        "fix" to progress.fix.name, "delay_min" to "%.1f".format(java.util.Locale.US, progress.delayMinutes),
+                        "gps_silent_min" to progress.gpsSilentMinutes?.let { "%.1f".format(java.util.Locale.US, it) },
+                        "eta" to formatTime(progress.arrivalMinutes.roundToInt()),
+                    )
                 }
                 trip = trip.copy(progress = progress, alerted = alerted, arrived = arrived)
                 TripTracker.publish(trip)
@@ -121,6 +151,18 @@ class TripService : Service() {
 
             launch {
                 LocationSource(this@TripService).updates(GPS_INTERVAL_MILLIS, 0f).collect { location ->
+                    if (DevLog.isEnabled) {
+                        val nearest = plan.stops.minBy {
+                            distanceMeters(location.latitude, location.longitude, it.lat, it.lon)
+                        }
+                        DevLog.log(
+                            "trip_gps", "provider" to location.provider, "lat" to location.latitude,
+                            "lon" to location.longitude, "acc" to location.accuracy,
+                            "speed" to location.takeIf { it.hasSpeed() }?.speed,
+                            "nearest" to nearest.name,
+                            "dist_m" to distanceMeters(location.latitude, location.longitude, nearest.lat, nearest.lon).toInt(),
+                        )
+                    }
                     estimator.onLocation(location.latitude, location.longitude, location.accuracy, nowMinutes())
                     update()
                 }
@@ -128,12 +170,14 @@ class TripService : Service() {
             while (true) {
                 update()
                 if (trip.arrived) {
+                    DevLog.log("trip_end", "reason" to "arrived", "delay_min" to "%.1f".format(java.util.Locale.US, trip.progress.delayMinutes))
                     // Deixa a notificação de chegada um tempo e encerra sozinho.
                     delay(ARRIVED_LINGER_MILLIS)
                     finish()
                     break
                 }
                 if (nowMinutes() > plan.destination.scheduled + trip.progress.delayMinutes + settings.tripGiveUpMinutes) {
+                    DevLog.log("trip_end", "reason" to "give_up")
                     finish()
                     break
                 }

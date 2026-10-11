@@ -120,7 +120,30 @@ object ScheduleStore {
             putString(keyDate(type), date)
             putLong(keySyncedAt(type), System.currentTimeMillis())
         }
+        if (DevLog.isEnabled) {
+            DevLog.log("sync_ok", "day_type" to type.name, "date" to date, "bytes" to zip.size, "lines" to summary(target))
+        }
     }
+
+    /** Por linha: viagens, primeira e última partida — para comparar grades no registro. */
+    private fun summary(file: File): String = runCatching {
+        android.database.sqlite.SQLiteDatabase.openDatabase(
+            file.path, null, android.database.sqlite.SQLiteDatabase.OPEN_READONLY,
+        ).use { db ->
+            db.rawQuery(
+                """
+                SELECT r.name, COUNT(DISTINCT d.trip_id), MIN(d.minutes), MAX(d.minutes)
+                FROM departure d JOIN route r ON r.route_id = d.route_id
+                GROUP BY r.route_id ORDER BY r.sort_order
+                """.trimIndent(),
+                null,
+            ).use { c ->
+                buildList {
+                    while (c.moveToNext()) add("${c.getString(0)}: ${c.getInt(1)} viagens ${formatTime(c.getInt(2))}-${formatTime(c.getInt(3))}")
+                }.joinToString(" | ")
+            }
+        }
+    }.getOrDefault("?")
 
     private fun download(): ByteArray {
         val connection = URL(FEED_URL).openConnection() as HttpsURLConnection

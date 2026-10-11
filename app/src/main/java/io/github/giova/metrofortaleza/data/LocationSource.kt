@@ -26,6 +26,17 @@ import kotlin.coroutines.resume
  */
 class LocationSource(private val context: Context) {
 
+    /** Permissão de local exato (a aproximada sozinha não usa o GPS). */
+    fun hasFinePermission(): Boolean = ContextCompat.checkSelfPermission(
+        context, Manifest.permission.ACCESS_FINE_LOCATION,
+    ) == PackageManager.PERMISSION_GRANTED
+
+    /** Provedores ligados agora, para o registro de testes. */
+    @SuppressLint("MissingPermission")
+    fun enabledProviders(): String =
+        runCatching { (context.getSystemService(Context.LOCATION_SERVICE) as LocationManager).getProviders(true) }
+            .getOrNull().orEmpty().joinToString(",")
+
     fun hasPermission(): Boolean = PERMISSIONS.any {
         ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
     }

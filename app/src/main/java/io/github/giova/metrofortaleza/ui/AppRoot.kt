@@ -39,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import io.github.giova.metrofortaleza.data.DevLog
 import io.github.giova.metrofortaleza.data.LocationSource
 import io.github.giova.metrofortaleza.data.MetroforDatabase
 import io.github.giova.metrofortaleza.data.PinnedStation
@@ -84,9 +85,11 @@ fun AppRoot() {
     LaunchedEffect(today, scheduleRequest) {
         if (scheduleRequest == 0 && !ScheduleStore.needsSync(context)) return@LaunchedEffect
         scheduleSyncing = true
+        DevLog.log("sync_start", "manual" to (scheduleRequest > 0))
         val result = withContext(Dispatchers.IO) {
             runCatching { ScheduleStore.sync(context, MetroforDatabase.bundledFile(context)) }
         }
+        result.exceptionOrNull()?.let { DevLog.log("sync_fail", "reason" to (it.message ?: it.javaClass.simpleName)) }
         scheduleSyncFailed = result.isFailure
         scheduleSyncing = false
         if (result.isSuccess) scheduleVersion++
@@ -95,7 +98,9 @@ fun AppRoot() {
     // A primeira abertura copia o banco de assets; isso sai da thread principal.
     var repository by remember { mutableStateOf<ScheduleRepository?>(null) }
     LaunchedEffect(context, today, scheduleVersion) {
-        repository = withContext(Dispatchers.IO) { ScheduleRepository(context) }
+        repository = withContext(Dispatchers.IO) { ScheduleRepository(context) }.also {
+            DevLog.log("schedule_source", "kind" to it.source.kind.name, "date" to it.source.date)
+        }
     }
 
     val repo = repository
@@ -146,11 +151,24 @@ fun AppRoot() {
 
     suspend fun locate() {
         homeState = HomeStation.Locating
+        val started = android.os.SystemClock.elapsedRealtime()
+        DevLog.log(
+            "loc_request",
+            "fine" to locationSource.hasFinePermission(),
+            "providers" to locationSource.enabledProviders(),
+        )
         val position = locationSource.current()
+        val elapsed = android.os.SystemClock.elapsedRealtime() - started
         if (position == null) {
+            DevLog.log("loc_fail", "ms" to elapsed)
             homeState = HomeStation.Unavailable(HomeStation.Reason.NO_FIX)
             return
         }
+        DevLog.log(
+            "loc_ok", "ms" to elapsed, "provider" to position.provider,
+            "lat" to position.latitude, "lon" to position.longitude, "acc" to position.accuracy,
+            "age_s" to (System.currentTimeMillis() - position.time) / 1000,
+        )
         val stations = withContext(Dispatchers.IO) { repo.stations() }
         homeState = nearbyState(stations, position.latitude, position.longitude)
             ?: HomeStation.Unavailable(HomeStation.Reason.NO_FIX)
@@ -211,7 +229,14 @@ fun AppRoot() {
         if (!followGps) return@LaunchedEffect
         val stations = withContext(Dispatchers.IO) { repo.stations() }
         locationSource.updates(settings.homeGpsSeconds * 1000L, HOME_GPS_MIN_METERS).collect { position ->
-            nearbyState(stations, position.latitude, position.longitude)?.let { homeState = it }
+            nearbyState(stations, position.latitude, position.longitude)?.let {
+                DevLog.log(
+                    "home_gps", "provider" to position.provider, "lat" to position.latitude,
+                    "lon" to position.longitude, "acc" to position.accuracy,
+                    "station" to it.station.stopName, "dist_m" to it.distanceMeters.toInt(),
+                )
+                homeState = it
+            }
         }
     }
 
