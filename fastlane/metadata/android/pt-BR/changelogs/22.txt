@@ -1,0 +1,2 @@
+• Lembrete da hora de sair: toque num horário da estação, escolha se sai de casa ou do trabalho, e o app cria o lembrete na agenda do celular. O tempo até a estação fica nas Configurações.
+• Modo viagem mais preciso no começo da viagem, quando o metrô está atrasado, e menos erros de posição pela rede do celular.
