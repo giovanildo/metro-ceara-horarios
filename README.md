@@ -82,7 +82,9 @@ com"** a outra linha: o nome da estação de lá, o tempo a pé e, em cada senti
 primeiro trem **que ainda dá para pegar** (partida depois de agora + caminhada).
 Tocar no bloco abre a outra estação já no sentido mostrado. Nos terminais, o
 sentido que só chega ali fica de fora. Os pontos vêm da tabela `transfer` do
-banco (`TRANSFERS` em `tools/build_db.py` e `GtfsImporter.kt`):
+banco, que o gerador e o download diário montam a partir de
+[`app/src/main/assets/regras.json`](app/src/main/assets/regras.json) (seção
+`integracoes`):
 
 | Integração | Linhas | A pé |
 |---|---|---|
@@ -90,8 +92,10 @@ banco (`TRANSFERS` em `tools/build_db.py` e `GtfsImporter.kt`):
 | Expedicionários ↔ Expedicionários - AE | Nordeste ↔ VLT Aeroporto | 3 min |
 | Chico da Silva ↔ Moura Brasil | Sul ↔ Oeste | 5 min (~200 m) |
 
-**Passagem.** A regra fica em `data/TransferFares.kt`, fixa no código porque não
-vem do GTFS, e vale **por sentido** (de → para), com um motivo opcional:
+**Passagem.** A regra fica no mesmo `regras.json`, em cada integração
+(`passagem_a_para_b` / `passagem_b_para_a`: `gratis`, `paga` ou `desconhecida`),
+porque não vem do GTFS, e vale **por sentido** (de → para), com um motivo
+opcional:
 
 | De → Para | Passagem |
 |---|---|
@@ -191,15 +195,21 @@ partir das 15h. Os VLTs não aparecem no regulamento, por isso ficam de fora; no
 domingo o aviso de bike some, porque nesse dia só há operação especial e a regra
 dela não é conhecida.
 
-As regras são **parâmetros** reunidos no topo de `data/BikeBoarding.kt`, na
-seção "PARÂMETROS": cada regra (`BikeRule`) tem janelas de horário (`BikeWindow`,
-"HH:MM" de início e fim, ou só início = até o fim da operação) para dia útil,
-sábado e domingo. Há uma tabela **por linha** (`BIKE_RULES_BY_LINE`, hoje Sul,
-Oeste e Nordeste com o regulamento de 2023; linha fora dela não tem aviso) e
-outra de **exceções por estação** (`BIKE_RULES_BY_STATION`, vazia hoje), que
-vale antes da da linha. Mudou o regulamento ou alguma estação tem regra própria:
-é só editar essas tabelas. Ficam fora das Configurações de propósito — são regra
-do Metrofor, não preferência de quem usa o app.
+As regras ficam na seção `bike` de
+[`app/src/main/assets/regras.json`](app/src/main/assets/regras.json): cada
+regulamento tem janelas de horário (`["09:00", "15:00"]`, ou `["20:00", null]` =
+até o fim da operação) para dias úteis, sábado e domingo. Há uma tabela **por
+linha** (`linhas`, hoje Sul, Oeste e Nordeste com o regulamento de 2023; linha
+fora dela não tem aviso) e outra de **exceções por estação** (`estacoes`, vazia
+hoje), que vale antes da da linha. Mudou o regulamento ou alguma estação tem
+regra própria: é só editar o arquivo e gerar uma versão nova. Ficam fora das
+Configurações de propósito — são regra do Metrofor, não preferência de quem usa
+o app.
+
+O `regras.json` é a **fonte única** das regras que não vêm do GTFS (bike,
+integrações e passagem): o app lê ao abrir (`data/Regras.kt`), e o
+`tools/build_db.py` e a futura versão web leem o mesmo arquivo. Com o arquivo
+ilegível, o app segue sem avisos de bike e de passagem, em vez de fechar.
 
 Um ícone de **engrenagem** no topo abre as **Configurações**, com as distâncias
 e os tempos que antes eram fixos no código (`data/Settings.kt`; padrões entre
@@ -380,13 +390,12 @@ Estas vêm do feed oficial, não do app:
    enquanto o feed diz valer até 2027. O app ignora esse arquivo.
 3. **Não há `transfers.txt`.** As três baldeações reais foram derivadas por
    distância entre estações de linhas diferentes e estão declaradas em
-   `TRANSFERS`, dentro do gerador:
+   `app/src/main/assets/regras.json`, que o gerador lê:
    - Parangaba ↔ Parangaba-NE (Linha Sul ↔ Linha Nordeste)
    - Expedicionários ↔ Expedicionários-AE (Linha Nordeste ↔ VLT Aeroporto)
    - Chico da Silva ↔ Moura Brasil (Linha Sul ↔ Linha Oeste, ~200 m a pé)
 
-   A tabela `transfer` já existe no banco, mas **a tela de baldeação não foi
-   construída** — ficou para a v2.
+   O app as mostra no bloco "Integração com", na tela de horários.
 4. **Não há GTFS-RT.** Tudo aqui é horário programado: o app não sabe de
    atrasos nem da posição real dos trens.
 5. **O Bicicletar não tem disponibilidade em tempo real.** O GeoJSON da AMC traz
@@ -435,6 +444,7 @@ resolve o SDK e o wrapper sozinho.
 ```
 tools/build_db.py                    GTFS oficial -> SQLite embarcado
 app/src/main/assets/metrofor.db      banco gerado (não editar à mão)
+app/src/main/assets/regras.json      regras fora do GTFS: bike, integrações, passagem
 app/src/main/java/.../data/          modelos, abertura do banco, consultas, relógio
 app/src/main/java/.../ui/            telas Compose: linhas -> estações -> partidas
 ```

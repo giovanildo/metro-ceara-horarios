@@ -45,15 +45,7 @@ internal object GtfsImporter {
         "CREATE INDEX idx_route_stop_stop ON route_stop (stop_id)",
     )
 
-    /** As mesmas baldeações de `build_db.py`, declaradas por nome de estação. */
-    private val TRANSFERS = listOf(
-        Transfer("Parangaba", "Parangaba - Ne", 2, "Mesma estacao"),
-        Transfer("Expedicionarios", "Expedicionarios - Ae", 3, "Passarela"),
-        Transfer("Chico Da Silva", "Moura Brasil", 5, "A pe, ~200 m"),
-    )
     private const val MAX_TRANSFER_METERS = 400.0
-
-    private data class Transfer(val a: String, val b: String, val walk: Int, val note: String)
 
     /**
      * Gera o banco em [target] a partir de [zip]. Lança exceção se o feed não
@@ -145,7 +137,8 @@ internal object GtfsImporter {
 
             val byName = stops.groupBy { it["stop_name"].orEmpty().trim().lowercase() }
                 .mapValues { it.value.first() }
-            insert(db, "transfer", 4, TRANSFERS.flatMap { transfer ->
+            // As integrações vêm de assets/regras.json, declaradas por nome de estação.
+            insert(db, "transfer", 4, Regras.current.integracoes.flatMap { transfer ->
                 val a = byName[transfer.a.lowercase()]
                 val b = byName[transfer.b.lowercase()]
                 if (a == null || b == null) return@flatMap emptyList()
@@ -157,8 +150,8 @@ internal object GtfsImporter {
                 val idA = a.getValue("stop_id")
                 val idB = b.getValue("stop_id")
                 listOf(
-                    arrayOf<Any>(idA, idB, transfer.walk, transfer.note),
-                    arrayOf<Any>(idB, idA, transfer.walk, transfer.note),
+                    arrayOf<Any>(idA, idB, transfer.walkMinutes, transfer.note),
+                    arrayOf<Any>(idB, idA, transfer.walkMinutes, transfer.note),
                 )
             })
 

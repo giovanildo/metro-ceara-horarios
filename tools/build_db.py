@@ -35,15 +35,14 @@ OUT = os.path.join(ROOT, "app", "src", "main", "assets", "metrofor.db")
 # para saber se o que ele ja instalou esta desatualizado.
 OUT_VERSION = OUT + ".version"
 
-# O feed nao traz transfers.txt. Estas baldeacoes foram derivadas por distancia
-# entre estacoes de linhas diferentes (<1 km) e conferidas manualmente. Sao
-# declaradas por NOME de estacao e resolvidas para stop_id na geracao, para nao
-# quebrarem caso o Metrofor renumere as estacoes.
-TRANSFERS = [
-    ("Parangaba", "Parangaba - Ne", 2, "Mesma estacao"),
-    ("Expedicionarios", "Expedicionarios - Ae", 3, "Passarela"),
-    ("Chico Da Silva", "Moura Brasil", 5, "A pe, ~200 m"),
-]
+# O feed nao traz transfers.txt. As integracoes ficam em assets/regras.json
+# (fonte unica, lida tambem pelo app e pela versao web), declaradas por NOME de
+# estacao e resolvidas para stop_id na geracao, para nao quebrarem caso o
+# Metrofor renumere as estacoes.
+RULES = os.path.join(ROOT, "app", "src", "main", "assets", "regras.json")
+with open(RULES, encoding="utf-8") as _f:
+    TRANSFERS = [(t["a"], t["b"], t["caminhada_min"], t.get("obs", ""))
+                 for t in json.load(_f)["integracoes"]]
 MAX_TRANSFER_METERS = 400
 
 SCHEMA = """

@@ -24,44 +24,12 @@ data class BikeRule(
     }
 }
 
-// ---------------------------------------------------------------------------
-// PARÂMETROS — as regras de bike ficam todas aqui. Mudou o regulamento? Edite
-// esta seção e gere uma versão nova. Ficam fora das Configurações de propósito:
-// são regra do Metrofor, não preferência de quem usa o app.
-// ---------------------------------------------------------------------------
-
-/**
- * Regulamento "Bike é bem-vinda no metrô" (Metrofor, 2023): segunda a sexta das
- * 9h às 15h e a partir das 20h; sábado a partir das 15h; domingo não aparece.
- */
-private val REGULAMENTO_2023 = BikeRule(
-    weekday = listOf(BikeWindow("09:00", "15:00"), BikeWindow("20:00")),
-    saturday = listOf(BikeWindow("15:00")),
-)
-
-/**
- * Regra de cada linha, pelo nome como aparece no app. Linha que não está aqui
- * (os VLTs, por enquanto) não tem aviso de bike — o regulamento não fala deles.
- */
-private val BIKE_RULES_BY_LINE: Map<String, BikeRule> = mapOf(
-    "Linha Sul" to REGULAMENTO_2023,
-    "Linha Oeste" to REGULAMENTO_2023,
-    "Linha Nordeste" to REGULAMENTO_2023,
-)
-
-/**
- * Exceções por estação, quando uma estação tiver regra diferente da sua linha
- * (por exemplo, sem bike numa estação lotada). Chave: nome da estação como no
- * app. Vazio hoje: todas seguem a regra da linha.
- */
-private val BIKE_RULES_BY_STATION: Map<String, BikeRule> = emptyMap()
-
-// ---------------------------------------------------------------------------
-
 /** A regra que vale nesta estação desta linha, ou `null` se lá não há aviso de bike. */
-fun bikeRuleFor(stationName: String, lineName: String): BikeRule? =
-    BIKE_RULES_BY_STATION.entries.firstOrNull { it.key.equals(stationName.trim(), ignoreCase = true) }?.value
-        ?: BIKE_RULES_BY_LINE.entries.firstOrNull { it.key.equals(lineName.trim(), ignoreCase = true) }?.value
+fun bikeRuleFor(stationName: String, lineName: String): BikeRule? {
+    // As regras ficam em assets/regras.json (seção "bike"), não aqui.
+    val rules = Regras.current
+    return rules.bikeByStation[stationName.trim().lowercase()] ?: rules.bikeByLine[lineName.trim().lowercase()]
+}
 
 /**
  * Se dá para entrar com bicicleta agora.
