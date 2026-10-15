@@ -17,3 +17,6 @@ keystore.properties
 
 # Registros de teste de campo (posições de GPS exatas): nunca vão para o git.
 logs/
+
+# Python (tools/build_web_data.py importa o build_db.py)
+__pycache__/

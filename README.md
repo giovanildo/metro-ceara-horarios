@@ -484,6 +484,31 @@ ou da tabela, atraso, GPS sem sinal), `trip_alert`, `trip_station`,
 `trip_turnaround`, `trip_end` (motivo), `crash` (erro que derrubou o app) e
 `log_on`/`log_off`.
 
+## Versão web (em construção)
+
+Para quem tem iPhone (e para quem prefere não instalar APK) vem aí uma versão
+web instalável (PWA), neste mesmo repositório. O navegador não consegue baixar
+o GTFS direto do Metrofor — o certificado costuma estar vencido e o site não
+libera acesso a partir de outras páginas —, então os horários chegam prontos:
+
+- [`tools/build_web_data.py`](tools/build_web_data.py) baixa o feed e gera JSON,
+  reaproveitando o tratamento do `build_db.py` (nomes, cores, Bicicletar) e as
+  integrações do `regras.json`. Como no app, guarda **uma grade por tipo de
+  dia** (`horarios-dia-util.json`, `horarios-sabado.json`,
+  `horarios-domingo.json`), atualizando só a do dia; `indice.json` diz a data
+  de cada uma. Feed vazio ou quebrado não substitui a grade boa. Cada sentido
+  traz a ordem das estações e as viagens como listas de minutos alinhadas a
+  ela (`null` = não para): a grade de um dia útil inteiro tem ~23 KB.
+- A tarefa [`dados-web.yml`](.github/workflows/dados-web.yml) roda o script
+  todo dia às 04:30 de Fortaleza (ou à mão, em Actions → "Dados da versão
+  web" → Run workflow) e publica o resultado no ramo **`dados`**, fora da
+  `main`, para não encher o histórico do app. A web lê de
+  `raw.githubusercontent.com/giovanildo/metro-fortaleza-horarios/dados/…`.
+  O commit diário também mantém a tarefa viva (o GitHub desliga tarefas
+  agendadas de repositórios parados há 60 dias).
+
+Para gerar localmente: `python3 tools/build_web_data.py /tmp/dados`.
+
 ## Página de apresentação
 
 `docs/` é a página pública do app (GitHub Pages, publicada a partir de

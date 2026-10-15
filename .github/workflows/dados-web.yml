@@ -1,0 +1,52 @@
+# Baixa o GTFS do Metrofor todo dia e publica os horários em JSON para a
+# versão web, no ramo "dados" (fora da main, para não gerar um commit por dia
+# no histórico do app). O navegador não consegue baixar o feed direto: o
+# certificado do Metrofor costuma estar vencido e o site não libera acesso de
+# outras páginas.
+name: Dados da versão web
+
+on:
+  schedule:
+    - cron: "30 7 * * *"  # 04:30 em Fortaleza
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dados-web
+  cancel-in-progress: false
+
+jobs:
+  dados:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Abrir o ramo dados (ou criar, na primeira vez)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git fetch --depth 1 origin dados; then
+            git worktree add out FETCH_HEAD
+            git -C out switch -c dados
+          else
+            git worktree add --detach out
+            git -C out switch --orphan dados
+          fi
+
+      - name: Gerar os horários
+        env:
+          TZ: America/Fortaleza
+        run: python3 tools/build_web_data.py out
+
+      - name: Publicar se mudou
+        run: |
+          cd out
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Nada mudou."
+          else
+            git commit -q -m "Horários de $(date +%F)"
+            git push origin dados
+          fi
