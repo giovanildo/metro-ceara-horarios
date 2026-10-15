@@ -360,15 +360,23 @@ private fun AllDepartures(all: List<Int>, now: Int, onPick: (Int) -> Unit) {
         modifier = Modifier.fillMaxWidth(),
     ) {
         all.forEach { minutes ->
-            // Só os que ainda não passaram: o lembrete é para hoje.
+            // Os que ainda não passaram ficam em destaque e abrem o lembrete;
+            // os que passaram ficam apagados.
+            val upcoming = minutes >= now
             Surface(
-                color = MaterialTheme.colorScheme.surfaceVariant,
+                color = if (upcoming) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant,
                 shape = MaterialTheme.shapes.small,
-                modifier = if (minutes >= now) Modifier.clickable { onPick(minutes) } else Modifier,
+                modifier = if (upcoming) Modifier.clickable { onPick(minutes) } else Modifier,
             ) {
                 Text(
                     text = formatTime(minutes),
                     style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = if (upcoming) FontWeight.Medium else FontWeight.Normal,
+                    color = if (upcoming) {
+                        MaterialTheme.colorScheme.onSecondaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    },
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
                 )
             }

@@ -216,8 +216,8 @@ próprias cores, em vermelho). Nas outras seções:
 | Atualizar sua posição (tela inicial) a cada | 10 s | 5 – 60 s |
 
 **Lembrete da hora de sair:** na tela de horários de uma estação, tocar num
-horário (nas próximas partidas ou em "Todos os horários", só os que ainda não
-passaram) abre uma janela para escolher **De casa** ou **Do trabalho**. Ela
+horário de hoje que ainda não passou (nas próximas partidas ou em "Todos os
+horários", onde esses ficam em destaque e os que já passaram, apagados) abre uma janela para escolher **De casa** ou **Do trabalho**. Ela
 mostra a hora de sair (partida menos o tempo configurado) e o botão "Abrir a
 agenda" manda um evento para o app de agenda do celular (`ACTION_INSERT` do
 `CalendarContract`, em `ui/LeaveReminder.kt`): começa na hora de sair, termina
