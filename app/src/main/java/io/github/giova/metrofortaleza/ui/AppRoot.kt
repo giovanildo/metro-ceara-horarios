@@ -504,7 +504,12 @@ fun AppRoot() {
         }
 
         route != null && stop != null -> {
-            val directions = remember(route.id) { repo.directions(route.id) }
+            // No terminal, o sentido que acaba nele só tem chegadas: ninguém embarca
+            // nele ali, então a aba some (a tela inicial já fazia assim).
+            val directions = remember(route.id, stop.id) {
+                repo.directions(route.id).filterNot { repo.endsAt(stop.id, route.id, it.id) }
+                    .ifEmpty { repo.directions(route.id) }
+            }
             val isPinned = pinned.get() == (stop.id to route.id)
             // O Stop da navegação não carrega coordenadas; o Station sim.
             val bike = remember(stop.id, route.id, bikeStations, settings) {
@@ -541,9 +546,8 @@ fun AppRoot() {
                     routeId = target.routeId
                     stopId = target.stopId
                 },
-                // Pedido por uma integração, ou o primeiro sentido em que dá para partir.
-                initialDirectionId = openDirectionId
-                    ?: directions.firstOrNull { !repo.endsAt(stop.id, route.id, it.id) }?.id,
+                // Pedido por uma integração; senão, o primeiro sentido.
+                initialDirectionId = openDirectionId,
                 tripAllowed = remember(stop.id, route.id, homeState) {
                     repo.station(stop.id, route.id)?.let { tripAllowedFrom(it.lat, it.lon) } ?: true
                 },

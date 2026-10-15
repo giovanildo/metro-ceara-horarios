@@ -34,7 +34,7 @@ clicável.
 
 A tela inicial destaca uma estação com a próxima partida de cada sentido — nos
 terminais, só o sentido em que dá para partir (o que termina ali só teria
-chegadas), e a tela de horários de um terminal já abre nesse sentido. Pelo
+chegadas). A tela de horários de um terminal também mostra só esse sentido. Pelo
 GPS, se houver estações de **outras linhas a até 3 km**, cada linha ganha seu
 cartão (por exemplo, Chico da Silva na Linha Sul e Moura Brasil na Oeste, a
 ~200 m uma da outra), e o modo viagem oferece todas como ponto de partida. A
