@@ -32,6 +32,17 @@ Há também sequências com as telas do app e o link no rodapé, para o status:
 descida. No status do WhatsApp, o link escrito na **legenda** da imagem fica
 clicável.
 
+E dois vídeos verticais (1080×1920, sem música — ela entra ao postar, pela
+biblioteca do Instagram ou do WhatsApp):
+`metro-fortaleza-divulgacao.mp4` (~49 s: próxima partida, lembrete da hora de
+sair, modo viagem até o aviso de descida, QR da página do app) e
+`metro-fortaleza-como-instalar.mp4` (~59 s, cabe no status do WhatsApp: os
+passos reais da instalação pelo link, com os avisos do Android, e depois os
+problemas comuns e a saída de cada um — aviso do navegador, Play Protect,
+Bloqueador automático da Samsung, "App não instalado"). As telas foram gravadas
+no emulador em pt-BR; os avisos do navegador e do Play Protect, que não
+aparecem lá, são ilustrações marcadas como tal.
+
 A tela inicial destaca uma estação com a próxima partida de cada sentido — nos
 terminais, só o sentido em que dá para partir (o que termina ali só teria
 chegadas). A tela de horários de um terminal também mostra só esse sentido. Pelo
