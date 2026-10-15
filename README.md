@@ -509,6 +509,27 @@ libera acesso a partir de outras páginas —, então os horários chegam pronto
 
 Para gerar localmente: `python3 tools/build_web_data.py /tmp/dados`.
 
+A versão web em si fica em [`docs/app/`](docs/app/) e é publicada pelo mesmo
+GitHub Pages da página do app, em `giovanildo.github.io/metro-fortaleza-horarios/app/`.
+É HTML, CSS e JavaScript puros, sem framework nem etapa de build:
+
+- `dados.js` — download dos JSON (com a última cópia guardada no aparelho, para
+  abrir sem internet), relógio sempre no fuso de Fortaleza, grade do tipo de
+  dia, próximas partidas (acabando as de hoje, seguem as de amanhã) e
+  distância. É a tradução das mesmas regras do app.
+- `app.js` — as telas: início (estação mais perto de cada linha até 3 km, com a
+  próxima partida em cada sentido; a localização só é pedida ao tocar no
+  botão), linhas, estação (abas por sentido, sem o sentido que termina nela;
+  próximas partidas e todos os horários) e configurações.
+- **Lembrete da hora de sair**, como no app: só na estação perto de casa
+  (escolhida nas configurações, com as 3 mais perto no topo) e com o tempo de
+  casa até ela. Em vez de abrir a agenda, baixa um arquivo `.ics` com o evento
+  e um aviso na hora de sair — o iPhone abre no Calendário, o Android na agenda.
+- `manifest.webmanifest` e os ícones permitem "Adicionar à tela inicial".
+
+Para testar localmente: `python3 -m http.server -d docs 8000` e abrir
+`http://localhost:8000/app/` (no emulador, `adb reverse tcp:8000 tcp:8000`).
+
 ## Página de apresentação
 
 `docs/` é a página pública do app (GitHub Pages, publicada a partir de
