@@ -113,10 +113,25 @@ class TripEstimator(
     private var lastFix = TripFix.SCHEDULE
     private var startedAt: Double? = null
     private var lastGoodGps: Double? = null
+    private var lastSatellite: Double? = null
+    /** O GPS já pôs a pessoa numa estação da viagem pelo menos uma vez. */
+    private var seenAtStation = false
 
-    /** Uma posição de GPS. Só conta se for precisa e estiver perto de uma estação da viagem. */
-    fun onLocation(lat: Double, lon: Double, accuracyMeters: Float, nowMinutes: Double) {
+    /**
+     * Uma posição. Só conta se for precisa e estiver perto de uma estação da
+     * viagem. [fromNetwork]: veio da rede de celular/Wi-Fi, não do satélite.
+     */
+    fun onLocation(lat: Double, lon: Double, accuracyMeters: Float, nowMinutes: Double, fromNetwork: Boolean = false) {
         if (accuracyMeters > MAX_ACCURACY_METERS) return
+        // A posição pela rede erra até ~150 m e já pôs a pessoa na estação
+        // errada; com satélite recente, ela é descartada. Sem satélite (túnel),
+        // ainda serve.
+        if (fromNetwork) {
+            val satellite = lastSatellite
+            if (satellite != null && nowMinutes - satellite <= PREFER_SATELLITE_MINUTES) return
+        } else {
+            lastSatellite = nowMinutes
+        }
         // Posição boa, mesmo longe de estação: o GPS está alcançável.
         lastGoodGps = nowMinutes
         // Numa viagem pelo terminal a mesma estação aparece duas vezes (ida e
@@ -134,6 +149,7 @@ class TripEstimator(
         if (nearest < index && !confident) return
         index = nearest
         lastFix = TripFix.GPS
+        seenAtStation = true
         // Estar na estação i agora quer dizer atraso de (agora − horário em i).
         // Na origem, chegar cedo não é adiantamento: o trem ainda vai passar.
         val measured = nowMinutes - plan.stops[nearest].scheduled
@@ -146,12 +162,18 @@ class TripEstimator(
         // No terminal o trem espera o horário de saída: passado dele, um
         // adiantamento medido na ida não vale mais.
         if (plan.viaTerminal && index >= plan.turnaroundIndex && delay < 0) delay = 0.0
+        val started = startedAt ?: nowMinutes.also { startedAt = it }
+        val since = lastGoodGps ?: started
+        // Antes do primeiro sinal na estação, a grade não sabe se o trem está
+        // atrasado: não passa da partida. Se o GPS não aparecer (começou já no
+        // túnel), a grade volta a andar quando ele é dado como perdido.
+        val waitingFirstFix = !seenAtStation && nowMinutes - started < gpsLostMinutes
         val bySchedule = plan.stops.indexOfLast { it.scheduled + delay <= nowMinutes }
+            .let { if (waitingFirstFix) it.coerceAtMost(0) else it }
         if (bySchedule > index) {
             index = bySchedule
             lastFix = TripFix.SCHEDULE
         }
-        val since = lastGoodGps ?: startedAt ?: nowMinutes.also { startedAt = it }
         val silent = nowMinutes - since
         return TripProgress(
             index = index,
@@ -175,5 +197,7 @@ class TripEstimator(
         private const val CONFIDENT_ACCURACY_METERS = 40f
         private const val CONFIDENT_RADIUS_METERS = 150.0
         private const val MAX_DELAY_MINUTES = 30.0
+        /** Posição de satélite com menos que isso faz a da rede ser ignorada. */
+        private const val PREFER_SATELLITE_MINUTES = 0.25
     }
 }

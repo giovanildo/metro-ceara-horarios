@@ -3,6 +3,7 @@ package io.github.giova.metrofortaleza.trip
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
+import android.location.LocationManager
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
@@ -163,7 +164,10 @@ class TripService : Service() {
                             "dist_m" to distanceMeters(location.latitude, location.longitude, nearest.lat, nearest.lon).toInt(),
                         )
                     }
-                    estimator.onLocation(location.latitude, location.longitude, location.accuracy, nowMinutes())
+                    estimator.onLocation(
+                        location.latitude, location.longitude, location.accuracy, nowMinutes(),
+                        fromNetwork = location.provider == LocationManager.NETWORK_PROVIDER,
+                    )
                     update()
                 }
             }

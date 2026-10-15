@@ -106,6 +106,13 @@ primeiro plano, com notificação fixa, segue a viagem com a tela desligada:
   em relação à grade. Quando o sinal some (dentro do trem, no trecho
   subterrâneo), a posição passa a sair **da tabela de horários**, corrigida
   por esse atraso. A tela diz qual das duas fontes está valendo.
+  Posições da **rede de celular/Wi-Fi** só contam quando não há posição de
+  satélite nos últimos 15 s: elas erram até ~150 m e chegaram a pôr a pessoa
+  na estação errada. **No começo da viagem**, até o GPS achar a pessoa numa
+  estação, a tabela não passa da estação de partida — o trem pode estar
+  atrasado, e a tabela não sabe disso; se o GPS não aparecer no tempo de "GPS
+  perdido" (quem começa já no túnel), a tabela volta a andar. Os dois ajustes
+  vieram do registro de testes de campo.
 - **Quando o GPS é dado como perdido.** Depois de **1 minuto** sem nenhuma
   posição boa (12 tentativas, uma a cada 5 s) — menos que os ~2 min entre duas
   estações. A partir daí o cartão mostra um quadro em destaque, de fundo neutro
