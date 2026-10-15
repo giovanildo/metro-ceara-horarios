@@ -532,6 +532,8 @@ fun AppRoot() {
                     if (isPinned) pinned.clear() else pinned.set(stop.id, route.id)
                     refreshHome()
                 },
+                homeMinutes = settings.homeToStationMinutes,
+                workMinutes = settings.workToStationMinutes,
                 onBack = { stopId = null },
             )
         }

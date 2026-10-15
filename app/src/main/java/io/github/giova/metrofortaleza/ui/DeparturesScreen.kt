@@ -1,5 +1,6 @@
 package io.github.giova.metrofortaleza.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -82,6 +83,8 @@ fun DeparturesScreen(
     bike: NearbyBike?,
     isPinned: Boolean,
     onTogglePin: () -> Unit,
+    homeMinutes: Int,
+    workMinutes: Int,
     onBack: () -> Unit,
 ) {
     // A aba é da estação: ao abrir outra, volta para o sentido pedido (ou o primeiro).
@@ -112,6 +115,15 @@ fun DeparturesScreen(
     }
     val destinations = destinationGroups.flatMap { it.stops }
     var pickingDestination by remember { mutableStateOf(false) }
+    var reminder by remember { mutableStateOf<Departure?>(null) }
+    reminder?.let { departure ->
+        LeaveReminderDialog(
+            reminder = LeaveReminder(departure, stop.name, route.name, direction?.headsign.orEmpty(), vehicleName(route.name)),
+            homeMinutes = homeMinutes,
+            workMinutes = workMinutes,
+            onDismiss = { reminder = null },
+        )
+    }
     if (pickingDestination && direction != null) {
         DestinationDialog(
             groups = destinationGroups,
@@ -209,10 +221,17 @@ fun DeparturesScreen(
                             Column(modifier = Modifier.padding(vertical = 4.dp)) {
                                 next.forEachIndexed { index, departure ->
                                     if (index > 0) HorizontalDivider()
-                                    DepartureRow(departure, now, highlighted = index == 0)
+                                    DepartureRow(departure, now, highlighted = index == 0) { reminder = departure }
                                 }
                             }
                         }
+                    }
+                    item {
+                        Text(
+                            text = stringResource(R.string.leave_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
 
@@ -274,7 +293,7 @@ fun DeparturesScreen(
                         modifier = Modifier.padding(top = 8.dp),
                     )
                 }
-                item { AllDepartures(all) }
+                item { AllDepartures(all, now) { reminder = Departure(it, tomorrow = false) } }
 
                 item {
                     Text(
@@ -290,11 +309,12 @@ fun DeparturesScreen(
 }
 
 @Composable
-private fun DepartureRow(departure: Departure, now: Int, highlighted: Boolean) {
+private fun DepartureRow(departure: Departure, now: Int, highlighted: Boolean, onClick: () -> Unit) {
     val remaining = minutesUntil(departure, now)
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 10.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
@@ -333,16 +353,18 @@ internal fun relativeLabel(remaining: Int): String = when {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun AllDepartures(all: List<Int>) {
+private fun AllDepartures(all: List<Int>, now: Int, onPick: (Int) -> Unit) {
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier.fillMaxWidth(),
     ) {
         all.forEach { minutes ->
+            // Só os que ainda não passaram: o lembrete é para hoje.
             Surface(
                 color = MaterialTheme.colorScheme.surfaceVariant,
                 shape = MaterialTheme.shapes.small,
+                modifier = if (minutes >= now) Modifier.clickable { onPick(minutes) } else Modifier,
             ) {
                 Text(
                     text = formatTime(minutes),

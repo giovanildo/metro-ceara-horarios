@@ -42,6 +42,10 @@ data class AppSettings(
     val wallpaperColors: Boolean = true,
     /** No aviso de descida e na chegada, lembrar de não esquecer os pertences. */
     val remindBelongings: Boolean = true,
+    /** Quanto tempo leva de casa até a estação; o lembrete de sair desconta isso. */
+    val homeToStationMinutes: Int = 10,
+    /** O mesmo, saindo do trabalho (lembrete da volta). */
+    val workToStationMinutes: Int = 10,
 ) {
     companion object {
         const val THEME_AUTO = 0
@@ -78,6 +82,8 @@ object SettingsStore {
             putInt("theme_mode", settings.themeMode)
             putBoolean("wallpaper_colors", settings.wallpaperColors)
             putBoolean("remind_belongings", settings.remindBelongings)
+            putInt("home_to_station_min", settings.homeToStationMinutes)
+            putInt("work_to_station_min", settings.workToStationMinutes)
         }
         state.value = settings
     }
@@ -105,6 +111,8 @@ object SettingsStore {
             themeMode = p.getInt("theme_mode", d.themeMode),
             wallpaperColors = p.getBoolean("wallpaper_colors", d.wallpaperColors),
             remindBelongings = p.getBoolean("remind_belongings", d.remindBelongings),
+            homeToStationMinutes = p.getInt("home_to_station_min", d.homeToStationMinutes),
+            workToStationMinutes = p.getInt("work_to_station_min", d.workToStationMinutes),
         )
     }
 

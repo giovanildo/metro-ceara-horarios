@@ -122,6 +122,18 @@ fun SettingsScreen(
                 value = settings.bikeNearStationMeters, range = 200..1_500, step = 100, format = ::formatMeters,
             ) { onChange(settings.copy(bikeNearStationMeters = it)) }
 
+            SectionTitle(R.string.settings_section_leave)
+            SettingSlider(
+                title = R.string.settings_home_minutes,
+                description = R.string.settings_home_minutes_desc,
+                value = settings.homeToStationMinutes, range = 1..60, step = 1, format = { "$it min" },
+            ) { onChange(settings.copy(homeToStationMinutes = it)) }
+            SettingSlider(
+                title = R.string.settings_work_minutes,
+                description = R.string.settings_work_minutes_desc,
+                value = settings.workToStationMinutes, range = 1..60, step = 1, format = { "$it min" },
+            ) { onChange(settings.copy(workToStationMinutes = it)) }
+
             SectionTitle(R.string.settings_section_trip)
             SettingSwitch(
                 title = R.string.settings_belongings,

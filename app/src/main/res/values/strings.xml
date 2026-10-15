@@ -176,4 +176,23 @@
     <string name="dev_clear">Apagar registro</string>
     <string name="dev_cleared">Registro apagado</string>
     <string name="dev_empty">O registro está vazio</string>
+    <string name="settings_section_leave">Lembrete da hora de sair</string>
+    <string name="settings_home_minutes">Tempo de casa até a estação</string>
+    <string name="settings_home_minutes_desc">Quanto você leva, em média, para ir de casa até a estação. O lembrete na agenda desconta esse tempo do horário do metrô ou VLT.</string>
+    <string name="settings_work_minutes">Tempo do trabalho até a estação</string>
+    <string name="settings_work_minutes_desc">O mesmo para a volta: quanto você leva, em média, para ir do trabalho até a estação.</string>
+    <string name="leave_hint">Toque num horário para lembrar na agenda a hora de sair de casa ou do trabalho.</string>
+    <string name="leave_title">Lembrar a hora de sair</string>
+    <string name="leave_from_home">De casa</string>
+    <string name="leave_from_work">Do trabalho</string>
+    <string name="leave_place_home">de casa</string>
+    <string name="leave_place_work">do trabalho</string>
+    <string name="leave_text">O %1$s sai às %2$s de %3$s. Levando %4$d min %5$s até a estação, saia às %6$s.</string>
+    <string name="leave_text_tomorrow">Amanhã, o %1$s sai às %2$s de %3$s. Levando %4$d min %5$s até a estação, saia às %6$s.</string>
+    <string name="leave_calendar_note">O evento vai para a agenda do celular; confira lá o alarme antes de salvar. Os tempos ficam nas Configurações.</string>
+    <string name="leave_add">Abrir a agenda</string>
+    <string name="leave_no_calendar">Nenhum app de agenda encontrado no celular</string>
+    <string name="leave_event_title">Sair %1$s para o %2$s das %3$s</string>
+    <string name="leave_event_location">Estação %1$s</string>
+    <string name="leave_event_description">%1$s, sentido %2$s. Partida às %3$s; %4$d min %5$s até a estação. Lembrete criado pelo app Metrô Fortaleza.</string>
 </resources>
