@@ -1,6 +1,17 @@
 package io.github.giova.metrofortaleza.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import io.github.giova.metrofortaleza.data.Stop
 import androidx.compose.material3.Switch
 import androidx.compose.material3.FilterChip
 import android.os.Build
@@ -38,6 +49,8 @@ import kotlin.math.roundToInt
 @Composable
 fun SettingsScreen(
     settings: AppSettings,
+    stationGroups: List<StationGroup>,
+    nearestStations: List<NearStation>,
     onChange: (AppSettings) -> Unit,
     onReset: () -> Unit,
     onBack: () -> Unit,
@@ -123,16 +136,23 @@ fun SettingsScreen(
             ) { onChange(settings.copy(bikeNearStationMeters = it)) }
 
             SectionTitle(R.string.settings_section_leave)
+            Text(
+                text = stringResource(R.string.settings_leave_desc),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+            StationSetting(
+                title = R.string.settings_home_station,
+                stopId = settings.homeStopId,
+                groups = stationGroups,
+                nearest = nearestStations,
+            ) { onChange(settings.copy(homeStopId = it)) }
             SettingSlider(
                 title = R.string.settings_home_minutes,
                 description = R.string.settings_home_minutes_desc,
                 value = settings.homeToStationMinutes, range = 1..60, step = 1, format = { "$it min" },
             ) { onChange(settings.copy(homeToStationMinutes = it)) }
-            SettingSlider(
-                title = R.string.settings_work_minutes,
-                description = R.string.settings_work_minutes_desc,
-                value = settings.workToStationMinutes, range = 1..60, step = 1, format = { "$it min" },
-            ) { onChange(settings.copy(workToStationMinutes = it)) }
 
             SectionTitle(R.string.settings_section_trip)
             SettingSwitch(
@@ -191,6 +211,107 @@ fun SettingsScreen(
             OutlinedButton(onClick = onReset, modifier = Modifier.padding(top = 16.dp)) {
                 Text(stringResource(R.string.settings_reset))
             }
+        }
+    }
+}
+
+/** As estações de uma linha, na ordem do percurso, para escolher numa lista. */
+data class StationGroup(val line: String, val stops: List<Stop>)
+
+/** Uma estação perto de onde a pessoa está agora. */
+data class NearStation(val stopId: String, val name: String, val lines: String, val meters: Int)
+
+/** Escolha de uma estação: mostra a atual e abre a lista (as mais perto no topo). */
+@Composable
+private fun StationSetting(
+    title: Int,
+    stopId: String,
+    groups: List<StationGroup>,
+    nearest: List<NearStation>,
+    onPick: (String) -> Unit,
+) {
+    var picking by remember { mutableStateOf(false) }
+    val current = groups.firstNotNullOfOrNull { g -> g.stops.firstOrNull { it.id == stopId }?.name }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { picking = true }
+            .padding(top = 12.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = stringResource(title),
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                text = current ?: stringResource(R.string.settings_station_none),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
+        HorizontalDivider(modifier = Modifier.padding(top = 12.dp))
+    }
+    if (picking) {
+        AlertDialog(
+            onDismissRequest = { picking = false },
+            title = { Text(stringResource(title)) },
+            text = {
+                LazyColumn(modifier = Modifier.heightIn(max = 480.dp)) {
+                    item {
+                        StationOption(stringResource(R.string.settings_station_none), null) {
+                            onPick(""); picking = false
+                        }
+                    }
+                    if (nearest.isNotEmpty()) {
+                        item { GroupHeader(stringResource(R.string.settings_station_nearest)) }
+                        items(nearest) { near ->
+                            StationOption(near.name, "${near.lines} · ${formatMeters(near.meters)}") {
+                                onPick(near.stopId); picking = false
+                            }
+                        }
+                    }
+                    groups.forEach { group ->
+                        item { GroupHeader(group.line) }
+                        items(group.stops) { stop ->
+                            StationOption(stop.name, null) { onPick(stop.id); picking = false }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { picking = false }) { Text(stringResource(R.string.cancel)) }
+            },
+        )
+    }
+}
+
+@Composable
+private fun GroupHeader(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
+    )
+}
+
+@Composable
+private fun StationOption(name: String, detail: String?, onClick: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 10.dp),
+    ) {
+        Text(name, style = MaterialTheme.typography.bodyLarge)
+        if (detail != null) {
+            Text(
+                text = detail,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

@@ -83,8 +83,9 @@ fun DeparturesScreen(
     bike: NearbyBike?,
     isPinned: Boolean,
     onTogglePin: () -> Unit,
-    homeMinutes: Int,
-    workMinutes: Int,
+    /** Tempo de casa até aqui, se esta é a estação de casa; `null` = sem lembrete. */
+    homeMinutes: Int?,
+    homeConfigured: Boolean,
     onBack: () -> Unit,
 ) {
     // A aba é da estação: ao abrir outra, volta para o sentido pedido (ou o primeiro).
@@ -116,11 +117,11 @@ fun DeparturesScreen(
     val destinations = destinationGroups.flatMap { it.stops }
     var pickingDestination by remember { mutableStateOf(false) }
     var reminder by remember { mutableStateOf<Departure?>(null) }
-    reminder?.let { departure ->
+    val canRemind = homeMinutes != null
+    if (homeMinutes != null) reminder?.let { departure ->
         LeaveReminderDialog(
             reminder = LeaveReminder(departure, stop.name, route.name, direction?.headsign.orEmpty(), vehicleName(route.name)),
             homeMinutes = homeMinutes,
-            workMinutes = workMinutes,
             onDismiss = { reminder = null },
         )
     }
@@ -221,14 +222,24 @@ fun DeparturesScreen(
                             Column(modifier = Modifier.padding(vertical = 4.dp)) {
                                 next.forEachIndexed { index, departure ->
                                     if (index > 0) HorizontalDivider()
-                                    DepartureRow(departure, now, highlighted = index == 0) { reminder = departure }
+                                    DepartureRow(
+                                        departure, now, highlighted = index == 0,
+                                        onClick = { reminder = departure }.takeIf { canRemind },
+                                    )
                                 }
                             }
                         }
                     }
-                    item {
+                    // O lembrete é só da estação de casa; sem ela escolhida, a
+                    // dica ensina onde escolher.
+                    val hint = when {
+                        canRemind -> R.string.leave_hint
+                        !homeConfigured -> R.string.leave_hint_setup
+                        else -> null
+                    }
+                    if (hint != null) item {
                         Text(
-                            text = stringResource(R.string.leave_hint),
+                            text = stringResource(hint),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -293,7 +304,12 @@ fun DeparturesScreen(
                         modifier = Modifier.padding(top = 8.dp),
                     )
                 }
-                item { AllDepartures(all, now) { reminder = Departure(it, tomorrow = false) } }
+                item {
+                    AllDepartures(
+                        all, now,
+                        onPick = { m: Int -> reminder = Departure(m, tomorrow = false) }.takeIf { canRemind },
+                    )
+                }
 
                 item {
                     Text(
@@ -309,12 +325,12 @@ fun DeparturesScreen(
 }
 
 @Composable
-private fun DepartureRow(departure: Departure, now: Int, highlighted: Boolean, onClick: () -> Unit) {
+private fun DepartureRow(departure: Departure, now: Int, highlighted: Boolean, onClick: (() -> Unit)?) {
     val remaining = minutesUntil(departure, now)
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
             .padding(horizontal = 16.dp, vertical = 10.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
@@ -353,20 +369,20 @@ internal fun relativeLabel(remaining: Int): String = when {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun AllDepartures(all: List<Int>, now: Int, onPick: (Int) -> Unit) {
+private fun AllDepartures(all: List<Int>, now: Int, onPick: ((Int) -> Unit)?) {
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier.fillMaxWidth(),
     ) {
         all.forEach { minutes ->
-            // Os que ainda não passaram ficam em destaque e abrem o lembrete;
-            // os que passaram ficam apagados.
+            // Os que ainda não passaram ficam em destaque (e abrem o lembrete,
+            // na estação de casa); os que passaram ficam apagados.
             val upcoming = minutes >= now
             Surface(
                 color = if (upcoming) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant,
                 shape = MaterialTheme.shapes.small,
-                modifier = if (upcoming) Modifier.clickable { onPick(minutes) } else Modifier,
+                modifier = if (upcoming && onPick != null) Modifier.clickable { onPick(minutes) } else Modifier,
             ) {
                 Text(
                     text = formatTime(minutes),

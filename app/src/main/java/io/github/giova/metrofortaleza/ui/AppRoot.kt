@@ -470,6 +470,28 @@ fun AppRoot() {
             BackHandler { showSettings = false }
             SettingsScreen(
                 settings = settings,
+                stationGroups = remember(repo) {
+                    routes.map { r ->
+                        StationGroup(r.name, repo.directions(r.id).firstOrNull()?.let { repo.stops(r.id, it.id) }.orEmpty())
+                    }
+                },
+                // As 3 mais perto de onde a pessoa está agora (quem configura em casa
+                // acha a própria estação logo no topo). Sem posição, a lista fica sem elas.
+                nearestStations = remember(repo, homeState) {
+                    val here = homeState as? HomeStation.Nearby ?: return@remember emptyList()
+                    repo.stations().groupBy { it.stopId }.values
+                        .map { same ->
+                            val s = same.first()
+                            NearStation(
+                                stopId = s.stopId,
+                                name = s.stopName,
+                                lines = same.joinToString(" e ") { it.routeName },
+                                meters = distanceMeters(here.userLat, here.userLon, s.lat, s.lon).toInt(),
+                            )
+                        }
+                        .sortedBy { it.meters }
+                        .take(3)
+                },
                 onChange = { SettingsStore.save(context, it) },
                 onReset = { SettingsStore.reset(context) },
                 onBack = { showSettings = false },
@@ -532,8 +554,9 @@ fun AppRoot() {
                     if (isPinned) pinned.clear() else pinned.set(stop.id, route.id)
                     refreshHome()
                 },
-                homeMinutes = settings.homeToStationMinutes,
-                workMinutes = settings.workToStationMinutes,
+                // O lembrete de sair é só da estação de casa.
+                homeMinutes = settings.homeToStationMinutes.takeIf { settings.homeStopId == stop.id },
+                homeConfigured = settings.homeStopId.isNotEmpty(),
                 onBack = { stopId = null },
             )
         }

@@ -204,8 +204,8 @@ próprias cores, em vermelho). Nas outras seções:
 | Mostrar outras linhas até | 3 km | 500 m – 5 km |
 | Bicicletar perto de você até | 3 km | 500 m – 5 km |
 | Bicicletar perto da estação até | 600 m | 200 m – 1,5 km |
+| Estação perto de casa | nenhuma | lista de estações |
 | Tempo de casa até a estação | 10 min | 1 – 60 min |
-| Tempo do trabalho até a estação | 10 min | 1 – 60 min |
 | Avisar antes do destino | 2 estações | 1 – 4 |
 | Perguntar antes de começar a viagem a partir de | 1 km | 500 m – 3 km |
 | Esconder o modo viagem a partir de | 3 km | 1 – 10 km |
@@ -215,14 +215,18 @@ próprias cores, em vermelho). Nas outras seções:
 | Oferecer ir sentado pelo terminal até | 3 estações | 0 (não oferecer) – 5 |
 | Atualizar sua posição (tela inicial) a cada | 10 s | 5 – 60 s |
 
-**Lembrete da hora de sair:** na tela de horários de uma estação, tocar num
-horário de hoje que ainda não passou (nas próximas partidas ou em "Todos os
-horários", onde esses ficam em destaque e os que já passaram, apagados) abre uma janela para escolher **De casa** ou **Do trabalho**. Ela
-mostra a hora de sair (partida menos o tempo configurado) e o botão "Abrir a
-agenda" manda um evento para o app de agenda do celular (`ACTION_INSERT` do
-`CalendarContract`, em `ui/LeaveReminder.kt`): começa na hora de sair, termina
-na partida, com a estação como local. Não usa conta, permissão nem internet;
-o alarme é o padrão da agenda, que a pessoa confere antes de salvar.
+**Lembrete da hora de sair:** vale só na **estação perto de casa**, escolhida
+nas Configurações numa lista com as 3 estações mais perto de onde a pessoa está
+no topo (com linha e distância) e depois todas, por linha. Nessa estação,
+tocar num horário de hoje que ainda não passou (nas próximas partidas ou em
+"Todos os horários", onde esses ficam em destaque e os que já passaram,
+apagados) abre uma janela com a hora de sair (partida menos o tempo de casa
+até a estação). O botão "Abrir a agenda" manda um evento para o app de agenda
+do celular (`ACTION_INSERT` do `CalendarContract`, em `ui/LeaveReminder.kt`):
+começa na hora de sair, termina na partida, com a estação como local. Não usa
+conta, permissão nem internet; o alarme é o padrão da agenda, que a pessoa
+confere antes de salvar. Nas outras estações os horários não abrem nada; sem
+estação de casa escolhida, a tela de horários diz onde escolher.
 
 O aviso de distância nunca fica maior que o limite em que o modo viagem some
 (mexer num ajusta o outro). "Restaurar padrões" volta tudo. Os parâmetros
