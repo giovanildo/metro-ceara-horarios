@@ -167,3 +167,39 @@ export function metros(m) {
 export function veiculo(nomeLinha) {
   return nomeLinha.trim().toLowerCase() === "linha sul" ? "metrô" : "VLT";
 }
+
+// ---------- regras do Metrofor (regras.json, o mesmo arquivo do app)
+
+const minDe = (hhmm) => { const [h, m] = hhmm.split(":").map(Number); return h * 60 + m; };
+
+/** As janelas de bike desta estação/linha no dia da semana, ou null se lá não há aviso. */
+export function janelasBike(regras, nomeEstacao, nomeLinha, diaSemana) {
+  const bike = regras?.bike;
+  if (!bike) return null;
+  const achar = (tabela, nome) => Object.entries(tabela || {})
+    .find(([k]) => !k.startsWith("_") && k.trim().toLowerCase() === nome.trim().toLowerCase())?.[1];
+  const id = achar(bike.estacoes, nomeEstacao) ?? achar(bike.linhas, nomeLinha);
+  const reg = id && bike.regulamentos[id];
+  if (!reg) return null;
+  const lista = diaSemana === 6 ? reg.sabado : diaSemana === 0 ? (reg.domingo || []) : reg.dias_uteis;
+  return lista.map(([ini, fim]) => ({ ini: minDe(ini), fim: fim == null ? null : minDe(fim) }))
+    .sort((a, b) => a.ini - b.ini);
+}
+
+/** Igual ao app: { pode, limite } — limite = fim da janela atual, ou começo da próxima de hoje. */
+export function bikeAgora(janelas, minutos) {
+  for (const j of janelas) {
+    if (minutos >= j.ini && (j.fim == null || minutos < j.fim)) return { pode: true, limite: j.fim };
+  }
+  return { pode: false, limite: janelas.map((j) => j.ini).find((i) => i > minutos) ?? null };
+}
+
+/** Passagem da integração de uma estação para outra (por nome, nos dois sentidos). */
+export function passagem(regras, nomeDe, nomePara) {
+  const n = (s) => s.trim().toLowerCase();
+  for (const r of regras?.integracoes || []) {
+    if (n(r.a) === n(nomeDe) && n(r.b) === n(nomePara)) return { tipo: r.passagem_a_para_b, motivo: r.motivo_a_para_b };
+    if (n(r.b) === n(nomeDe) && n(r.a) === n(nomePara)) return { tipo: r.passagem_b_para_a, motivo: r.motivo_b_para_a };
+  }
+  return { tipo: "desconhecida" };
+}

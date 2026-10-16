@@ -44,7 +44,7 @@ no emulador em pt-BR; os avisos do navegador e do Play Protect, que não
 aparecem lá, são ilustrações marcadas como tal.
 
 Para iPhone, `metro-fortaleza-como-instalar-iphone.mp4` (~39 s) ensina a pôr a
-[versão web](#versão-web-em-construção) na tela inicial pelo Safari: as telas
+[versão lite](#versão-lite-web) na tela inicial pelo Safari: as telas
 do app são reais, as do iPhone são desenhadas e marcadas como "ilustração". Os
 scripts que montam os vídeos e a receita das capturas estão em
 [`tools/video/`](tools/video/).
@@ -490,10 +490,12 @@ ou da tabela, atraso, GPS sem sinal), `trip_alert`, `trip_station`,
 `trip_turnaround`, `trip_end` (motivo), `crash` (erro que derrubou o app) e
 `log_on`/`log_off`.
 
-## Versão web (em construção)
+## Versão lite (web)
 
-Para quem tem iPhone (e para quem prefere não instalar APK) vem aí uma versão
-web instalável (PWA), neste mesmo repositório. O navegador não consegue baixar
+Para quem tem iPhone (e para quem prefere não instalar APK) há uma versão
+web instalável (PWA), a **versão lite**, neste mesmo repositório. Fica de
+fora de propósito o que depende do celular em segundo plano: modo viagem, voz,
+registro de testes — esses ficam só no app de Android. O navegador não consegue baixar
 o GTFS direto do Metrofor — o certificado costuma estar vencido e o site não
 libera acesso a partir de outras páginas —, então os horários chegam prontos:
 
@@ -527,11 +529,19 @@ GitHub Pages da página do app, em `giovanildo.github.io/metro-fortaleza-horario
   próxima partida em cada sentido; a localização só é pedida ao tocar no
   botão), linhas, estação (abas por sentido, sem o sentido que termina nela;
   próximas partidas e todos os horários) e configurações.
+- **Integração** e **bike**, com as mesmas regras e frases do app (lidas do
+  `regras.json` publicado no ramo `dados`): na tela da estação, o próximo
+  metrô/VLT da outra linha que ainda dá para pegar a pé, com a passagem, e se
+  dá para embarcar com bike agora.
 - **Lembrete da hora de sair**, como no app: só na estação perto de casa
   (escolhida nas configurações, com as 3 mais perto no topo) e com o tempo de
   casa até ela. Em vez de abrir a agenda, baixa um arquivo `.ics` com o evento
   e um aviso na hora de sair — o iPhone abre no Calendário, o Android na agenda.
 - `manifest.webmanifest` e os ícones permitem "Adicionar à tela inicial".
+- `sw.js` (service worker) guarda o próprio app no celular: abre sem internet
+  (no túnel, no modo avião). O app vem do cache na hora e a versão nova chega
+  por trás, valendo na abertura seguinte; os horários tentam a internet
+  primeiro e, sem ela, usam a última cópia.
 
 Para testar localmente: `python3 -m http.server -d docs 8000` e abrir
 `http://localhost:8000/app/` (no emulador, `adb reverse tcp:8000 tcp:8000`).

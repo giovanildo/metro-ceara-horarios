@@ -1,5 +1,6 @@
 import {
-  agora, carregar, dataCurta, distancia, falta, hora, metros, minutosAte, proximas, somarDias, veiculo,
+  agora, bikeAgora, carregar, dataCurta, distancia, falta, hora, janelasBike, metros, minutosAte, passagem,
+  proximas, somarDias, veiculo,
 } from "./dados.js";
 
 const PERTO_METROS = 3000; // outras linhas aparecem até esta distância (padrão do app)
@@ -185,6 +186,8 @@ function telaEstacao(linhaId, stopId, sentidoId) {
   } else if (!estado.config.casa) {
     html += `<p class="dica">Quer um lembrete da hora de sair de casa? <a href="#/config">Escolha a estação perto de casa</a>.</p>`;
   }
+  html += avisoBike(linha, stopId, t);
+  html += blocoIntegracao(stopId, t);
   html += `<h2>Todos os horários</h2><div class="todos">${hoje.map((m) => {
     const passou = m < t.minutos;
     return `<button data-m="${m}" data-amanha="false" class="${passou ? "passou" : ""}" ${ehCasa && !passou ? "" : "disabled"}>${hora(m)}</button>`;
@@ -195,6 +198,54 @@ function telaEstacao(linhaId, stopId, sentidoId) {
     tela.querySelectorAll("button[data-m]:not([disabled])").forEach((b) => b.addEventListener("click", () =>
       lembrete(linha, sentido, stopId, +b.dataset.m, b.dataset.amanha === "true")));
   }
+}
+
+/** "Pode embarcar com bike no metrô agora, até as 15:00" — mesmas regras e frases do app. */
+function avisoBike(linha, stopId, t) {
+  const { grade, regras } = estado.dados;
+  // Domingo só tem operação especial (regra de bike desconhecida); sem mais partidas, não há o que embarcar.
+  if (t.diaSemana === 0) return "";
+  const aindaHoje = grade.sentidosDePartida(linha, stopId).some((s) => grade.partidas(s, stopId).some((m) => m >= t.minutos));
+  if (!aindaHoje) return "";
+  const janelas = janelasBike(regras, grade.nome(stopId), linha.nome, t.diaSemana);
+  if (!janelas) return "";
+  const v = veiculo(linha.nome);
+  const b = bikeAgora(janelas, t.minutos);
+  const texto = b.pode
+    ? (b.limite != null ? `Pode embarcar com bike no ${v} agora, até as ${hora(b.limite)}` : `Pode embarcar com bike no ${v} agora, até o fim da operação`)
+    : (b.limite != null ? `Bike no ${v} só a partir das ${hora(b.limite)}` : `Hoje não há horário para embarcar com bike no ${v}`);
+  return `<p class="bike">🚲 ${texto}</p>`;
+}
+
+/** O próximo metrô/VLT da outra linha que ainda dá para pegar a pé, e a passagem. */
+function blocoIntegracao(stopId, t) {
+  const { grade, regras } = estado.dados;
+  const outras = grade.integracoes
+    .filter((i) => i.a === stopId || i.b === stopId)
+    .map((i) => ({ id: i.a === stopId ? i.b : i.a, caminhada: i.caminhada_min }));
+  if (!outras.length) return "";
+  let html = `<h2>Integração com</h2>`;
+  for (const { id, caminhada } of outras) {
+    const tarifa = passagem(regras, grade.nome(stopId), grade.nome(id));
+    const textoTarifa = tarifa.tipo === "gratis" ? "Integração gratuita: não paga outra passagem"
+      : tarifa.tipo === "paga" ? "Integração paga: é preciso pagar outra passagem" : "";
+    for (const { linha } of [...new Map((grade.passagens.get(id) || []).map((p) => [p.linha.id, p])).values()]) {
+      const sentidos = grade.sentidosDePartida(linha, id);
+      html += `<div class="cartao neutro">
+        <a class="cabeca" href="#/estacao/${linha.id}/${id}">
+          <h3><span class="ponto" style="background:${cor(linha)}"></span> ${esc(linha.nome)}</h3>
+          <span class="distancia">${esc(grade.nome(id))} · ${caminhada} min a pé</span>
+          ${textoTarifa ? `<p class="dica" style="margin:6px 0 0">${textoTarifa}${tarifa.motivo ? ` (${esc(tarifa.motivo)})` : ""}</p>` : ""}
+          ${sentidos.map((s) => {
+            const { hoje, amanha } = partidasComAmanha(linha, s, id);
+            const p = proximas(hoje, t.minutos + caminhada, 1, amanha)[0];
+            return `<div class="partida"><span>→ ${esc(s.destino)}</span><span class="hora">${textoPartida(p, t.minutos)}</span></div>`;
+          }).join("")}
+          <p class="dica" style="margin:10px 0 0">Toque para ver todos os horários de lá</p>
+        </a></div>`;
+    }
+  }
+  return html;
 }
 
 function telaConfig() {
@@ -336,3 +387,6 @@ window.addEventListener("hashchange", () => { window.scrollTo(0, 0); render(); }
 // O relógio anda sozinho: as contagens ("em 7 min") se atualizam.
 setInterval(() => { if (!ocupado()) render(); }, 15000);
 iniciar();
+
+// Guarda o próprio app no celular: abre até sem internet (no túnel, no modo avião).
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
