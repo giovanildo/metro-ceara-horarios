@@ -1,0 +1,1 @@
+• Modo viagem: ao chegar ao destino, a viagem encerra sozinha em poucos segundos e deixa o aviso "Você chegou" na barra de notificações.
