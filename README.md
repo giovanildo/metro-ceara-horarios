@@ -179,7 +179,10 @@ primeiro plano, com notificação fixa, segue a viagem com a tela desligada:
   aviso de descida termina com "Não esqueça seus pertences." e, na chegada, vem
   "Você chegou a X. Confira se está levando tudo." — por notificação e, com o
   som ligado, por voz. Não entra no aviso de cada estação, para não virar ruído.
-- A viagem encerra sozinha ao chegar, ou 30 min depois da chegada prevista.
+- A viagem **encerra sozinha ao chegar** — uns 8 s depois, só o tempo de a voz
+  terminar de falar — e deixa na barra o aviso "Você chegou a X." (com o
+  lembrete dos pertences, se ligado). Sem chegar, encerra 30 min depois da
+  chegada prevista.
 - Precisa da permissão de localização (o Android não deixa o serviço rodar sem
   ela) e, no Android 13+, pede também a de notificações.
 

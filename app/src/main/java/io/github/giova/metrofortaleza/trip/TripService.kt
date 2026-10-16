@@ -115,14 +115,14 @@ class TripService : Service() {
                     }
                     // A partida do terminal é a mesma estação: não anunciar de novo.
                     val isTerminalAgain = plan.viaTerminal && progress.index == turn + 1
-                    // Chegada com lembrete de pertences: ele já diz "você chegou".
-                    val arrivalReminder = progress.index >= plan.stops.lastIndex &&
-                        SettingsStore.get(this@TripService).remindBelongings
-                    if (arrivalReminder) {
-                        val text = TripNotifications.arrivedBelongings(this@TripService, trip.copy(progress = progress))
+                    // Chegada: o aviso que fica na barra depois que a viagem encerra.
+                    val arrivedNow = progress.index >= plan.stops.lastIndex
+                    if (arrivedNow) {
+                        val belongings = SettingsStore.get(this@TripService).remindBelongings
+                        val text = TripNotifications.arrived(this@TripService, trip.copy(progress = progress), belongings)
                         if (TripTracker.isSoundEnabled(this@TripService)) voice?.speak(text)
                     }
-                    if (!alertedNow && !isTerminalAgain && !arrivalReminder && progress.index != turn &&
+                    if (!alertedNow && !isTerminalAgain && !arrivedNow && progress.index != turn &&
                         TripTracker.isStationAlertsEnabled(this@TripService)
                     ) {
                         val reached = trip.copy(progress = progress)
@@ -175,7 +175,7 @@ class TripService : Service() {
                 update()
                 if (trip.arrived) {
                     DevLog.log("trip_end", "reason" to "arrived", "delay_min" to "%.1f".format(java.util.Locale.US, trip.progress.delayMinutes))
-                    // Deixa a notificação de chegada um tempo e encerra sozinho.
+                    // Encerra sozinho: só espera a voz terminar de falar a chegada.
                     delay(ARRIVED_LINGER_MILLIS)
                     finish()
                     break
@@ -250,6 +250,6 @@ class TripService : Service() {
 
         private const val GPS_INTERVAL_MILLIS = 5_000L
         private const val TICK_MILLIS = 15_000L
-        private const val ARRIVED_LINGER_MILLIS = 60_000L
+        private const val ARRIVED_LINGER_MILLIS = 8_000L
     }
 }

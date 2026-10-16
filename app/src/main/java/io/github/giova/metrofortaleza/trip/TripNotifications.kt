@@ -148,9 +148,15 @@ internal object TripNotifications {
         return "$title. $text"
     }
 
-    /** Na chegada, o lembrete de conferir os pertences. Devolve o texto, para a voz. */
-    fun arrivedBelongings(context: Context, trip: ActiveTrip): String {
-        val text = context.getString(R.string.trip_arrived_belongings, trip.plan.destination.name)
+    /**
+     * Na chegada: "Você chegou a X." (com o lembrete dos pertences, se ligado).
+     * Fica na barra depois que a viagem encerra. Devolve o texto, para a voz.
+     */
+    fun arrived(context: Context, trip: ActiveTrip, belongings: Boolean): String {
+        val text = context.getString(
+            if (belongings) R.string.trip_arrived_belongings else R.string.trip_arrived,
+            trip.plan.destination.name,
+        )
         val notification = NotificationCompat.Builder(context, CHANNEL_STATION)
             .setSmallIcon(R.drawable.ic_launcher)
             .setContentTitle(trip.plan.destination.name)
