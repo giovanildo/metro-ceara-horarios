@@ -12,6 +12,10 @@ O ffmpeg estático de johnvansickle.com funciona sem instalar nada.
   dentro de um iPhone desenhado (Safari, Compartilhar, "Adicionar à Tela de
   Início", tela inicial, pedido de localização), marcadas como "ilustração".
 
+- `qr_stories.py` — `story-qrcode.png`, `story-qrcode-link.png` (com espaço
+  livre de ~1550 a ~1820 px para a figurinha de link do Instagram) e
+  `qrcode.png`, todos levando à versão lite.
+
 ```
 VIDEO_WORK=/tmp/metro-video FFMPEG=/caminho/ffmpeg python3 tools/video/build_iphone.py
 ```

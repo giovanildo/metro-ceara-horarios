@@ -22,10 +22,13 @@ repositório.
 Para divulgar, há imagens de story (1080×1920) em [`divulgacao/`](divulgacao/):
 `story-qrcode.png`, só com o QR code, e `story-qrcode-link.png`, com o QR e o
 link escrito e um espaço livre embaixo para a figurinha de link do Instagram. O
-QR leva a `releases/latest`. Imagem não tem link clicável: no Instagram use a
-figurinha "Link"; no status do WhatsApp, poste o link num status de texto.
+QR e o link levam à **versão lite** (`…/metro-fortaleza-horarios/app/`), que abre
+na hora em qualquer celular — a porta de entrada; de lá, quem tem Android chega
+ao app completo. Imagem não tem link clicável: no Instagram use a figurinha
+"Link"; no status do WhatsApp, poste o link num status de texto. As duas e o
+`qrcode.png` saem de [`tools/video/qr_stories.py`](tools/video/qr_stories.py).
 
-Há também sequências com as telas do app e o link no rodapé, para o status:
+Há também sequências com as telas do app e o link da versão lite no rodapé, para o status:
 `story-tela-1..3.png` (tela inicial, horários, modo viagem) e
 `story-casa-1..4.png`, que conta a ida de casa até o metrô (de Pacatuba, a
 1,5 km de Carlito Benevides, até José de Alencar) e termina com o aviso de
