@@ -543,6 +543,9 @@ GitHub Pages da página do app, em `giovanildo.github.io/metro-fortaleza-horario
   por trás, valendo na abertura seguinte; os horários tentam a internet
   primeiro e, sem ela, usam a última cópia.
 
+A página do app (`docs/index.html`) aponta para a versão lite no topo ("Tem
+iPhone ou não quer instalar?") e ensina a pô-la na tela inicial do iPhone.
+
 Para testar localmente: `python3 -m http.server -d docs 8000` e abrir
 `http://localhost:8000/app/` (no emulador, `adb reverse tcp:8000 tcp:8000`).
 
