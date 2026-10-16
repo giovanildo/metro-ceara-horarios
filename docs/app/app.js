@@ -10,6 +10,17 @@ const PIX = "giovanildos@gmail.com";
 const ANDROID = /Android/i.test(navigator.userAgent);
 const CONVITE_A_PARTIR_DA_VISITA = 3;
 const CONVITE_PAUSA_DIAS = 30;
+const IPHONE = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+// Aberta pelo ícone da tela inicial: não há o que instalar.
+const INSTALADA = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+/** O pedido de instalação que o Chrome oferece (só no Android, quando ele acha que pode). */
+let pedidoInstalar = null;
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  pedidoInstalar = e;
+  render();
+});
+window.addEventListener("appinstalled", () => { pedidoInstalar = null; render(); });
 const PROXIMAS = 4;
 const tela = document.getElementById("tela");
 const janela = document.getElementById("janela");
@@ -140,11 +151,15 @@ function telaInicio() {
     }
   }
 
+  if (pedidoInstalar && !INSTALADA) {
+    html += `<p><button class="botao secundario" id="instalar">📲 Adicionar à tela inicial</button></p>`;
+  }
   html += `<h2>Linhas</h2><div class="lista-linhas">${grade.linhas.map((l) =>
     `<a href="#/linha/${l.id}" style="--cor:${cor(l)}"><strong>${esc(l.nome)}</strong>
       <small>${esc(l.descricao)} · ${grade.estacoesDaLinha(l).length} estações</small></a>`).join("")}</div>`;
   tela.innerHTML = html;
   document.getElementById("localizar")?.addEventListener("click", localizar);
+  document.getElementById("instalar")?.addEventListener("click", instalar);
   document.getElementById("agora-nao")?.addEventListener("click", () => {
     try { localStorage.setItem("convitePausadoAte", String(Date.now() + CONVITE_PAUSA_DIAS * 864e5)); } catch { /* segue */ }
     render();
@@ -163,6 +178,14 @@ function convite() {
     <div class="acoes"><a class="botao" href="${PAGINA_INSTALAR}">Conhecer o app completo</a>
       <button class="botao secundario" id="agora-nao">Agora não</button></div>
   </div>`;
+}
+
+async function instalar() {
+  if (!pedidoInstalar) return;
+  pedidoInstalar.prompt();
+  await pedidoInstalar.userChoice.catch(() => null);
+  pedidoInstalar = null;
+  render();
 }
 
 function lerNumero(chave) {
@@ -324,6 +347,14 @@ function telaSobre() {
       ${ANDROID ? "" : "No iPhone, use esta versão lite."}</p>
     ${ANDROID ? `<a class="botao" href="${PAGINA_INSTALAR}">Conhecer o app completo</a>` : ""}
 
+    ${INSTALADA ? "" : `<h2>Na tela inicial</h2>
+    ${pedidoInstalar ? `<p>Deixe o app com ícone na tela inicial, como os outros apps:</p>
+      <button class="botao secundario" id="instalar-sobre">📲 Adicionar à tela inicial</button>`
+      : IPHONE ? `<p>Para ter o ícone na tela inicial: toque em <strong>Compartilhar</strong> (o quadrado com a seta;
+      nas versões mais novas, dentro do botão •••) e depois em <strong>Adicionar à Tela de Início</strong>.</p>`
+      : `<p>Para ter o ícone na tela inicial, use o menu do navegador: <strong>Adicionar à tela inicial</strong>
+      (ou <strong>Instalar app</strong>).</p>`}`}
+
     <h2>Compartilhe</h2>
     <p>Aponte a câmera de outro celular para abrir o app na hora:</p>
     <img class="qr" src="qr.png" alt="QR code para abrir o app no navegador" width="200" height="200">
@@ -349,6 +380,7 @@ function telaSobre() {
 
     <p><a href="../">Página do app</a></p>
   </div>`;
+  document.getElementById("instalar-sobre")?.addEventListener("click", instalar);
   const avisar = (texto) => { const el = document.getElementById("copiado"); el.textContent = texto; el.hidden = false; };
   document.getElementById("copiar-pix").addEventListener("click", () =>
     navigator.clipboard?.writeText(PIX).then(() => avisar("Chave Pix copiada")).catch(() => avisar(PIX)));

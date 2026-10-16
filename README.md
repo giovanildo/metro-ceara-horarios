@@ -538,7 +538,11 @@ GitHub Pages da página do app, em `giovanildo.github.io/metro-fortaleza-horario
   (escolhida nas configurações, com as 3 mais perto no topo) e com o tempo de
   casa até ela. Em vez de abrir a agenda, baixa um arquivo `.ics` com o evento
   e um aviso na hora de sair — o iPhone abre no Calendário, o Android na agenda.
-- `manifest.webmanifest` e os ícones permitem "Adicionar à tela inicial".
+- `manifest.webmanifest` e os ícones permitem "Adicionar à tela inicial". No
+  Android, quando o Chrome oferece a instalação (`beforeinstallprompt`), a
+  tela inicial e a tela Sobre mostram o botão **"📲 Adicionar à tela
+  inicial"**; no iPhone, a tela Sobre explica o caminho pelo Compartilhar. Aberta
+  pelo ícone (modo standalone), nada disso aparece.
 - Tela **Sobre**: aviso de não oficial, o que a versão lite faz e o que o app
   completo acrescenta, QR code (`qr.png`) e botão "Divulgar o app"
   (compartilhamento do celular, ou cópia do link), origem dos horários,
