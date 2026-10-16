@@ -571,12 +571,12 @@ sem dependências, feito para quem não é programador — o que o app faz, por 
 **A versão lite é a porta de entrada.** A instalação de um APK de fora da loja
 mostra avisos que espantam o usuário comum; a versão lite abre na hora, sem
 nenhum. Por isso o botão principal da página é **"Abrir agora no navegador"**
-(`app/`), o secundário leva à seção "Como instalar o app completo", que explica
-antes que os avisos são normais e mostra os vídeos `docs/video/` (cópias dos de
-`divulgacao/`), e o QR e o "Divulgar o app" do app Android também levam à
+(`app/`), o secundário leva direto ao bloco `#baixar` da seção "Como instalar o
+app completo" — o botão do APK, com a explicação de que os avisos são normais
+ao lado — e, logo abaixo, aos vídeos `docs/video/` (cópias dos de `divulgacao/`), e o QR e o "Divulgar o app" do app Android também levam à
 versão lite. Dentro dela, no Android, quem volta a usar (a partir da 3ª
 abertura) vê um convite discreto para o app completo, com "Agora não" (some
-por 30 dias); o convite leva a essa explicação, não direto ao APK. Tem
+por 30 dias); o convite leva ao mesmo `#baixar`. Tem
 as marcações que o Google e as redes sociais leem (título, descrição, Open
 Graph com `img/previa.png` de 1200×630 para a prévia do link no WhatsApp,
 dados estruturados `SoftwareApplication`, `robots.txt` e `sitemap.xml`).

@@ -64,6 +64,9 @@
   .btn-main { background: #fff; color: var(--red); }
   .btn-ghost { border: 2px solid #fff; color: #fff; }
   .small { font-size: .9rem; opacity: .9; margin-top: 12px; }
+  .baixar { background: var(--card); border-radius: 16px; padding: 20px; margin: 16px 0; scroll-margin-top: 16px; }
+  .baixar p { margin: 14px 0 0; }
+  .btn-red { background: var(--red); color: #fff; }
   .tutorial { display: block; width: 100%; max-width: 300px; aspect-ratio: 9 / 16; margin: 16px 0; border-radius: 16px; background: #000; }
 
   .notice {
@@ -101,7 +104,7 @@
     </div>
     <div class="buttons">
       <a class="btn btn-main" href="app/">▶ Abrir agora no navegador</a>
-      <a class="btn btn-ghost" href="#instalar">App completo para Android</a>
+      <a class="btn btn-ghost" href="#baixar">App completo para Android</a>
     </div>
     <p class="small">Abre na hora, em qualquer celular (iPhone também), sem instalar nada. Grátis · sem anúncios · sem cadastro.</p>
     <p class="small">O app completo para Android tem o <strong>modo viagem</strong>: avisa antes da sua estação, mesmo com a tela desligada.</p>
@@ -161,7 +164,10 @@
   <section id="instalar">
     <h2>Como instalar o app completo (Android)</h2>
     <p>Quem só quer ver os horários não precisa instalar nada: <a href="app/"><strong>abra no navegador</strong></a>. O app completo acrescenta o modo viagem, com aviso antes da sua estação mesmo com a tela desligada.</p>
-    <p>Como ele ainda não está na Play Store, o Android mostra alguns avisos na instalação. <strong>São normais</strong> para qualquer app instalado por fora da loja; o vídeo mostra cada um e o que tocar:</p>
+    <div class="baixar" id="baixar">
+      <a class="btn btn-red" href="https://github.com/giovanildo/metro-fortaleza-horarios/releases/latest/download/metro-fortaleza.apk">⬇ Baixar o app completo (Android)</a>
+      <p>Como ele ainda não está na Play Store, o Android mostra alguns avisos na instalação. <strong>São normais</strong> para qualquer app instalado por fora da loja: siga os passos abaixo ou veja no vídeo cada aviso e o que tocar.</p>
+    </div>
     <video class="tutorial" controls preload="none" playsinline poster="video/como-instalar-android.jpg" src="video/como-instalar-android.mp4"></video>
     <ol>
       <li>No celular Android, toque em <a href="https://github.com/giovanildo/metro-fortaleza-horarios/releases/latest/download/metro-fortaleza.apk"><strong>Baixar para Android</strong></a>.</li>
