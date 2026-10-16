@@ -538,6 +538,10 @@ GitHub Pages da página do app, em `giovanildo.github.io/metro-fortaleza-horario
   casa até ela. Em vez de abrir a agenda, baixa um arquivo `.ics` com o evento
   e um aviso na hora de sair — o iPhone abre no Calendário, o Android na agenda.
 - `manifest.webmanifest` e os ícones permitem "Adicionar à tela inicial".
+- Tela **Sobre**: aviso de não oficial, o que a versão lite faz e o que o app
+  completo acrescenta, QR code (`qr.png`) e botão "Divulgar o app"
+  (compartilhamento do celular, ou cópia do link), origem dos horários,
+  privacidade, código aberto e Pix.
 - `sw.js` (service worker) guarda o próprio app no celular: abre sem internet
   (no túnel, no modo avião). O app vem do cache na hora e a versão nova chega
   por trás, valendo na abertura seguinte; os horários tentam a internet

@@ -127,3 +127,8 @@ select, input[type=number] {
 }
 
 .bike { margin: 14px 0 4px; font-weight: 500; }
+.icones { display: flex; gap: 4px; }
+.convite { display: flex; flex-direction: column; gap: 10px; }
+.convite .acoes { display: flex; gap: 8px; flex-wrap: wrap; }
+.qr { display: block; width: 200px; height: 200px; margin: 12px 0; border-radius: 12px; background: #fff; padding: 8px; image-rendering: pixelated; }
+.sobre p { margin: 8px 0; }

@@ -4,6 +4,12 @@ import {
 } from "./dados.js";
 
 const PERTO_METROS = 3000; // outras linhas aparecem até esta distância (padrão do app)
+const LINK = "https://giovanildo.github.io/metro-fortaleza-horarios/app/";
+const PAGINA_INSTALAR = "../#instalar";
+const PIX = "giovanildos@gmail.com";
+const ANDROID = /Android/i.test(navigator.userAgent);
+const CONVITE_A_PARTIR_DA_VISITA = 3;
+const CONVITE_PAUSA_DIAS = 30;
 const PROXIMAS = 4;
 const tela = document.getElementById("tela");
 const janela = document.getElementById("janela");
@@ -97,7 +103,7 @@ function textoPartida(p, minutos) {
 function telaInicio() {
   const { grade } = estado.dados;
   const t = agora();
-  let html = avisoDomingo(t);
+  let html = avisoDomingo(t) + convite();
 
   if (!estado.pos) {
     html += `<div class="cartao">
@@ -139,6 +145,28 @@ function telaInicio() {
       <small>${esc(l.descricao)} · ${grade.estacoesDaLinha(l).length} estações</small></a>`).join("")}</div>`;
   tela.innerHTML = html;
   document.getElementById("localizar")?.addEventListener("click", localizar);
+  document.getElementById("agora-nao")?.addEventListener("click", () => {
+    try { localStorage.setItem("convitePausadoAte", String(Date.now() + CONVITE_PAUSA_DIAS * 864e5)); } catch { /* segue */ }
+    render();
+  });
+}
+
+/**
+ * A versão lite é a porta de entrada: quem volta a usar no Android é
+ * convidado, sem insistência, a conhecer o app completo (modo viagem).
+ */
+function convite() {
+  if (!ANDROID || lerNumero("visitas") < CONVITE_A_PARTIR_DA_VISITA || Date.now() < lerNumero("convitePausadoAte")) return "";
+  return `<div class="cartao rosa convite">
+    <strong>Quer ser avisado antes da sua estação, mesmo com a tela desligada?</strong>
+    <span>O app completo para Android tem o modo viagem. Grátis, como esta versão.</span>
+    <div class="acoes"><a class="botao" href="${PAGINA_INSTALAR}">Conhecer o app completo</a>
+      <button class="botao secundario" id="agora-nao">Agora não</button></div>
+  </div>`;
+}
+
+function lerNumero(chave) {
+  try { return Number(localStorage.getItem(chave)) || 0; } catch { return 0; }
 }
 
 function telaLinha(linhaId) {
@@ -281,6 +309,59 @@ function telaConfig() {
   });
 }
 
+function telaSobre() {
+  const { indice } = estado.dados;
+  tela.innerHTML = `<div class="sobre">
+    <h2 style="font-size:1.4rem">Sobre</h2>
+    <div class="aviso"><strong>App não oficial.</strong> Feito por um passageiro, sem ligação com o Metrofor nem com o
+      Governo do Ceará. Os horários são os que o próprio Metrofor publica.</div>
+
+    <h2>Versão lite e app completo</h2>
+    <p>Esta é a versão lite: abre na hora, no navegador, em qualquer celular. Mostra a estação mais perto, os horários,
+      a integração entre linhas, a regra de bike e o lembrete da hora de sair, e abre até sem internet.</p>
+    <p>O <strong>app completo para Android</strong> acrescenta o <strong>modo viagem</strong>: escolha o destino e guarde
+      o celular, que ele avisa antes da sua estação, mesmo com a tela desligada.
+      ${ANDROID ? "" : "No iPhone, use esta versão lite."}</p>
+    ${ANDROID ? `<a class="botao" href="${PAGINA_INSTALAR}">Conhecer o app completo</a>` : ""}
+
+    <h2>Compartilhe</h2>
+    <p>Aponte a câmera de outro celular para abrir o app na hora:</p>
+    <img class="qr" src="qr.png" alt="QR code para abrir o app no navegador" width="200" height="200">
+    <button class="botao" id="divulgar">Divulgar o app</button>
+
+    <h2>De onde vêm os horários</h2>
+    <p>Do GTFS público do Metrofor, baixado todo dia de madrugada. São os horários programados: o app não sabe de
+      atrasos em tempo real.${indice.atualizado ? ` Última atualização: ${dataCurta(indice.atualizado.slice(0, 10))} às ${indice.atualizado.slice(11, 16)}.` : ""}</p>
+
+    <h2>Privacidade</h2>
+    <p>Sem anúncios, sem cadastro e sem rastreadores. Sua localização é usada só no celular, para achar a estação mais
+      perto; nada é enviado para ninguém. As configurações ficam guardadas só neste aparelho.</p>
+
+    <h2>Código aberto</h2>
+    <p>Qualquer pessoa pode ver e conferir tudo o que o app faz, no
+      <a href="https://github.com/giovanildo/metro-fortaleza-horarios">GitHub</a> (licença GPL-3.0).
+      Sugestões e problemas: <a href="https://github.com/giovanildo/metro-fortaleza-horarios/issues">por aqui</a>.</p>
+
+    <h2>Apoie</h2>
+    <p>O app é gratuito e feito no tempo livre. Se ele te ajuda, considere uma doação via Pix: <strong>${PIX}</strong></p>
+    <button class="botao secundario" id="copiar-pix">Copiar chave Pix</button>
+    <p class="dica" id="copiado" hidden></p>
+
+    <p><a href="../">Página do app</a></p>
+  </div>`;
+  const avisar = (texto) => { const el = document.getElementById("copiado"); el.textContent = texto; el.hidden = false; };
+  document.getElementById("copiar-pix").addEventListener("click", () =>
+    navigator.clipboard?.writeText(PIX).then(() => avisar("Chave Pix copiada")).catch(() => avisar(PIX)));
+  document.getElementById("divulgar").addEventListener("click", async () => {
+    const texto = "🚇 Metrô Fortaleza: horários do metrô e do VLT no celular. Abra no navegador e use na hora, sem instalar nada. Grátis, sem anúncios, não oficial:";
+    if (navigator.share) {
+      try { await navigator.share({ title: "Metrô Fortaleza", text: texto, url: LINK }); } catch { /* cancelou */ }
+    } else {
+      navigator.clipboard?.writeText(`${texto} ${LINK}`).then(() => avisar("Link copiado")).catch(() => avisar(LINK));
+    }
+  });
+}
+
 function telaNaoAchei() {
   tela.innerHTML = `<p class="vazio">Não achei essa tela. <a href="#/">Voltar ao início</a></p>`;
 }
@@ -355,6 +436,7 @@ function render() {
   if (partes[0] === "linha") telaLinha(partes[1]);
   else if (partes[0] === "estacao") telaEstacao(partes[1], partes[2], partes[3]);
   else if (partes[0] === "config") telaConfig();
+  else if (partes[0] === "sobre") telaSobre();
   else telaInicio();
   status();
 }
@@ -369,6 +451,7 @@ function status() {
 }
 
 async function iniciar() {
+  try { localStorage.setItem("visitas", String(lerNumero("visitas") + 1)); } catch { /* segue */ }
   try {
     estado.dados = await carregar();
   } catch {
