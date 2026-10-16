@@ -30,14 +30,8 @@
 
     <string name="bike_title">Bicicletar mais próximo</string>
     <string name="bike_number">nº %1$d</string>
-    <string name="bike_details">%1$s · %2$s</string>
-    <plurals name="bike_slots">
-        <item quantity="one">%1$d vaga</item>
-        <item quantity="other">%1$d vagas</item>
-    </plurals>
     <string name="home_bike_from_you">Bicicletar mais próximo de você</string>
     <string name="home_bike_from_station">Bicicletar mais próximo da estação</string>
-    <string name="bike_no_realtime">Capacidade da estação, não disponibilidade agora.</string>
 
     <string name="bike_boarding_until">Pode embarcar com bike no %1$s agora, até as %2$s</string>
     <string name="bike_boarding_until_close">Pode embarcar com bike no %1$s agora, até o fim da operação</string>

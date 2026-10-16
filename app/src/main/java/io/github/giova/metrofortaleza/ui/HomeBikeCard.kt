@@ -44,12 +44,6 @@ fun HomeBikeCard(
                 bike = homeBike.bike,
                 modifier = Modifier.padding(top = 10.dp),
             )
-            Text(
-                text = stringResource(R.string.bike_no_realtime),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 6.dp),
-            )
         }
     }
 }

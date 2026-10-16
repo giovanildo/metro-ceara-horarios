@@ -186,9 +186,10 @@ primeiro plano, com notificação fixa, segue a viagem com a tela desligada:
 - Precisa da permissão de localização (o Android não deixa o serviço rodar sem
   ela) e, no Android 13+, pede também a de notificações.
 
-O app mostra a **estação do Bicicletar mais próxima** com nome, número,
-distância e capacidade de vagas, em dois lugares (são 253 estações no banco,
-também offline):
+O app mostra a **estação do Bicicletar mais próxima** com nome, número e
+distância, em dois lugares (são 253 estações no banco, também offline). A
+capacidade de vagas, que o banco também guarda, não aparece: não é quantas
+bicicletas há agora e confundia.
 
 - **Na tela inicial**, num cartão próprio logo abaixo do da estação. Com GPS, a
   distância é medida a partir de **você**, até 3 km — acima disso (fora de
@@ -410,7 +411,7 @@ Estas vêm do feed oficial, não do app:
    atrasos nem da posição real dos trens.
 5. **O Bicicletar não tem disponibilidade em tempo real.** O GeoJSON da AMC traz
    posição e capacidade de vagas, nunca quantas bicicletas estão na estação
-   agora. O sistema não está no registro oficial do
+   agora — por isso o app mostra só a distância. O sistema não está no registro oficial do
    [GBFS](https://github.com/MobilityData/gbfs) — só Brasília, no Brasil — e o
    site oficial bloqueia acesso automatizado (HTTP 403). O arquivo usado é de
    22/07/2025.

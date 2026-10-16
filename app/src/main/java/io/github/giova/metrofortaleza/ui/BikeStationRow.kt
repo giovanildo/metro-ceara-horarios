@@ -12,7 +12,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -65,16 +64,10 @@ fun BikeStationRow(
                     modifier = Modifier.padding(start = 8.dp),
                 )
             }
+            // Só a distância: o número de vagas é a capacidade da estação, não
+            // quantas bicicletas há agora, e confundia.
             Text(
-                text = stringResource(
-                    R.string.bike_details,
-                    formatWalk(bike.distanceMeters),
-                    pluralStringResource(
-                        R.plurals.bike_slots,
-                        bike.station.slots,
-                        bike.station.slots,
-                    ),
-                ),
+                text = formatWalk(bike.distanceMeters),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
