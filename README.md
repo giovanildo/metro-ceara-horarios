@@ -43,6 +43,12 @@ Bloqueador automático da Samsung, "App não instalado"). As telas foram gravada
 no emulador em pt-BR; os avisos do navegador e do Play Protect, que não
 aparecem lá, são ilustrações marcadas como tal.
 
+Para iPhone, `metro-fortaleza-como-instalar-iphone.mp4` (~39 s) ensina a pôr a
+[versão web](#versão-web-em-construção) na tela inicial pelo Safari: as telas
+do app são reais, as do iPhone são desenhadas e marcadas como "ilustração". Os
+scripts que montam os vídeos e a receita das capturas estão em
+[`tools/video/`](tools/video/).
+
 A tela inicial destaca uma estação com a próxima partida de cada sentido — nos
 terminais, só o sentido em que dá para partir (o que termina ali só teria
 chegadas). A tela de horários de um terminal também mostra só esse sentido. Pelo
