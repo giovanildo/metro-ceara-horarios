@@ -1,0 +1,1 @@
+• Bicicletar mais simples: mostra só a estação mais perto e a distância.
