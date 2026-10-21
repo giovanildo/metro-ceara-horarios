@@ -289,21 +289,32 @@ os dias:
 | sábado, 03/10 | 5h30 – 17h08, 37 viagens por sentido |
 | domingo, 04/10 (eleição) | 7h30 – 18h10 (operação especial) |
 
-Por isso o app baixa o feed **no próprio celular** uma vez por dia
-(`data/ScheduleStore.kt`), monta o banco com o mesmo resultado de
+Por isso o feed é baixado **uma vez por dia**, de madrugada, pela tarefa do
+GitHub que também alimenta a versão lite ([`dados-web.yml`](.github/workflows/dados-web.yml),
+às 04:30 de Fortaleza): ela guarda o zip original de cada tipo de dia no ramo
+`dados` (`gtfs-dia-util.zip`, `gtfs-sabado.zip`, `gtfs-domingo.zip`), e o
+`indice.json` diz a data, o tamanho e a hora de cada um. O app
+(`data/ScheduleStore.kt`) baixa dali o zip do tipo de hoje — com certificado
+válido, sem falar direto com o site do Metrofor —, monta o banco com o mesmo resultado de
 `tools/build_db.py` (`data/GtfsImporter.kt`, uma tradução direta do script, que
 gera tabelas idênticas para o mesmo feed) e guarda a última grade de cada tipo
-de dia: dia útil, sábado e domingo. A grade de hoje vale até a meia-noite; sem
-internet, o app usa a última do mesmo tipo e avisa em vermelho de que dia ela
-é. O banco do APK fica como último recurso. Uma linha no topo da tela inicial
-diz de onde vêm os horários e tem um botão para baixar de novo.
+de dia: dia útil, sábado e domingo, com a **data do índice** (não a do
+celular). Se a cópia guardada já é a mesma do espelho, o app só consulta o
+índice (1 KB) e não baixa nada. Se a tarefa ainda não rodou (app aberto antes
+das 04:30 ou num atraso do GitHub) ou se não há internet, o app usa a última
+grade do mesmo tipo e avisa em vermelho de que dia ela é; tenta de novo sozinho
+a cada 15 min de uso. O banco do APK fica como último recurso. Uma linha no
+topo da tela inicial diz de onde vêm os horários — **sem botão de baixar de
+novo**: como a grade do dia é baixada uma vez só, baixar outra vez daria a
+mesma.
 
 Detalhes que valem saber:
 
 - **Certificado vencido.** O certificado HTTPS de `*.metrofor.ce.gov.br`
-  costuma estar expirado. O app aceita qualquer certificado **só nessa
-  conexão**: são dados públicos de horário, e o pior que um intermediário
-  faria é mostrar uma grade errada.
+  costuma estar expirado. Quem lida com isso é só a tarefa do GitHub (o script
+  desliga a verificação, são dados públicos); o app fala apenas com
+  `raw.githubusercontent.com`, com a verificação normal do Android — nada que a
+  análise da Play Store possa barrar.
 - **Nada de trava por "grade menor".** Como a grade muda de verdade de um dia
   para outro, o app só recusa um feed que não dá para ler ou que não tem linhas
   nem estações. Zero viagens é aceito: num domingo comum pode ser exatamente a
@@ -316,8 +327,8 @@ Detalhes que valem saber:
   grade nunca tiver sido baixada, o app não inventa horário.
 - **Download ruim nunca substitui a grade boa.** A grade nova é montada num
   arquivo temporário e só entra no lugar da atual se passar por três checagens:
-  o tamanho recebido bate com o anunciado pelo servidor (conexão que cai no meio
-  pode entregar menos bytes sem erro); o zip está completo (o índice no fim do
+  o tamanho recebido bate com o anunciado pelo servidor e com o do índice
+  (conexão que cai no meio pode entregar menos bytes sem erro); o zip está completo (o índice no fim do
   arquivo existe e promete o mesmo número de arquivos que foram lidos); e o
   banco montado tem linhas e viagens. Qualquer falha mantém a cópia que já
   existe, e o app tenta de novo depois.
@@ -419,9 +430,9 @@ Estas vêm do feed oficial, não do app:
    tarifária, não um horário; o GTFS de ônibus de Fortaleza é
    [publicado à parte](https://dados.fortaleza.ce.gov.br/dataset/?tags=gtfs).
 7. O domínio `metrofor.ce.gov.br` está com **certificado HTTPS expirado** e
-   redireciona para `ce.gov.br/metrofor`. Por isso o gerador desliga a
-   verificação de certificado, e o app aceita qualquer certificado **só** na
-   conexão com `info.metrofor.ce.gov.br` (veja [Horários do dia](#horários-do-dia)).
+   redireciona para `ce.gov.br/metrofor`. Por isso os scripts desligam a
+   verificação de certificado; o app não fala com o Metrofor, baixa o mesmo
+   feed do espelho no GitHub (veja [Horários do dia](#horários-do-dia)).
 
 ## Build
 
@@ -511,7 +522,8 @@ libera acesso a partir de outras páginas —, então os horários chegam pronto
   `horarios-domingo.json`), atualizando só a do dia; `indice.json` diz a data
   de cada uma. Feed vazio ou quebrado não substitui a grade boa. Cada sentido
   traz a ordem das estações e as viagens como listas de minutos alinhadas a
-  ela (`null` = não para): a grade de um dia útil inteiro tem ~23 KB.
+  ela (`null` = não para): a grade de um dia útil inteiro tem ~23 KB. Junto
+  vai o zip original (`gtfs-<tipo>.zip`), que o **app Android** baixa.
 - A tarefa [`dados-web.yml`](.github/workflows/dados-web.yml) roda o script
   todo dia às 04:30 de Fortaleza (ou à mão, em Actions → "Dados da versão
   web" → Run workflow) e publica o resultado no ramo **`dados`**, fora da

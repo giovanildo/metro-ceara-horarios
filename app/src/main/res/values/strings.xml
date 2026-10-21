@@ -43,9 +43,8 @@
     <string name="schedule_syncing">Baixando os horários de hoje do Metrofor…</string>
     <string name="schedule_today">Horários de hoje, baixados do Metrofor às %1$s.</string>
     <string name="schedule_same_type">Horários baixados em %1$s, num dia do mesmo tipo. Os de hoje podem ser diferentes.</string>
-    <string name="schedule_same_type_failed">Sem conexão com o Metrofor: mostrando os horários de %1$s, num dia do mesmo tipo. Os de hoje podem ser diferentes.</string>
+    <string name="schedule_same_type_failed">Sem conexão: mostrando os horários de %1$s, num dia do mesmo tipo. Os de hoje podem ser diferentes.</string>
     <string name="schedule_bundled">Horários de dia útil que vieram com o app. Conecte-se à internet para baixar os de hoje.</string>
-    <string name="schedule_refresh">Baixar os horários de novo</string>
 
     <string name="trip_start">Modo viagem</string>
     <string name="trip_pick_destination">Para qual estação você vai?</string>

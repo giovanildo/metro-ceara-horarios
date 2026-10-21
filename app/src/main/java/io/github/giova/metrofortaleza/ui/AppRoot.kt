@@ -80,12 +80,10 @@ fun AppRoot() {
     var scheduleVersion by remember { mutableIntStateOf(0) }
     var scheduleSyncing by remember { mutableStateOf(false) }
     var scheduleSyncFailed by remember { mutableStateOf(false) }
-    var scheduleRequest by remember { mutableIntStateOf(0) }
-
-    LaunchedEffect(today, scheduleRequest) {
-        if (scheduleRequest == 0 && !ScheduleStore.needsSync(context)) return@LaunchedEffect
+    LaunchedEffect(today) {
+        if (!ScheduleStore.needsSync(context)) return@LaunchedEffect
         scheduleSyncing = true
-        DevLog.log("sync_start", "manual" to (scheduleRequest > 0))
+        DevLog.log("sync_start")
         val result = withContext(Dispatchers.IO) {
             runCatching { ScheduleStore.sync(context, MetroforDatabase.bundledFile(context)) }
         }
@@ -612,7 +610,6 @@ fun AppRoot() {
                         source = repo.source,
                         syncing = scheduleSyncing,
                         failed = scheduleSyncFailed,
-                        onRefresh = { scheduleRequest++ },
                     )
                     // Durante a viagem, o cartão dela já diz onde a pessoa está.
                     if (trip == null) {

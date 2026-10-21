@@ -1,21 +1,16 @@
 package io.github.giova.metrofortaleza.data
 
-import android.annotation.SuppressLint
 import android.content.Context
 import androidx.core.content.edit
+import org.json.JSONObject
 import java.io.File
 import java.net.URL
-import java.security.SecureRandom
-import java.security.cert.X509Certificate
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
-import javax.net.ssl.HostnameVerifier
 import javax.net.ssl.HttpsURLConnection
-import javax.net.ssl.SSLContext
-import javax.net.ssl.X509TrustManager
 
 /** Tipo de dia, para escolher a grade guardada mais parecida com hoje. */
 enum class DayType { WEEKDAY, SATURDAY, SUNDAY }
@@ -45,14 +40,16 @@ data class ScheduleSource(
  *
  * O GTFS do Metrofor é gerado a cada requisição e traz a grade **do dia**:
  * dia útil, sábado, ou a operação especial de um domingo de eleição — mesmo
- * com o `calendar.txt` dizendo que vale para todos os dias. Por isso o app
- * baixa o feed uma vez por dia e guarda a última grade de cada [DayType],
- * para ter algo parecido quando estiver sem internet.
+ * com o `calendar.txt` dizendo que vale para todos os dias. Uma tarefa do
+ * GitHub (`.github/workflows/dados-web.yml`) baixa o feed todo dia às 04:30 e
+ * guarda o zip de cada tipo de dia no ramo `dados`. O app baixa de lá — com
+ * certificado válido, ao contrário do site do Metrofor — e guarda a última
+ * grade de cada [DayType], com a data que o índice informa.
  */
 object ScheduleStore {
 
-    const val FEED_URL = "https://info.metrofor.ce.gov.br/gtfs_file"
-    private const val FEED_HOST = "info.metrofor.ce.gov.br"
+    /** O espelho dos dados no GitHub (ramo `dados`). */
+    const val MIRROR = "https://raw.githubusercontent.com/giovanildo/metro-fortaleza-horarios/dados/"
     private const val RETRY_MILLIS = 15L * 60 * 1000
 
     private val zone: TimeZone = TimeZone.getTimeZone("America/Fortaleza")
@@ -93,20 +90,32 @@ object ScheduleStore {
     }
 
     /**
-     * Baixa o feed, monta o banco e troca a grade de hoje. Bloqueia: chamar
-     * fora da main. Qualquer falha — download cortado, zip incompleto, banco
-     * sem viagens — lança exceção e mantém a grade anterior intacta.
+     * Baixa do espelho a grade do tipo de hoje, monta o banco e troca a
+     * guardada. Bloqueia: chamar fora da main. Qualquer falha — índice sem
+     * esse tipo, download cortado, zip incompleto, banco sem viagens — lança
+     * exceção e mantém a grade anterior intacta. Se a guardada já é a mesma
+     * do espelho, não baixa de novo: o resultado seria idêntico.
      */
     fun sync(context: Context, bikeSource: File?) {
         prefs(context).edit { putLong(KEY_LAST_ATTEMPT, System.currentTimeMillis()) }
         val type = todayType()
-        val date = today()
-        val zip = download()
+        val entry = JSONObject(String(fetch(MIRROR + "indice.json"))).getJSONObject("tipos")
+            .optJSONObject(mirrorName(type)) ?: error("o espelho ainda não tem grade de ${mirrorName(type)}")
+        val zipName = entry.optString("gtfs").ifBlank { error("o espelho ainda não tem o GTFS de ${mirrorName(type)}") }
+        val date = entry.getString("data")
+        if (prefs(context).getString(keyDate(type), null) == date && file(context, type).exists()) {
+            DevLog.log("sync_same", "day_type" to type.name, "date" to date)
+            return
+        }
+        val zip = fetch(MIRROR + zipName)
+        check(entry.optLong("bytes", -1) < 0 || entry.getLong("bytes") == zip.size.toLong()) {
+            "GTFS com tamanho diferente do índice: ${zip.size} de ${entry.getLong("bytes")} bytes"
+        }
         val target = file(context, type)
         target.parentFile?.mkdirs()
         val temp = File(target.parentFile, "${target.name}.tmp")
         try {
-            GtfsImporter.import(zip, temp, bikeSource, FEED_URL)
+            GtfsImporter.import(zip, temp, bikeSource, MIRROR + zipName)
             // Só troca se o banco novo é utilizável e tem viagens; senão fica a
             // grade que já existe.
             check(MetroforDatabase.hasSchedule(temp)) { "grade baixada sem viagens ou corrompida" }
@@ -116,9 +125,13 @@ object ScheduleStore {
             temp.delete()
             File(temp.path + "-journal").delete()
         }
+        // A hora é a de quando o espelho baixou do Metrofor, não a deste download.
+        val publishedAt = runCatching {
+            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).parse(entry.getString("atualizado"))!!.time
+        }.getOrDefault(System.currentTimeMillis())
         prefs(context).edit {
             putString(keyDate(type), date)
-            putLong(keySyncedAt(type), System.currentTimeMillis())
+            putLong(keySyncedAt(type), publishedAt)
         }
         if (DevLog.isEnabled) {
             DevLog.log("sync_ok", "day_type" to type.name, "date" to date, "bytes" to zip.size, "lines" to summary(target))
@@ -145,18 +158,20 @@ object ScheduleStore {
         }
     }.getOrDefault("?")
 
-    private fun download(): ByteArray {
-        val connection = URL(FEED_URL).openConnection() as HttpsURLConnection
-        // O certificado de *.metrofor.ce.gov.br costuma estar vencido. Aceitamos
-        // qualquer certificado só nesta conexão: são dados públicos de horário, e
-        // o pior que um intermediário faria é mostrar uma grade errada.
-        connection.sslSocketFactory = lenientTls.socketFactory
-        connection.hostnameVerifier = HostnameVerifier { host, _ -> host == FEED_HOST }
+    private fun mirrorName(type: DayType) = when (type) {
+        DayType.WEEKDAY -> "dia-util"
+        DayType.SATURDAY -> "sabado"
+        DayType.SUNDAY -> "domingo"
+    }
+
+    private fun fetch(url: String): ByteArray {
+        val connection = URL(url).openConnection() as HttpsURLConnection
         connection.connectTimeout = 20_000
         connection.readTimeout = 30_000
+        connection.useCaches = false
         connection.setRequestProperty("User-Agent", "metro-fortaleza-horarios/1.0")
         return try {
-            check(connection.responseCode == 200) { "HTTP ${connection.responseCode}" }
+            check(connection.responseCode == 200) { "HTTP ${connection.responseCode} em $url" }
             val bytes = connection.inputStream.use { it.readBytes() }
             // Conexão que cai no meio pode entregar menos bytes sem dar erro.
             val expected = connection.contentLengthLong
@@ -167,16 +182,6 @@ object ScheduleStore {
         } finally {
             connection.disconnect()
         }
-    }
-
-    private val lenientTls: SSLContext by lazy {
-        @SuppressLint("CustomX509TrustManager", "TrustAllX509TrustManager")
-        val trustAll = object : X509TrustManager {
-            override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) = Unit
-            override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) = Unit
-            override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
-        }
-        SSLContext.getInstance("TLS").apply { init(null, arrayOf(trustAll), SecureRandom()) }
     }
 
     /** Apaga a grade guardada de [type] (arquivo e datas), por exemplo se ela estiver corrompida. */

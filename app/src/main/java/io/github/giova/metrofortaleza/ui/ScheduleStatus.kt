@@ -3,11 +3,7 @@ package io.github.giova.metrofortaleza.ui
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,13 +31,15 @@ fun scheduleStatusText(source: ScheduleSource, syncing: Boolean, failed: Boolean
     else -> stringResource(R.string.schedule_bundled)
 }
 
-/** Linha de status dos horários, com botão para baixar de novo. */
+/**
+ * Linha de status dos horários. Sem botão de baixar de novo: o app baixa
+ * sozinho a grade do dia (uma vez), e baixar outra vez daria a mesma.
+ */
 @Composable
 fun ScheduleStatus(
     source: ScheduleSource,
     syncing: Boolean,
     failed: Boolean,
-    onRefresh: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
@@ -60,10 +58,6 @@ fun ScheduleStatus(
                 modifier = Modifier.padding(12.dp).size(20.dp),
                 strokeWidth = 2.dp,
             )
-        } else {
-            IconButton(onClick = onRefresh) {
-                Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.schedule_refresh))
-            }
         }
     }
 }
