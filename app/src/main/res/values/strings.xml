@@ -95,10 +95,6 @@
     <string name="about_license_title">Licença</string>
     <string name="about_license">Software livre, sob a GNU GPL versão 3. O código-fonte está no GitHub.</string>
     <string name="about_source_code">Ver o código-fonte</string>
-    <string name="about_donate_title">Apoie o app</string>
-    <string name="about_donate">O app é gratuito e sem anúncios. Se ele te ajuda no dia a dia, considere uma doação via Pix.</string>
-    <string name="about_copy_pix">Copiar chave Pix</string>
-    <string name="about_pix_copied">Chave Pix copiada</string>
     <string name="settings_title">Configurações</string>
     <string name="settings_section_distances">Distâncias</string>
     <string name="settings_section_trip">Modo viagem</string>

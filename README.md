@@ -273,9 +273,10 @@ extenso (toque abre; botão "Copiar link"), um botão **"Divulgar o app"** que
 abre o compartilhamento do Android (WhatsApp etc.) com uma mensagem pronta e o
 link da [versão lite](https://giovanildo.github.io/metro-fortaleza-horarios/app/),
 um **QR code** para outra pessoa abrir o app apontando a câmera para a tela
-(`res/drawable-nodpi/qr_download.png`, sempre sobre fundo branco) e uma chave Pix para quem
-quiser apoiar o projeto (`PIX_KEY` em `ui/AboutScreen.kt`; vazia, a seção de
-doação some).
+(`res/drawable-nodpi/qr_download.png`, sempre sobre fundo branco). **Não há
+pedido de doação dentro do app**: a Play Store restringe pedir dinheiro fora do
+sistema de pagamento dela, então o Pix fica só na página do app e na versão
+lite.
 
 ## Horários do dia
 

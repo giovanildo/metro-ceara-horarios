@@ -59,8 +59,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
 import androidx.compose.material3.Switch
 
-/** Chave Pix para doações. Vazia = a seção de doação não aparece. */
-private const val PIX_KEY = "giovanildos@gmail.com"
+// Sem pedido de doação dentro do app: a Play Store restringe pedir dinheiro
+// fora do sistema de pagamento dela. A doação (Pix) fica na página do app e
+// na versão lite.
 
 private const val REPO_URL = "https://github.com/giovanildo/metro-fortaleza-horarios"
 
@@ -196,35 +197,6 @@ fun AboutScreen(onBack: () -> Unit) {
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(top = 8.dp),
                 )
-            }
-
-            if (PIX_KEY.isNotBlank()) {
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = stringResource(R.string.about_donate_title),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                        Text(
-                            text = stringResource(R.string.about_donate),
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(top = 4.dp),
-                        )
-                        Text(
-                            text = PIX_KEY,
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier.padding(top = 12.dp),
-                        )
-                        Button(
-                            onClick = { copy(context, "Pix", PIX_KEY, R.string.about_pix_copied) },
-                            modifier = Modifier.padding(top = 8.dp),
-                        ) {
-                            Icon(Icons.Filled.ContentCopy, contentDescription = null)
-                            Text(stringResource(R.string.about_copy_pix), modifier = Modifier.padding(start = 8.dp))
-                        }
-                    }
-                }
             }
 
             if (devUnlocked) DevOptions()
