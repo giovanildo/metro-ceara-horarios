@@ -20,3 +20,8 @@ logs/
 
 # Python (tools/build_web_data.py importa o build_db.py)
 __pycache__/
+
+# Play Store: ferramenta, chave pública da Google e a chave exportada (nunca no git)
+tools/play/pepk.jar
+tools/play/*.pem
+tools/play/*.zip

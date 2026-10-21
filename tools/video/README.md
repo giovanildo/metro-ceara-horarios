@@ -12,6 +12,13 @@ O ffmpeg estático de johnvansickle.com funciona sem instalar nada.
   dentro de um iPhone desenhado (Safari, Compartilhar, "Adicionar à Tela de
   Início", tela inicial, pedido de localização), marcadas como "ilustração".
 
+- `build_fgs.py` — `tools/play/video-modo-viagem.mp4`, o vídeo da declaração
+  do serviço em primeiro plano na Play Store: o modo viagem em uso, com
+  legendas em inglês (para a análise da Google) e português. Antes de cortar,
+  converte a gravação para 30 quadros/s constantes: o `screenrecord` só grava
+  quadro quando a tela muda, e numa tela parada o corte pularia para o próximo.
+  Na gravação, o "GPS perdido" foi posto em 5 min para os saltos de relógio não
+  mostrarem "Sem GPS".
 - `qr_stories.py` — `story-qrcode.png`, `story-qrcode-link.png` (com espaço
   livre de ~1550 a ~1820 px para a figurinha de link do Instagram) e
   `qrcode.png`, todos levando à versão lite.

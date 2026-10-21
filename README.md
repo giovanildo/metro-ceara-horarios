@@ -621,6 +621,36 @@ gh release create vX.Y metro-fortaleza.apk --notes-file notas.md
 O arquivo vai sempre com o nome `metro-fortaleza.apk`, para o link
 `releases/latest/download/metro-fortaleza.apk` (e o QR code) nunca mudarem.
 
+## Publicação na Play Store (em preparação)
+
+O material para o Play Console fica em [`tools/play/`](tools/play/):
+
+- [`loja.md`](tools/play/loja.md) — tudo o que o Console pede, pronto para
+  colar: nome ("Metrô Fortaleza (não oficial)"), descrições curta e completa,
+  categoria e contato, e as respostas de cada formulário de "Conteúdo do app"
+  (política de privacidade, anúncios, classificação, público-alvo 13+,
+  segurança dos dados — **não coleta dados** —, app governamental — não —, e a
+  justificativa do serviço em primeiro plano com localização do modo viagem),
+  além da mensagem para convidar os testadores do teste fechado.
+- `imagens/` — ícone 512×512 (PNG com transparência), gráfico de recursos
+  1024×500 e 4 capturas 1080×2160 (a loja não aceita mais que 2:1; as telas de
+  1080×2400 são cortadas embaixo). A tela do aviso de descida é a tela real da
+  viagem com o cartão real da notificação, recortado da barra de notificações,
+  colado no topo como o balão que aparece no aparelho.
+- `video-modo-viagem.mp4` — o modo viagem em uso (iniciar, notificação fixa,
+  tela bloqueada, aviso de descida), para subir no YouTube como "não listado" e
+  pôr o link na declaração do serviço em primeiro plano.
+- [`exportar-chave.sh`](tools/play/exportar-chave.sh) — exporta a chave de
+  assinatura do APK do GitHub para a Play Store usar a mesma (Play App
+  Signing com chave própria), com o `pepk.jar` e a chave pública que o
+  Console fornece. Ferramenta, chave pública e o zip exportado ficam fora do
+  git.
+
+O pacote da loja é o AAB: `./gradlew bundleRelease` →
+`app/build/outputs/bundle/release/app-release.aab`, assinado com a mesma chave
+do APK. O app já não tem nada que a análise costuma barrar: não fala com o site
+do Metrofor (certificado vencido) e não pede doação.
+
 ## Publicação no F-Droid
 
 O app vai ser distribuído pelo [F-Droid](https://f-droid.org), que compila a
