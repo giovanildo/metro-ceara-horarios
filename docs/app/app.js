@@ -366,7 +366,8 @@ function telaSobre() {
 
     <h2>Privacidade</h2>
     <p>Sem anúncios, sem cadastro e sem rastreadores. Sua localização é usada só no celular, para achar a estação mais
-      perto; nada é enviado para ninguém. As configurações ficam guardadas só neste aparelho.</p>
+      perto; nada é enviado para ninguém. As configurações ficam guardadas só neste aparelho.
+      <a href="../privacidade.html">Política de privacidade</a>.</p>
 
     <h2>Código aberto</h2>
     <p>Qualquer pessoa pode ver e conferir tudo o que o app faz, no

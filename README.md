@@ -594,6 +594,12 @@ as marcações que o Google e as redes sociais leem (título, descrição, Open
 Graph com `img/previa.png` de 1200×630 para a prévia do link no WhatsApp,
 dados estruturados `SoftwareApplication`, `robots.txt` e `sitemap.xml`).
 
+A **política de privacidade** (`docs/privacidade.html`, link no rodapé da página
+e na tela Sobre da versão lite) cobre o app e a versão lite: nenhum dado
+pessoal é coletado ou enviado; a localização é usada só no aparelho; a internet
+serve só para baixar os horários do espelho no GitHub. É o link exigido pela
+Play Store — ao mudar algo que trate dados, atualize a página (e a data) antes.
+
 As capturas em `docs/img/tela-*.jpg` são versões menores das de
 `fastlane/…/phoneScreenshots/`; ao refazer essas, refaça aquelas.
 
