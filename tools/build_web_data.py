@@ -12,14 +12,19 @@ estiverem em SAIDA. Feed vazio ou quebrado nao substitui a grade boa.
 
 Arquivos em SAIDA:
     indice.json                 data e arquivo de cada tipo de dia
-    horarios-<tipo>.json        linhas, sentidos, estacoes e viagens
+    horarios-<tipo>.json        linhas, sentidos, estacoes e viagens (versao lite)
+    gtfs-<tipo>.zip             o GTFS original do Metrofor (o app Android baixa daqui)
     bicicletar.json             estacoes do Bicicletar
     regras.json                 copia de app/src/main/assets/regras.json
 """
+import io
 import json
 import os
 import shutil
+import ssl
 import sys
+import urllib.request
+import zipfile
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 
@@ -113,6 +118,20 @@ def grade(zf):
     }
 
 
+def baixar_feed(source):
+    """Os bytes do GTFS: de um zip local ou do Metrofor (certificado costuma estar vencido)."""
+    if source:
+        with open(source, "rb") as fh:
+            return fh.read()
+    print(f"baixando {gtfs.FEED_URL}")
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+    req = urllib.request.Request(gtfs.FEED_URL, headers={"User-Agent": "metro-fortaleza-horarios/1.0"})
+    with urllib.request.urlopen(req, context=ctx, timeout=60) as resp:
+        return resp.read()
+
+
 def escrever(path, data):
     tmp = path + ".tmp"
     with open(tmp, "w", encoding="utf-8") as fh:
@@ -135,7 +154,8 @@ def main():
         with open(indice_path, encoding="utf-8") as fh:
             indice = json.load(fh)
 
-    dados = grade(gtfs.load_feed(source))
+    bruto = baixar_feed(source)
+    dados = grade(zipfile.ZipFile(io.BytesIO(bruto)))
     total = sum(len(s["viagens"]) for l in dados["linhas"] for s in l["sentidos"])
     if not dados["linhas"] or not dados["estacoes"] or total == 0:
         # Mesma protecao do app: feed vazio ou quebrado nao apaga a grade boa.
@@ -143,7 +163,17 @@ def main():
     else:
         arquivo = f"horarios-{tipo}.json"
         escrever(os.path.join(out, arquivo), {"data": hoje, "tipo": tipo, **dados})
-        indice["tipos"][tipo] = {"data": hoje, "arquivo": arquivo, "viagens": total}
+        # O zip original vai junto: o app Android baixa daqui, com certificado
+        # válido, em vez de ir ao site do Metrofor.
+        zip_nome = f"gtfs-{tipo}.zip"
+        tmp = os.path.join(out, zip_nome + ".tmp")
+        with open(tmp, "wb") as fh:
+            fh.write(bruto)
+        os.replace(tmp, os.path.join(out, zip_nome))
+        indice["tipos"][tipo] = {
+            "data": hoje, "arquivo": arquivo, "viagens": total,
+            "gtfs": zip_nome, "bytes": len(bruto), "atualizado": agora.isoformat(timespec="seconds"),
+        }
         print(f"{arquivo}: {len(dados['linhas'])} linhas, {total} viagens")
 
     bikes = gtfs.load_bike_stations()
