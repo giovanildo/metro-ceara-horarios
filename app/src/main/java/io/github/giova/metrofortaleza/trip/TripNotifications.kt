@@ -102,7 +102,7 @@ internal object TripNotifications {
             )
         }
         val notification = NotificationCompat.Builder(context, CHANNEL_STATION)
-            .setSmallIcon(R.drawable.ic_launcher)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(
                 if (trip.progress.presumed) {
                     context.getString(R.string.trip_station_presumed, plan.stops[index].name)
@@ -134,7 +134,7 @@ internal object TripNotifications {
         val title = context.getString(R.string.trip_turnaround_title, terminal.name, vehicleName(plan.routeName))
         val text = context.getString(R.string.trip_turnaround_text, formatTime(backAt.roundToInt()), plan.headsign)
         val notification = NotificationCompat.Builder(context, CHANNEL_STATION)
-            .setSmallIcon(R.drawable.ic_launcher)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(title)
             .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -158,7 +158,7 @@ internal object TripNotifications {
             trip.plan.destination.name,
         )
         val notification = NotificationCompat.Builder(context, CHANNEL_STATION)
-            .setSmallIcon(R.drawable.ic_launcher)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(trip.plan.destination.name)
             .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -195,7 +195,7 @@ internal object TripNotifications {
             } ?: "")
         }
         return NotificationCompat.Builder(context, CHANNEL_ONGOING)
-            .setSmallIcon(R.drawable.ic_launcher)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(title)
             .setContentText(text)
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))
@@ -218,7 +218,7 @@ internal object TripNotifications {
                 if (SettingsStore.get(context).remindBelongings) it + " " + context.getString(R.string.trip_belongings) else it
             }
         val notification = NotificationCompat.Builder(context, if (sound) CHANNEL_ALERT_SOUND else CHANNEL_ALERT_SILENT)
-            .setSmallIcon(R.drawable.ic_launcher)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(context.getString(R.string.trip_alert_title))
             .setContentText(text)
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))

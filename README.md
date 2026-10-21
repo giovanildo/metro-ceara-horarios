@@ -123,7 +123,9 @@ O cartão **Modo viagem** fica no topo da tela inicial: a origem é a estação 
 destaque (GPS ou fixada) e o destino se escolhe entre as estações seguintes,
 nos dois sentidos. O mesmo botão existe na tela de partidas de cada estação.
 Durante a viagem, o cartão do topo passa a mostrar o andamento, e um serviço em
-primeiro plano, com notificação fixa, segue a viagem com a tela desligada:
+primeiro plano, com notificação fixa, segue a viagem com a tela desligada (o
+ícone pequeno das notificações é a silhueta do trem, `drawable/ic_notification.xml`:
+o Android só usa a forma, e o ícone do app, de fundo cheio, virava um quadrado):
 
 - **Onde o trem está.** Pelo GPS, quando a posição é precisa (≤150 m) e está a
   até 300 m de uma estação do caminho. Cada estação confirmada mede o atraso

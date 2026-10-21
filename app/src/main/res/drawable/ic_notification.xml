@@ -1,0 +1,32 @@
+<!--
+    Ícone pequeno das notificações: só a silhueta do trem do ícone do app, sem o
+    fundo. O Android usa apenas a forma (a transparência) e pinta de uma cor só;
+    com o ícone do app, de fundo vermelho cheio, aparecia um quadrado.
+    Janela e faróis são vazados (evenOdd).
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:pivotX="54"
+        android:pivotY="61"
+        android:scaleX="1.3"
+        android:scaleY="1.3"
+        android:translateY="-7">
+        <path
+            android:fillColor="#FFFFFF"
+            android:fillType="evenOdd"
+            android:pathData="M38,24h32a10,10 0,0 1,10 10v38a10,10 0,0 1,-10 10h-32a10,10 0,0 1,-10 -10v-38a10,10 0,0 1,10 -10z
+                M36,36h36v18h-36z
+                M34,64a4,4 0,1 0,8 0a4,4 0,1 0,-8 0z
+                M66,64a4,4 0,1 0,8 0a4,4 0,1 0,-8 0z" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M30,88h14l-6,10h-14z" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M64,88h14l6,10h-14z" />
+    </group>
+</vector>
