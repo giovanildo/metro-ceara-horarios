@@ -157,7 +157,7 @@
     <string name="dev_unlocked">Opções de desenvolvedor ativadas</string>
     <string name="dev_title">Opções de desenvolvedor</string>
     <string name="dev_log">Registro de testes</string>
-    <string name="dev_log_desc">Grava downloads de horários, localização, viagens e erros, com posições de GPS exatas. Fica só no aparelho.</string>
+    <string name="dev_log_desc">Grava downloads de horários, localização, viagens e erros, com posições de GPS exatas. Fica no aparelho, a não ser que você escolha uma pasta para a cópia na nuvem.</string>
     <string name="dev_log_size">Guardado: %1$s KB em %2$d dia(s) (máximo 7 dias)</string>
     <string name="dev_save">Salvar na pasta Downloads</string>
     <string name="dev_saved">Salvo em %1$s</string>
@@ -165,6 +165,17 @@
     <string name="dev_clear">Apagar registro</string>
     <string name="dev_cleared">Registro apagado</string>
     <string name="dev_empty">O registro está vazio</string>
+    <string name="dev_cloud_title">Cópia na nuvem</string>
+    <string name="dev_cloud_desc">Escolha uma pasta, de preferência no Google Drive: o app grava lá um arquivo por dia (metro-fortaleza-log-AAAA-MM-DD.log) e o atualiza a cada minuto de uso. Se não der para gravar, cria o mesmo nome com -2.</string>
+    <string name="dev_cloud_none">Nenhuma pasta escolhida: o registro fica só no celular.</string>
+    <string name="dev_cloud_waiting">Pasta: %1$s. Ainda sem cópia.</string>
+    <string name="dev_cloud_ok">Pasta: %1$s. Última cópia em %2$s.</string>
+    <string name="dev_cloud_error">Pasta: %1$s. A última cópia falhou (%2$s); tento de novo no próximo minuto de uso.</string>
+    <string name="dev_cloud_choose">Escolher pasta</string>
+    <string name="dev_cloud_change">Trocar pasta</string>
+    <string name="dev_cloud_now">Enviar agora</string>
+    <string name="dev_cloud_sending">Copiando para a pasta…</string>
+    <string name="dev_cloud_stop">Parar de copiar</string>
     <string name="settings_section_leave">Lembrete da hora de sair</string>
     <string name="settings_leave_desc">O lembrete aparece só na estação de casa: toque num horário dela e o app cria na agenda a hora de sair de casa.</string>
     <string name="settings_home_station">Estação perto de casa</string>

@@ -495,8 +495,20 @@ Ligado, grava um evento por linha (JSON) em `files/devlog/AAAA-MM-DD.jsonl`,
 no fuso de Fortaleza, guardando no máximo 7 dias e 5 MB (sai o mais antigo).
 O botão de salvar junta tudo em `Download/metro-fortaleza-log-AAAA-MM-DD.log`
 (no Android 9 ou anterior, na pasta do app em `Android/data/…/files/Download`).
-Nada sai do aparelho sozinho: o arquivo é copiado pelo cabo ou pelo
-gerenciador de arquivos.
+Sem pasta escolhida, nada sai do aparelho sozinho: o arquivo é copiado pelo
+cabo ou pelo gerenciador de arquivos.
+
+**Cópia na nuvem** (`data/DevLogCloud.kt`), como o backup do gioBank: em
+"Escolher pasta", o seletor de pasta do Android dá ao app permissão para uma
+pasta — de preferência no Google Drive; o app do Drive cuida de mandar para a
+nuvem, sem login nem biblioteca da Google. O app mantém lá **um arquivo por
+dia**, `metro-fortaleza-log-AAAA-MM-DD.log`, regravado com o conteúdo do dia (o
+arquivo local continua sendo a fonte), no máximo uma vez por minuto — durante a
+viagem chegam eventos a cada segundo — e na hora em `app_start`, `log_on`,
+`trip_end`, `sync_ok` e em "Enviar agora". **Se não der para gravar no arquivo
+do dia, cria o mesmo nome com `-2`** (depois `-3`…) e passa a usar esse. A tela
+mostra a pasta, a última cópia e o erro, se houver. Se o Drive não aparecer no
+seletor de pasta, qualquer pasta do celular funciona igual.
 
 Eventos (`"ev"`): `app_start` (versão, Android, aparelho), `schedule_source`
 (de onde veio a grade em uso), `sync_start`/`sync_ok`/`sync_fail` (download dos

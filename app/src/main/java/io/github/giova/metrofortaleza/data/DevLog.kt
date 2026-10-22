@@ -20,7 +20,9 @@ import java.util.concurrent.Executors
  * Desligado por padrão e escondido (as opções aparecem depois de tocar 7 vezes
  * na versão, na tela Sobre). Ligado, grava um evento por linha (JSON Lines) em
  * `files/devlog/AAAA-MM-DD.jsonl`, com hora, o nome do evento e os dados —
- * posições de GPS exatas incluídas. Fica só no aparelho; o botão "Salvar" copia para a pasta Downloads.
+ * posições de GPS exatas incluídas. Fica no aparelho; o botão "Salvar" copia para a pasta Downloads,
+ * e, com uma pasta escolhida (de preferência no Google Drive), [DevLogCloud] mantém lá uma cópia
+ * de cada dia.
  * Guarda no máximo [MAX_DAYS] dias e [MAX_BYTES] no total; o mais antigo sai.
  */
 object DevLog {
@@ -32,6 +34,10 @@ object DevLog {
     private val zone = TimeZone.getTimeZone("America/Fortaleza")
 
     @Volatile private var dir: File? = null
+    @Volatile private var appContext: Context? = null
+
+    /** Eventos que levam a cópia na pasta da nuvem na hora, sem esperar o intervalo. */
+    private val CLOUD_NOW = setOf("app_start", "log_on", "trip_end", "sync_ok")
     @Volatile private var enabled = false
 
     /** Para evitar calcular dados caros quando o registro está desligado. */
@@ -46,7 +52,9 @@ object DevLog {
 
     fun init(context: Context) {
         val app = context.applicationContext
+        appContext = app
         dir = File(app.filesDir, "devlog")
+        DevLogCloud.init(app)
         val prefs = prefs(app)
         enabled = prefs.getBoolean(KEY_ENABLED, false)
         _enabledFlow.value = enabled
@@ -86,7 +94,15 @@ object DevLog {
                 File(target, day(now) + ".jsonl").appendText(line + "\n")
                 trim(target)
             }
+            appContext?.let { ctx -> runCatching { DevLogCloud.sync(ctx, target, force = event in CLOUD_NOW) } }
         }
+    }
+
+    /** Copia já para a pasta da nuvem (botão "Enviar agora"). */
+    fun syncCloudNow() {
+        val target = dir ?: return
+        val ctx = appContext ?: return
+        writer.execute { runCatching { DevLogCloud.sync(ctx, target, force = true) } }
     }
 
     /** Erro que derrubou o app: grava na hora, sem fila, antes de o processo morrer. */

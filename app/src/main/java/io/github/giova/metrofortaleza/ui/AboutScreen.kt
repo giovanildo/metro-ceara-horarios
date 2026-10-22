@@ -49,6 +49,14 @@ import androidx.compose.ui.unit.dp
 import io.github.giova.metrofortaleza.R
 import java.io.File
 import io.github.giova.metrofortaleza.data.DevLog
+import io.github.giova.metrofortaleza.data.DevLogCloud
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.HorizontalDivider
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 import android.content.ContentValues
 import android.os.Build
 import android.os.Environment
@@ -241,9 +249,63 @@ private fun DevOptions() {
                     Toast.makeText(context, R.string.dev_cleared, Toast.LENGTH_SHORT).show()
                 }) { Text(stringResource(R.string.dev_clear)) }
             }
+            HorizontalDivider(modifier = Modifier.padding(top = 16.dp))
+            CloudCopy()
         }
     }
 }
+
+/** A cópia do registro numa pasta escolhida (de preferência no Google Drive): um arquivo por dia. */
+@Composable
+private fun CloudCopy() {
+    val context = LocalContext.current
+    val cloud by DevLogCloud.state.collectAsState()
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { tree ->
+        if (tree != null && DevLogCloud.setFolder(context, tree)) DevLog.syncCloudNow()
+    }
+    Text(
+        text = stringResource(R.string.dev_cloud_title),
+        style = MaterialTheme.typography.bodyLarge,
+        modifier = Modifier.padding(top = 12.dp),
+    )
+    Text(
+        text = stringResource(R.string.dev_cloud_desc),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    Text(
+        text = when {
+            cloud.folder == null -> stringResource(R.string.dev_cloud_none)
+            cloud.error != null -> stringResource(R.string.dev_cloud_error, cloud.folder!!, cloud.error!!)
+            cloud.lastOkMillis > 0 -> stringResource(R.string.dev_cloud_ok, cloud.folder!!, formatWhen(cloud.lastOkMillis))
+            else -> stringResource(R.string.dev_cloud_waiting, cloud.folder!!)
+        },
+        style = MaterialTheme.typography.bodySmall,
+        color = if (cloud.error != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+        modifier = Modifier.padding(top = 8.dp),
+    )
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
+        Button(onClick = { picker.launch(null) }) {
+            Text(stringResource(if (cloud.folder == null) R.string.dev_cloud_choose else R.string.dev_cloud_change))
+        }
+        if (cloud.folder != null) {
+            OutlinedButton(onClick = {
+                DevLog.syncCloudNow()
+                Toast.makeText(context, R.string.dev_cloud_sending, Toast.LENGTH_SHORT).show()
+            }) { Text(stringResource(R.string.dev_cloud_now)) }
+        }
+    }
+    if (cloud.folder != null) {
+        OutlinedButton(onClick = { DevLogCloud.clearFolder(context) }, modifier = Modifier.padding(top = 4.dp)) {
+            Text(stringResource(R.string.dev_cloud_stop))
+        }
+    }
+}
+
+private fun formatWhen(millis: Long): String =
+    SimpleDateFormat("dd/MM 'às' HH:mm", Locale.US)
+        .apply { timeZone = TimeZone.getTimeZone("America/Fortaleza") }
+        .format(Date(millis))
 
 /**
  * Salva o registro na pasta Downloads do próprio celular, sem passar por nenhum
