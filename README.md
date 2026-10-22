@@ -589,6 +589,13 @@ iPhone ou não quer instalar?") e ensina a pô-la na tela inicial do iPhone.
 Para testar localmente: `python3 -m http.server -d docs 8000` e abrir
 `http://localhost:8000/app/` (no emulador, `adb reverse tcp:8000 tcp:8000`).
 
+## Emulador
+
+[`tools/emulador/ui.sh`](tools/emulador/ui.sh) reúne as funções usadas nos
+testes e gravações: `tap "texto"` (toca pelo texto ou content-desc), `txt`,
+`wait_text`, `fix lon lat` (GPS), `at HHMM` (relógio, com `adb root`), `demo
+HHMM` (barra de status limpa) e `shot nome`. Uso: `. tools/emulador/ui.sh`.
+
 ## Página de apresentação
 
 `docs/` é a página pública do app (GitHub Pages, publicada a partir de
