@@ -1,0 +1,1 @@
+• Para quem desenvolve o app: o registro de testes pode guardar uma cópia de cada dia numa pasta da nuvem, como o Google Drive. Não muda nada para quem usa.
