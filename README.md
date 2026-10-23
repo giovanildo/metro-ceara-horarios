@@ -262,8 +262,11 @@ até a estação). O botão "Abrir a agenda" manda um evento para o app de agend
 do celular (`ACTION_INSERT` do `CalendarContract`, em `ui/LeaveReminder.kt`):
 começa na hora de sair, termina na partida, com a estação como local. Não usa
 conta, permissão nem internet; o alarme é o padrão da agenda, que a pessoa
-confere antes de salvar. Nas outras estações os horários não abrem nada; sem
-estação de casa escolhida, a tela de horários diz onde escolher.
+confere antes de salvar. Nas outras estações os horários não abrem nada. Sem
+estação de casa escolhida, a tela de horários diz onde escolher e tocar num
+horário abre uma janela que explica o lembrete, com o botão "Escolher nas
+Configurações", que abre as Configurações já rolada até "Lembrete da hora de
+sair".
 
 O aviso de distância nunca fica maior que o limite em que o modo viagem some
 (mexer num ajusta o outro). "Restaurar padrões" volta tudo. Os parâmetros

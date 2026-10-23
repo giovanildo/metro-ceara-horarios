@@ -86,6 +86,7 @@ fun DeparturesScreen(
     /** Tempo de casa até aqui, se esta é a estação de casa; `null` = sem lembrete. */
     homeMinutes: Int?,
     homeConfigured: Boolean,
+    onOpenSettings: () -> Unit,
     onBack: () -> Unit,
 ) {
     // A aba é da estação: ao abrir outra, volta para o sentido pedido (ou o primeiro).
@@ -118,6 +119,9 @@ fun DeparturesScreen(
     var pickingDestination by remember { mutableStateOf(false) }
     var reminder by remember { mutableStateOf<Departure?>(null) }
     val canRemind = homeMinutes != null
+    // Sem estação de casa, o toque no horário ensina a escolher uma em vez de não fazer nada.
+    var askingHome by remember { mutableStateOf(false) }
+    if (askingHome) LeaveSetupDialog(onOpenSettings = onOpenSettings, onDismiss = { askingHome = false })
     if (homeMinutes != null) reminder?.let { departure ->
         LeaveReminderDialog(
             reminder = LeaveReminder(departure, stop.name, route.name, direction?.headsign.orEmpty(), vehicleName(route.name)),
@@ -224,7 +228,11 @@ fun DeparturesScreen(
                                     if (index > 0) HorizontalDivider()
                                     DepartureRow(
                                         departure, now, highlighted = index == 0,
-                                        onClick = { reminder = departure }.takeIf { canRemind },
+                                        onClick = when {
+                                            canRemind -> ({ reminder = departure })
+                                            !homeConfigured -> ({ askingHome = true })
+                                            else -> null
+                                        },
                                     )
                                 }
                             }
@@ -301,7 +309,11 @@ fun DeparturesScreen(
                 item {
                     AllDepartures(
                         all, now,
-                        onPick = { m: Int -> reminder = Departure(m, tomorrow = false) }.takeIf { canRemind },
+                        onPick = when {
+                            canRemind -> ({ m: Int -> reminder = Departure(m, tomorrow = false) })
+                            !homeConfigured -> ({ _: Int -> askingHome = true })
+                            else -> null
+                        },
                     )
                 }
 

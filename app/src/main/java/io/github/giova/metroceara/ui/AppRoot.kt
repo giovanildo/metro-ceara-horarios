@@ -114,6 +114,8 @@ fun AppRoot() {
     var stopId by rememberSaveable { mutableStateOf<String?>(null) }
     var showAbout by rememberSaveable { mutableStateOf(false) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
+    // Vindo do toque num horário sem estação de casa: abre já no lembrete da hora de sair.
+    var settingsAtLeave by rememberSaveable { mutableStateOf(false) }
     // Sentido em que a tela de horários deve abrir (vindo de uma baldeação).
     var openDirectionId by rememberSaveable { mutableStateOf<Int?>(null) }
 
@@ -465,7 +467,7 @@ fun AppRoot() {
     // --------------------------------------------------------------- telas ----
     when {
         showSettings -> {
-            BackHandler { showSettings = false }
+            BackHandler { showSettings = false; settingsAtLeave = false }
             SettingsScreen(
                 settings = settings,
                 stationGroups = remember(repo) {
@@ -492,7 +494,8 @@ fun AppRoot() {
                 },
                 onChange = { SettingsStore.save(context, it) },
                 onReset = { SettingsStore.reset(context) },
-                onBack = { showSettings = false },
+                scrollToLeave = settingsAtLeave,
+                onBack = { showSettings = false; settingsAtLeave = false },
             )
         }
 
@@ -559,6 +562,7 @@ fun AppRoot() {
                 // O lembrete de sair é só da estação de casa.
                 homeMinutes = settings.homeToStationMinutes.takeIf { settings.homeStopId == stop.id },
                 homeConfigured = settings.homeStopId.isNotEmpty(),
+                onOpenSettings = { settingsAtLeave = true; showSettings = true },
                 onBack = { stopId = null },
             )
         }

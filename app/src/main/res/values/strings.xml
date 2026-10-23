@@ -190,6 +190,9 @@
     <string name="settings_home_minutes">Tempo de casa até a estação</string>
     <string name="settings_home_minutes_desc">Quanto você leva, em média, para ir de casa até a estação. O lembrete na agenda desconta esse tempo do horário do metrô ou VLT.</string>
     <string name="leave_hint">Toque em qualquer horário de hoje (aqui ou em \"Todos os horários\", mais abaixo) para lembrar na agenda a hora de sair de casa.</string>
+    <string name="leave_setup_text">Para o app lembrar na agenda a hora de sair de casa, escolha primeiro a estação perto de casa e quanto tempo você leva até ela.</string>
+    <string name="leave_setup_open">Escolher nas Configurações</string>
+    <string name="leave_setup_later">Agora não</string>
     <string name="leave_hint_setup">Quer um lembrete na agenda da hora de sair de casa? Escolha a estação perto de casa nas Configurações.</string>
     <string name="leave_title">Lembrar a hora de sair</string>
     <string name="leave_text">O %1$s sai às %2$s de %3$s. Levando %4$d min de casa até a estação, saia às %5$s.</string>

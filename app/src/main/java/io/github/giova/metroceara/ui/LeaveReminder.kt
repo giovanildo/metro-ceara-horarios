@@ -71,6 +71,25 @@ fun LeaveReminderDialog(reminder: LeaveReminder, homeMinutes: Int, onDismiss: ()
     )
 }
 
+/** Sem estação de casa ainda: explica o lembrete e leva às Configurações para escolhê-la. */
+@Composable
+fun LeaveSetupDialog(onOpenSettings: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.leave_title)) },
+        text = { Text(stringResource(R.string.leave_setup_text)) },
+        confirmButton = {
+            TextButton(onClick = {
+                onDismiss()
+                onOpenSettings()
+            }) { Text(stringResource(R.string.leave_setup_open)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.leave_setup_later)) }
+        },
+    )
+}
+
 private fun openCalendar(context: Context, reminder: LeaveReminder, minutes: Int) {
     val departureMillis = departureMillis(reminder.departure)
     val leaveMillis = departureMillis - minutes * 60_000L

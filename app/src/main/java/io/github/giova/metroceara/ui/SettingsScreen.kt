@@ -7,6 +7,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,8 +58,15 @@ fun SettingsScreen(
     nearestStations: List<NearStation>,
     onChange: (AppSettings) -> Unit,
     onReset: () -> Unit,
+    /** Abrir já rolada até o lembrete da hora de sair (onde se escolhe a estação de casa). */
+    scrollToLeave: Boolean = false,
     onBack: () -> Unit,
 ) {
+    val scroll = rememberScrollState()
+    var leaveTop by remember { mutableIntStateOf(-1) }
+    LaunchedEffect(scrollToLeave, leaveTop) {
+        if (scrollToLeave && leaveTop >= 0) scroll.scrollTo(leaveTop)
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -72,7 +84,7 @@ fun SettingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scroll)
                 .padding(16.dp),
         ) {
             SectionTitle(R.string.settings_section_appearance)
@@ -135,6 +147,7 @@ fun SettingsScreen(
                 value = settings.bikeNearStationMeters, range = 200..1_500, step = 100, format = ::formatMeters,
             ) { onChange(settings.copy(bikeNearStationMeters = it)) }
 
+            Spacer(Modifier.onGloballyPositioned { leaveTop = it.positionInParent().y.roundToInt() })
             SectionTitle(R.string.settings_section_leave)
             Text(
                 text = stringResource(R.string.settings_leave_desc),
