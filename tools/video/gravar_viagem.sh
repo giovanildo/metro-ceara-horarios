@@ -54,7 +54,7 @@ marca inicio; sleep 4
 
 marca lembrete
 tap "São Benedito"; wait_text "Próximas partidas"; sleep 2
-tap "07:50"; wait_text "Lembrar a hora de sair"; sleep 4
+tap "07:50"; wait_text "Lembrar na agenda"; sleep 4
 tap "Cancelar"; sleep 1
 for _ in 1 2 3; do $A shell input keyevent BACK; wait_text "Iniciar" 6 && break; done; sleep 1.5
 

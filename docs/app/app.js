@@ -25,6 +25,10 @@ const PROXIMAS = 4;
 const tela = document.getElementById("tela");
 const janela = document.getElementById("janela");
 
+/** Só uma comodidade: quanto tempo antes avisar, lembrado da última vez. */
+const AVISO_PADRAO = 15;
+const AVISOS = [5, 10, 15, 20, 30, 45];
+
 const estado = {
   dados: null,
   amanha: null,
@@ -40,9 +44,9 @@ const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&
 
 function lerConfig() {
   try {
-    return { casa: "", minutos: 10, ...JSON.parse(localStorage.getItem("config") || "{}") };
+    return { antes: AVISO_PADRAO, ...JSON.parse(localStorage.getItem("config") || "{}") };
   } catch {
-    return { casa: "", minutos: 10 };
+    return { antes: AVISO_PADRAO };
   }
 }
 
@@ -209,7 +213,6 @@ function telaEstacao(linhaId, stopId, sentidoId) {
   const t = agora();
   const sentidos = grade.sentidosDePartida(linha, stopId);
   const sentido = sentidos.find((s) => String(s.id) === sentidoId) || sentidos[0];
-  const ehCasa = estado.config.casa === stopId;
   const { hoje, amanha } = partidasComAmanha(linha, sentido, stopId);
   const lista = proximas(hoje, t.minutos, PROXIMAS, amanha);
 
@@ -227,28 +230,21 @@ function telaEstacao(linhaId, stopId, sentidoId) {
     html += `<p class="vazio">Sem mais partidas hoje.</p>`;
   } else {
     html += `<div class="cartao proximas" style="padding:4px 0">${lista.map((p, i) =>
-      `<button data-m="${p.m}" data-amanha="${p.amanha}" ${ehCasa ? "" : "disabled"}>
+      `<button data-m="${p.m}" data-amanha="${p.amanha}">
         <span><span class="hora">${hora(p.m)}</span>${p.amanha ? "<small>amanhã</small>" : ""}</span>
         <span>${falta(minutosAte(p, t.minutos))}</span></button>`).join("")}</div>`;
   }
-  // O lembrete é só da estação de casa, como no app.
-  if (ehCasa) {
-    html += `<p class="dica">Toque em qualquer horário de hoje (aqui ou em "Todos os horários", mais abaixo) para lembrar a hora de sair de casa.</p>`;
-  } else if (!estado.config.casa) {
-    html += `<p class="dica">Quer um lembrete da hora de sair de casa? <a href="#/config">Escolha a estação perto de casa</a>.</p>`;
-  }
+  html += `<p class="dica">Toque em qualquer horário de hoje (aqui ou em "Todos os horários", mais abaixo) para criar um lembrete na agenda.</p>`;
   html += avisoBike(linha, stopId, t);
   html += blocoIntegracao(stopId, t);
   html += `<h2>Todos os horários</h2><div class="todos">${hoje.map((m) => {
     const passou = m < t.minutos;
-    return `<button data-m="${m}" data-amanha="false" class="${passou ? "passou" : ""}" ${ehCasa && !passou ? "" : "disabled"}>${hora(m)}</button>`;
+    return `<button data-m="${m}" data-amanha="false" class="${passou ? "passou" : ""}" ${passou ? "disabled" : ""}>${hora(m)}</button>`;
   }).join("")}</div>`;
   tela.innerHTML = html;
 
-  if (ehCasa) {
-    tela.querySelectorAll("button[data-m]:not([disabled])").forEach((b) => b.addEventListener("click", () =>
-      lembrete(linha, sentido, stopId, +b.dataset.m, b.dataset.amanha === "true")));
-  }
+  tela.querySelectorAll("button[data-m]:not([disabled])").forEach((b) => b.addEventListener("click", () =>
+    lembrete(linha, sentido, stopId, +b.dataset.m, b.dataset.amanha === "true")));
 }
 
 /** "Pode embarcar com bike no metrô agora, até as 15:00" — mesmas regras e frases do app. */
@@ -299,39 +295,6 @@ function blocoIntegracao(stopId, t) {
   return html;
 }
 
-function telaConfig() {
-  const { grade } = estado.dados;
-  const c = estado.config;
-  let perto = "";
-  if (estado.pos) {
-    const lista = Object.entries(grade.estacoes)
-      .filter(([id]) => grade.passagens.has(id))
-      .map(([id, e]) => ({ id, nome: e.nome, d: distancia(estado.pos.lat, estado.pos.lon, e.lat, e.lon) }))
-      .sort((a, b) => a.d - b.d).slice(0, 3);
-    perto = `<optgroup label="Mais perto de você agora">${lista.map((e) =>
-      `<option value="${e.id}">${esc(e.nome)} · ${metros(e.d)}</option>`).join("")}</optgroup>`;
-  }
-  const grupos = grade.linhas.map((l) => `<optgroup label="${esc(l.nome)}">${grade.estacoesDaLinha(l).map((id) =>
-    `<option value="${id}">${esc(grade.nome(id))}</option>`).join("")}</optgroup>`).join("");
-  tela.innerHTML = `<h2 style="font-size:1.4rem">Configurações</h2>
-    <h2>Lembrete da hora de sair</h2>
-    <p class="dica">O lembrete aparece só na estação de casa: toque num horário dela e o app cria na agenda a hora de sair de casa.</p>
-    <label class="campo"><span>Estação perto de casa</span>
-      <select id="casa"><option value="">Nenhuma</option>${perto}${grupos}</select></label>
-    <label class="campo"><span>Tempo de casa até a estação (minutos)</span>
-      <input id="minutos" type="number" min="1" max="60" inputmode="numeric" value="${c.minutos}"></label>
-    <p class="dica">Fica guardado só neste aparelho.</p>`;
-  const casa = document.getElementById("casa");
-  casa.value = c.casa;
-  casa.addEventListener("change", () => { c.casa = casa.value; salvarConfig(); });
-  const min = document.getElementById("minutos");
-  min.addEventListener("change", () => {
-    c.minutos = Math.min(60, Math.max(1, Math.round(+min.value) || 10));
-    min.value = c.minutos;
-    salvarConfig();
-  });
-}
-
 function telaSobre() {
   const { indice } = estado.dados;
   tela.innerHTML = `<div class="sobre">
@@ -366,7 +329,7 @@ function telaSobre() {
 
     <h2>Privacidade</h2>
     <p>Sem anúncios, sem cadastro e sem rastreadores. Sua localização é usada só no celular, para achar a estação mais
-      perto; nada é enviado para ninguém. As configurações ficam guardadas só neste aparelho.
+      perto; nada é enviado para ninguém.
       <a href="../privacidade.html">Política de privacidade</a>.</p>
 
     <h2>Código aberto</h2>
@@ -412,24 +375,29 @@ function avisoDomingo(t) {
 function lembrete(linha, sentido, stopId, minutos, amanha) {
   const { grade } = estado.dados;
   const t = agora();
-  const casaMin = estado.config.minutos;
   const v = veiculo(linha.nome);
   const nome = grade.nome(stopId);
-  janela.innerHTML = `<h3>Lembrar a hora de sair</h3>
-    <p>${amanha ? "Amanhã, o" : "O"} ${v} sai às ${hora(minutos)} de ${esc(nome)}. Levando ${casaMin} min de casa até a estação, saia às ${hora(minutos - casaMin)}.</p>
-    <p class="dica">O lembrete vai para a agenda do celular, com aviso na hora de sair.</p>
+  const antes = AVISOS.includes(estado.config.antes) ? estado.config.antes : AVISO_PADRAO;
+  janela.innerHTML = `<h3>Lembrar na agenda</h3>
+    <p>${amanha ? "Amanhã, o" : "O"} ${v} sai às ${hora(minutos)} de ${esc(nome)}.</p>
+    <label class="campo"><span>Avisar quanto tempo antes</span>
+      <select id="antes">${AVISOS.map((m) => `<option value="${m}" ${m === antes ? "selected" : ""}>${m} min antes</option>`).join("")}</select></label>
+    <p class="dica">Por exemplo, o tempo que você leva até a estação. O lembrete vai para a agenda do celular.</p>
     <div class="acoes"><button class="botao secundario" id="cancelar">Cancelar</button>
       <button class="botao" id="agenda">Adicionar à agenda</button></div>`;
   janela.showModal();
   janela.querySelector("#cancelar").onclick = () => janela.close();
   janela.querySelector("#agenda").onclick = () => {
+    estado.config.antes = +janela.querySelector("#antes").value;
+    salvarConfig();
     const dia = amanha ? somarDias(t.data, 1) : t.data;
     baixarIcs({
-      inicio: instante(dia, minutos - casaMin),
-      fim: instante(dia, minutos),
-      titulo: `Sair de casa para o ${v} das ${hora(minutos)}`,
+      inicio: instante(dia, minutos),
+      fim: instante(dia, minutos + 10),
+      avisoMin: estado.config.antes,
+      titulo: `Pegar o ${v} das ${hora(minutos)}`,
       local: `Estação ${nome}`,
-      descricao: `${linha.nome}, sentido ${sentido.destino}. Partida às ${hora(minutos)}; ${casaMin} min de casa até a estação. Lembrete criado pelo app Metrô Ceará.`,
+      descricao: `${linha.nome}, sentido ${sentido.destino}. Lembrete criado pelo app Metrô Ceará.`,
     });
     janela.close();
   };
@@ -441,7 +409,7 @@ function instante(data, minutos) {
   return new Date(Date.UTC(a, m - 1, d, 0, minutos + 180));
 }
 
-function baixarIcs({ inicio, fim, titulo, local, descricao }) {
+function baixarIcs({ inicio, fim, avisoMin, titulo, local, descricao }) {
   const z = (d) => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
   const txt = (s) => s.replace(/\\/g, "\\\\").replace(/[,;]/g, (c) => "\\" + c).replace(/\n/g, "\\n");
   const ics = [
@@ -450,7 +418,7 @@ function baixarIcs({ inicio, fim, titulo, local, descricao }) {
     `UID:${z(inicio)}-${Math.random().toString(36).slice(2)}@metro-ceara`,
     `DTSTAMP:${z(new Date())}`, `DTSTART:${z(inicio)}`, `DTEND:${z(fim)}`,
     `SUMMARY:${txt(titulo)}`, `LOCATION:${txt(local)}`, `DESCRIPTION:${txt(descricao)}`,
-    "BEGIN:VALARM", "ACTION:DISPLAY", `DESCRIPTION:${txt(titulo)}`, "TRIGGER:PT0M", "END:VALARM",
+    "BEGIN:VALARM", "ACTION:DISPLAY", `DESCRIPTION:${txt(titulo)}`, `TRIGGER:-PT${avisoMin}M`, "END:VALARM",
     "END:VEVENT", "END:VCALENDAR", "",
   ].join("\r\n");
   const url = URL.createObjectURL(new Blob([ics], { type: "text/calendar;charset=utf-8" }));
@@ -468,7 +436,6 @@ function render() {
   const partes = location.hash.replace(/^#\/?/, "").split("/").map(decodeURIComponent);
   if (partes[0] === "linha") telaLinha(partes[1]);
   else if (partes[0] === "estacao") telaEstacao(partes[1], partes[2], partes[3]);
-  else if (partes[0] === "config") telaConfig();
   else if (partes[0] === "sobre") telaSobre();
   else telaInicio();
   status();
