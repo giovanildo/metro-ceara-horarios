@@ -73,6 +73,9 @@ import androidx.compose.material3.Switch
 
 private const val REPO_URL = "https://github.com/giovanildo/metro-fortaleza-horarios"
 
+/** A política de privacidade: a Play Store exige o link também dentro do app. */
+private const val PRIVACY_URL = "https://giovanildo.github.io/metro-fortaleza-horarios/privacidade.html"
+
 /**
  * O link para divulgar: a versão lite (no navegador), porta de entrada que
  * abre na hora, sem os avisos de instalação; de lá a pessoa chega ao app.
@@ -145,6 +148,10 @@ fun AboutScreen(onBack: () -> Unit) {
             }
 
             Section(R.string.about_sources_title, R.string.about_sources)
+            Section(R.string.about_privacy_title, R.string.about_privacy)
+            OutlinedButton(onClick = { open(context, PRIVACY_URL) }) {
+                Text(stringResource(R.string.about_privacy_link))
+            }
             Section(R.string.about_license_title, R.string.about_license)
             // O endereço por extenso: dá para ler, tocar para abrir ou copiar e mandar.
             Text(

@@ -148,6 +148,9 @@
     <string name="settings_belongings">Lembrar dos pertences</string>
     <string name="settings_belongings_desc">No aviso de descida e na chegada, o app lembra de não esquecer bolsa, celular e outros pertences.</string>
     <string name="about_copy_link">Copiar link</string>
+    <string name="about_privacy_title">Privacidade</string>
+    <string name="about_privacy">Sem anúncios, sem cadastro e sem rastreadores. A localização é usada só no celular, para achar a estação mais perto e acompanhar a viagem; nada é enviado para ninguém.</string>
+    <string name="about_privacy_link">Política de privacidade</string>
     <string name="about_link_copied">Link copiado</string>
     <string name="about_share_title">Compartilhe o app</string>
     <string name="about_share_desc">Aponte a câmera de outro celular para abrir o app na hora, no navegador. De lá dá para baixar o app completo para Android.</string>
