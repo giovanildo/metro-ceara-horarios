@@ -45,8 +45,8 @@ Android, e depois os problemas comuns e a saída de cada um — aviso do
 navegador, Play Protect, Bloqueador automático da Samsung, "App não
 instalado"). As telas foram gravadas no emulador em pt-BR; os avisos do
 navegador e do Play Protect, que não aparecem lá, são ilustrações marcadas como
-tal. O de instalação ainda é da versão 1.32 (nome e ícone antigos): para
-refazê-lo é preciso o APK novo já publicado no GitHub.
+tal. O de instalação ainda mostra o nome e o ícone antigos (versão 1.32); falta
+regravá-lo com o APK da 1.33.
 
 Para iPhone, `metro-ceara-como-instalar-iphone.mp4` (~39 s) ensina a pôr a
 [versão lite](#versão-lite-web) na tela inicial pelo Safari: as telas
