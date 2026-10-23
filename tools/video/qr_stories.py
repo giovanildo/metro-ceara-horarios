@@ -25,9 +25,11 @@ def centro(d, texto, fonte, y, cor):
 
 def topo(im, y, icone=150):
     ic = Image.open(fr.ICON).convert("RGBA").resize((icone, icone))
-    im.paste(ic, ((fr.W - icone) // 2, y), ic)
+    mask = Image.new("L", ic.size, 0)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, icone - 1, icone - 1), radius=icone // 5, fill=255)
+    im.paste(ic, ((fr.W - icone) // 2, y), mask)
     d = ImageDraw.Draw(im)
-    y = centro(d, "Metrô Fortaleza", f(fr.BOLD, 76), y + icone + 20, fr.WHITE) + 22
+    y = centro(d, "Metrô Ceará", f(fr.BOLD, 76), y + icone + 20, fr.WHITE) + 22
     return d, y
 
 
@@ -36,7 +38,7 @@ def story_qr():
     im = Image.new("RGB", (fr.W, fr.H), fr.RED)
     d, y = topo(im, 230, 200)
     y = centro(d, "Horários de metrô e VLT", f(fr.BOLD, 46), y, fr.WHITE) + 14
-    y = centro(d, "Fortaleza · Sobral · Cariri", f(fr.REG, 40), y, fr.WHITE) + 40
+    y = centro(d, "Fortaleza · Cariri · Sobral", f(fr.REG, 40), y, fr.WHITE) + 40
     for item in ["Próxima partida da estação mais perto", "Todos os horários e a integração entre linhas",
                  "No Android: aviso antes de você descer"]:
         d.ellipse((120, y + 18, 136, y + 34), fill=fr.WHITE)
