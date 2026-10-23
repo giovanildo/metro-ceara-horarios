@@ -27,7 +27,7 @@ private val DarkColors = darkColorScheme(
 )
 
 @Composable
-fun MetroFortalezaTheme(
+fun MetroCearaTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     wallpaperColors: Boolean = true,
     content: @Composable () -> Unit,

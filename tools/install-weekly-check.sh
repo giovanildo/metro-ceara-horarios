@@ -40,7 +40,7 @@ UNIT
 
 cat > "$UNIT_DIR/$NAME.timer" <<UNIT
 [Unit]
-Description=Verificacao semanal dos dados do Metro Fortaleza
+Description=Verificacao semanal dos dados do Metro Ceara
 
 [Timer]
 OnCalendar=Mon *-*-* 10:00:00

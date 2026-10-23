@@ -13,7 +13,7 @@ import androidx.compose.runtime.getValue
 import io.github.giova.metrofortaleza.data.AppSettings
 import io.github.giova.metrofortaleza.data.SettingsStore
 import io.github.giova.metrofortaleza.ui.AppRoot
-import io.github.giova.metrofortaleza.ui.theme.MetroFortalezaTheme
+import io.github.giova.metrofortaleza.ui.theme.MetroCearaTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,7 +35,7 @@ class MainActivity : ComponentActivity() {
                 enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
                 onDispose {}
             }
-            MetroFortalezaTheme(darkTheme = dark, wallpaperColors = current.wallpaperColors) {
+            MetroCearaTheme(darkTheme = dark, wallpaperColors = current.wallpaperColors) {
                 AppRoot()
             }
         }

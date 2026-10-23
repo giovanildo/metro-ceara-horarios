@@ -20,5 +20,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Horarios Metro Fortaleza"
+rootProject.name = "Horarios Metro Ceara"
 include(":app")

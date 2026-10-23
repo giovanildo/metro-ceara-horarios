@@ -160,7 +160,7 @@ def main():
     print("\nPara atualizar o app:  python3 tools/build_db.py && ./gradlew assembleDebug")
     if args.notify:
         subprocess.run(
-            ["notify-send", "-u", "normal", "Metro Fortaleza: dados mudaram", report[:400]],
+            ["notify-send", "-u", "normal", "Metro Ceara: dados mudaram", report[:400]],
             check=False,
         )
     return 10
