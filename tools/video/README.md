@@ -58,10 +58,14 @@ As telas vêm do emulador Android, com o sistema em pt-BR
   SystemUI para a barra de status, e a viagem simulada com `date` +
   `emu geo fix` a cada estação: é o que `gravar_viagem.sh` faz.
 
-O script do vídeo "como instalar no Android" se perdeu antes de vir para o
-repositório. Para refazê-lo, grave a instalação pelo link com `screenrecord`
-e monte como `build_divulgacao.py` (`fr.clip` para os trechos, `fr.card` para
-os cartões de problemas e soluções).
+- `gravar_instalacao.sh` + `build_instalacao.py` — "Como instalar no
+  Android" (`metro-ceara-como-instalar.mp4`, até 60 s, e o vídeo e a capa de
+  `docs/video/`): a gravação desinstala o app, limpa o Chrome e os downloads
+  (pelo MediaStore: com `rm` sobra o registro e o instalador acusa "problema
+  ao analisar o pacote") e faz a instalação real pelo site, do botão de baixar
+  até a permissão de localização. Como a página ainda mostra a capa do vídeo
+  antigo, a capa nova é trocada só naquele Chrome pelo DevTools
+  (`cdp.js`, com `adb forward tcp:9222 localabstract:chrome_devtools_remote`).
 
 Depois do Android 16: ao ligar "Permitir desta fonte", a janela "Quer
 instalar esse app?" abre sozinha por cima; um Voltar ali cancela a

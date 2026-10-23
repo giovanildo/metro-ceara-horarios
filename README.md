@@ -39,14 +39,13 @@ E vídeos verticais (1080×1920, sem música — ela entra ao postar, pela
 biblioteca do Instagram ou do WhatsApp):
 `metro-ceara-divulgacao.mp4` (~55 s: próxima partida, lembrete da hora de
 sair, modo viagem com a tela bloqueada até o aviso de descida e a chegada, QR
-da versão lite) e `metro-fortaleza-como-instalar.mp4` (~59 s, cabe no status
-do WhatsApp: os passos reais da instalação pelo link, com os avisos do
-Android, e depois os problemas comuns e a saída de cada um — aviso do
-navegador, Play Protect, Bloqueador automático da Samsung, "App não
-instalado"). As telas foram gravadas no emulador em pt-BR; os avisos do
-navegador e do Play Protect, que não aparecem lá, são ilustrações marcadas como
-tal. O de instalação ainda mostra o nome e o ícone antigos (versão 1.32); falta
-regravá-lo com o APK da 1.33.
+da versão lite) e `metro-ceara-como-instalar.mp4` (~60 s, cabe no status
+do WhatsApp; é também o vídeo da página, em `docs/video/`: os passos reais da
+instalação pelo site, com os avisos do Android, e depois os problemas comuns e
+a saída de cada um — aviso do navegador, Play Protect, Bloqueador automático
+da Samsung, "App não instalado"). As telas foram gravadas no emulador em
+pt-BR; os avisos do navegador e do Play Protect, que não aparecem lá, são
+ilustrações marcadas como tal.
 
 Para iPhone, `metro-ceara-como-instalar-iphone.mp4` (~39 s) ensina a pôr a
 [versão lite](#versão-lite-web) na tela inicial pelo Safari: as telas
