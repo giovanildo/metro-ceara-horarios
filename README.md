@@ -741,15 +741,8 @@ cores das linhas vêm do próprio GTFS e servem só para identificá-las. Quem f
 publicar o app em loja deve manter esses cuidados — nome, ícone e descrição sem
 sugerir vínculo oficial.
 
-Até a versão 1.32 o app se chamava "Metrô Fortaleza"; virou "Metrô Ceará" para
-abraçar também Cariri e Sobral. Onde há espaço, o nome vem acompanhado da linha
-"Fortaleza · Cariri · Sobral" (e as descrições citam as três cidades, para a
-busca). Na versão 1.34, ainda sem usuários e antes da Play Store, o resto
-acompanhou: pacote `io.github.giova.metroceara` (era
-`io.github.giova.metrofortaleza`), repositório e site `metro-ceara-horarios`,
-APK `metro-ceara.apk` e uma chave de assinatura nova. Para o Android é outro
-app: a 1.33 não atualiza para a 1.34; é preciso desinstalar e instalar de
-novo.
+Onde há espaço, o nome vem acompanhado da linha "Fortaleza · Cariri ·
+Sobral", e as descrições citam as três cidades, para a busca.
 
 ### Ícone
 
@@ -759,7 +752,8 @@ descrita uma vez só em [`tools/icone/icone.py`](tools/icone/icone.py), que gera
 `tools/icone/icone.svg`, o vetor do Android 7 (`drawable/ic_launcher.xml`), o
 ícone adaptável do Android 8+ (`drawable-anydpi-v26/ic_launcher.xml`, com fundo
 e frente: o desenho encolhe para a zona segura e preenche o círculo, o squircle
-ou o quadrado de cada aparelho) e os PNGs do site, da versão lite e da loja
+ou o quadrado de cada aparelho) e os PNGs do site, da versão lite, da loja e
+do F-Droid
 (precisa do Google Chrome). Depois, `python3 tools/play/destaque.py` refaz o
 gráfico de recursos da loja e a prévia de link do site, e
 `python3 tools/video/qr_stories.py` os stories. O ícone da notificação continua

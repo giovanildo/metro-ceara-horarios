@@ -7,7 +7,7 @@ Uma figura só, descrita aqui, vira:
   - app/src/main/res/drawable-anydpi-v26/ic_launcher.xml + ic_launcher_fundo.xml
     e ic_launcher_frente.xml (ícone adaptável do Android 8+: preenche o círculo,
     o squircle ou o quadrado de cada aparelho, com o desenho na zona segura);
-  - os PNGs do site, da versão lite e da loja (renderizados pelo Google Chrome).
+  - os PNGs do site, da versão lite, da Play Store e do F-Droid (renderizados pelo Google Chrome).
 
 Uso: python3 tools/icone/icone.py
 """
@@ -216,7 +216,8 @@ def main():
         return
     for lado, destino, modo in [(512, "docs/img/icon.png", "RGB"), (512, "docs/app/icon-512.png", "RGB"),
                                 (192, "docs/app/icon-192.png", "RGB"), (180, "docs/app/icon-180.png", "RGB"),
-                                (512, "tools/play/imagens/icone-512.png", "RGBA")]:
+                                (512, "tools/play/imagens/icone-512.png", "RGBA"),
+                                (512, "fastlane/metadata/android/pt-BR/images/icon.png", "RGB")]:
         png(svg_path, lado, destino, modo)
 
 
