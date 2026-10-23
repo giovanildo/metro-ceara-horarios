@@ -1,4 +1,4 @@
-"""Stories de QR code (1080x1920) e o qrcode.png de divulgacao/, apontando para a versão lite.
+"""Stories de QR code (1080x1920) e os QR sozinhos (divulgacao/, versão lite e app), apontando para a versão lite.
 
 Uso: python3 tools/video/qr_stories.py
 """
@@ -11,8 +11,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import frames as fr  # noqa: E402
 
 OUT = os.path.join(fr.ROOT, "divulgacao")
-URL = "https://giovanildo.github.io/metro-fortaleza-horarios/app/"
-LINHA1, LINHA2 = "giovanildo.github.io/", "metro-fortaleza-horarios/app"
+URL = "https://giovanildo.github.io/metro-ceara-horarios/app/"
+LINHA1, LINHA2 = "giovanildo.github.io/", "metro-ceara-horarios/app"
 PINK = (253, 236, 237)
 GRAY = (95, 95, 102)
 f = fr.font
@@ -83,7 +83,12 @@ def story_qr_link():
 
 
 def qr_simples():
-    fr.qr_image(URL, 390).save(os.path.join(OUT, "qrcode.png"), optimize=True)
+    """O QR sozinho: em divulgacao/, na tela Sobre da versão lite e na do app."""
+    q = fr.qr_image(URL, 390)
+    q.save(os.path.join(OUT, "qrcode.png"), optimize=True)
+    q.save(os.path.join(fr.ROOT, "docs", "app", "qr.png"), optimize=True)
+    fr.qr_image(URL, 481).convert("1").save(
+        os.path.join(fr.ROOT, "app", "src", "main", "res", "drawable-nodpi", "qr_download.png"), optimize=True)
 
 
 story_qr()

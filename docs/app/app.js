@@ -4,7 +4,7 @@ import {
 } from "./dados.js";
 
 const PERTO_METROS = 3000; // outras linhas aparecem até esta distância (padrão do app)
-const LINK = "https://giovanildo.github.io/metro-fortaleza-horarios/app/";
+const LINK = "https://giovanildo.github.io/metro-ceara-horarios/app/";
 const PAGINA_INSTALAR = "../#baixar"; // direto no botão de baixar o APK, com os avisos explicados ao lado
 const PIX = "giovanildos@gmail.com";
 const ANDROID = /Android/i.test(navigator.userAgent);
@@ -371,8 +371,8 @@ function telaSobre() {
 
     <h2>Código aberto</h2>
     <p>Qualquer pessoa pode ver e conferir tudo o que o app faz, no
-      <a href="https://github.com/giovanildo/metro-fortaleza-horarios">GitHub</a> (licença GPL-3.0).
-      Sugestões e problemas: <a href="https://github.com/giovanildo/metro-fortaleza-horarios/issues">por aqui</a>.</p>
+      <a href="https://github.com/giovanildo/metro-ceara-horarios">GitHub</a> (licença GPL-3.0).
+      Sugestões e problemas: <a href="https://github.com/giovanildo/metro-ceara-horarios/issues">por aqui</a>.</p>
 
     <h2>Apoie</h2>
     <p>O app é gratuito e feito no tempo livre. Se ele te ajuda, considere uma doação via Pix: <strong>${PIX}</strong></p>
@@ -447,7 +447,7 @@ function baixarIcs({ inicio, fim, titulo, local, descricao }) {
   const ics = [
     "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Metro Ceara//Horarios//PT-BR", "CALSCALE:GREGORIAN",
     "BEGIN:VEVENT",
-    `UID:${z(inicio)}-${Math.random().toString(36).slice(2)}@metro-fortaleza`,
+    `UID:${z(inicio)}-${Math.random().toString(36).slice(2)}@metro-ceara`,
     `DTSTAMP:${z(new Date())}`, `DTSTART:${z(inicio)}`, `DTEND:${z(fim)}`,
     `SUMMARY:${txt(titulo)}`, `LOCATION:${txt(local)}`, `DESCRIPTION:${txt(descricao)}`,
     "BEGIN:VALARM", "ACTION:DISPLAY", `DESCRIPTION:${txt(titulo)}`, "TRIGGER:PT0M", "END:VALARM",

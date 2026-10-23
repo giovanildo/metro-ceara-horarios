@@ -127,7 +127,7 @@ def baixar_feed(source):
     ctx = ssl.create_default_context()
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
-    req = urllib.request.Request(gtfs.FEED_URL, headers={"User-Agent": "metro-fortaleza-horarios/1.0"})
+    req = urllib.request.Request(gtfs.FEED_URL, headers={"User-Agent": "metro-ceara-horarios/1.0"})
     with urllib.request.urlopen(req, context=ctx, timeout=60) as resp:
         return resp.read()
 

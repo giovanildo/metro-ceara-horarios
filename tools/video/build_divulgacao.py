@@ -15,7 +15,7 @@ FF = os.environ.get("FFMPEG", "ffmpeg")
 OUT = S + "/divulgacao"
 os.makedirs(OUT, exist_ok=True)
 FINAL = os.path.join(fr.ROOT, "divulgacao", "metro-ceara-divulgacao.mp4")
-LITE = "giovanildo.github.io/metro-fortaleza-horarios/app"
+LITE = "giovanildo.github.io/metro-ceara-horarios/app"
 
 fr.PH_W = round(1080 * fr.PH_H / 2400 / 2) * 2
 fr.PH_X = (fr.W - fr.PH_W) // 2

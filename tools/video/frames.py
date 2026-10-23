@@ -14,7 +14,7 @@ WHITE = (255, 255, 255)
 BOLD = "/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf"
 REG = "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf"
 ICON = os.path.join(ROOT, "docs", "img", "icon.png")
-SITE = "giovanildo.github.io/metro-fortaleza-horarios"
+SITE = "giovanildo.github.io/metro-ceara-horarios"
 
 # Onde o vídeo/tela do celular entra. Cada vídeo ajusta PH_W/PH_X ao formato da tela.
 PH_H = 1420

@@ -48,7 +48,7 @@ VIDEO_WORK=/tmp/metro-video python3 tools/video/build_iphone.py
 As telas vêm do emulador Android, com o sistema em pt-BR
 (`adb root; adb shell setprop persist.sys.locale pt-BR; adb shell setprop ctl.restart zygote`):
 
-- **Versão web:** abrir `giovanildo.github.io/metro-fortaleza-horarios/app/`
+- **Versão web:** abrir `giovanildo.github.io/metro-ceara-horarios/app/`
   no Chrome (ou, para mostrar mudanças ainda não publicadas,
   `python3 -m http.server 8000 -d docs` + `adb reverse tcp:8000 tcp:8000` e
   `http://localhost:8000/app/`, que conta como site seguro para a localização) e salvar `adb exec-out screencap -p` em

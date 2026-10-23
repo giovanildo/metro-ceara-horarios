@@ -42,7 +42,7 @@ Que horas passa o próximo metrô? Abra o app e veja a estação mais perto de v
 
 Privacidade: sem anúncios, sem cadastro, sem rastreadores. A localização é usada só no celular; nada é enviado para ninguém.
 
-Gratuito e de código aberto (GPL-3.0): github.com/giovanildo/metro-fortaleza-horarios
+Gratuito e de código aberto (GPL-3.0): github.com/giovanildo/metro-ceara-horarios
 ```
 
 **Gráficos:**
@@ -56,14 +56,14 @@ Gratuito e de código aberto (GPL-3.0): github.com/giovanildo/metro-fortaleza-ho
 - **Categoria:** Mapas e navegação
 - **Tags:** transporte público, horários
 - **E-mail:** giovanildos@gmail.com
-- **Site:** https://giovanildo.github.io/metro-fortaleza-horarios/
+- **Site:** https://giovanildo.github.io/metro-ceara-horarios/
 - **Telefone:** deixar em branco (opcional)
 
 ## Conteúdo do app (Política > Conteúdo do app)
 
 | Formulário | Resposta |
 |---|---|
-| **Política de privacidade** | https://giovanildo.github.io/metro-fortaleza-horarios/privacidade.html |
+| **Política de privacidade** | https://giovanildo.github.io/metro-ceara-horarios/privacidade.html |
 | **Acesso ao app** | Todas as funcionalidades estão disponíveis sem restrições de acesso (sem login). |
 | **Anúncios** | Não, o app não contém anúncios. |
 | **Classificação do conteúdo** | Categoria: "Referência, notícias ou educação" (ou "Utilitário/produtividade"). Responder **não** a violência, sexo, linguagem, drogas, jogos de azar, interação entre usuários, compartilhamento de localização com outros usuários e compras. Resultado esperado: Livre. |

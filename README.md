@@ -8,11 +8,11 @@ caso, com a grade que vem no APK.
 
 ## Baixar
 
-**Página do app, para divulgar:** <https://giovanildo.github.io/metro-fortaleza-horarios/>
+**Página do app, para divulgar:** <https://giovanildo.github.io/metro-ceara-horarios/>
 — explica o que o app faz e como instalar, para quem não é programador, e gera
 uma prévia bonita ao colar o link no WhatsApp.
 
-**[⬇ Baixar a última versão (APK)](https://github.com/giovanildo/metro-fortaleza-horarios/releases/latest)**
+**[⬇ Baixar a última versão (APK)](https://github.com/giovanildo/metro-ceara-horarios/releases/latest)**
 — Android 7 ou mais novo. Ao abrir o arquivo, permita instalar apps dessa fonte;
 se o Play Protect avisar "app não verificado", toque em *Mais detalhes →
 Instalar mesmo assim*. Para atualizar sozinho, use o
@@ -22,7 +22,7 @@ repositório.
 Para divulgar, há imagens de story (1080×1920) em [`divulgacao/`](divulgacao/):
 `story-qrcode.png`, só com o QR code, e `story-qrcode-link.png`, com o QR e o
 link escrito e um espaço livre embaixo para a figurinha de link do Instagram. O
-QR e o link levam à **versão lite** (`…/metro-fortaleza-horarios/app/`), que abre
+QR e o link levam à **versão lite** (`…/metro-ceara-horarios/app/`), que abre
 na hora em qualquer celular — a porta de entrada; de lá, quem tem Android chega
 ao app completo. Imagem não tem link clicável: no Instagram use a figurinha
 "Link"; no status do WhatsApp, poste o link num status de texto. As duas e o
@@ -275,7 +275,7 @@ Um ícone de **informação** no topo abre a tela **Sobre**: o aviso de que o ap
 não é oficial, de onde vêm os dados, a licença, o **endereço do projeto** por
 extenso (toque abre; botão "Copiar link"), um botão **"Divulgar o app"** que
 abre o compartilhamento do Android (WhatsApp etc.) com uma mensagem pronta e o
-link da [versão lite](https://giovanildo.github.io/metro-fortaleza-horarios/app/),
+link da [versão lite](https://giovanildo.github.io/metro-ceara-horarios/app/),
 um **QR code** para outra pessoa abrir o app apontando a câmera para a tela
 (`res/drawable-nodpi/qr_download.png`, sempre sobre fundo branco). **Não há
 pedido de doação dentro do app**: a Play Store restringe pedir dinheiro fora do
@@ -495,7 +495,7 @@ e apagar. Desligado por padrão; quando desligado não grava nada.
 
 Ligado, grava um evento por linha (JSON) em `files/devlog/AAAA-MM-DD.jsonl`,
 no fuso de Fortaleza, guardando no máximo 7 dias e 5 MB (sai o mais antigo).
-O botão de salvar junta tudo em `Download/metro-fortaleza-log-AAAA-MM-DD.log`
+O botão de salvar junta tudo em `Download/metro-ceara-log-AAAA-MM-DD.log`
 (no Android 9 ou anterior, na pasta do app em `Android/data/…/files/Download`).
 Sem pasta escolhida, nada sai do aparelho sozinho: o arquivo é copiado pelo
 cabo ou pelo gerenciador de arquivos.
@@ -504,7 +504,7 @@ cabo ou pelo gerenciador de arquivos.
 "Escolher pasta", o seletor de pasta do Android dá ao app permissão para uma
 pasta — de preferência no Google Drive; o app do Drive cuida de mandar para a
 nuvem, sem login nem biblioteca da Google. O app mantém lá **um arquivo por
-dia**, `metro-fortaleza-log-AAAA-MM-DD.log`, regravado com o conteúdo do dia (o
+dia**, `metro-ceara-log-AAAA-MM-DD.log`, regravado com o conteúdo do dia (o
 arquivo local continua sendo a fonte), no máximo uma vez por minuto — durante a
 viagem chegam eventos a cada segundo — e na hora em `app_start`, `log_on`,
 `trip_end`, `sync_ok` e em "Enviar agora". **Se não der para gravar no arquivo
@@ -545,14 +545,14 @@ libera acesso a partir de outras páginas —, então os horários chegam pronto
   todo dia às 04:30 de Fortaleza (ou à mão, em Actions → "Dados da versão
   web" → Run workflow) e publica o resultado no ramo **`dados`**, fora da
   `main`, para não encher o histórico do app. A web lê de
-  `raw.githubusercontent.com/giovanildo/metro-fortaleza-horarios/dados/…`.
+  `raw.githubusercontent.com/giovanildo/metro-ceara-horarios/dados/…`.
   O commit diário também mantém a tarefa viva (o GitHub desliga tarefas
   agendadas de repositórios parados há 60 dias).
 
 Para gerar localmente: `python3 tools/build_web_data.py /tmp/dados`.
 
 A versão web em si fica em [`docs/app/`](docs/app/) e é publicada pelo mesmo
-GitHub Pages da página do app, em `giovanildo.github.io/metro-fortaleza-horarios/app/`.
+GitHub Pages da página do app, em `giovanildo.github.io/metro-ceara-horarios/app/`.
 É HTML, CSS e JavaScript puros, sem framework nem etapa de build:
 
 - `dados.js` — download dos JSON (com a última cópia guardada no aparelho, para
@@ -601,7 +601,7 @@ HHMM` (barra de status limpa) e `shot nome`. Uso: `. tools/emulador/ui.sh`.
 ## Página de apresentação
 
 `docs/` é a página pública do app (GitHub Pages, publicada a partir de
-`main`/`docs`): `giovanildo.github.io/metro-fortaleza-horarios`. É um HTML só,
+`main`/`docs`): `giovanildo.github.io/metro-ceara-horarios`. É um HTML só,
 sem dependências, feito para quem não é programador — o que o app faz, por que
 é seguro, como instalar (com os avisos do Android explicados) e onde baixar.
 
@@ -632,19 +632,19 @@ essas, refaça aquelas.
 ## Publicando uma versão no GitHub
 
 A release é assinada com uma chave própria, que fica **só na máquina de quem
-publica** (`~/.android/metro-fortaleza-release.jks`), com as senhas em
+publica** (`~/.android/metro-ceara-release.jks`), com as senhas em
 `keystore.properties` na raiz — os dois fora do git. **Guarde uma cópia do
 `.jks` e das senhas num lugar seguro**: sem eles, as próximas versões não
 instalam por cima, e cada pessoa teria que desinstalar o app.
 
 ```bash
 ./gradlew assembleRelease            # app/build/outputs/apk/release/app-release.apk
-cp app/build/outputs/apk/release/app-release.apk metro-fortaleza.apk
-gh release create vX.Y metro-fortaleza.apk --notes-file notas.md
+cp app/build/outputs/apk/release/app-release.apk metro-ceara.apk
+gh release create vX.Y metro-ceara.apk --notes-file notas.md
 ```
 
-O arquivo vai sempre com o nome `metro-fortaleza.apk`, para o link
-`releases/latest/download/metro-fortaleza.apk` (e o QR code) nunca mudarem.
+O arquivo vai sempre com o nome `metro-ceara.apk`, para o link
+`releases/latest/download/metro-ceara.apk` (e o QR code) nunca mudarem.
 
 ## Publicação na Play Store (em preparação)
 
@@ -683,7 +683,7 @@ partir deste repositório. O que já está pronto aqui:
 
 - **Textos e imagens da loja** em `fastlane/metadata/android/pt-BR/`: título,
   descrições, ícone, capturas de tela e `changelogs/<versionCode>.txt`.
-- **A receita** em `fdroid/io.github.giova.metrofortaleza.yml`, para copiar
+- **A receita** em `fdroid/io.github.giova.metroceara.yml`, para copiar
   para `metadata/` no [fdroiddata](https://gitlab.com/fdroid/fdroiddata).
 - **Uma tag por versão** (`v1.7`, …): com `UpdateCheckMode: Tags`, o F-Droid
   acha versões novas sozinho.
@@ -742,9 +742,12 @@ sugerir vínculo oficial.
 Até a versão 1.32 o app se chamava "Metrô Fortaleza"; virou "Metrô Ceará" para
 abraçar também Cariri e Sobral. Onde há espaço, o nome vem acompanhado da linha
 "Fortaleza · Cariri · Sobral" (e as descrições citam as três cidades, para a
-busca). O pacote (`io.github.giova.metrofortaleza`), o repositório, os
-endereços e o nome do APK continuam os mesmos, para não quebrar atualizações,
-links nem QR codes já distribuídos.
+busca). Na versão 1.34, ainda sem usuários e antes da Play Store, o resto
+acompanhou: pacote `io.github.giova.metroceara` (era
+`io.github.giova.metrofortaleza`), repositório e site `metro-ceara-horarios`,
+APK `metro-ceara.apk` e uma chave de assinatura nova. Para o Android é outro
+app: a 1.33 não atualiza para a 1.34; é preciso desinstalar e instalar de
+novo.
 
 ### Ícone
 

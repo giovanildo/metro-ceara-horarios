@@ -16,7 +16,7 @@ cd "$(dirname "$0")/../.."
 VIDEO_WORK=${VIDEO_WORK:-/tmp/metro-video}
 mkdir -p "$VIDEO_WORK"
 DIA=${DIA:-$(date +%m%d)}
-PKG=io.github.giova.metrofortaleza
+PKG=io.github.giova.metroceara
 MARCAS=$VIDEO_WORK/marcas.txt
 
 hora() { # HHMM: relógio do aparelho e da barra de status

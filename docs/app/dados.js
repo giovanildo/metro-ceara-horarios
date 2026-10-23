@@ -2,7 +2,7 @@
 // repositório (gerados todo dia por tools/build_web_data.py): o navegador não
 // consegue baixar o GTFS direto do Metrofor.
 
-export const BASE = "https://raw.githubusercontent.com/giovanildo/metro-fortaleza-horarios/dados/";
+export const BASE = "https://raw.githubusercontent.com/giovanildo/metro-ceara-horarios/dados/";
 const DIA = 24 * 60;
 
 // ---------- relógio (sempre no fuso de Fortaleza, seja qual for o do celular)
