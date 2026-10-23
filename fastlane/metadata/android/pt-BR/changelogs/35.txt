@@ -1,0 +1,2 @@
+• Novo endereço: giovanildo.github.io/metro-ceara-horarios.
+• App reinstalável com o novo nome de pacote (io.github.giova.metroceara): quem tinha a versão anterior precisa desinstalá-la e instalar esta.
