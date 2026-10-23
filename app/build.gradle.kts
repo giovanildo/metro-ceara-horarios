@@ -14,11 +14,11 @@ val signingProps = rootProject.file("keystore.properties").takeIf { it.exists() 
 }
 
 android {
-    namespace = "io.github.giova.metrofortaleza"
+    namespace = "io.github.giova.metroceara"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "io.github.giova.metrofortaleza"
+        applicationId = "io.github.giova.metroceara"
         minSdk = 24
         // compileSdk vai no 37 para acompanhar as bibliotecas, mas targetSdk
         // fica em 36 de proposito: subir o targetSdk muda comportamento em
