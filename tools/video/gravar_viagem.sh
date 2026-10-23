@@ -24,8 +24,15 @@ hora() { # HHMM: relógio do aparelho e da barra de status
   $A shell am broadcast -a com.android.systemui.demo -e command clock -e hhmm "$1" >/dev/null
 }
 gps() { $A emu geo fix "$1" "$2" >/dev/null; }
-gps_lost() { # segundos sem GPS até avisar (app parado)
-  $A shell "run-as $PKG sed -i 's/name=\"gps_lost_s\" value=\"[0-9]*\"/name=\"gps_lost_s\" value=\"$1\"/' shared_prefs/metrofor_settings.xml"
+gps_lost() { # segundos sem GPS até avisar (app parado); app recém-instalado ainda não tem o arquivo
+  local f=shared_prefs/metrofor_settings.xml
+  if $A shell "run-as $PKG ls $f" >/dev/null 2>&1; then
+    $A shell "run-as $PKG sed -i 's/name=\"gps_lost_s\" value=\"[0-9]*\"/name=\"gps_lost_s\" value=\"$1\"/' $f"
+    $A shell "run-as $PKG grep -q gps_lost_s $f" || \
+      $A shell "run-as $PKG sed -i 's|</map>|    <int name=\"gps_lost_s\" value=\"$1\" />\\n</map>|' $f"
+  else
+    $A shell "run-as $PKG sh -c 'mkdir -p shared_prefs; echo \"<?xml version=\\\"1.0\\\" encoding=\\\"utf-8\\\" standalone=\\\"yes\\\" ?><map><int name=\\\"gps_lost_s\\\" value=\\\"$1\\\" /></map>\" > $f'"
+  fi
 }
 marca() { echo "$1 $(python3 -c "import time; print(round(time.time() - $T0, 2))")" >> "$MARCAS"; echo "· $1"; }
 estacao() { # HHMM lon lat: o metrô chega à estação
@@ -37,6 +44,10 @@ $A shell settings put global auto_time 0
 $A shell locksettings set-disabled false >/dev/null   # tela de bloqueio (deslizar) para a cena da tela bloqueada
 # "Sem GPS" só depois de 5 min: os saltos de relógio da simulação não contam como GPS perdido.
 $A shell am force-stop $PKG
+# App recém-instalado: sem isso, os pedidos de permissão aparecem no meio da gravação.
+for perm in ACCESS_FINE_LOCATION ACCESS_COARSE_LOCATION POST_NOTIFICATIONS; do
+  $A shell pm grant $PKG android.permission.$perm 2>/dev/null || true
+done
 gps_lost 300
 hora 0725; demo 0725
 for _ in 1 2 3; do gps -38.5363 -3.7330; sleep 1; done

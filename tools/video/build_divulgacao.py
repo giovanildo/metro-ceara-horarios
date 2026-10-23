@@ -1,6 +1,6 @@
 """Vídeo de divulgação (divulgacao/metro-ceara-divulgacao.mp4, 1080x1920, sem música).
 
-Tela inicial, lembrete da hora de sair, modo viagem São Benedito → Parangaba,
+Tela inicial, lembrete na agenda, modo viagem São Benedito → Parangaba,
 aviso de descida, chegada e o cartão final com o QR da versão lite.
 Entrada: $VIDEO_WORK/viagem.mp4 e marcas.txt, de gravar_viagem.sh.
 """
@@ -25,8 +25,8 @@ m = fr.marks(S + "/marcas.txt")
 SEGMENTS = [
     ([(m["inicio"] + 0.3, m["lembrete"] + 2)], 1.0,
      "Que horas passa o metrô?", "Abra o app: a estação mais perto e a próxima partida"),
-    ([(m["lembrete"] + 2.5, m["lembrete"] + 6), (m["lembrete"] + 9.5, m["lembrete"] + 16)], 1.0,
-     "Lembrete da hora de sair", "Toque no horário e o app cria o lembrete na agenda"),
+    ([(m["lembrete"] + 3.5, m["lembrete"] + 7), (m["lembrete"] + 11, m["lembrete"] + 18)], 1.0,
+     "Lembrete na agenda", "Toque no horário e escolha quanto tempo antes ser avisado"),
     ([(m["destino"] - 1, m["destino"] + 5.5), (m["embarque"] - 3.5, m["embarque"] - 0.5)], 1.0,
      "Modo viagem", "Escolha o destino e guarde o celular"),
     ([(m["embarque"] - 0.5, m["notificacao"]), (m["bloqueio"] + 5, m["aviso"] + 5)], 1.25,
