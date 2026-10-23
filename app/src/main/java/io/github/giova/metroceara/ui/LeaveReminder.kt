@@ -21,7 +21,7 @@ import io.github.giova.metroceara.data.formatTime
 import java.util.Calendar
 import java.util.TimeZone
 
-/** Uma partida escolhida para lembrar a hora de sair de casa. */
+/** Uma partida escolhida para lembrar na agenda. */
 data class LeaveReminder(
     val departure: Departure,
     val stopName: String,
@@ -32,15 +32,13 @@ data class LeaveReminder(
 
 /**
  * Confirma o lembrete e abre a agenda do celular (Google Agenda ou outra) com o
- * evento preenchido: começa na hora de sair de casa e termina na partida.
- * Não usa conta nem internet; a pessoa só confirma na agenda.
+ * evento preenchido na hora da partida. Quanto tempo antes avisar fica com a
+ * agenda: a pessoa escolhe lá, ao salvar. Não usa conta, internet nem configuração.
  */
 @Composable
-fun LeaveReminderDialog(reminder: LeaveReminder, homeMinutes: Int, onDismiss: () -> Unit) {
+fun LeaveReminderDialog(reminder: LeaveReminder, onDismiss: () -> Unit) {
     val context = LocalContext.current
-    val minutes = homeMinutes
     val departureTime = formatTime(reminder.departure.minutes)
-    val leaveTime = formatTime(reminder.departure.minutes - minutes)
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.leave_title)) },
@@ -49,7 +47,7 @@ fun LeaveReminderDialog(reminder: LeaveReminder, homeMinutes: Int, onDismiss: ()
                 Text(
                     stringResource(
                         if (reminder.departure.tomorrow) R.string.leave_text_tomorrow else R.string.leave_text,
-                        reminder.vehicle, departureTime, reminder.stopName, minutes, leaveTime,
+                        reminder.vehicle, departureTime, reminder.stopName,
                     ),
                 )
                 Text(
@@ -61,7 +59,7 @@ fun LeaveReminderDialog(reminder: LeaveReminder, homeMinutes: Int, onDismiss: ()
         },
         confirmButton = {
             TextButton(onClick = {
-                openCalendar(context, reminder, minutes)
+                openCalendar(context, reminder)
                 onDismiss()
             }) { Text(stringResource(R.string.leave_add)) }
         },
@@ -71,33 +69,16 @@ fun LeaveReminderDialog(reminder: LeaveReminder, homeMinutes: Int, onDismiss: ()
     )
 }
 
-/** Sem estação de casa ainda: explica o lembrete e leva às Configurações para escolhê-la. */
-@Composable
-fun LeaveSetupDialog(onOpenSettings: () -> Unit, onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.leave_title)) },
-        text = { Text(stringResource(R.string.leave_setup_text)) },
-        confirmButton = {
-            TextButton(onClick = {
-                onDismiss()
-                onOpenSettings()
-            }) { Text(stringResource(R.string.leave_setup_open)) }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.leave_setup_later)) }
-        },
-    )
-}
+/** O evento dura uns minutos a partir da partida; o alarme é o padrão da agenda (antes do início). */
+private const val EVENT_MINUTES = 10
 
-private fun openCalendar(context: Context, reminder: LeaveReminder, minutes: Int) {
+private fun openCalendar(context: Context, reminder: LeaveReminder) {
     val departureMillis = departureMillis(reminder.departure)
-    val leaveMillis = departureMillis - minutes * 60_000L
     val departureTime = formatTime(reminder.departure.minutes)
     val intent = Intent(Intent.ACTION_INSERT)
         .setData(CalendarContract.Events.CONTENT_URI)
-        .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, leaveMillis)
-        .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, departureMillis)
+        .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, departureMillis)
+        .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, departureMillis + EVENT_MINUTES * 60_000L)
         .putExtra(
             CalendarContract.Events.TITLE,
             context.getString(R.string.leave_event_title, reminder.vehicle, departureTime),
@@ -108,10 +89,7 @@ private fun openCalendar(context: Context, reminder: LeaveReminder, minutes: Int
         )
         .putExtra(
             CalendarContract.Events.DESCRIPTION,
-            context.getString(
-                R.string.leave_event_description,
-                reminder.routeName, reminder.headsign, departureTime, minutes,
-            ),
+            context.getString(R.string.leave_event_description, reminder.routeName, reminder.headsign),
         )
     try {
         context.startActivity(intent)

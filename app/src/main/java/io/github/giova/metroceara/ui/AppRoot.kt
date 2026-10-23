@@ -114,8 +114,6 @@ fun AppRoot() {
     var stopId by rememberSaveable { mutableStateOf<String?>(null) }
     var showAbout by rememberSaveable { mutableStateOf(false) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
-    // Vindo do toque num horário sem estação de casa: abre já no lembrete da hora de sair.
-    var settingsAtLeave by rememberSaveable { mutableStateOf(false) }
     // Sentido em que a tela de horários deve abrir (vindo de uma baldeação).
     var openDirectionId by rememberSaveable { mutableStateOf<Int?>(null) }
 
@@ -467,35 +465,12 @@ fun AppRoot() {
     // --------------------------------------------------------------- telas ----
     when {
         showSettings -> {
-            BackHandler { showSettings = false; settingsAtLeave = false }
+            BackHandler { showSettings = false }
             SettingsScreen(
                 settings = settings,
-                stationGroups = remember(repo) {
-                    routes.map { r ->
-                        StationGroup(r.name, repo.directions(r.id).firstOrNull()?.let { repo.stops(r.id, it.id) }.orEmpty())
-                    }
-                },
-                // As 3 mais perto de onde a pessoa está agora (quem configura em casa
-                // acha a própria estação logo no topo). Sem posição, a lista fica sem elas.
-                nearestStations = remember(repo, homeState) {
-                    val here = homeState as? HomeStation.Nearby ?: return@remember emptyList()
-                    repo.stations().groupBy { it.stopId }.values
-                        .map { same ->
-                            val s = same.first()
-                            NearStation(
-                                stopId = s.stopId,
-                                name = s.stopName,
-                                lines = same.joinToString(" e ") { it.routeName },
-                                meters = distanceMeters(here.userLat, here.userLon, s.lat, s.lon).toInt(),
-                            )
-                        }
-                        .sortedBy { it.meters }
-                        .take(3)
-                },
                 onChange = { SettingsStore.save(context, it) },
                 onReset = { SettingsStore.reset(context) },
-                scrollToLeave = settingsAtLeave,
-                onBack = { showSettings = false; settingsAtLeave = false },
+                onBack = { showSettings = false },
             )
         }
 
@@ -559,10 +534,6 @@ fun AppRoot() {
                     if (isPinned) pinned.clear() else pinned.set(stop.id, route.id)
                     refreshHome()
                 },
-                // O lembrete de sair é só da estação de casa.
-                homeMinutes = settings.homeToStationMinutes.takeIf { settings.homeStopId == stop.id },
-                homeConfigured = settings.homeStopId.isNotEmpty(),
-                onOpenSettings = { settingsAtLeave = true; showSettings = true },
                 onBack = { stopId = null },
             )
         }

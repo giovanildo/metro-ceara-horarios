@@ -83,10 +83,6 @@ fun DeparturesScreen(
     bike: NearbyBike?,
     isPinned: Boolean,
     onTogglePin: () -> Unit,
-    /** Tempo de casa até aqui, se esta é a estação de casa; `null` = sem lembrete. */
-    homeMinutes: Int?,
-    homeConfigured: Boolean,
-    onOpenSettings: () -> Unit,
     onBack: () -> Unit,
 ) {
     // A aba é da estação: ao abrir outra, volta para o sentido pedido (ou o primeiro).
@@ -118,14 +114,9 @@ fun DeparturesScreen(
     val destinations = destinationGroups.flatMap { it.stops }
     var pickingDestination by remember { mutableStateOf(false) }
     var reminder by remember { mutableStateOf<Departure?>(null) }
-    val canRemind = homeMinutes != null
-    // Sem estação de casa, o toque no horário ensina a escolher uma em vez de não fazer nada.
-    var askingHome by remember { mutableStateOf(false) }
-    if (askingHome) LeaveSetupDialog(onOpenSettings = onOpenSettings, onDismiss = { askingHome = false })
-    if (homeMinutes != null) reminder?.let { departure ->
+    reminder?.let { departure ->
         LeaveReminderDialog(
             reminder = LeaveReminder(departure, stop.name, route.name, direction?.headsign.orEmpty(), vehicleName(route.name)),
-            homeMinutes = homeMinutes,
             onDismiss = { reminder = null },
         )
     }
@@ -228,26 +219,15 @@ fun DeparturesScreen(
                                     if (index > 0) HorizontalDivider()
                                     DepartureRow(
                                         departure, now, highlighted = index == 0,
-                                        onClick = when {
-                                            canRemind -> ({ reminder = departure })
-                                            !homeConfigured -> ({ askingHome = true })
-                                            else -> null
-                                        },
+                                        onClick = { reminder = departure },
                                     )
                                 }
                             }
                         }
                     }
-                    // O lembrete é só da estação de casa; sem ela escolhida, a
-                    // dica ensina onde escolher.
-                    val hint = when {
-                        canRemind -> R.string.leave_hint
-                        !homeConfigured -> R.string.leave_hint_setup
-                        else -> null
-                    }
-                    if (hint != null) item {
+                    item {
                         Text(
-                            text = stringResource(hint),
+                            text = stringResource(R.string.leave_hint),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -309,11 +289,7 @@ fun DeparturesScreen(
                 item {
                     AllDepartures(
                         all, now,
-                        onPick = when {
-                            canRemind -> ({ m: Int -> reminder = Departure(m, tomorrow = false) })
-                            !homeConfigured -> ({ _: Int -> askingHome = true })
-                            else -> null
-                        },
+                        onPick = { m: Int -> reminder = Departure(m, tomorrow = false) },
                     )
                 }
 
@@ -382,8 +358,8 @@ private fun AllDepartures(all: List<Int>, now: Int, onPick: ((Int) -> Unit)?) {
         modifier = Modifier.fillMaxWidth(),
     ) {
         all.forEach { minutes ->
-            // Os que ainda não passaram ficam em destaque (e abrem o lembrete,
-            // na estação de casa); os que passaram ficam apagados.
+            // Os que ainda não passaram ficam em destaque (e abrem o lembrete
+            // na agenda); os que passaram ficam apagados.
             val upcoming = minutes >= now
             Surface(
                 color = if (upcoming) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant,
