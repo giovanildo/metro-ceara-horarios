@@ -6,7 +6,7 @@ Console.
 
 ## Criar app
 
-- **Nome do app:** Metrô Fortaleza (não oficial)
+- **Nome do app:** Metrô Ceará (não oficial)
 - **Idioma padrão:** Português (Brasil) – pt-BR
 - **App ou jogo:** App
 - **Gratuito ou pago:** Gratuito
@@ -17,13 +17,13 @@ Console.
 **Nome (até 30 caracteres):**
 
 ```
-Metrô Fortaleza (não oficial)
+Metrô Ceará (não oficial)
 ```
 
 **Descrição curta (até 80 caracteres):**
 
 ```
-Próximo metrô e VLT da estação mais perto e aviso antes de descer. Não oficial.
+Horários do metrô e VLT de Fortaleza, Cariri e Sobral e aviso antes da estação.
 ```
 
 **Descrição completa (até 4.000 caracteres):**
@@ -49,7 +49,7 @@ Gratuito e de código aberto (GPL-3.0): github.com/giovanildo/metro-fortaleza-ho
 
 - Ícone do app: `tools/play/imagens/icone-512.png` (512×512, PNG 32 bits)
 - Gráfico de recursos: `tools/play/imagens/destaque-1024x500.png`
-- Capturas de tela do telefone: `tools/play/imagens/tela-*.png` (1080×2160)
+- Capturas de tela do telefone: `tools/play/imagens/tela-*.png` (1080×1920, proporção 9:16 exigida)
 
 **Categoria e contato (Página da loja > Configurações da loja):**
 

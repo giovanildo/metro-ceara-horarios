@@ -1,4 +1,4 @@
-# Metrô Fortaleza — horários
+# Metrô Ceará — horários
 
 App Android **não oficial** com os horários das linhas do Metrofor (Fortaleza,
 Sobral e Cariri). Uma vez por dia, ao abrir, o app **baixa os horários do dia
@@ -35,21 +35,23 @@ Há também sequências com as telas do app e o link da versão lite no rodapé,
 descida. No status do WhatsApp, o link escrito na **legenda** da imagem fica
 clicável.
 
-E dois vídeos verticais (1080×1920, sem música — ela entra ao postar, pela
+E vídeos verticais (1080×1920, sem música — ela entra ao postar, pela
 biblioteca do Instagram ou do WhatsApp):
-`metro-fortaleza-divulgacao.mp4` (~49 s: próxima partida, lembrete da hora de
-sair, modo viagem até o aviso de descida, QR da página do app) e
-`metro-fortaleza-como-instalar.mp4` (~59 s, cabe no status do WhatsApp: os
-passos reais da instalação pelo link, com os avisos do Android, e depois os
-problemas comuns e a saída de cada um — aviso do navegador, Play Protect,
-Bloqueador automático da Samsung, "App não instalado"). As telas foram gravadas
-no emulador em pt-BR; os avisos do navegador e do Play Protect, que não
-aparecem lá, são ilustrações marcadas como tal.
+`metro-ceara-divulgacao.mp4` (~55 s: próxima partida, lembrete da hora de
+sair, modo viagem com a tela bloqueada até o aviso de descida e a chegada, QR
+da versão lite) e `metro-fortaleza-como-instalar.mp4` (~59 s, cabe no status
+do WhatsApp: os passos reais da instalação pelo link, com os avisos do
+Android, e depois os problemas comuns e a saída de cada um — aviso do
+navegador, Play Protect, Bloqueador automático da Samsung, "App não
+instalado"). As telas foram gravadas no emulador em pt-BR; os avisos do
+navegador e do Play Protect, que não aparecem lá, são ilustrações marcadas como
+tal. O de instalação ainda é da versão 1.32 (nome e ícone antigos): para
+refazê-lo é preciso o APK novo já publicado no GitHub.
 
-Para iPhone, `metro-fortaleza-como-instalar-iphone.mp4` (~39 s) ensina a pôr a
+Para iPhone, `metro-ceara-como-instalar-iphone.mp4` (~39 s) ensina a pôr a
 [versão lite](#versão-lite-web) na tela inicial pelo Safari: as telas
 do app são reais, as do iPhone são desenhadas e marcadas como "ilustração". Os
-scripts que montam os vídeos e a receita das capturas estão em
+scripts que gravam e montam os vídeos e a receita das capturas estão em
 [`tools/video/`](tools/video/).
 
 A tela inicial destaca uma estação com a próxima partida de cada sentido — nos
@@ -623,8 +625,9 @@ pessoal é coletado ou enviado; a localização é usada só no aparelho; a inte
 serve só para baixar os horários do espelho no GitHub. É o link exigido pela
 Play Store — ao mudar algo que trate dados, atualize a página (e a data) antes.
 
-As capturas em `docs/img/tela-*.jpg` são versões menores das de
-`fastlane/…/phoneScreenshots/`; ao refazer essas, refaça aquelas.
+As capturas em `docs/img/tela-*.jpg` e em `fastlane/…/phoneScreenshots/` são
+as mesmas da loja (`tools/play/imagens/tela-*.png`, 1080×1920); ao refazer
+essas, refaça aquelas.
 
 ## Publicando uma versão no GitHub
 
@@ -648,15 +651,15 @@ O arquivo vai sempre com o nome `metro-fortaleza.apk`, para o link
 O material para o Play Console fica em [`tools/play/`](tools/play/):
 
 - [`loja.md`](tools/play/loja.md) — tudo o que o Console pede, pronto para
-  colar: nome ("Metrô Fortaleza (não oficial)"), descrições curta e completa,
+  colar: nome ("Metrô Ceará (não oficial)"), descrições curta e completa,
   categoria e contato, e as respostas de cada formulário de "Conteúdo do app"
   (política de privacidade, anúncios, classificação, público-alvo 13+,
   segurança dos dados — **não coleta dados** —, app governamental — não —, e a
   justificativa do serviço em primeiro plano com localização do modo viagem),
   além da mensagem para convidar os testadores do teste fechado.
 - `imagens/` — ícone 512×512 (PNG com transparência), gráfico de recursos
-  1024×500 e 4 capturas 1080×2160 (a loja não aceita mais que 2:1; as telas de
-  1080×2400 são cortadas embaixo). A tela do aviso de descida é a tela real da
+  1024×500 e 4 capturas 1080×1920 (a loja exige proporção 16:9 ou 9:16; as telas
+  de 1080×2400 são cortadas embaixo). A tela do aviso de descida é a tela real da
   viagem com o cartão real da notificação, recortado da barra de notificações,
   colado no topo como o balão que aparece no aparelho.
 - `video-modo-viagem.mp4` — o modo viagem em uso (iniciar, notificação fixa,
@@ -730,8 +733,29 @@ de Fortaleza ou o Governo do Ceará.
 
 "Metrofor" é o nome da Companhia Cearense de Transportes Metropolitanos. O app
 cita o nome **só para dizer de onde vêm os dados** (uso nominativo): ele se
-chama "Metrô Fortaleza", não usa "Metrofor" no nome nem no ícone, não reproduz
+chama "Metrô Ceará", não usa "Metrofor" no nome nem no ícone, não reproduz
 o logotipo, e traz o aviso de não oficial na tela inicial e na tela Sobre. As
 cores das linhas vêm do próprio GTFS e servem só para identificá-las. Quem for
 publicar o app em loja deve manter esses cuidados — nome, ícone e descrição sem
 sugerir vínculo oficial.
+
+Até a versão 1.32 o app se chamava "Metrô Fortaleza"; virou "Metrô Ceará" para
+abraçar também Cariri e Sobral. Onde há espaço, o nome vem acompanhado da linha
+"Fortaleza · Cariri · Sobral" (e as descrições citam as três cidades, para a
+busca). O pacote (`io.github.giova.metrofortaleza`), o repositório, os
+endereços e o nome do APK continuam os mesmos, para não quebrar atualizações,
+links nem QR codes já distribuídos.
+
+### Ícone
+
+O trem sobre uma toalhinha de renda de bilro, com a jandaia-verdadeira (ave
+símbolo do Ceará) pousada nele e as três faixas das linhas embaixo. A figura é
+descrita uma vez só em [`tools/icone/icone.py`](tools/icone/icone.py), que gera
+`tools/icone/icone.svg`, o vetor do Android 7 (`drawable/ic_launcher.xml`), o
+ícone adaptável do Android 8+ (`drawable-anydpi-v26/ic_launcher.xml`, com fundo
+e frente: o desenho encolhe para a zona segura e preenche o círculo, o squircle
+ou o quadrado de cada aparelho) e os PNGs do site, da versão lite e da loja
+(precisa do Google Chrome). Depois, `python3 tools/play/destaque.py` refaz o
+gráfico de recursos da loja e a prévia de link do site, e
+`python3 tools/video/qr_stories.py` os stories. O ícone da notificação continua
+sendo só a silhueta do trem.

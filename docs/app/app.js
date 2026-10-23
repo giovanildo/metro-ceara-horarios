@@ -386,9 +386,9 @@ function telaSobre() {
   document.getElementById("copiar-pix").addEventListener("click", () =>
     navigator.clipboard?.writeText(PIX).then(() => avisar("Chave Pix copiada")).catch(() => avisar(PIX)));
   document.getElementById("divulgar").addEventListener("click", async () => {
-    const texto = "🚇 Metrô Fortaleza: horários do metrô e do VLT no celular. Abra no navegador e use na hora, sem instalar nada. Grátis, sem anúncios, não oficial:";
+    const texto = "🚇 Metrô Ceará: horários do metrô e do VLT no celular. Abra no navegador e use na hora, sem instalar nada. Grátis, sem anúncios, não oficial:";
     if (navigator.share) {
-      try { await navigator.share({ title: "Metrô Fortaleza", text: texto, url: LINK }); } catch { /* cancelou */ }
+      try { await navigator.share({ title: "Metrô Ceará", text: texto, url: LINK }); } catch { /* cancelou */ }
     } else {
       navigator.clipboard?.writeText(`${texto} ${LINK}`).then(() => avisar("Link copiado")).catch(() => avisar(LINK));
     }
@@ -429,7 +429,7 @@ function lembrete(linha, sentido, stopId, minutos, amanha) {
       fim: instante(dia, minutos),
       titulo: `Sair de casa para o ${v} das ${hora(minutos)}`,
       local: `Estação ${nome}`,
-      descricao: `${linha.nome}, sentido ${sentido.destino}. Partida às ${hora(minutos)}; ${casaMin} min de casa até a estação. Lembrete criado pelo app Metrô Fortaleza.`,
+      descricao: `${linha.nome}, sentido ${sentido.destino}. Partida às ${hora(minutos)}; ${casaMin} min de casa até a estação. Lembrete criado pelo app Metrô Ceará.`,
     });
     janela.close();
   };
@@ -445,7 +445,7 @@ function baixarIcs({ inicio, fim, titulo, local, descricao }) {
   const z = (d) => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
   const txt = (s) => s.replace(/\\/g, "\\\\").replace(/[,;]/g, (c) => "\\" + c).replace(/\n/g, "\\n");
   const ics = [
-    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Metro Fortaleza//Horarios//PT-BR", "CALSCALE:GREGORIAN",
+    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Metro Ceara//Horarios//PT-BR", "CALSCALE:GREGORIAN",
     "BEGIN:VEVENT",
     `UID:${z(inicio)}-${Math.random().toString(36).slice(2)}@metro-fortaleza`,
     `DTSTAMP:${z(new Date())}`, `DTSTART:${z(inicio)}`, `DTEND:${z(fim)}`,

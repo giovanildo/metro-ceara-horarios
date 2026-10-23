@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Metrô Fortaleza</string>
-    <string name="subtitle">Horários de metrô e VLT · app não oficial</string>
+    <string name="app_name">Metrô Ceará</string>
+    <string name="subtitle">Fortaleza · Cariri · Sobral · app não oficial</string>
     <string name="unofficial">App não oficial. Dados do GTFS público do Metrofor.</string>
     <string name="back">Voltar</string>
     <string name="next_departures">Próximas partidas</string>
@@ -156,7 +156,7 @@
     <string name="about_share_desc">Aponte a câmera de outro celular para abrir o app na hora, no navegador. De lá dá para baixar o app completo para Android.</string>
     <string name="about_share_qr">QR code para abrir o app no navegador</string>
     <string name="about_share_button">Divulgar o app</string>
-    <string name="about_share_message">🚇 Metrô Fortaleza: horários do metrô e do VLT no celular. Abra no navegador e use na hora, sem instalar nada (no Android dá para baixar o app completo, com aviso antes de descer). Grátis, sem anúncios, não oficial: %1$s</string>
+    <string name="about_share_message">🚇 Metrô Ceará: horários do metrô e do VLT no celular. Abra no navegador e use na hora, sem instalar nada (no Android dá para baixar o app completo, com aviso antes de descer). Grátis, sem anúncios, não oficial: %1$s</string>
     <string name="dev_unlocked">Opções de desenvolvedor ativadas</string>
     <string name="dev_title">Opções de desenvolvedor</string>
     <string name="dev_log">Registro de testes</string>
@@ -196,5 +196,5 @@
     <string name="leave_no_calendar">Nenhum app de agenda encontrado no celular</string>
     <string name="leave_event_title">Sair de casa para o %1$s das %2$s</string>
     <string name="leave_event_location">Estação %1$s</string>
-    <string name="leave_event_description">%1$s, sentido %2$s. Partida às %3$s; %4$d min de casa até a estação. Lembrete criado pelo app Metrô Fortaleza.</string>
+    <string name="leave_event_description">%1$s, sentido %2$s. Partida às %3$s; %4$d min de casa até a estação. Lembrete criado pelo app Metrô Ceará.</string>
 </resources>
