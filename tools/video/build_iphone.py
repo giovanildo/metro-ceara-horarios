@@ -91,7 +91,7 @@ def screen_share_sheet(base):
     ic = Image.open(ICON).convert("RGBA").resize((130, 130))
     im.paste(ic, (60, top + 60), ic)
     d = ImageDraw.Draw(im)
-    d.text((220, top + 70), "Metrô Fortaleza", font=f(B, 44), fill=(0, 0, 0))
+    d.text((220, top + 70), "Metrô Ceará", font=f(B, 44), fill=(0, 0, 0))
     d.text((220, top + 128), "giovanildo.github.io", font=f(R, 36), fill=(120, 120, 128))
     for i in range(5):  # contatos/apps (genéricos)
         cx = 120 + i * 210
@@ -125,7 +125,7 @@ def screen_add():
     d.rounded_rectangle((40, 360, SW - 40, 640), radius=30, fill=(255, 255, 255))
     ic = Image.open(ICON).convert("RGB").resize((180, 180))
     im.paste(ic, (80, 410))
-    d.text((300, 430), "Metrô Fortaleza", font=f(R, 50), fill=(0, 0, 0))
+    d.text((300, 430), "Metrô Ceará", font=f(R, 50), fill=(0, 0, 0))
     d.line((300, 510, SW - 80, 510), fill=(225, 225, 230), width=2)
     d.text((300, 535), "giovanildo.github.io", font=f(R, 38), fill=(120, 120, 128))
     d.rounded_rectangle((40, 700, SW - 40, 830), radius=30, fill=(255, 255, 255))
@@ -153,7 +153,7 @@ def screen_home():
                 mask = Image.new("L", (size, size), 0)
                 ImageDraw.Draw(mask).rounded_rectangle((0, 0, size, size), radius=44, fill=255)
                 im.paste(ic, (x, y), mask)
-                label = "Metrô Fortaleza"
+                label = "Metrô Ceará"
                 d.text((x + size / 2 - d.textlength(label, font=f(R, 30)) / 2, y + size + 12), label, font=f(R, 30), fill=(255, 255, 255))
                 ring(d, (x - 6, y - 6, x + size + 6, y + size + 56), c=(255, 255, 255))
             else:
@@ -178,7 +178,7 @@ def screen_app(name, alert=False):
         d = ImageDraw.Draw(im)
         x0, x1, y0 = 140, SW - 140, 820
         d.rounded_rectangle((x0, y0, x1, y0 + 720), radius=40, fill=(242, 242, 247))
-        title = "Permitir que “Metrô Fortaleza” use sua localização?"
+        title = "Permitir que “Metrô Ceará” use sua localização?"
         y = fr.text_block(d, title, f(B, 42), y0 + 50, width=x1 - x0 - 80, fill=(0, 0, 0), gap=6)
         y = fr.text_block(d, "Para mostrar a estação mais perto de você.", f(R, 34), y + 10, width=x1 - x0 - 80, fill=(60, 60, 67), gap=4)
         for i, t in enumerate(["Permitir uma vez", "Permitir ao usar o app", "Não permitir"]):
@@ -267,6 +267,6 @@ for name, secs, spec in CARDS_AFTER:
     clips.append(f"{OUT}/{name}.mp4")
 with open(f"{OUT}/list.txt", "w") as fh:
     fh.writelines(f"file '{c}'\n" for c in clips)
-final = S + "/ios/metro-fortaleza-como-instalar-iphone.mp4"
+final = os.path.join(fr.ROOT, "divulgacao", "metro-ceara-como-instalar-iphone.mp4")
 run(["-f", "concat", "-safe", "0", "-i", f"{OUT}/list.txt", "-c", "copy", "-movflags", "+faststart", final])
 print(final)

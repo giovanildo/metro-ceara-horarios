@@ -1,5 +1,6 @@
 """Quadros (PNG 1080x1920) para os vídeos: moldura com legenda e cartões."""
 import os
+import subprocess
 
 import qrcode
 from PIL import Image, ImageDraw, ImageFont
@@ -84,6 +85,14 @@ def phone_frame(path, title, subtitle=None, step=None):
     im.save(path)
 
 
+def rounded_icon(size):
+    """O ícone do app com os cantos arredondados, como na tela do celular: (imagem, máscara)."""
+    ic = Image.open(ICON).convert("RGB").resize((size, size), Image.LANCZOS)
+    mask = Image.new("L", ic.size, 0)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, size - 1, size - 1), radius=size // 5, fill=255)
+    return ic, mask
+
+
 def qr_image(url, size):
     q = qrcode.QRCode(border=2, box_size=1, error_correction=qrcode.constants.ERROR_CORRECT_M)
     q.add_data(url)
@@ -99,8 +108,8 @@ def card(path, title, body=None, steps=None, mock=None, note=None, icon=False, q
     d = ImageDraw.Draw(im)
     y = 0
     if icon:
-        ic = Image.open(ICON).convert("RGBA").resize((260, 260))
-        im.paste(ic, ((W - 260) // 2, y), ic)
+        ic, mask = rounded_icon(260)
+        im.paste(ic, ((W - 260) // 2, y), mask)
         y += 300
     y = text_block(d, title, font(BOLD, 68), y, gap=8) + 30
     if body:
@@ -119,7 +128,7 @@ def card(path, title, body=None, steps=None, mock=None, note=None, icon=False, q
     if mock:
         y = draw_mock(d, mock, y) + 30
     if note:
-        y = text_block(d, note, font(REG, 34), y, fill=(255, 225, 227), gap=8)
+        y = text_block(d, note, font(REG, 34), y, fill=(255, 225, 227), gap=8) + 30
     if qr:
         label = qr_text or SITE
         q = qr_image(qr, 440)
@@ -162,3 +171,50 @@ def draw_mock(d, mock, y):
         ty += 92
     d.text((x0 + 40, y + h - 46), "ilustração", font=font(REG, 26), fill=(160, 160, 165))
     return y + h
+
+
+# --- Trechos de gravação (screenrecord) dentro da moldura ---
+
+def marks(path):
+    """As marcas de tools/video/gravar_viagem.sh: {cena: segundos desde o início}."""
+    with open(path) as fh:
+        return {n: float(t) for n, t in (line.split() for line in fh if line.strip())}
+
+
+def to_cfr(ff, src, dst):
+    """O screenrecord só grava quadro quando a tela muda: numa tela parada não há
+    quadros, e o corte pularia para o próximo. Em 30 quadros/s constantes, cada
+    trecho começa onde deve."""
+    subprocess.run([ff, "-v", "error", "-y", "-i", src, "-vf", "fps=30", "-c:v", "libx264", "-crf", "16",
+                    "-pix_fmt", "yuv420p", dst], check=True)
+
+
+def clip(ff, src, png, mp4, parts, speed=1.0):
+    """Os trechos (início, fim) de src, emendados e acelerados, no buraco da moldura png."""
+    inputs, chains = [], []
+    for k, (a, b) in enumerate(parts):
+        inputs += ["-ss", f"{a:.2f}", "-to", f"{b:.2f}", "-i", src]
+        chains.append(f"[{k}:v]scale={PH_W}:{PH_H},setsar=1,setpts=(PTS-STARTPTS)/{speed},fps=30[p{k}]")
+    n = len(parts)
+    total = sum(b - a for a, b in parts) / speed
+    inputs += ["-loop", "1", "-t", f"{total:.3f}", "-i", png,
+               "-f", "lavfi", "-t", f"{total:.3f}", "-i", "anullsrc=r=44100:cl=stereo"]
+    fc = ";".join(chains) + ";" + "".join(f"[p{k}]" for k in range(n)) + f"concat=n={n}:v=1:a=0[ph];" + \
+        f"color=c=0x1c1c1e:s={W}x{H}:r=30:d={total:.3f}[bg];[bg][ph]overlay={PH_X}:{PH_Y}[v1];" + \
+        f"[v1][{n}:v]overlay=0:0,format=yuv420p[v]"
+    subprocess.run([ff, "-v", "error", "-y"] + inputs + [
+        "-filter_complex", fc, "-map", "[v]", "-map", f"{n + 1}:a", "-c:v", "libx264", "-crf", "21",
+        "-pix_fmt", "yuv420p", "-r", "30", "-c:a", "aac", "-ar", "44100", "-ac", "2", "-shortest", mp4], check=True)
+
+
+def still(ff, png, secs, mp4):
+    subprocess.run([ff, "-v", "error", "-y", "-loop", "1", "-t", str(secs), "-i", png, "-f", "lavfi", "-t", str(secs),
+                    "-i", "anullsrc=r=44100:cl=stereo", "-vf", "format=yuv420p", "-c:v", "libx264", "-crf", "20",
+                    "-r", "30", "-c:a", "aac", "-ar", "44100", "-ac", "2", "-shortest", mp4], check=True)
+
+
+def concat(ff, clips, listfile, final):
+    with open(listfile, "w") as fh:
+        fh.writelines(f"file '{c}'\n" for c in clips)
+    subprocess.run([ff, "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", listfile, "-c", "copy",
+                    "-movflags", "+faststart", final], check=True)
