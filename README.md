@@ -607,6 +607,13 @@ HHMM` (barra de status limpa) e `shot nome`. Uso: `. tools/emulador/ui.sh`.
 sem dependências, feito para quem não é programador — o que o app faz, por que
 é seguro, como instalar (com os avisos do Android explicados) e onde baixar.
 
+O endereço antigo, `giovanildo.github.io/metro-fortaleza-horarios/`, é servido
+pelo repositório [`metro-fortaleza-horarios`](https://github.com/giovanildo/metro-fortaleza-horarios),
+que só leva ao endereço novo: qualquer caminho (inclusive `/app/` e as âncoras)
+vai para o mesmo caminho aqui, e o service worker de quem instalou a versão
+lite antiga se desliga e abre a nova. Não apague esse repositório enquanto
+houver QR codes ou links antigos por aí.
+
 **A versão lite é a porta de entrada.** A instalação de um APK de fora da loja
 mostra avisos que espantam o usuário comum; a versão lite abre na hora, sem
 nenhum. Por isso o botão principal da página é **"Abrir agora no navegador"**
