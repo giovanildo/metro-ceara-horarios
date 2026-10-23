@@ -153,7 +153,10 @@
     <string name="about_privacy_link">Política de privacidade</string>
     <string name="about_link_copied">Link copiado</string>
     <string name="about_share_title">Compartilhe o app</string>
-    <string name="about_share_desc">Aponte a câmera de outro celular para abrir o app na hora, no navegador. De lá dá para baixar o app completo para Android.</string>
+    <string name="about_share_desc">Aponte a câmera de outro celular para abrir a versão lite na hora, no navegador. De lá dá para baixar o app completo para Android.</string>
+    <string name="about_lite_title">Versão lite, para qualquer celular</string>
+    <string name="about_lite">Tem iPhone ou não quer instalar nada? A versão lite abre no navegador de qualquer celular, com a estação mais perto, os horários, a integração e o lembrete da hora de sair. Dá para pôr na tela inicial como um app. Só o modo viagem, com o aviso antes de descer, é exclusivo deste app.</string>
+    <string name="about_lite_open">Abrir a versão lite</string>
     <string name="about_share_qr">QR code para abrir o app no navegador</string>
     <string name="about_share_button">Divulgar o app</string>
     <string name="about_share_message">🚇 Metrô Ceará: horários do metrô e do VLT no celular. Abra no navegador e use na hora, sem instalar nada (no Android dá para baixar o app completo, com aviso antes de descer). Grátis, sem anúncios, não oficial: %1$s</string>

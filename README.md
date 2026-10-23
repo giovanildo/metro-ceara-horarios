@@ -272,7 +272,10 @@ técnicos do GPS (precisão mínima, raio de estação) continuam fixos em
 
 Um ícone de **informação** no topo abre a tela **Sobre**: o aviso de que o app
 não é oficial, de onde vêm os dados, a licença, o **endereço do projeto** por
-extenso (toque abre; botão "Copiar link"), um botão **"Divulgar o app"** que
+extenso (toque abre; botão "Copiar link"), a seção **"Versão lite, para
+qualquer celular"** (para quem tem iPhone ou não quer instalar: o que ela faz,
+que só o modo viagem é exclusivo do app, o endereço e os botões "Abrir a
+versão lite" e "Copiar link"), um botão **"Divulgar o app"** que
 abre o compartilhamento do Android (WhatsApp etc.) com uma mensagem pronta e o
 link da [versão lite](https://giovanildo.github.io/metro-ceara-horarios/app/),
 um **QR code** para outra pessoa abrir o app apontando a câmera para a tela

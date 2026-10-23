@@ -171,8 +171,27 @@ fun AboutScreen(onBack: () -> Unit) {
                 }
             }
 
-            // QR da página da última versão (o mesmo dos stories; o link nunca muda):
-            // outra pessoa aponta a câmera para este celular e baixa o app.
+            // A versão lite: o mesmo app no navegador, para quem tem iPhone ou não quer instalar.
+            Section(R.string.about_lite_title, R.string.about_lite)
+            Text(
+                text = SITE_URL.removePrefix("https://"),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.clickable { open(context, SITE_URL) },
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = { open(context, SITE_URL) }) {
+                    Text(stringResource(R.string.about_lite_open))
+                }
+                OutlinedButton(onClick = { copy(context, "Versão lite", SITE_URL, R.string.about_link_copied) }) {
+                    Icon(Icons.Filled.ContentCopy, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Text(stringResource(R.string.about_copy_link), modifier = Modifier.padding(start = 6.dp))
+                }
+            }
+
+            // QR da versão lite (o mesmo dos stories): outra pessoa aponta a
+            // câmera para este celular e abre o app na hora, no navegador.
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxWidth(),
