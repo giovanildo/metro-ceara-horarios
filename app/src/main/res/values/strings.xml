@@ -91,7 +91,7 @@
     <string name="about_version">Versão %1$s</string>
     <string name="about_unofficial">Este app NÃO é oficial e não tem ligação com o Metrofor nem com o Governo do Ceará. Os horários são os publicados pelo Metrofor e podem não refletir atrasos ou mudanças de última hora. Em caso de dúvida, confira os canais oficiais.</string>
     <string name="about_sources_title">De onde vêm os dados</string>
-    <string name="about_sources">• Horários e estações: GTFS público do Metrofor (info.metrofor.ce.gov.br), baixado uma vez por dia.\n• Estações do Bicicletar: dados abertos da Prefeitura de Fortaleza (AMC).\n• Regras de bicicleta no metrô e VLT: regulamento "Bike é bem-vinda no metrô" do Metrofor.</string>
+    <string name="about_sources">• Horários e estações: GTFS público do Metrofor (info.metrofor.ce.gov.br), atualizado várias vezes por dia.\n• Estações do Bicicletar: dados abertos da Prefeitura de Fortaleza (AMC).\n• Regras de bicicleta no metrô e VLT: regulamento "Bike é bem-vinda no metrô" do Metrofor.</string>
     <string name="about_license_title">Licença</string>
     <string name="about_license">Software livre, sob a GNU GPL versão 3. O código-fonte está no GitHub.</string>
     <string name="about_source_code">Ver o código-fonte</string>

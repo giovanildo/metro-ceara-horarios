@@ -80,8 +80,10 @@ fun AppRoot() {
     var scheduleVersion by remember { mutableIntStateOf(0) }
     var scheduleSyncing by remember { mutableStateOf(false) }
     var scheduleSyncFailed by remember { mutableStateOf(false) }
-    LaunchedEffect(today) {
-        if (!ScheduleStore.needsSync(context)) return@LaunchedEffect
+    // Cada vez que o app abre ou volta para a frente, baixa a grade do dia do
+    // espelho (é pequena). Um download cortado ao fechar o app é refeito aqui.
+    var opened by remember { mutableIntStateOf(0) }
+    LaunchedEffect(today, opened) {
         scheduleSyncing = true
         DevLog.log("sync_start")
         val result = withContext(Dispatchers.IO) {
@@ -211,7 +213,11 @@ fun AppRoot() {
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
-                Lifecycle.Event.ON_START -> visible = true
+                Lifecycle.Event.ON_START -> {
+                    visible = true
+                    // Não reinicia um download em andamento: mudar a chave cancelaria o atual.
+                    if (!scheduleSyncing) opened++
+                }
                 Lifecycle.Event.ON_STOP -> visible = false
                 else -> Unit
             }

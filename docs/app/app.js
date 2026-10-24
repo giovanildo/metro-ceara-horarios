@@ -324,7 +324,7 @@ function telaSobre() {
     <button class="botao" id="divulgar">Divulgar o app</button>
 
     <h2>De onde vêm os horários</h2>
-    <p>Do GTFS público do Metrofor, baixado todo dia de madrugada. São os horários programados: o app não sabe de
+    <p>Do GTFS público do Metrofor, atualizado várias vezes por dia. São os horários programados: o app não sabe de
       atrasos em tempo real.${indice.atualizado ? ` Última atualização: ${dataCurta(indice.atualizado.slice(0, 10))} às ${indice.atualizado.slice(11, 16)}.` : ""}</p>
 
     <h2>Privacidade</h2>

@@ -1,8 +1,8 @@
 # Metrô Ceará — horários
 
 App Android **não oficial** com os horários das linhas do Metrofor (Fortaleza,
-Sobral e Cariri). Uma vez por dia, ao abrir, o app **baixa os horários do dia
-direto do Metrofor** (veja [Horários do dia](#horários-do-dia)). Sem internet,
+Sobral e Cariri). Sempre que é aberto, o app **baixa os horários do dia
+publicados pelo Metrofor** (veja [Horários do dia](#horários-do-dia)). Sem internet,
 tudo continua funcionando com a última cópia guardada no aparelho e, em último
 caso, com a grade que vem no APK.
 
@@ -292,9 +292,11 @@ os dias:
 | sábado, 03/10 | 5h30 – 17h08, 37 viagens por sentido |
 | domingo, 04/10 (eleição) | 7h30 – 18h10 (operação especial) |
 
-Por isso o feed é baixado **uma vez por dia**, de madrugada, pela tarefa do
-GitHub que também alimenta a versão lite ([`dados-web.yml`](.github/workflows/dados-web.yml),
-às 04:30 de Fortaleza): ela guarda o zip original de cada tipo de dia no ramo
+Por isso o feed é baixado pela tarefa do GitHub que também alimenta a versão
+lite ([`dados-web.yml`](.github/workflows/dados-web.yml)), **quatro vezes por
+dia** (04:30, 10:00, 15:00 e 20:00 de Fortaleza; o GitHub pode atrasar até ~1 h):
+se o site do Metrofor falhar de manhã ou a grade mudar durante o dia, a rodada
+seguinte corrige. Ela guarda o zip original de cada tipo de dia no ramo
 `dados` (`gtfs-dia-util.zip`, `gtfs-sabado.zip`, `gtfs-domingo.zip`), e o
 `indice.json` diz a data, o tamanho e a hora de cada um. O app
 (`data/ScheduleStore.kt`) baixa dali o zip do tipo de hoje — com certificado
@@ -302,14 +304,13 @@ válido, sem falar direto com o site do Metrofor —, monta o banco com o mesmo 
 `tools/build_db.py` (`data/GtfsImporter.kt`, uma tradução direta do script, que
 gera tabelas idênticas para o mesmo feed) e guarda a última grade de cada tipo
 de dia: dia útil, sábado e domingo, com a **data do índice** (não a do
-celular). Se a cópia guardada já é a mesma do espelho, o app só consulta o
-índice (1 KB) e não baixa nada. Se a tarefa ainda não rodou (app aberto antes
-das 04:30 ou num atraso do GitHub) ou se não há internet, o app usa a última
-grade do mesmo tipo e avisa em vermelho de que dia ela é; tenta de novo sozinho
-a cada 15 min de uso. O banco do APK fica como último recurso. Uma linha no
-topo da tela inicial diz de onde vêm os horários — **sem botão de baixar de
-novo**: como a grade do dia é baixada uma vez só, baixar outra vez daria a
-mesma.
+celular). **Baixa sempre que o app abre ou volta para a frente**, sem comparar
+com a guardada: são ~30 KB (o zip de dia útil tem ~29 KB, o de sábado ~20 KB, e
+o índice 0,5 KB), e assim qualquer mudança chega na abertura seguinte; um
+download cortado (app fechado no meio) é refeito na próxima abertura. Sem
+internet, o app usa a última grade do mesmo tipo e avisa em vermelho de que dia
+ela é. O banco do APK fica como último recurso. Uma linha no topo da tela
+inicial diz de onde vêm os horários, sem botão de baixar de novo.
 
 Detalhes que valem saber:
 
@@ -540,7 +541,7 @@ libera acesso a partir de outras páginas —, então os horários chegam pronto
   ela (`null` = não para): a grade de um dia útil inteiro tem ~23 KB. Junto
   vai o zip original (`gtfs-<tipo>.zip`), que o **app Android** baixa.
 - A tarefa [`dados-web.yml`](.github/workflows/dados-web.yml) roda o script
-  todo dia às 04:30 de Fortaleza (ou à mão, em Actions → "Dados da versão
+  quatro vezes por dia (04:30, 10:00, 15:00 e 20:00 de Fortaleza; ou à mão, em Actions → "Dados da versão
   web" → Run workflow) e publica o resultado no ramo **`dados`**, fora da
   `main`, para não encher o histórico do app. A web lê de
   `raw.githubusercontent.com/giovanildo/metro-ceara-horarios/dados/…`.

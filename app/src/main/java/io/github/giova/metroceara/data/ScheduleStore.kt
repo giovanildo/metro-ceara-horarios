@@ -50,8 +50,6 @@ object ScheduleStore {
 
     /** O espelho dos dados no GitHub (ramo `dados`). */
     const val MIRROR = "https://raw.githubusercontent.com/giovanildo/metro-ceara-horarios/dados/"
-    private const val RETRY_MILLIS = 15L * 60 * 1000
-
     private val zone: TimeZone = TimeZone.getTimeZone("America/Fortaleza")
 
     fun today(): String = SimpleDateFormat("yyyy-MM-dd", Locale.US)
@@ -82,31 +80,20 @@ object ScheduleStore {
         return file to ScheduleSource(kind, date, prefs(context).getLong(keySyncedAt(type), 0L))
     }
 
-    /** Se ainda não há grade de hoje e não tentamos há pouco. */
-    fun needsSync(context: Context): Boolean {
-        val prefs = prefs(context)
-        if (prefs.getString(keyDate(todayType()), null) == today()) return false
-        return System.currentTimeMillis() - prefs.getLong(KEY_LAST_ATTEMPT, 0L) > RETRY_MILLIS
-    }
-
     /**
      * Baixa do espelho a grade do tipo de hoje, monta o banco e troca a
      * guardada. Bloqueia: chamar fora da main. Qualquer falha — índice sem
      * esse tipo, download cortado, zip incompleto, banco sem viagens — lança
-     * exceção e mantém a grade anterior intacta. Se a guardada já é a mesma
-     * do espelho, não baixa de novo: o resultado seria idêntico.
+     * exceção e mantém a grade anterior intacta. Baixa sempre, sem comparar
+     * com a guardada: o arquivo é pequeno (~30 KB) e assim qualquer mudança do
+     * dia chega na próxima abertura do app.
      */
     fun sync(context: Context, bikeSource: File?) {
-        prefs(context).edit { putLong(KEY_LAST_ATTEMPT, System.currentTimeMillis()) }
         val type = todayType()
         val entry = JSONObject(String(fetch(MIRROR + "indice.json"))).getJSONObject("tipos")
             .optJSONObject(mirrorName(type)) ?: error("o espelho ainda não tem grade de ${mirrorName(type)}")
         val zipName = entry.optString("gtfs").ifBlank { error("o espelho ainda não tem o GTFS de ${mirrorName(type)}") }
         val date = entry.getString("data")
-        if (prefs(context).getString(keyDate(type), null) == date && file(context, type).exists()) {
-            DevLog.log("sync_same", "day_type" to type.name, "date" to date)
-            return
-        }
         val zip = fetch(MIRROR + zipName)
         check(entry.optLong("bytes", -1) < 0 || entry.getLong("bytes") == zip.size.toLong()) {
             "GTFS com tamanho diferente do índice: ${zip.size} de ${entry.getLong("bytes")} bytes"
@@ -201,5 +188,4 @@ object ScheduleStore {
 
     private fun keyDate(type: DayType) = "date_${type.name.lowercase()}"
     private fun keySyncedAt(type: DayType) = "synced_at_${type.name.lowercase()}"
-    private const val KEY_LAST_ATTEMPT = "last_attempt"
 }
