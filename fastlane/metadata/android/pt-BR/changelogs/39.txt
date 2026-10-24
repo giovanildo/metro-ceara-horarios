@@ -1,0 +1,1 @@
+• Horários sempre em dia: o app baixa a grade do dia toda vez que é aberto, e a cópia dos horários é atualizada quatro vezes por dia.
