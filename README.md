@@ -118,6 +118,76 @@ opcional:
 Sem regra (`UNKNOWN`) o app não fala de passagem, para não informar errado.
 Quando a Nordeste começar a cobrar, basta trocar a entrada que cita o motivo.
 
+### Roteiro com integração (destino em outra linha)
+
+No **Iniciar** do modo viagem, a lista "Para qual estação você vai?" tem uma
+**busca** pelo nome ("bor" → Borges de Melo) e, abaixo das linhas em que a
+pessoa já está, um grupo fechado para cada linha que só se alcança com
+integração ("Linha Nordeste · 10 estações · integração em Parangaba ▾").
+O app escolhe o sentido sozinho, e cada estação mostra a chegada prevista
+("chega ~08:40"). Ao escolher uma estação de outra linha, abre o **roteiro**:
+
+- cada trecho na cor da linha ("07:53 Benfica · Metrô da Linha Sul, sentido
+  Carlito Benevides. Desça em Parangaba às 08:01.");
+- a integração com o tempo de troca da pessoa, a passagem e um selo: **Dá
+  tempo** ou **Integração justa** (sobra 1 minuto ou menos). Na justa, o roteiro
+  diz quando sai o próximo, caso ela perca;
+- a chegada, a dica "o metrô das 07:40 chega no mesmo horário, mas espera
+  mais na integração" e os avisos de bike;
+- **Outros horários**: um roteiro por horário de chegada, para quem vai sair
+  depois.
+
+**Como o roteiro é calculado** ([`data/Router.kt`](app/src/main/java/io/github/giova/metroceara/data/Router.kt),
+Kotlin puro, com testes em `app/src/test`). A rede é pequena, com até três
+integrações (Caucaia → Aeroporto passa por Chico da Silva, Parangaba e
+Expedicionários). O app testa cada trem do primeiro trecho e, em cada
+integração, o primeiro trem que ainda dá para pegar. Entre os que chegam no
+mesmo horário, sugere **o último que sai**, desde que a integração não fique
+justa: saindo do Benfica, o metrô das 07:53 pega o mesmo VLT das 08:10 que o
+das 07:40, com 9 min de espera em vez de 22. As partidas possíveis são as
+estações perto da pessoa a até 10 min a pé, contando essa caminhada. Também
+conta como integração a estação que serve duas linhas (Campo dos Velhos, em
+Sobral), com 1 min. Uma linha que o Metrofor avisou que não circula hoje fica
+de fora. Sem roteiro possível: "Sem integração para Papicu hoje depois das
+22:19".
+
+**Tempo de troca de linha**
+([`data/TransferTime.kt`](app/src/main/java/io/github/giova/metroceara/data/TransferTime.kt)).
+É o tempo a pé da estação (`caminhada_min`) vezes o jeito de se deslocar da
+pessoa (arredondado para cima), mais o pico e o ajuste fino. O que é escolha da
+pessoa fica nas **Configurações → Integração**: "Como você se desloca" e
+"Minutos a mais em toda integração". O que é medida do sistema fica no
+`regras.json`, para corrigir sem versão nova:
+
+| Como você se desloca | Tempo base × | `regras.json` |
+|---|---|---|
+| Andando (padrão) | 1 | `deslocamento.andando` |
+| Sem pressa, com criança ou idoso | 1,5 | `deslocamento.sem_pressa` |
+| Com bicicleta (o roteiro confere a regra de bike de cada trecho) | 1,5 | `deslocamento.bicicleta` |
+| Cadeira de rodas ou mobilidade reduzida | 2 | `deslocamento.cadeira_de_rodas` |
+
+| Horário | A mais | `regras.json` |
+|---|---|---|
+| Pico (6h–8h e 16h–19h) | +1 min | `pico.integracao_min` |
+| Pico máximo (17h–18h, Relatório de Demanda) | +2 min | `pico.maximo`, `pico.integracao_maximo_min` |
+
+**Na viagem.** "Iniciar viagem" acompanha o primeiro trecho até a integração. O
+aviso vira "Prepare-se: integração em Parangaba · Faltam 2 estações para
+Parangaba. Depois, Linha Nordeste às 08:10.", e a chegada diz "Desça em
+Parangaba e vá para a Linha Nordeste, 2 min a pé. VLT às 08:10, sentido Iate.
+Passagem grátis.". A notificação fixa mostra "Viagem até Papicu · integração em
+Parangaba". Depois, a tela inicial mostra o cartão **Próximo trecho**, refeito
+com o horário de agora: se a pessoa perdeu o VLT, já aparece o seguinte. O botão
+"Iniciar o próximo trecho" começa o trecho seguinte, que também avisa a próxima
+integração, se houver. O cartão some 1 h depois da partida prevista, ou em
+"Dispensar". (Na etapa 3, o próximo trecho vai começar sozinho.)
+
+**Versão lite.** Na tela da estação, "Ir para outra linha": um campo com as
+estações das linhas alcançáveis (por linha, com a integração) e "Como você se
+desloca", que o navegador lembra. Mostra o mesmo roteiro, calculado por
+[`docs/app/roteiro.js`](docs/app/roteiro.js) com a mesma regra, e os próximos
+horários. Na lite não há modo viagem.
+
 ### Modo viagem
 
 O cartão **Modo viagem** fica no topo da tela inicial: a origem é a estação em
@@ -570,6 +640,13 @@ em `app/build/outputs/apk/debug/`.
 
 Ele é idempotente: se você já tiver um JDK 21 (por exemplo via
 `sudo apt install openjdk-21-jdk`), ele reaproveita e pula a etapa.
+
+Os testes do cálculo de roteiros (`app/src/test`, sem Android, com os horários
+reais de Benfica → Papicu) rodam com:
+
+```bash
+./gradlew testDebugUnitTest
+```
 
 Em terminais novos, carregue o ambiente antes de usar `gradle` ou `adb`:
 
