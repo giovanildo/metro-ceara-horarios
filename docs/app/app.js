@@ -31,7 +31,7 @@ const AVISOS = [5, 10, 15, 20, 30, 45];
 
 const estado = {
   dados: null,
-  amanha: null,
+  proximo: null, // a grade do próximo dia com metrô
   pos: null, // { lat, lon }
   localizando: false,
   erroLocal: null,
@@ -100,12 +100,29 @@ function partidasComAmanha(linha, sentido, stopId) {
   const g = estado.dados.grade;
   const hoje = g.partidas(sentido, stopId);
   let amanha = null;
-  const ga = estado.amanha;
+  // Amanhã domingo: nada de horários de amanhã na lista; o fim do dia diz a segunda.
+  const ga = estado.dados.proximoEhSegunda ? null : estado.proximo;
   if (ga) {
     const s = ga.linha(linha.id)?.sentidos.find((x) => x.id === sentido.id);
     if (s) amanha = ga.partidas(s, stopId);
   }
   return { hoje, amanha };
+}
+
+/** "Último de hoje: 17:12 · primeiro de segunda: 05:44", para quando hoje acabou. */
+function fimDoDia(linha, sentido, stopId) {
+  const ultimo = estado.dados.grade.partidas(sentido, stopId).at(-1);
+  let primeiro;
+  const g = estado.proximo;
+  const s = g?.linha(linha.id)?.sentidos.find((x) => x.id === sentido.id);
+  if (s) primeiro = g.partidas(s, stopId)[0];
+  const partes = [];
+  if (ultimo !== undefined) partes.push(`Último de hoje: ${hora(ultimo)}`);
+  if (primeiro !== undefined) {
+    partes.push(`${partes.length ? "p" : "P"}rimeiro de ${estado.dados.proximoEhSegunda ? "segunda" : "amanhã"}: ${hora(primeiro)}`
+      + (estado.dados.proximoEhSegunda ? " (domingo, só em operação especial)" : ""));
+  }
+  return partes.join(" · ");
 }
 
 function textoPartida(p, minutos) {
@@ -149,7 +166,9 @@ function telaInicio() {
           ${sentidos.map((s) => {
             const { hoje, amanha } = partidasComAmanha(linha, s, id);
             const p = proximas(hoje, t.minutos, 1, amanha)[0];
-            return `<div class="partida"><span>→ ${esc(s.destino)}</span><span class="hora">${textoPartida(p, t.minutos)}</span></div>`;
+            const fim = p ? "" : fimDoDia(linha, s, id);
+            return `<div class="partida"><span>→ ${esc(s.destino)}</span><span class="hora">${textoPartida(p, t.minutos)}</span></div>`
+              + (fim ? `<p class="dica fim-do-dia">${fim}</p>` : "");
           }).join("")}
         </a></div>`;
     }
@@ -227,7 +246,8 @@ function telaEstacao(linhaId, stopId, sentidoId) {
   html += avisoDomingo(t);
   html += `<h2>Próximas partidas</h2>`;
   if (!lista.length) {
-    html += `<p class="vazio">Sem mais partidas hoje.</p>`;
+    const fim = fimDoDia(linha, sentido, stopId);
+    html += `<p class="vazio">Sem mais partidas hoje.</p>${fim ? `<p class="dica">${fim}</p>` : ""}`;
   } else {
     html += `<div class="cartao proximas" style="padding:4px 0">${lista.map((p, i) =>
       `<button data-m="${p.m}" data-amanha="${p.amanha}">
@@ -460,7 +480,7 @@ async function iniciar() {
     return;
   }
   render();
-  estado.dados.amanha().then((g) => { estado.amanha = g; render(); }).catch(() => {});
+  estado.dados.proximoDia().then((g) => { estado.proximo = g; render(); }).catch(() => {});
   // Quem já liberou a localização não precisa tocar no botão de novo.
   const p = await navigator.permissions?.query({ name: "geolocation" }).catch(() => null);
   if (p?.state === "granted" || localStorage.getItem("localizacao") === "sim") localizar();

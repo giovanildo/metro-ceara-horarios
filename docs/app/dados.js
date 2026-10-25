@@ -79,11 +79,13 @@ export async function carregar() {
     json("regras.json").catch(() => null),
     json("bicicletar.json").catch(() => []),
   ]);
-  const amanhaTipo = tipoDoDia((hoje.diaSemana + 1) % 7);
+  // O próximo dia com metrô: amanhã, ou a segunda quando amanhã é domingo
+  // (metrô e VLT normalmente não circulam, embora o GTFS diga que sim).
+  const proximoEhSegunda = (hoje.diaSemana + 1) % 7 === 0;
+  const proximoTipo = tipoDoDia(proximoEhSegunda ? 1 : (hoje.diaSemana + 1) % 7);
   return {
-    indice, grade, regras, bike, tipo,
-    // A de amanhã só é baixada quando precisa (fim do serviço de hoje).
-    amanha: () => carregarGrade(indice, amanhaTipo),
+    indice, grade, regras, bike, tipo, proximoEhSegunda,
+    proximoDia: () => carregarGrade(indice, proximoTipo),
   };
 }
 

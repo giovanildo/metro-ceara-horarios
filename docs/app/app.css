@@ -63,6 +63,7 @@ h2 { font-size: 1rem; font-weight: 600; margin: 20px 0 8px; }
 .distancia { font-size: .9rem; opacity: .85; }
 .partida { display: flex; justify-content: space-between; gap: 8px; margin-top: 10px; }
 .partida .hora { font-weight: 600; white-space: nowrap; }
+.fim-do-dia { margin: 2px 0 0; }
 
 .botao {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
