@@ -109,9 +109,14 @@ function partidasComAmanha(linha, sentido, stopId) {
   return { hoje, amanha };
 }
 
-/** Os avisos de operação do site do Metrofor, só a manchete. */
+/** Os avisos de operação do site do Metrofor: a manchete; tocar abre a notícia no site deles. */
 function avisosMetrofor() {
-  return estado.dados.avisos.map((t) => `<p class="aviso-metrofor"><strong>Metrofor:</strong> ${esc(t)}</p>`).join("");
+  return estado.dados.avisos.map((n) => {
+    const texto = `<strong>Metrofor:</strong> ${esc(n.titulo)}`;
+    return /^https:\/\//.test(n.link || "")
+      ? `<p class="aviso-metrofor"><a href="${esc(n.link)}" target="_blank" rel="noopener">${texto} ›</a></p>`
+      : `<p class="aviso-metrofor">${texto}</p>`;
+  }).join("");
 }
 
 /** "Último de hoje: 17:12 · primeiro de segunda: 05:44", para quando hoje acabou. */

@@ -86,8 +86,8 @@ export async function carregar() {
   const proximoTipo = tipoDoDia(proximoEhSegunda ? 1 : (hoje.diaSemana + 1) % 7);
   return {
     indice, grade, regras, bike, tipo, proximoEhSegunda,
-    // Avisos de operação do site do Metrofor: só a manchete, dos últimos 7 dias, no máximo 2.
-    avisos: noticias.filter((n) => n.data >= somarDias(hoje.data, -7)).slice(0, 2).map((n) => n.titulo),
+    // Avisos de operação do site do Metrofor, dos últimos 7 dias, no máximo 2.
+    avisos: noticias.filter((n) => n.data >= somarDias(hoje.data, -7)).slice(0, 2),
     proximoDia: () => carregarGrade(indice, proximoTipo),
   };
 }

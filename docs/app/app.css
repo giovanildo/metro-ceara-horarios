@@ -65,6 +65,7 @@ h2 { font-size: 1rem; font-weight: 600; margin: 20px 0 8px; }
 .partida .hora { font-weight: 600; white-space: nowrap; }
 .fim-do-dia { margin: 2px 0 0; }
 .aviso-metrofor { margin: 0 0 12px; }
+.aviso-metrofor a { color: inherit; text-decoration: none; }
 
 .botao {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
