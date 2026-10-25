@@ -1,0 +1,1 @@
+• Widget: sem estação fixada nem aberta, mostra a estação mais perto de você; basta abrir o app uma vez com a localização ligada.
