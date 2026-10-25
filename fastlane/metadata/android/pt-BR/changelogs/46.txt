@@ -1,0 +1,5 @@
+• Endereço e passagem de cada estação, na tela de horários.
+• Estações de Sobral e a Escola (Cariri) no lugar certo: a estação mais perto e o modo viagem acertam lá.
+• Quando o Metrofor não publica os horários de um sentido, o app avisa em vez de esconder.
+• Linha sem viagens no dia aparece como "não opera hoje".
+• Domingo de operação especial: o aviso de bike diz quando o Metrofor não informou a regra do dia.
