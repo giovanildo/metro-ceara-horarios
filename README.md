@@ -252,8 +252,26 @@ regra própria: é só editar o arquivo e gerar uma versão nova. Ficam fora das
 Configurações de propósito — são regra do Metrofor, não preferência de quem usa
 o app.
 
+### Endereço, passagem e posição das estações
+
+A tela da estação (no app e na lite) mostra, logo abaixo dos sentidos, o
+**endereço** da estação e a **passagem** da linha ("Passagem: R$ 3,60 (meia
+R$ 1,80) · dinheiro ou Pix"). Os dois vêm das páginas das linhas no site do
+Metrofor e ficam no `regras.json`: `estacoes` (por `stop_id` do GTFS) e
+`passagem` (por linha). O VLT Aeroporto não tem página e fica sem.
+
+Na mesma seção `estacoes`, `posicao` corrige as estações que o **GTFS põe no
+lugar errado**. Conferindo as cinco linhas com mapas do Google My Maps e com o
+OpenStreetMap (as duas fontes concordam, a até 70 m), Fortaleza bate com o
+GTFS, mas em Sobral seis estações estavam longe (Novo Recanto a 2 km, Junco a
+1,2 km, Grendene, Campo dos Velhos, Cohab II e Alto da Brasília a 220–790 m) e,
+no Cariri, a Escola a 270 m. Isso confundia a estação mais perto e o modo
+viagem. As posições usadas são as do OpenStreetMap. Cada entrada leva também o
+`nome` da estação: se um dia o Metrofor renumerar as estações e o nome não
+bater mais, a entrada é ignorada, em vez de ir para a estação errada.
+
 O `regras.json` é a **fonte única** das regras que não vêm do GTFS (bike,
-integrações, passagem e horários de pico): o app (`data/Regras.kt`), o
+integrações, passagem, endereços, posições corrigidas e horários de pico): o app (`data/Regras.kt`), o
 `tools/build_db.py` e a versão lite leem o mesmo arquivo.
 
 **Mudar uma regra não exige versão nova do app.** A tarefa do espelho publica
@@ -491,7 +509,21 @@ Estas vêm do feed oficial, não do app:
 6. **Não há dados de ônibus.** A integração temporal da Etufor é uma regra
    tarifária, não um horário; o GTFS de ônibus de Fortaleza é
    [publicado à parte](https://dados.fortaleza.ce.gov.br/dataset/?tags=gtfs).
-7. O domínio `metrofor.ce.gov.br` está com **certificado HTTPS expirado** e
+7. **Posições erradas em Sobral e no Cariri.** Veja
+   [Endereço, passagem e posição das estações](#endereço-passagem-e-posição-das-estações):
+   o app corrige pelo `regras.json`.
+8. **Nos dias úteis, a Linha Norte de Sobral só tem um sentido.** A grade traz
+   as viagens para Cohab III, mas não as de volta para Novo Recanto (sábado e
+   domingo têm os dois). O app não inventa horários: mostra a volta como
+   "horários não publicados". Vale para qualquer linha que venha com um sentido só.
+9. **Linha sem viagens no dia.** O VLT Aeroporto aparece no GTFS de sábado sem
+   nenhuma viagem; o app e a lite mostram "não opera hoje" no lugar do número
+   de estações.
+10. **As páginas das linhas não batem com a grade no sábado.** Sul, Oeste,
+   Nordeste e Sobral dizem "segunda a sábado até 20h/23h", mas a grade de
+   sábado acaba à tarde (de 15h a 17h). O app segue a grade, que o Metrofor
+   publica para o dia.
+11. O domínio `metrofor.ce.gov.br` está com **certificado HTTPS expirado** e
    redireciona para `ce.gov.br/metrofor`. Por isso os scripts desligam a
    verificação de certificado; o app não fala com o Metrofor, baixa o mesmo
    feed do espelho no GitHub (veja [Horários do dia](#horários-do-dia)).
@@ -620,7 +652,7 @@ GitHub Pages da página do app, em `giovanildo.github.io/metro-ceara-horarios/ap
 - `app.js` — as telas: início (estação mais perto de cada linha até 3 km, com a
   próxima partida em cada sentido; a localização só é pedida ao tocar no
   botão), linhas, estação (abas por sentido, sem o sentido que termina nela;
-  próximas partidas e todos os horários) e configurações.
+  endereço e passagem; próximas partidas e todos os horários) e configurações.
 - **Integração** e **bike**, com as mesmas regras e frases do app (lidas do
   `regras.json` publicado no ramo `dados`): na tela da estação, o próximo
   metrô/VLT da outra linha que ainda dá para pegar a pé, com a passagem, e se
@@ -789,6 +821,10 @@ próprios termos:
 - **Horários e estações do metrô** — feed GTFS publicado pelo
   [Metrofor](https://www.ce.gov.br/metrofor/gtfs/), empresa do Governo do
   Estado do Ceará.
+- **Endereços e passagens** — páginas das linhas no
+  [site do Metrofor](https://www.ce.gov.br/metrofor/linhas/).
+- **Posição de algumas estações de Sobral e do Cariri** — © colaboradores do
+  [OpenStreetMap](https://www.openstreetmap.org/copyright) (ODbL).
 - **Estações do Bicicletar** — GeoJSON publicado pela AMC no
   [portal de dados abertos da Prefeitura de Fortaleza](https://dados.fortaleza.ce.gov.br/organization/amc).
 
