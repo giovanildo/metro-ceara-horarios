@@ -112,7 +112,8 @@ function partidasComAmanha(linha, sentido, stopId) {
 /** Os avisos de operação do site do Metrofor: a manchete; tocar abre a notícia no site deles. */
 function avisosMetrofor() {
   return estado.dados.avisos.map((n) => {
-    const texto = `<strong>Metrofor:</strong> ${esc(n.titulo)}`;
+    const dia = /^\d{4}-\d{2}-\d{2}$/.test(n.data || "") ? `, ${n.data.slice(8)}/${n.data.slice(5, 7)}` : "";
+    const texto = `<strong>Metrofor${dia}:</strong> ${esc(n.titulo)}`;
     return /^https:\/\//.test(n.link || "")
       ? `<p class="aviso-metrofor"><a href="${esc(n.link)}" target="_blank" rel="noopener">${texto} ›</a></p>`
       : `<p class="aviso-metrofor">${texto}</p>`;
