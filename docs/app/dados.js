@@ -74,11 +74,10 @@ export async function carregar() {
   const indice = await json("indice.json");
   const hoje = agora();
   const tipo = tipoDoDia(hoje.diaSemana);
-  const [grade, regras, bike, noticias] = await Promise.all([
+  const [grade, regras, bike] = await Promise.all([
     carregarGrade(indice, tipo),
     json("regras.json").catch(() => null),
     json("bicicletar.json").catch(() => []),
-    json("noticias.json").catch(() => []),
   ]);
   // Onde o GTFS põe a estação no lugar errado (Sobral, Escola do Cariri), vale a posição de regras.json.
   for (const [id, e] of Object.entries(grade?.estacoes || {})) {
@@ -91,8 +90,11 @@ export async function carregar() {
   const proximoTipo = tipoDoDia(proximoEhSegunda ? 1 : (hoje.diaSemana + 1) % 7);
   return {
     indice, grade, regras, bike, tipo, proximoEhSegunda,
-    // Avisos de operação do site do Metrofor, dos últimos 7 dias, no máximo 2.
-    avisos: noticias.filter((n) => n.data >= somarDias(hoje.data, -7)).slice(0, 2),
+    // A notícia do Metrofor que explica a operação especial de hoje e a de amanhã (feriado,
+    // ENEM, eleição), do regras.json; sem operação anunciada, nenhuma.
+    avisos: [[hoje.data, false], [somarDias(hoje.data, 1), true]]
+      .map(([d, amanha]) => regras?.operacoes?.[d] && { ...regras.operacoes[d], amanha })
+      .filter((o, i, l) => o && l.findIndex((x) => x?.titulo === o.titulo) === i),
     proximoDia: () => carregarGrade(indice, proximoTipo),
   };
 }
@@ -199,6 +201,11 @@ const simples = (s) => s.normalize("NFD").replace(/[^A-Za-z0-9]/g, "").toLowerCa
 export function infoEstacao(regras, stopId, nome) {
   const e = regras?.estacoes?.[stopId];
   return e && simples(e.nome) === simples(nome) ? e : null;
+}
+
+/** O Metrofor avisou que esta linha não circula neste dia? */
+export function linhaParada(regras, data, nomeLinha) {
+  return (regras?.operacoes?.[data]?.paradas || []).some((n) => n.trim().toLowerCase() === nomeLinha.trim().toLowerCase());
 }
 
 /** "R$ 3,60 (meia R$ 1,80) · dinheiro ou Pix", ou null. */

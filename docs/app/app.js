@@ -1,6 +1,6 @@
 import {
   agora, bikeAgora, carregar, dataCurta, distancia, falta, hora, infoEstacao, janelasBike, metros, minutosAte, passagem,
-  passagemDaLinha, proximas, somarDias, veiculo,
+  linhaParada, passagemDaLinha, proximas, somarDias, veiculo,
 } from "./dados.js";
 
 const PERTO_METROS = 3000; // outras linhas aparecem até esta distância (padrão do app)
@@ -109,11 +109,13 @@ function partidasComAmanha(linha, sentido, stopId) {
   return { hoje, amanha };
 }
 
-/** Os avisos de operação do site do Metrofor: a manchete; tocar abre a notícia no site deles. */
-function avisosMetrofor() {
-  return estado.dados.avisos.map((n) => {
-    const dia = /^\d{4}-\d{2}-\d{2}$/.test(n.data || "") ? `, ${n.data.slice(8)}/${n.data.slice(5, 7)}` : "";
-    const texto = `<strong>Metrofor${dia}:</strong> ${esc(n.titulo)}`;
+/**
+ * A notícia do Metrofor que explica a operação especial de hoje (e a de amanhã):
+ * a manchete; tocar abre a notícia no site deles.
+ */
+function avisosMetrofor(soHoje = false) {
+  return estado.dados.avisos.filter((n) => !soHoje || !n.amanha).map((n) => {
+    const texto = `<strong>Metrofor, ${n.amanha ? "amanhã" : "hoje"}:</strong> ${esc(n.titulo)}`;
     return /^https:\/\//.test(n.link || "")
       ? `<p class="aviso-metrofor"><a href="${esc(n.link)}" target="_blank" rel="noopener">${texto} ›</a></p>`
       : `<p class="aviso-metrofor">${texto}</p>`;
@@ -174,6 +176,7 @@ function telaInicio() {
           <h3>${esc(grade.nome(id))} <span class="ponto" style="background:${cor(linha)}"></span>
             <span class="linha-nome">${esc(linha.nome)}</span></h3>
           <span class="distancia">${metros(d)} de você</span>
+          ${avisoParada(linha, t)}
           ${sentidos.map((s) => {
             const { hoje, amanha } = partidasComAmanha(linha, s, id);
             const p = proximas(hoje, t.minutos, 1, amanha)[0];
@@ -260,7 +263,7 @@ function telaEstacao(linhaId, stopId, sentidoId) {
   } else {
     html += `<p><strong>→ ${esc(sentido.destino)}</strong></p>`;
   }
-  html += avisoDomingo(t);
+  html += avisoDomingo(t) + avisosMetrofor(true) + avisoParada(linha, t);
   html += `<h2>Próximas partidas</h2>`;
   if (!lista.length) {
     const fim = fimDoDia(linha, sentido, stopId);
@@ -288,9 +291,9 @@ function telaEstacao(linhaId, stopId, sentidoId) {
 /** "Pode embarcar com bike no metrô agora, até as 15:00" — mesmas regras e frases do app. */
 function avisoBike(linha, stopId, t) {
   const { grade, regras } = estado.dados;
-  // Sem mais partidas, não há o que embarcar.
+  // Sem mais partidas (ou com a linha parada hoje), não há o que embarcar.
   const aindaHoje = grade.sentidosDePartida(linha, stopId).some((s) => grade.partidas(s, stopId).some((m) => m >= t.minutos));
-  if (!aindaHoje) return "";
+  if (!aindaHoje || linhaParada(regras, t.data, linha.nome)) return "";
   const janelas = janelasBike(regras, grade.nome(stopId), linha.nome, t.diaSemana, t.data);
   if (!janelas) return "";
   const v = veiculo(linha.nome);
@@ -409,11 +412,17 @@ function telaNaoAchei() {
 }
 
 function avisoDomingo(t) {
-  const { grade } = estado.dados;
-  // Com a grade de hoje baixada, ela já diz se há operação especial.
-  if (t.diaSemana !== 0 || grade.data === t.data) return "";
+  const { grade, regras } = estado.dados;
+  // Domingo com operação anunciada pelo Metrofor: a notícia dela explica.
+  if (t.diaSemana !== 0 || regras?.operacoes?.[t.data]) return "";
   return `<div class="aviso"><strong>Hoje é domingo.</strong> Metrô e VLT normalmente não funcionam aos domingos,
-    só em operação especial (eleição, ENEM, eventos). Os horários abaixo são de outro dia.</div>`;
+    só em operação especial (eleição, ENEM, eventos).${grade.data === t.data ? "" : " Os horários abaixo são de outro dia."}</div>`;
+}
+
+/** "O Metrofor avisou que esta linha não circula hoje", se for o caso. */
+function avisoParada(linha, t) {
+  return linhaParada(estado.dados.regras, t.data, linha.nome)
+    ? `<div class="aviso">O Metrofor avisou que esta linha não circula hoje.</div>` : "";
 }
 
 // ---------- lembrete na agenda (.ics: abre no Calendário do iPhone e na agenda do Android)
