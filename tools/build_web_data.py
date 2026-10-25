@@ -16,15 +16,20 @@ Arquivos em SAIDA:
     gtfs-<tipo>.zip             o GTFS original do Metrofor (o app Android baixa daqui)
     bicicletar.json             estacoes do Bicicletar
     regras.json                 copia de app/src/main/assets/regras.json
+    noticias.json               avisos de operacao do site do Metrofor (horario
+                                especial, gratuidade, interrupcao...), so titulo e data
 """
+import html
 import io
 import json
 import os
+import re
 import shutil
 import ssl
 import sys
 import urllib.request
 import zipfile
+from email.utils import parsedate_to_datetime
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 
@@ -132,6 +137,37 @@ def baixar_feed(source):
         return resp.read()
 
 
+NOTICIAS_URL = "https://www.ce.gov.br/metrofor/feed/"
+# So entram noticias que mudam a viagem: horario, operacao especial, gratuidade,
+# interrupcao. O resto do feed (balancos, contratacoes, campanhas) fica de fora.
+AVISO = re.compile(
+    r"hor[aá]rio|opera[çc][ãa]o|operam|funcion|gratuit|feriado|interrup|paralis|greve|"
+    r"suspens|altera[çc]|mudan[çc]a|especial|elei[çc]|enem|manuten[çc]|fechad|interdi",
+    re.IGNORECASE,
+)
+
+
+def avisos_do_metrofor():
+    """Os avisos de operacao mais recentes do feed do site (certificado incompleto: sem verificacao)."""
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+    req = urllib.request.Request(NOTICIAS_URL, headers={"User-Agent": "Mozilla/5.0 (metro-ceara-horarios)"})
+    with urllib.request.urlopen(req, context=ctx, timeout=60) as resp:
+        xml = resp.read().decode("utf-8", "replace")
+    avisos = []
+    for item in re.findall(r"<item>(.*?)</item>", xml, re.S):
+        titulo = re.search(r"<title>(.*?)</title>", item, re.S)
+        data = re.search(r"<pubDate>(.*?)</pubDate>", item, re.S)
+        if not titulo or not data:
+            continue
+        texto = html.unescape(re.sub(r"<!\[CDATA\[|\]\]>", "", titulo.group(1))).strip()
+        if AVISO.search(texto):
+            dia = parsedate_to_datetime(data.group(1).strip()).astimezone(FORTALEZA).date().isoformat()
+            avisos.append({"data": dia, "titulo": texto})
+    return avisos[:5]
+
+
 def escrever(path, data):
     tmp = path + ".tmp"
     with open(tmp, "w", encoding="utf-8") as fh:
@@ -184,6 +220,12 @@ def main():
         ])
 
     shutil.copyfile(gtfs.RULES, os.path.join(out, "regras.json"))
+    # Os avisos sao um extra: se o site falhar, fica o arquivo anterior e os
+    # horarios seguem normalmente.
+    try:
+        escrever(os.path.join(out, "noticias.json"), avisos_do_metrofor())
+    except Exception as e:  # noqa: BLE001
+        print(f"avisos do Metrofor: {e}")
     indice["atualizado"] = agora.isoformat(timespec="seconds")
     escrever(indice_path, indice)
 
