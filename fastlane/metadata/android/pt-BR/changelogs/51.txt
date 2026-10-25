@@ -1,0 +1,3 @@
+• Widget na tela inicial: os próximos horários da sua estação (a fixada com a estrela, ou a última aberta), em dois tamanhos.
+• Mostra o aviso do dia (operação especial, linha parada ou domingo) e, depois do último metrô, o primeiro de amanhã.
+• Toque no widget para abrir a estação no app.
