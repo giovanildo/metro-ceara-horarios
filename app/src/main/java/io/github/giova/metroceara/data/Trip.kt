@@ -47,6 +47,11 @@ data class TripPlan(
     val turnaroundIndex: Int = -1,
     /** Trecho de um roteiro com integração: o destino é a estação de integração. */
     val transfer: TripTransfer? = null,
+    /**
+     * Simulação: a pessoa está longe da estação e quis ver a viagem mesmo assim.
+     * Segue só a tabela de horários, sem GPS, e tudo aparece marcado "Simulação".
+     */
+    val simulated: Boolean = false,
 ) {
     val viaTerminal get() = turnaroundIndex in 0 until stops.lastIndex
     val terminal get() = stops.getOrNull(turnaroundIndex)
@@ -63,6 +68,7 @@ data class TripPlan(
         .put("headsign", headsign)
         .put("alert", alertStationsBefore)
         .put("turn", turnaroundIndex)
+        .put("sim", simulated)
         .apply {
             transfer?.let {
                 put("transfer", JSONObject().put("route", it.nextRoute).put("headsign", it.nextHeadsign)
@@ -92,6 +98,7 @@ data class TripPlan(
                 },
                 alertStationsBefore = o.optInt("alert", 2),
                 turnaroundIndex = o.optInt("turn", -1),
+                simulated = o.optBoolean("sim"),
                 transfer = o.optJSONObject("transfer")?.let {
                     TripTransfer(
                         nextRoute = it.getString("route"),
@@ -107,8 +114,8 @@ data class TripPlan(
     }
 }
 
-/** Como a posição atual foi descoberta. */
-enum class TripFix { GPS, SCHEDULE }
+/** Como a posição atual foi descoberta. [SIMULATED]: viagem de simulação, só pela tabela. */
+enum class TripFix { GPS, SCHEDULE, SIMULATED }
 
 /** Onde a viagem está agora. */
 data class TripProgress(
@@ -144,7 +151,7 @@ class TripEstimator(
 
     private var index = -1
     private var delay = 0.0
-    private var lastFix = TripFix.SCHEDULE
+    private var lastFix = if (plan.simulated) TripFix.SIMULATED else TripFix.SCHEDULE
     private var startedAt: Double? = null
     private var lastGoodGps: Double? = null
     private var lastSatellite: Double? = null
@@ -156,7 +163,7 @@ class TripEstimator(
      * viagem. [fromNetwork]: veio da rede de celular/Wi-Fi, não do satélite.
      */
     fun onLocation(lat: Double, lon: Double, accuracyMeters: Float, nowMinutes: Double, fromNetwork: Boolean = false) {
-        if (accuracyMeters > MAX_ACCURACY_METERS) return
+        if (plan.simulated || accuracyMeters > MAX_ACCURACY_METERS) return
         // A posição pela rede erra até ~150 m e já pôs a pessoa na estação
         // errada; com satélite recente, ela é descartada. Sem satélite (túnel),
         // ainda serve.
@@ -198,17 +205,20 @@ class TripEstimator(
         if (plan.viaTerminal && index >= plan.turnaroundIndex && delay < 0) delay = 0.0
         val started = startedAt ?: nowMinutes.also { startedAt = it }
         val since = lastGoodGps ?: started
-        // Antes do primeiro sinal na estação, a grade não sabe se o trem está
-        // atrasado: não passa da partida. Se o GPS não aparecer (começou já no
-        // túnel), a grade volta a andar quando ele é dado como perdido.
-        val waitingFirstFix = !seenAtStation && nowMinutes - started < gpsLostMinutes
+        // Antes do primeiro sinal numa estação da viagem, a grade não sabe se a
+        // pessoa já embarcou: não passa da partida. Com o GPS respondendo longe
+        // da linha (ela ainda vai até a estação), espera; só se o GPS sumir
+        // (começou já no túnel) a grade volta a andar. Na simulação não há GPS.
+        val gpsAlive = nowMinutes - since < gpsLostMinutes
+        val waitingFirstFix = !plan.simulated && !seenAtStation && gpsAlive
+        // Esperando, fica "Aguardando o metrô em X": a pessoa ainda não está na estação.
         val bySchedule = plan.stops.indexOfLast { it.scheduled + delay <= nowMinutes }
-            .let { if (waitingFirstFix) it.coerceAtMost(0) else it }
+            .let { if (waitingFirstFix) -1 else it }
         if (bySchedule > index) {
             index = bySchedule
-            lastFix = TripFix.SCHEDULE
+            lastFix = if (plan.simulated) TripFix.SIMULATED else TripFix.SCHEDULE
         }
-        val silent = nowMinutes - since
+        val silent = if (plan.simulated) 0.0 else nowMinutes - since
         return TripProgress(
             index = index,
             fix = lastFix,
