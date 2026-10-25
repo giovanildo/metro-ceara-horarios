@@ -1,0 +1,3 @@
+• Ir sentado pelo terminal: a sugestão aparece só nos horários de pico (6h às 8h e 16h às 19h).
+• Bike: o aviso vale só para a Linha Sul e a Linha Nordeste.
+• As regras do Metrofor (bike, integrações, pico) se atualizam sozinhas, sem precisar de versão nova.
