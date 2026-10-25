@@ -87,7 +87,12 @@ fun MetroforNotices(notices: List<ScheduleStore.Notice>, modifier: Modifier = Mo
     notices.forEach { notice ->
         Text(
             text = buildAnnotatedString {
-                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(stringResource(R.string.notice_source)) }
+                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                    append(
+                        if (notice.day.isEmpty()) stringResource(R.string.notice_source)
+                        else stringResource(R.string.notice_source_day, notice.day),
+                    )
+                }
                 append(" ")
                 append(notice.title)
                 if (notice.link != null) append(" ›")

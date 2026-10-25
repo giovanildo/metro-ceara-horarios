@@ -369,9 +369,9 @@ Detalhes que valem saber:
   lista não mostra horários de amanhã (metrô e VLT normalmente não circulam,
   embora o GTFS diga que sim).
 - **Avisos do Metrofor.** Abaixo da linha "Horários de hoje…", a tela inicial
-  mostra até 2 notícias dos últimos 7 dias do site do Metrofor: a manchete, com uma seta
-  no fim — "**Metrofor:** Eleições 2026: Veja os horários do metrô e VLTs em
-  operação gratuita de 2º turno ›" —, e tocar abre a notícia no navegador, no
+  mostra até 2 notícias dos últimos 7 dias do site do Metrofor: a data e a
+  manchete, com uma seta no fim — "**Metrofor, 22/10:** Eleições 2026: Veja os
+  horários do metrô e VLTs em operação gratuita de 2º turno ›" —, e tocar abre a notícia no navegador, no
   site do Metrofor (o app não envia nada; a política de privacidade avisa). A tarefa do espelho lê o feed
   `ce.gov.br/metrofor/feed/` (o certificado do site é incompleto, por isso não
   vai direto do app) e publica as últimas notícias, sem filtro de assunto, em

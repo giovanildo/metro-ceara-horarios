@@ -193,8 +193,8 @@ object ScheduleStore {
         Regras.update(context, String(fetch(MIRROR + "regras.json")))
     }
 
-    /** Um aviso de operação do site do Metrofor: a manchete e o link da notícia, se houver. */
-    data class Notice(val title: String, val link: String?)
+    /** Um aviso do site do Metrofor: a manchete, o dia ("DD/MM") e o link da notícia, se houver. */
+    data class Notice(val title: String, val link: String?, val day: String = "")
 
     /** Avisos com mais de [NOTICE_DAYS] dias não aparecem: o feed passa meses sem novidade. */
     private const val NOTICE_DAYS = 7
@@ -220,7 +220,14 @@ object ScheduleStore {
             val list = JSONArray(json)
             (0 until list.length()).map { list.getJSONObject(it) }
                 .filter { it.optString("data") >= since }
-                .map { Notice(it.getString("titulo"), it.optString("link").takeIf { l -> l.startsWith("https://") }) }
+                .map {
+                    val date = it.optString("data") // AAAA-MM-DD
+                    Notice(
+                        it.getString("titulo"),
+                        it.optString("link").takeIf { l -> l.startsWith("https://") },
+                        if (date.length == 10) "${date.substring(8)}/${date.substring(5, 7)}" else "",
+                    )
+                }
                 .take(MAX_NOTICES)
         }.getOrDefault(emptyList())
     }
