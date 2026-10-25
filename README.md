@@ -232,8 +232,24 @@ o Android só usa a forma, e o ícone do app, de fundo cheio, virava um quadrado
   também é falado. A voz sai pelo canal de navegação: toca no fone e abaixa a
   música. Sem voz pt-BR instalada no aparelho, fica só a notificação.
 - **Distância até a partida.** Se a pessoa está a mais de **1 km** da estação de
-  partida (ajustável), o app avisa antes de iniciar (até o GPS a encontrar na
-  linha, a posição sai só da tabela). A mais de **3 km** (ajustável), a opção some,
+  partida (ajustável), o app pergunta antes de iniciar: **Simular a viagem**,
+  **Esperar o GPS** ou Cancelar.
+  - **Simulação:** segue só a tabela de horários e ignora o GPS, com estações,
+    aviso de descida, voz, integração e próximo trecho, para testar ou mostrar o
+    app de casa. Tudo vem marcado: "Simulação · Linha Sul" no cartão,
+    "Simulação: Viagem até Parangaba" e "Simulação: Prepare-se para descer" nas
+    notificações, e "Simulação." na voz. O registro de testes marca
+    `"simulated": true` no `trip_start`. O trecho seguinte de um roteiro simulado
+    também é simulado.
+  - **Esperar o GPS:** a viagem de verdade, para quem ainda vai até a estação.
+  - **Em qualquer viagem que não é simulação**, a tabela só avança sozinha
+    quando o GPS some (o túnel). Com o GPS bom mostrando a pessoa longe de todas
+    as estações da viagem, e sem ela ter passado por nenhuma, o app espera em
+    "Aguardando o metrô em…". Antes disso, quem começava em casa via a viagem
+    "andar" pela tabela e o app dizer "Você chegou" (log de 25/10, a 1,4 km da
+    Carlito Benevides, com testes em `TripEstimatorTest`).
+
+  A mais de **3 km** (ajustável), a opção some,
   na tela inicial e na de partidas. A distância vem do GPS da tela inicial ou,
   com estação fixada, da última posição guardada no aparelho; sem posição
   conhecida, o app deixa iniciar.
