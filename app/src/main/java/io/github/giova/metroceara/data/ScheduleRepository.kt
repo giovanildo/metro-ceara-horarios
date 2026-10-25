@@ -57,6 +57,21 @@ class ScheduleRepository(context: Context) {
         arrayOf(routeId),
     ).map { Direction(it.getInt(0), it.getString(1)) }
 
+    /**
+     * Os sentidos em que dá para embarcar em [stopId]: o que termina ali só tem
+     * chegadas e fica de fora (a não ser que seja o único). Se a grade do dia só
+     * traz um sentido (Linha Norte de Sobral, nos dias úteis), a volta entra sem
+     * horários, para a tela dizer que o Metrofor não a publicou em vez de sumir com ela.
+     */
+    fun boardingDirections(stopId: String, routeId: String): List<Direction> {
+        val listed = directions(routeId)
+        val missing = listed.singleOrNull()?.let { only ->
+            stops(routeId, only.id).takeIf { it.size >= 2 && it.first().id != stopId }
+                ?.let { Direction(1 - only.id, it.first().name, published = false) }
+        }
+        return (listed.filterNot { endsAt(stopId, routeId, it.id) } + listOfNotNull(missing)).ifEmpty { listed }
+    }
+
     /** Estações na ordem em que [routeId] as percorre no sentido [directionId]. */
     fun stops(routeId: String, directionId: Int): List<Stop> = db.rawQuery(
         """

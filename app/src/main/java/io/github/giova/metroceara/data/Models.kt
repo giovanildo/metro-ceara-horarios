@@ -12,6 +12,8 @@ data class Route(
 data class Direction(
     val id: Int,
     val headsign: String,
+    /** `false`: o Metrofor publicou só a ida da linha hoje, e esta é a volta, sem horários. */
+    val published: Boolean = true,
 )
 
 /** Uma estação na ordem em que a linha a percorre. */

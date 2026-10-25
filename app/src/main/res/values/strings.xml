@@ -25,6 +25,8 @@
     <string name="home_no_fix">Não consegui obter sua localização. Tente de novo em um lugar aberto, ou fixe uma estação pela estrela.</string>
     <string name="home_try_again">Tentar de novo</string>
     <string name="home_no_departures">sem partidas hoje</string>
+    <string name="home_unpublished">horários não publicados</string>
+    <string name="direction_unpublished">O Metrofor não publicou os horários deste sentido hoje.</string>
     <string name="notice_source">Metrofor:</string>
     <string name="notice_source_day">Metrofor, %1$s:</string>
     <string name="day_end_last">Último de hoje: %1$s</string>

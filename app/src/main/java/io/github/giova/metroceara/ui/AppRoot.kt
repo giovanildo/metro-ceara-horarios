@@ -436,9 +436,8 @@ fun AppRoot() {
         )
     }
 
-    // Nos terminais, o sentido que termina ali só tem chegadas: fica de fora.
     fun departuresAt(station: Station): List<HomeDeparture> =
-        repo.directions(station.routeId).filterNot { repo.endsAt(station.stopId, station.routeId, it.id) }.map { direction ->
+        repo.boardingDirections(station.stopId, station.routeId).map { direction ->
             val departure = nextDepartures(
                 repo.departures(station.stopId, station.routeId, direction.id),
                 now,
@@ -449,6 +448,7 @@ fun AppRoot() {
                 headsign = direction.headsign,
                 departure = departure,
                 dayEnd = if (departure == null) repo.dayEnd(station.stopId, station.routeId, direction.id) else null,
+                published = direction.published,
             )
         }
 
@@ -500,12 +500,8 @@ fun AppRoot() {
         }
 
         route != null && stop != null -> {
-            // No terminal, o sentido que acaba nele só tem chegadas: ninguém embarca
-            // nele ali, então a aba some (a tela inicial já fazia assim).
-            val directions = remember(route.id, stop.id) {
-                repo.directions(route.id).filterNot { repo.endsAt(stop.id, route.id, it.id) }
-                    .ifEmpty { repo.directions(route.id) }
-            }
+            // No terminal, o sentido que acaba nele só tem chegadas: a aba some.
+            val directions = remember(route.id, stop.id) { repo.boardingDirections(stop.id, route.id) }
             val isPinned = pinned.get() == (stop.id to route.id)
             // O Stop da navegação não carrega coordenadas; o Station sim.
             val bike = remember(stop.id, route.id, bikeStations, settings) {

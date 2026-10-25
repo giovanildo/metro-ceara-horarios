@@ -200,7 +200,9 @@ private fun StationSummary(
                         text = item.departure?.let { departure ->
                             val remaining = minutesUntil(departure, now)
                             "${formatTime(departure.minutes)}  ·  ${relativeLabel(remaining)}"
-                        } ?: stringResource(R.string.home_no_departures),
+                        } ?: stringResource(
+                            if (item.published) R.string.home_no_departures else R.string.home_unpublished,
+                        ),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
                     )

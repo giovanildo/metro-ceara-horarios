@@ -217,7 +217,12 @@ fun DeparturesScreen(
                 if (next.isEmpty()) {
                     item {
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(stringResource(R.string.no_more_today))
+                            Text(
+                                stringResource(
+                                    if (direction?.published == false) R.string.direction_unpublished
+                                    else R.string.no_more_today,
+                                ),
+                            )
                             direction?.let { d ->
                                 dayEndText(remember(d) { dayEndFor(d) })?.let {
                                     Text(

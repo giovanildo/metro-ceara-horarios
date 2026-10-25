@@ -10,6 +10,8 @@ data class HomeDeparture(
     val departure: Departure?,
     /** Só quando não há [departure]: o último de hoje e o primeiro do próximo dia. */
     val dayEnd: DayEnd? = null,
+    /** `false`: o Metrofor não publicou hoje os horários deste sentido. */
+    val published: Boolean = true,
 )
 
 /**
