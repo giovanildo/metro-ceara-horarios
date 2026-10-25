@@ -31,8 +31,22 @@ class PinnedStation(context: Context) {
         remove(KEY_ROUTE)
     }
 
+    /** A última estação aberta: é a do widget quando não há estação fixada. */
+    fun lastOpened(): Pair<String, String>? {
+        val stopId = prefs.getString(KEY_LAST_STOP, null) ?: return null
+        val routeId = prefs.getString(KEY_LAST_ROUTE, null) ?: return null
+        return stopId to routeId
+    }
+
+    fun setLastOpened(stopId: String, routeId: String) = prefs.edit {
+        putString(KEY_LAST_STOP, stopId)
+        putString(KEY_LAST_ROUTE, routeId)
+    }
+
     private companion object {
         const val KEY_STOP = "pinned_stop_id"
         const val KEY_ROUTE = "pinned_route_id"
+        const val KEY_LAST_STOP = "last_stop_id"
+        const val KEY_LAST_ROUTE = "last_route_id"
     }
 }

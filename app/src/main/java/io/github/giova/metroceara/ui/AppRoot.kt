@@ -32,6 +32,7 @@ import io.github.giova.metroceara.data.Stop
 import io.github.giova.metroceara.data.TripPlan
 import io.github.giova.metroceara.data.TripStop
 import io.github.giova.metroceara.trip.TripTracker
+import io.github.giova.metroceara.widget.StationWidget
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -88,6 +89,9 @@ private const val ORIGIN_WALK_FREE_MINUTES = 3
 /** Estações de partida do roteiro: só as que ficam até essa caminhada (Parangaba e Parangaba - NE, por exemplo). */
 private const val ORIGIN_WALK_MAX_MINUTES = 10
 
+/** Pedido de abrir uma estação vindo de fora da tela (toque no widget). */
+val OpenStationRequest = kotlinx.coroutines.flow.MutableStateFlow<Pair<String, String>?>(null)
+
 /** Marca, no próximo trecho guardado, que o roteiro é uma simulação. */
 private const val SIMULATED_LEG = "sim"
 
@@ -131,6 +135,7 @@ fun AppRoot() {
         if (result.isSuccess) scheduleVersion++
         // As notícias de operação especial vêm no regras.json, já baixado acima.
         notices = ScheduleStore.notices()
+        StationWidget.update(context)
     }
 
     // A primeira abertura copia o banco de assets; isso sai da thread principal.
@@ -156,6 +161,16 @@ fun AppRoot() {
     var showSettings by rememberSaveable { mutableStateOf(false) }
     // Sentido em que a tela de horários deve abrir (vindo de uma baldeação).
     var openDirectionId by rememberSaveable { mutableStateOf<Int?>(null) }
+    // Toque no widget: abre a tela da estação dele.
+    val widgetRequest by OpenStationRequest.collectAsState()
+    LaunchedEffect(widgetRequest) {
+        widgetRequest?.let { (stop, route) ->
+            openDirectionId = null
+            routeId = route
+            stopId = stop
+            OpenStationRequest.value = null
+        }
+    }
 
     val routes = remember(repo) { repo.routes() }
     val bikeStations = remember(repo) { repo.bikeStations() }
@@ -693,6 +708,11 @@ fun AppRoot() {
         }
 
         route != null && stop != null -> {
+            // Sem estação fixada, o widget mostra a última aberta.
+            LaunchedEffect(stop.id, route.id) {
+                pinned.setLastOpened(stop.id, route.id)
+                StationWidget.update(context)
+            }
             // No terminal, o sentido que acaba nele só tem chegadas: a aba some.
             val directions = remember(route.id, stop.id) { repo.boardingDirections(stop.id, route.id) }
             val isPinned = pinned.get() == (stop.id to route.id)
@@ -742,6 +762,7 @@ fun AppRoot() {
                 isPinned = isPinned,
                 onTogglePin = {
                     if (isPinned) pinned.clear() else pinned.set(stop.id, route.id)
+                    StationWidget.update(context)
                     refreshHome()
                 },
                 onBack = { stopId = null },

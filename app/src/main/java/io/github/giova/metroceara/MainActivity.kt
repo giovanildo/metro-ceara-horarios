@@ -1,7 +1,10 @@
 package io.github.giova.metroceara
 
 import android.graphics.Color
+import android.content.Intent
 import android.os.Bundle
+import io.github.giova.metroceara.ui.OpenStationRequest
+import io.github.giova.metroceara.widget.StationWidget
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -19,6 +22,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        openFromWidget(intent)
         setContent {
             val settings by SettingsStore.flow(this).collectAsState()
             val current = settings ?: AppSettings()
@@ -39,5 +43,18 @@ class MainActivity : ComponentActivity() {
                 AppRoot()
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        openFromWidget(intent)
+    }
+
+    /** Toque no widget: abre a tela da estação dele. */
+    private fun openFromWidget(intent: Intent?) {
+        val stop = intent?.getStringExtra(StationWidget.EXTRA_STOP) ?: return
+        val route = intent.getStringExtra(StationWidget.EXTRA_ROUTE) ?: return
+        OpenStationRequest.value = stop to route
+        intent.removeExtra(StationWidget.EXTRA_STOP)
     }
 }

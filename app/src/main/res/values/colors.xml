@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Widget da tela inicial: segue o tema do celular (values-night). -->
+    <color name="widget_bg">#F3F1F8</color>
+    <color name="widget_text">#1A1C20</color>
+    <color name="widget_muted">#5C5F6A</color>
+    <color name="widget_note_bg">#DDE3F5</color>
+    <color name="widget_warning_bg">#FFDAD6</color>
+    <color name="widget_warning_text">#410002</color>
+</resources>

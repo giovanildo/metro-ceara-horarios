@@ -32,6 +32,16 @@
     <string name="direction_unpublished">O Metrofor não publicou os horários deste sentido hoje.</string>
     <string name="notice_today">Metrofor, hoje:</string>
     <string name="notice_tomorrow">Metrofor, amanhã:</string>
+    <string name="widget_wide_label">Estação: próximos horários</string>
+    <string name="widget_small_label">Estação: próximo horário</string>
+    <string name="widget_wide_desc">Os dois próximos horários de cada sentido da sua estação, e o aviso do dia.</string>
+    <string name="widget_small_desc">O próximo horário de cada sentido da sua estação.</string>
+    <string name="widget_no_station">Abra uma estação no app (ou fixe a sua com a estrela) para ver os horários aqui.</string>
+    <string name="widget_tomorrow">amanhã</string>
+    <string name="widget_monday">segunda</string>
+    <string name="widget_no_more">sem mais hoje</string>
+    <string name="widget_operation">Hoje: %1$s ›</string>
+    <string name="widget_sunday">Domingo: metrô e VLT normalmente não circulam.</string>
     <string name="line_stopped_today">O Metrofor avisou que esta linha não circula hoje.</string>
     <string name="day_end_last">Último de hoje: %1$s</string>
     <string name="day_end_next_tomorrow">primeiro de amanhã: %1$s</string>
