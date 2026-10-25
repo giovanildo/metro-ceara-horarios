@@ -205,16 +205,18 @@ bicicletas há agora e confundia.
 - **Na tela de partidas** de cada estação, medida a partir dela e escondida
   acima de 600 m, porque a essa distância deixa de ajudar.
 
-Nas linhas Sul e Nordeste, o app diz também **se dá para embarcar com
+Nas linhas Sul e Nordeste e no VLT de Sobral, o app diz também **se dá para embarcar com
 bicicleta agora** (no metrô ou no VLT, conforme a linha; o aviso some quando
 não há mais partidas no dia), na tela de partidas e no cartão da tela inicial. As
 janelas vêm do regulamento
 [*Bike é bem-vinda no metrô*](https://www.ce.gov.br/metrofor/wp-content/uploads/sites/75/2023/03/Regula_Bikes_2023.pdf)
 (Metrofor, 2023): segunda a sexta das 9h às 15h e a partir das 20h; sábado a
-partir das 15h. A **Linha Oeste não aceita bike** comum, e os VLTs de Sobral e do
-Cariri ficam sem aviso: o Relatório de Demanda do Metrofor (3º tri/2025, p. 20)
-conta bikes só na Sul, na Nordeste e no VLT Sobral, e não há horários
-publicados para Sobral. Dobrável fechada na bolsa conta como bagagem. No
+partir das 15h. No **VLT de Sobral** (notícia do Metrofor de 19/08/2025):
+segunda a sexta das 9h às 16h30 e das 19h às 23h, sábado a partir das 13h, 2
+bikes por viagem em cada linha. A **Linha Oeste** e o **VLT do Cariri** ficam sem
+aviso: o Relatório de Demanda do Metrofor (3º tri/2025, p. 20) só registra bikes
+na Sul, na Nordeste e em Sobral. Quando as fontes do Metrofor divergem, vale a
+mais recente. Dobrável fechada na bolsa conta como bagagem. No
 domingo o aviso de bike some, porque nesse dia só há operação especial e a regra
 dela não é conhecida.
 
@@ -222,7 +224,8 @@ As regras ficam na seção `bike` de
 [`app/src/main/assets/regras.json`](app/src/main/assets/regras.json): cada
 regulamento tem janelas de horário (`["09:00", "15:00"]`, ou `["20:00", null]` =
 até o fim da operação) para dias úteis, sábado e domingo. Há uma tabela **por
-linha** (`linhas`, hoje Sul e Nordeste com o regulamento de 2023; linha
+linha** (`linhas`, hoje Sul e Nordeste com o regulamento de 2023 e as duas
+linhas de Sobral com o de 2025; linha
 fora dela não tem aviso) e outra de **exceções por estação** (`estacoes`, vazia
 hoje), que vale antes da da linha. Mudou o regulamento ou alguma estação tem
 regra própria: é só editar o arquivo e gerar uma versão nova. Ficam fora das
