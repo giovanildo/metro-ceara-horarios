@@ -1,0 +1,1 @@
+• Aviso de cada estação mais curto: diz só o nome da estação, e quantas faltam apenas quando faltam 3.
