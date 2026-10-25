@@ -50,6 +50,13 @@ class Regras(
     val fares: Map<String, String> = emptyMap(),
     /** Dias de operação especial ("AAAA-MM-DD"), das notícias do Metrofor. */
     val operations: Map<String, SpecialOperation> = emptyMap(),
+    /** Pico máximo (estação mais cheia), em minutos desde a meia-noite. */
+    val peakMax: List<IntRange> = emptyList(),
+    /** Minutos a mais numa integração no pico e no pico máximo. */
+    val peakTransferMinutes: Int = 0,
+    val peakMaxTransferMinutes: Int = 0,
+    /** Quantas vezes o tempo a pé, por jeito de se deslocar ([Mobility.key]). */
+    val mobilityFactors: Map<String, Double> = emptyMap(),
 ) {
     /** A partida cai num horário de pico (metrô costuma ir cheio)? */
     fun isPeak(minutes: Int): Boolean = peak.any { minutes in it }
@@ -62,6 +69,13 @@ class Regras(
         stations[stopId]?.takeIf { plain(it.name) == plain(name) }
 
     fun fare(routeName: String): String? = fares[routeName.trim().lowercase()]
+
+    /** Minutos a mais numa integração alcançada às [minutes]: estação cheia demora mais. */
+    fun peakTransferExtra(minutes: Int): Int = when {
+        peakMax.any { minutes in it } -> peakMaxTransferMinutes
+        isPeak(minutes) -> peakTransferMinutes
+        else -> 0
+    }
 
     /** O Metrofor avisou que [routeName] não circula em [day]? */
     fun stopped(day: String, routeName: String): Boolean =
@@ -124,11 +138,16 @@ class Regras(
                     )
                 }
             }
-            val peak = root.optJSONObject("pico")?.getJSONArray("faixas")?.let { list ->
-                (0 until list.length()).map { i ->
-                    val w = list.getJSONArray(i)
+            fun ranges(list: JSONArray?) = list?.let {
+                (0 until it.length()).map { i ->
+                    val w = it.getJSONArray(i)
                     clock(w.getString(0)) until clock(w.getString(1))
                 }
+            }.orEmpty()
+            val pico = root.optJSONObject("pico")
+            val peak = ranges(pico?.optJSONArray("faixas"))
+            val mobility = root.optJSONObject("deslocamento")?.let { o ->
+                o.keys().asSequence().filterNot { it.startsWith("_") }.associateWith { o.getDouble(it) }
             }.orEmpty()
             val specialDays = root.optJSONObject("datas_especiais")?.let { o ->
                 o.keys().asSequence().filterNot { it.startsWith("_") }.associateWith { day ->
@@ -170,6 +189,10 @@ class Regras(
             return Regras(
                 byName(bike.getJSONObject("linhas")), byName(bike.getJSONObject("estacoes")), integracoes, peak, specialDays,
                 stations, fares, operations,
+                peakMax = ranges(pico?.optJSONArray("maximo")),
+                peakTransferMinutes = pico?.optInt("integracao_min") ?: 0,
+                peakMaxTransferMinutes = pico?.optInt("integracao_maximo_min") ?: 0,
+                mobilityFactors = mobility,
             )
         }
 

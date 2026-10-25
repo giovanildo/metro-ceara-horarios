@@ -140,6 +140,48 @@ class ScheduleRepository(context: Context) {
         return tripId to times
     }
 
+    /** Os horários de uma viagem, por estação (para montar o trecho de um roteiro). */
+    fun tripTimes(tripId: String, routeId: String): Map<String, Int> = db.rawQuery(
+        "SELECT stop_id, minutes FROM departure WHERE trip_id = ? AND route_id = ?",
+        arrayOf(tripId, routeId),
+    ).map { it.getString(0) to it.getInt(1) }.toMap()
+
+    /** A grade do dia vista pelo [Router]: viagens que passam por uma estação e depois por outra. */
+    val timetable = object : Timetable {
+        override fun trips(routeId: String, fromStop: String, toStop: String): List<LegTrip> = db.rawQuery(
+            """
+            SELECT a.trip_id, a.direction_id, a.minutes, b.minutes
+            FROM departure a
+            JOIN departure b ON b.trip_id = a.trip_id AND b.route_id = a.route_id AND b.stop_id = ?
+            WHERE a.route_id = ? AND a.stop_id = ? AND b.minutes > a.minutes
+            ORDER BY a.minutes
+            """.trimIndent(),
+            arrayOf(toStop, routeId, fromStop),
+        ).map { LegTrip(it.getString(0), it.getInt(1), it.getInt(2), it.getInt(3)) }
+    }
+
+    /**
+     * Onde dá para trocar de linha: as integrações do regras.json (tabela
+     * transfer) e a estação que serve duas linhas (Campo dos Velhos, em Sobral),
+     * onde a troca é na mesma plataforma.
+     */
+    fun transferLinks(): List<TransferLink> {
+        val routesOf = db.rawQuery("SELECT DISTINCT stop_id, route_id FROM route_stop", null)
+            .map { it.getString(0) to it.getString(1) }
+            .groupBy({ it.first }, { it.second })
+        val declared = db.rawQuery("SELECT from_stop_id, to_stop_id, walk_minutes FROM transfer", null)
+            .map { Triple(it.getString(0), it.getString(1), it.getInt(2)) }
+            .flatMap { (from, to, walk) ->
+                routesOf[from].orEmpty().flatMap { a ->
+                    routesOf[to].orEmpty().filter { it != a }.map { b -> TransferLink(a, from, b, to, walk) }
+                }
+            }
+        val shared = routesOf.filterValues { it.size > 1 }.flatMap { (stop, routes) ->
+            routes.flatMap { a -> routes.filter { it != a }.map { b -> TransferLink(a, stop, b, stop, SAME_PLATFORM_MINUTES) } }
+        }
+        return declared + shared
+    }
+
     /**
      * Baldeações a partir de [stopId]: a estação da outra linha, o tempo a pé e
      * os sentidos em que dá para **partir** de lá — nos terminais, o sentido que
@@ -235,6 +277,11 @@ class ScheduleRepository(context: Context) {
         "SELECT value FROM meta WHERE key = ?",
         arrayOf(key),
     ).map { it.getString(0) }.firstOrNull()
+
+    private companion object {
+        /** Trocar de linha na mesma estação ainda leva um minuto. */
+        const val SAME_PLATFORM_MINUTES = 1
+    }
 
     private fun <T> Cursor.map(read: (Cursor) -> T): List<T> = use { cursor ->
         buildList(cursor.count) {

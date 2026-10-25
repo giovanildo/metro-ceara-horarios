@@ -42,6 +42,10 @@ data class AppSettings(
     val wallpaperColors: Boolean = true,
     /** No aviso de descida e na chegada, lembrar de não esquecer os pertences. */
     val remindBelongings: Boolean = true,
+    /** Como a pessoa se desloca nas integrações: muda o tempo de trocar de linha. */
+    val mobility: Mobility = Mobility.WALKING,
+    /** Minutos a mais em toda integração, além do que o perfil e o pico já somam. */
+    val transferExtraMinutes: Int = 0,
 ) {
     companion object {
         const val THEME_AUTO = 0
@@ -78,6 +82,8 @@ object SettingsStore {
             putInt("theme_mode", settings.themeMode)
             putBoolean("wallpaper_colors", settings.wallpaperColors)
             putBoolean("remind_belongings", settings.remindBelongings)
+            putString("mobility", settings.mobility.key)
+            putInt("transfer_extra_min", settings.transferExtraMinutes)
         }
         state.value = settings
     }
@@ -105,6 +111,8 @@ object SettingsStore {
             themeMode = p.getInt("theme_mode", d.themeMode),
             wallpaperColors = p.getBoolean("wallpaper_colors", d.wallpaperColors),
             remindBelongings = p.getBoolean("remind_belongings", d.remindBelongings),
+            mobility = Mobility.entries.firstOrNull { it.key == p.getString("mobility", null) } ?: d.mobility,
+            transferExtraMinutes = p.getInt("transfer_extra_min", d.transferExtraMinutes),
         )
     }
 
