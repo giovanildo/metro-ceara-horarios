@@ -16,8 +16,8 @@ Arquivos em SAIDA:
     gtfs-<tipo>.zip             o GTFS original do Metrofor (o app Android baixa daqui)
     bicicletar.json             estacoes do Bicicletar
     regras.json                 copia de app/src/main/assets/regras.json
-    noticias.json               avisos de operacao do site do Metrofor (horario
-                                especial, gratuidade, interrupcao...): titulo, data e link
+    noticias.json               ultimas noticias do site do Metrofor: titulo, data e link
+                                (o app e a versao lite mostram ate 2 dos ultimos 7 dias)
 """
 import html
 import io
@@ -138,17 +138,10 @@ def baixar_feed(source):
 
 
 NOTICIAS_URL = "https://www.ce.gov.br/metrofor/feed/"
-# So entram noticias que mudam a viagem: horario, operacao especial, gratuidade,
-# interrupcao. O resto do feed (balancos, contratacoes, campanhas) fica de fora.
-AVISO = re.compile(
-    r"hor[aá]rio|opera[çc][ãa]o|operam|funcion|gratuit|feriado|interrup|paralis|greve|"
-    r"suspens|altera[çc]|mudan[çc]a|especial|elei[çc]|enem|manuten[çc]|fechad|interdi",
-    re.IGNORECASE,
-)
 
 
 def avisos_do_metrofor():
-    """Os avisos de operacao mais recentes do feed do site (certificado incompleto: sem verificacao)."""
+    """As noticias mais recentes do feed do site (certificado incompleto: sem verificacao)."""
     ctx = ssl.create_default_context()
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
@@ -163,12 +156,11 @@ def avisos_do_metrofor():
         if not titulo or not data:
             continue
         texto = html.unescape(re.sub(r"<!\[CDATA\[|\]\]>", "", titulo.group(1))).strip()
-        if AVISO.search(texto):
-            dia = parsedate_to_datetime(data.group(1).strip()).astimezone(FORTALEZA).date().isoformat()
-            aviso = {"data": dia, "titulo": texto}
-            if link and link.group(1).strip().startswith("https://"):
-                aviso["link"] = link.group(1).strip()
-            avisos.append(aviso)
+        dia = parsedate_to_datetime(data.group(1).strip()).astimezone(FORTALEZA).date().isoformat()
+        aviso = {"data": dia, "titulo": texto}
+        if link and link.group(1).strip().startswith("https://"):
+            aviso["link"] = link.group(1).strip()
+        avisos.append(aviso)
     return avisos[:5]
 
 
