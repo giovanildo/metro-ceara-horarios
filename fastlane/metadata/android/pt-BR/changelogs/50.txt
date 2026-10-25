@@ -1,0 +1,3 @@
+• Longe da estação, o modo viagem pergunta: simular a viagem pela tabela de horários (para testar de casa) ou esperar o GPS te encontrar na linha.
+• A simulação vem marcada "Simulação" no cartão, nas notificações e na voz.
+• Corrigido: começando longe da linha, a viagem não anda mais sozinha nem avisa a chegada antes de você embarcar.
