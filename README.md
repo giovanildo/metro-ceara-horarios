@@ -188,6 +188,33 @@ desloca", que o navegador lembra. Mostra o mesmo roteiro, calculado por
 [`docs/app/roteiro.js`](docs/app/roteiro.js) com a mesma regra, e os próximos
 horários. Na lite não há modo viagem.
 
+### Widget na tela inicial
+
+Dois widgets, escolhidos na lista de widgets do celular (segurar num espaço
+vazio da tela inicial → Widgets → Metrô Ceará):
+
+- **Estação: próximos horários** (4×2): a estação, a linha e os **dois
+  próximos** horários de cada sentido, mais o aviso do dia.
+- **Estação: próximo horário** (2×2): o próximo de cada sentido, em número
+  grande.
+
+A estação é a **fixada com a estrela** ou, sem ela, **a última aberta** no app.
+Sem nenhuma das duas, o widget pede para abrir uma estação. Não usa GPS nem
+internet: os horários saem da grade já baixada e o aviso, do `regras.json`.
+Depois do último horário do dia, mostra o primeiro de amanhã ("05:47
+amanhã") ou de segunda. O aviso do dia é a notícia da operação especial, "O
+Metrofor avisou que esta linha não circula hoje." ou, num domingo sem
+operação, "Domingo: metrô e VLT normalmente não circulam." Tocar abre a tela
+da estação no app. Segue o tema do celular, claro ou escuro.
+
+O widget ([`widget/StationWidget.kt`](app/src/main/java/io/github/giova/metroceara/widget/StationWidget.kt),
+com `RemoteViews`, sem biblioteca nova) se redesenha **um minuto depois de cada
+partida mostrada**, com um alarme sem hora exata, que quase não gasta bateria e
+não exige permissão. Também se redesenha quando o app baixa a grade ou as
+regras, quando a estrela muda e quando outra estação é aberta, e de 30 em 30
+minutos, que é o mínimo do Android. A versão lite não tem widget, porque os
+navegadores não permitem.
+
 ### Modo viagem
 
 O cartão **Modo viagem** fica no topo da tela inicial: a origem é a estação em
@@ -688,6 +715,7 @@ app/src/main/assets/regras.json      regras fora do GTFS: bike, integrações, p
                                      endereços, operações especiais
 app/src/main/java/.../data/          modelos, abertura do banco, consultas, relógio
 app/src/main/java/.../ui/            telas Compose: linhas -> estações -> partidas
+app/src/main/java/.../widget/        widget da tela inicial (RemoteViews)
 ```
 
 O app não usa Room nem navigation-compose: são três telas e cinco consultas
