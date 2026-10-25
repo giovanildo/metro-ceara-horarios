@@ -15,7 +15,8 @@ Arquivos em SAIDA:
     horarios-<tipo>.json        linhas, sentidos, estacoes e viagens (versao lite)
     gtfs-<tipo>.zip             o GTFS original do Metrofor (o app Android baixa daqui)
     bicicletar.json             estacoes do Bicicletar
-    regras.json                 copia de app/src/main/assets/regras.json
+    regras.json                 app/src/main/assets/regras.json mais as datas especiais
+                                de bike tiradas das noticias (tools/datas_especiais.py)
     noticias.json               ultimas noticias do site do Metrofor: titulo, data e link
                                 (o app e a versao lite mostram ate 2 dos ultimos 7 dias)
 """
@@ -24,7 +25,6 @@ import io
 import json
 import os
 import re
-import shutil
 import ssl
 import sys
 import urllib.request
@@ -35,6 +35,7 @@ from datetime import datetime, timedelta, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import build_db as gtfs  # noqa: E402  (mesmo tratamento de nomes, cores e Bicicletar)
+import datas_especiais  # noqa: E402
 
 FORTALEZA = timezone(timedelta(hours=-3))  # sem horario de verao
 TIPOS = {5: "sabado", 6: "domingo"}  # weekday() -> tipo; o resto e dia util
@@ -164,6 +165,30 @@ def avisos_do_metrofor():
     return avisos[:5]
 
 
+def regras_com_datas_especiais(out):
+    """O regras.json do app com as datas especiais de bike das noticias do Metrofor.
+
+    As datas postas a mao em regras.json ("datas_especiais") ganham das tiradas
+    das noticias. Se o site falhar, ficam as datas da publicacao anterior.
+    """
+    with open(gtfs.RULES, encoding="utf-8") as fh:
+        regras = json.load(fh)
+    manuais = regras.get("datas_especiais", {})
+    try:
+        automaticas = datas_especiais.buscar()
+        print(f"datas especiais de bike nas noticias: {', '.join(automaticas) or 'nenhuma'}")
+    except Exception as e:  # noqa: BLE001
+        print(f"datas especiais: {e}; mantidas as da publicacao anterior")
+        try:
+            with open(os.path.join(out, "regras.json"), encoding="utf-8") as fh:
+                anteriores = json.load(fh).get("datas_especiais", {})
+            automaticas = {d: r for d, r in anteriores.items() if not d.startswith("_") and "_fonte" in r}
+        except (OSError, ValueError):
+            automaticas = {}
+    regras["datas_especiais"] = {**automaticas, **manuais}
+    return regras
+
+
 def escrever(path, data):
     tmp = path + ".tmp"
     with open(tmp, "w", encoding="utf-8") as fh:
@@ -215,7 +240,7 @@ def main():
             for n, nome, bairro, vagas, lat, lon in bikes
         ])
 
-    shutil.copyfile(gtfs.RULES, os.path.join(out, "regras.json"))
+    escrever(os.path.join(out, "regras.json"), regras_com_datas_especiais(out))
     # Os avisos sao um extra: se o site falhar, fica o arquivo anterior e os
     # horarios seguem normalmente.
     try:

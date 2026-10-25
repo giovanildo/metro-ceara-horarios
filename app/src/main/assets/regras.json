@@ -29,6 +29,10 @@
     }
   },
 
+  "datas_especiais": {
+    "_sobre": "Regra de bike de um dia especial (feriado, ENEM, eleição), no lugar da do dia da semana. O espelho acrescenta sozinho as que acha nas notícias do Metrofor (tools/datas_especiais.py); as escritas aqui ganham. Formato: \"AAAA-MM-DD\": {\"linhas\": [...] (vazio = todas as que aceitam bike), \"bike\": [[\"09:00\", \"15:00\"]] (vazio = sem bike no dia)}."
+  },
+
   "pico": {
     "_sobre": "Faixas em que o metrô costuma ir cheio. O modo viagem só oferece ir sentado pelo terminal quando a partida cai numa delas. [\"06:00\", \"08:00\"] = das 6h às 8h (a partida das 8h já fica de fora).",
     "_fonte": "Relatório de Demanda do Metrofor, 3º trimestre de 2025, p. 19: as viagens das 6h às 8h e das 16h às 19h concentram cerca de 45% da demanda; o pico é das 17h às 18h.",
