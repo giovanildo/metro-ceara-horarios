@@ -1,0 +1,2 @@
+• Bike no VLT de Sobral: o app mostra os horários de embarque com bicicleta.
+• Feriados e dias especiais: o aviso de bike segue a regra anunciada pelo Metrofor para o dia.
