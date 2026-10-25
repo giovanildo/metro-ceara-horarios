@@ -7,10 +7,12 @@ name: Dados da versão web
 
 on:
   schedule:
-    # Quatro vezes por dia (horário de Fortaleza: 04:30, 10:00, 15:00 e 20:00):
-    # se o site do Metrofor falhar de manhã, ou a grade mudar durante o dia, o
-    # espelho se corrige na rodada seguinte. O GitHub pode atrasar até ~1 h.
-    - cron: "30 7 * * *"
+    # Quatro vezes por dia (horário de Fortaleza: 01:00, 10:00, 15:00 e 20:00).
+    # A primeira é de madrugada porque o GitHub atrasa os agendamentos em até
+    # ~5 h (a das 04:30 rodava lá pelas 9h), e o Metrofor já publica a grade do
+    # dia logo depois da meia-noite (em 25/10, a da eleição, às 00:33). As
+    # outras corrigem falhas do site ou mudanças durante o dia.
+    - cron: "0 4 * * *"
     - cron: "0 13 * * *"
     - cron: "0 18 * * *"
     - cron: "0 23 * * *"
