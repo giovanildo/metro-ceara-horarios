@@ -39,7 +39,19 @@
   "pico": {
     "_sobre": "Faixas em que o metrô costuma ir cheio. O modo viagem só oferece ir sentado pelo terminal quando a partida cai numa delas. [\"06:00\", \"08:00\"] = das 6h às 8h (a partida das 8h já fica de fora).",
     "_fonte": "Relatório de Demanda do Metrofor, 3º trimestre de 2025, p. 19: as viagens das 6h às 8h e das 16h às 19h concentram cerca de 45% da demanda; o pico é das 17h às 18h.",
-    "faixas": [["06:00", "08:00"], ["16:00", "19:00"]]
+    "faixas": [["06:00", "08:00"], ["16:00", "19:00"]],
+    "_sobre_integracao": "Estação cheia demora mais: no roteiro com integração, a troca de linha que cai numa faixa de pico ganha integracao_min a mais, e a que cai no pico máximo, integracao_maximo_min.",
+    "integracao_min": 1,
+    "maximo": [["17:00", "18:00"]],
+    "integracao_maximo_min": 2
+  },
+
+  "deslocamento": {
+    "_sobre": "Quantas vezes o tempo a pé de cada integração (caminhada_min) a pessoa leva, conforme o que ela escolhe em Configurações > Como você se desloca. O app arredonda para cima.",
+    "andando": 1,
+    "sem_pressa": 1.5,
+    "bicicleta": 1.5,
+    "cadeira_de_rodas": 2
   },
 
   "integracoes": [
