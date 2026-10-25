@@ -17,7 +17,7 @@ Arquivos em SAIDA:
     bicicletar.json             estacoes do Bicicletar
     regras.json                 copia de app/src/main/assets/regras.json
     noticias.json               avisos de operacao do site do Metrofor (horario
-                                especial, gratuidade, interrupcao...), so titulo e data
+                                especial, gratuidade, interrupcao...): titulo, data e link
 """
 import html
 import io
@@ -159,12 +159,16 @@ def avisos_do_metrofor():
     for item in re.findall(r"<item>(.*?)</item>", xml, re.S):
         titulo = re.search(r"<title>(.*?)</title>", item, re.S)
         data = re.search(r"<pubDate>(.*?)</pubDate>", item, re.S)
+        link = re.search(r"<link>(.*?)</link>", item, re.S)
         if not titulo or not data:
             continue
         texto = html.unescape(re.sub(r"<!\[CDATA\[|\]\]>", "", titulo.group(1))).strip()
         if AVISO.search(texto):
             dia = parsedate_to_datetime(data.group(1).strip()).astimezone(FORTALEZA).date().isoformat()
-            avisos.append({"data": dia, "titulo": texto})
+            aviso = {"data": dia, "titulo": texto}
+            if link and link.group(1).strip().startswith("https://"):
+                aviso["link"] = link.group(1).strip()
+            avisos.append(aviso)
     return avisos[:5]
 
 
