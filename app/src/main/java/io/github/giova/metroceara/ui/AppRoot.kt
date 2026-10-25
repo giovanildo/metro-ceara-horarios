@@ -406,6 +406,16 @@ fun AppRoot() {
         if (seated == null) confirmAndLaunch(direct) else tripChoice = direct to seated
     }
 
+    // A estação mais perto fica guardada para o widget (quando não há estação
+    // fixada nem aberta); grava e redesenha só quando ela muda.
+    val nearbyStation = (homeState as? HomeStation.Nearby)?.station
+    LaunchedEffect(nearbyStation?.stopId, nearbyStation?.routeId) {
+        nearbyStation?.let {
+            pinned.setLastNearby(it.stopId, it.routeId)
+            StationWidget.update(context)
+        }
+    }
+
     // Outras linhas a até 3 km (cada uma ganha cartão próprio na tela inicial).
     val otherLines = (homeState as? HomeStation.Nearby)?.others.orEmpty()
 

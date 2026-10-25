@@ -43,7 +43,21 @@ class PinnedStation(context: Context) {
         putString(KEY_LAST_ROUTE, routeId)
     }
 
+    /** A estação mais perto da pessoa na última vez que o app achou a localização. */
+    fun lastNearby(): Pair<String, String>? {
+        val stopId = prefs.getString(KEY_NEAR_STOP, null) ?: return null
+        val routeId = prefs.getString(KEY_NEAR_ROUTE, null) ?: return null
+        return stopId to routeId
+    }
+
+    fun setLastNearby(stopId: String, routeId: String) = prefs.edit {
+        putString(KEY_NEAR_STOP, stopId)
+        putString(KEY_NEAR_ROUTE, routeId)
+    }
+
     private companion object {
+        const val KEY_NEAR_STOP = "near_stop_id"
+        const val KEY_NEAR_ROUTE = "near_route_id"
         const val KEY_STOP = "pinned_stop_id"
         const val KEY_ROUTE = "pinned_route_id"
         const val KEY_LAST_STOP = "last_stop_id"

@@ -36,7 +36,7 @@
     <string name="widget_small_label">Estação: próximo horário</string>
     <string name="widget_wide_desc">Os dois próximos horários de cada sentido da sua estação, e o aviso do dia.</string>
     <string name="widget_small_desc">O próximo horário de cada sentido da sua estação.</string>
-    <string name="widget_no_station">Abra uma estação no app (ou fixe a sua com a estrela) para ver os horários aqui.</string>
+    <string name="widget_no_station">Abra o app com a localização ligada, ou fixe a sua estação com a estrela, para ver os horários aqui.</string>
     <string name="widget_tomorrow">amanhã</string>
     <string name="widget_monday">segunda</string>
     <string name="widget_no_more">sem mais hoje</string>

@@ -39,7 +39,8 @@ open class StationWidgetProvider : AppWidgetProvider() {
 }
 
 /**
- * O widget da estação: a fixada com a estrela ou, sem ela, a última aberta.
+ * O widget da estação: a fixada com a estrela; sem ela, a última aberta; sem
+ * nenhuma, a mais perto da pessoa na última vez que o app achou a localização.
  * Os horários saem da grade já baixada (sem internet nem GPS). Ele se
  * atualiza logo depois de cada partida mostrada (um alarme sem hora exata,
  * que quase não gasta bateria), quando o app baixa a grade ou as regras, e
@@ -83,7 +84,7 @@ object StationWidget {
 
     private fun load(context: Context): Content? {
         val pinned = PinnedStation(context)
-        val (stopId, routeId) = pinned.get() ?: pinned.lastOpened() ?: return null
+        val (stopId, routeId) = pinned.get() ?: pinned.lastOpened() ?: pinned.lastNearby() ?: return null
         // Os bancos ficam abertos: MetroforDatabase reaproveita a mesma conexão
         // que o app usa (fechar aqui derrubava o app aberto).
         val repo = ScheduleRepository(context)

@@ -198,8 +198,10 @@ vazio da tela inicial → Widgets → Metrô Ceará):
 - **Estação: próximo horário** (2×2): o próximo de cada sentido, em número
   grande.
 
-A estação é a **fixada com a estrela** ou, sem ela, **a última aberta** no app.
-Sem nenhuma das duas, o widget pede para abrir uma estação. Não usa GPS nem
+A estação é a **fixada com a estrela**; sem ela, **a última aberta** no app;
+sem nenhuma, **a mais perto de você** na última vez que o app achou a
+localização (a do topo da tela inicial). Sem nenhuma das três, o widget pede
+para abrir o app com a localização ligada ou fixar a estação. Não usa GPS nem
 internet: os horários saem da grade já baixada e o aviso, do `regras.json`.
 Depois do último horário do dia, mostra o primeiro de amanhã ("05:47
 amanhã") ou de segunda. O aviso do dia é a notícia da operação especial, "O
