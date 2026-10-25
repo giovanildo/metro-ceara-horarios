@@ -187,7 +187,10 @@ class ScheduleRepository(context: Context) {
         arrayOf(routeId, directionId.toString()),
     ).map { it.getString(0) }.firstOrNull() == stopId
 
-    /** Todas as combinações estação/linha, para a busca da mais próxima. */
+    /**
+     * Todas as combinações estação/linha, para a busca da mais próxima. A posição
+     * vem do GTFS, a não ser que regras.json a corrija (Sobral e a Escola do Cariri).
+     */
     fun stations(): List<Station> = db.rawQuery(
         """
         SELECT s.stop_id, s.name, s.lat, s.lon, r.route_id, r.name, r.color
@@ -199,11 +202,12 @@ class ScheduleRepository(context: Context) {
         """.trimIndent(),
         null,
     ).map {
+        val fix = Regras.current.station(it.getString(0), it.getString(1))
         Station(
             stopId = it.getString(0),
             stopName = it.getString(1),
-            lat = it.getDouble(2),
-            lon = it.getDouble(3),
+            lat = fix?.lat ?: it.getDouble(2),
+            lon = fix?.lon ?: it.getDouble(3),
             routeId = it.getString(4),
             routeName = it.getString(5),
             routeColor = it.getString(6),

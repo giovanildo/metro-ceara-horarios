@@ -2,11 +2,15 @@ package io.github.giova.metroceara.data
 
 import android.content.Context
 import java.io.File
+import java.text.Normalizer
 import org.json.JSONArray
 import org.json.JSONObject
 
 /** A regra de bike de um dia especial: as linhas (vazio = todas com bike) e as janelas (vazio = sem bike). */
 data class BikeSpecialDay(val lines: Set<String>, val windows: List<BikeWindow>)
+
+/** Endereço de uma estação e, se o GTFS a põe no lugar errado, a posição certa. */
+data class StationInfo(val name: String, val address: String, val lat: Double?, val lon: Double?)
 
 /** Uma integração entre duas estações, com a passagem em cada sentido. */
 data class IntegracaoRegra(
@@ -33,9 +37,22 @@ class Regras(
     val peak: List<IntRange> = emptyList(),
     /** Regra de bike de dias especiais ("AAAA-MM-DD"), no lugar da do dia da semana. */
     val bikeSpecialDays: Map<String, BikeSpecialDay> = emptyMap(),
+    /** Por stop_id do GTFS. */
+    val stations: Map<String, StationInfo> = emptyMap(),
+    /** Passagem por linha (nome em minúsculas), já no texto mostrado. */
+    val fares: Map<String, String> = emptyMap(),
 ) {
     /** A partida cai num horário de pico (metrô costuma ir cheio)? */
     fun isPeak(minutes: Int): Boolean = peak.any { minutes in it }
+
+    /**
+     * Endereço e posição da estação [stopId]. O nome tem de bater: se o Metrofor
+     * renumerar as estações, a informação fica de fora em vez de ir para a estação errada.
+     */
+    fun station(stopId: String, name: String): StationInfo? =
+        stations[stopId]?.takeIf { plain(it.name) == plain(name) }
+
+    fun fare(routeName: String): String? = fares[routeName.trim().lowercase()]
 
     companion object {
         /** Sem arquivo (ou com erro nele), o app segue sem avisos de bike e de passagem. */
@@ -110,10 +127,30 @@ class Regras(
                     )
                 }
             }.orEmpty()
+            val stations = root.optJSONObject("estacoes")?.let { o ->
+                o.keys().asSequence().filterNot { it.startsWith("_") }.associateWith { id ->
+                    val s = o.getJSONObject(id)
+                    val position = s.optJSONArray("posicao")
+                    StationInfo(
+                        name = s.getString("nome"),
+                        address = s.getString("endereco"),
+                        lat = position?.getDouble(0),
+                        lon = position?.getDouble(1),
+                    )
+                }
+            }.orEmpty()
+            val fares = root.optJSONObject("passagem")?.let { o ->
+                o.keys().asSequence().filterNot { it.startsWith("_") }.associate { it.trim().lowercase() to o.getString(it) }
+            }.orEmpty()
             return Regras(
                 byName(bike.getJSONObject("linhas")), byName(bike.getJSONObject("estacoes")), integracoes, peak, specialDays,
+                stations, fares,
             )
         }
+
+        /** "Alto da Brasília" e "Alto Da Brasilia" viram o mesmo texto. */
+        private fun plain(text: String): String =
+            Normalizer.normalize(text, Normalizer.Form.NFD).replace(Regex("[^A-Za-z0-9]"), "").lowercase()
 
         /** "HH:MM" em minutos desde a meia-noite. */
         private fun clock(text: String): Int = text.split(":").let { (h, m) -> h.toInt() * 60 + m.toInt() }

@@ -26,6 +26,9 @@
     <string name="home_try_again">Tentar de novo</string>
     <string name="home_no_departures">sem partidas hoje</string>
     <string name="home_unpublished">horários não publicados</string>
+    <string name="station_fare">Passagem: %1$s</string>
+    <string name="route_not_running_today">não opera hoje</string>
+    <string name="line_not_running_today">Esta linha não opera hoje.</string>
     <string name="direction_unpublished">O Metrofor não publicou os horários deste sentido hoje.</string>
     <string name="notice_source">Metrofor:</string>
     <string name="notice_source_day">Metrofor, %1$s:</string>
@@ -100,7 +103,7 @@
     <string name="about_version">Versão %1$s</string>
     <string name="about_unofficial">Este app NÃO é oficial e não tem ligação com o Metrofor nem com o Governo do Ceará. Os horários são os publicados pelo Metrofor e podem não refletir atrasos ou mudanças de última hora. Em caso de dúvida, confira os canais oficiais.</string>
     <string name="about_sources_title">De onde vêm os dados</string>
-    <string name="about_sources">• Horários e estações: GTFS público do Metrofor (info.metrofor.ce.gov.br), atualizado várias vezes por dia.\n• Estações do Bicicletar: dados abertos da Prefeitura de Fortaleza (AMC).\n• Regras de bicicleta no metrô e VLT: regulamento "Bike é bem-vinda no metrô" do Metrofor.</string>
+    <string name="about_sources">• Horários e estações: GTFS público do Metrofor (info.metrofor.ce.gov.br), atualizado várias vezes por dia.\n• Endereços e passagens: páginas das linhas no site do Metrofor. Posição de algumas estações de Sobral e do Cariri, que o GTFS põe no lugar errado: © colaboradores do OpenStreetMap.\n• Estações do Bicicletar: dados abertos da Prefeitura de Fortaleza (AMC).\n• Regras de bicicleta no metrô e VLT: regulamento "Bike é bem-vinda no metrô" do Metrofor.</string>
     <string name="about_license_title">Licença</string>
     <string name="about_license">Software livre, sob a GNU GPL versão 3. O código-fonte está no GitHub.</string>
     <string name="about_source_code">Ver o código-fonte</string>

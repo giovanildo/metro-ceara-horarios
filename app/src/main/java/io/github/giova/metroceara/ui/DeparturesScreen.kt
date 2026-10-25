@@ -49,6 +49,7 @@ import io.github.giova.metroceara.data.BikeBoarding
 import io.github.giova.metroceara.data.bikeBoarding
 import io.github.giova.metroceara.data.nowDayOfWeek
 import io.github.giova.metroceara.data.DayEnd
+import io.github.giova.metroceara.data.Regras
 import io.github.giova.metroceara.data.Departure
 import io.github.giova.metroceara.data.Direction
 import io.github.giova.metroceara.data.Route
@@ -202,6 +203,22 @@ fun DeparturesScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+                val address = Regras.current.station(stop.id, stop.name)?.address
+                val fare = Regras.current.fare(route.name)
+                if (address != null || fare != null) {
+                    item {
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            listOfNotNull(address, fare?.let { stringResource(R.string.station_fare, it) }).forEach {
+                                Text(
+                                    text = it,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                }
+
                 // Com a grade de hoje baixada, ela já diz se há operação especial.
                 if (sunday && schedule.kind != ScheduleSource.Kind.TODAY) {
                     item { SundayNotice() }
