@@ -191,22 +191,17 @@ class TripService : Service() {
         return START_NOT_STICKY
     }
 
-    /** "Parangaba. Faltam 5 estações para Benfica." — ou a chegada. */
+    /** "Padre Cícero." — e "Faltam 3 estações para Parangaba." só quando faltam 3; ou a chegada. */
     private fun spokenStation(trip: ActiveTrip): String {
         val plan = trip.plan
         val index = trip.progress.index.coerceIn(0, plan.stops.lastIndex)
         if (index == plan.stops.lastIndex) return getString(R.string.trip_arrived, plan.destination.name)
-        val left = trip.progress.stationsLeft(plan)
         val name = if (trip.progress.presumed) {
             getString(R.string.trip_station_presumed, plan.stops[index].name)
         } else {
             plan.stops[index].name
         }
-        return name + ". " + getString(
-            R.string.trip_station_text,
-            resources.getQuantityString(R.plurals.trip_stations_left, left, left),
-            plan.destination.name,
-        )
+        return name + "." + (TripNotifications.stationDetail(this, trip)?.let { " $it" } ?: "")
     }
 
     /** "Prepare-se para descer. Faltam 2 estações para Benfica." */

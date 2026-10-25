@@ -225,8 +225,10 @@ o Android só usa a forma, e o ícone do app, de fundo cheio, virava um quadrado
   o aviso usa o áudio de alarme, que toca mesmo com o celular no vibrar.
 - **Avisar cada estação (voz)**, opcional e desligado por padrão: a cada
   estação alcançada, uma notificação curta e a voz do sistema (o "Conversão de
-  texto em voz" do Android, em pt-BR) dizem, por exemplo, "Parangaba. Faltam 5
-  estações para Benfica." Com o som ligado, o aviso de duas estações antes
+  texto em voz" do Android, em pt-BR) dizem o nome da estação ("Padre
+  Cícero."). Quantas faltam só entra quando faltam 3 ("Porangabussu. Faltam 3
+  estações para Parangaba."): em toda estação ficava repetitivo, e com 2 já vem
+  o aviso de descida. Com o som ligado, o aviso de duas estações antes
   também é falado. A voz sai pelo canal de navegação: toca no fone e abaixa a
   música. Sem voz pt-BR instalada no aparelho, fica só a notificação.
 - **Distância até a partida.** Se a pessoa está a mais de **1 km** da estação de

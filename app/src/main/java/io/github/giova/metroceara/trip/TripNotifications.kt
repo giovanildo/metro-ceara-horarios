@@ -28,6 +28,8 @@ import kotlin.math.roundToInt
  */
 internal object TripNotifications {
 
+    /** O aviso de cada estação diz quantas faltam só nesta (veja [stationDetail]). */
+    private const val COUNT_AT_STATIONS_LEFT = 3
     const val ONGOING_ID = 1001
     private const val ALERT_ID = 1002
     private const val STATION_ID = 1003
@@ -88,20 +90,31 @@ internal object TripNotifications {
         )
     }
 
-    /** Aviso curto ao alcançar cada estação, quando a pessoa ligou essa opção. */
-    fun station(context: Context, trip: ActiveTrip) {
+    /**
+     * O que vem depois do nome da estação no aviso de cada estação: a chegada, ou
+     * "Faltam 3 estações para X." só quando faltam [COUNT_AT_STATIONS_LEFT] — em
+     * toda estação ficava repetitivo, e com 2 já vem o aviso de descida.
+     */
+    fun stationDetail(context: Context, trip: ActiveTrip): String? {
         val plan = trip.plan
         val index = trip.progress.index.coerceIn(0, plan.stops.lastIndex)
         val left = trip.progress.stationsLeft(plan)
-        val text = if (index == plan.stops.lastIndex) {
-            context.getString(R.string.trip_arrived, plan.destination.name)
-        } else {
-            context.getString(
+        return when {
+            index == plan.stops.lastIndex -> context.getString(R.string.trip_arrived, plan.destination.name)
+            left == COUNT_AT_STATIONS_LEFT -> context.getString(
                 R.string.trip_station_text,
                 context.resources.getQuantityString(R.plurals.trip_stations_left, left, left),
                 plan.destination.name,
             )
+            else -> null
         }
+    }
+
+    /** Aviso curto ao alcançar cada estação, quando a pessoa ligou essa opção. */
+    fun station(context: Context, trip: ActiveTrip) {
+        val plan = trip.plan
+        val index = trip.progress.index.coerceIn(0, plan.stops.lastIndex)
+        val text = stationDetail(context, trip)
         val notification = NotificationCompat.Builder(context, CHANNEL_STATION)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(
@@ -111,7 +124,7 @@ internal object TripNotifications {
                     plan.stops[index].name
                 },
             )
-            .setContentText(text)
+            .apply { if (text != null) setContentText(text) }
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setDefaults(NotificationCompat.DEFAULT_SOUND)
             .setTimeoutAfter(STATION_TIMEOUT_MILLIS)
