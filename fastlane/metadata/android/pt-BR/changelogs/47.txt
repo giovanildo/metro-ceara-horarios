@@ -1,0 +1,3 @@
+• Feriado, domingo de ENEM ou eleição: o app mostra a notícia do Metrofor que explica o horário diferente do dia (e a de amanhã, na véspera). Notícias sem relação com o horário não aparecem mais.
+• Linha que o Metrofor avisou que não circula no dia aparece com aviso.
+• Domingo comum: o aviso de que metrô e VLT normalmente não circulam volta a aparecer sempre.
