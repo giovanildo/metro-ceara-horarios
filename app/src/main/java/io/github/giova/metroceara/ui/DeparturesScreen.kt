@@ -55,6 +55,7 @@ import io.github.giova.metroceara.data.Direction
 import io.github.giova.metroceara.data.Route
 import io.github.giova.metroceara.data.TransferTarget
 import io.github.giova.metroceara.data.ScheduleSource
+import io.github.giova.metroceara.data.ScheduleStore
 import io.github.giova.metroceara.data.Stop
 import io.github.giova.metroceara.data.formatTime
 import io.github.giova.metroceara.data.vehicleName
@@ -219,9 +220,17 @@ fun DeparturesScreen(
                     }
                 }
 
-                // Com a grade de hoje baixada, ela já diz se há operação especial.
-                if (sunday && schedule.kind != ScheduleSource.Kind.TODAY) {
+                // Dia de operação anunciada pelo Metrofor: a notícia dela explica o horário
+                // diferente; num domingo sem ela, o aviso de que normalmente não há metrô.
+                val day = ScheduleStore.today()
+                val operation = Regras.current.operations[day]
+                if (operation != null) {
+                    item { MetroforNotices(listOf(ScheduleStore.Notice(operation.title, operation.link, tomorrow = false))) }
+                } else if (sunday) {
                     item { SundayNotice() }
+                }
+                if (Regras.current.stopped(day, route.name)) {
+                    item { SundayNotice(text = stringResource(R.string.line_stopped_today)) }
                 }
 
                 item {

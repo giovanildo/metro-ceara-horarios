@@ -77,9 +77,9 @@ private fun formatClock(millis: Long): String =
         .format(Date(millis))
 
 /**
- * Os avisos de operação do site do Metrofor (horário especial, gratuidade,
- * interrupção): a manchete, com a fonte na frente. Tocar abre a notícia no
- * navegador, no site do Metrofor.
+ * A notícia do Metrofor que explica por que hoje (ou amanhã) o horário é outro
+ * (feriado, ENEM, eleição): a manchete, com a fonte e o dia na frente. Tocar
+ * abre a notícia no navegador, no site do Metrofor.
  */
 @Composable
 fun MetroforNotices(notices: List<ScheduleStore.Notice>, modifier: Modifier = Modifier) {
@@ -88,10 +88,7 @@ fun MetroforNotices(notices: List<ScheduleStore.Notice>, modifier: Modifier = Mo
         Text(
             text = buildAnnotatedString {
                 withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                    append(
-                        if (notice.day.isEmpty()) stringResource(R.string.notice_source)
-                        else stringResource(R.string.notice_source_day, notice.day),
-                    )
+                    append(stringResource(if (notice.tomorrow) R.string.notice_tomorrow else R.string.notice_today))
                 }
                 append(" ")
                 append(notice.title)

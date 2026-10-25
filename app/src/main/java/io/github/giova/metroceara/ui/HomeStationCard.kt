@@ -35,6 +35,8 @@ import io.github.giova.metroceara.data.bikeRuleFor
 import io.github.giova.metroceara.data.BikeBoarding
 import io.github.giova.metroceara.data.bikeBoarding
 import io.github.giova.metroceara.data.nowDayOfWeek
+import io.github.giova.metroceara.data.Regras
+import io.github.giova.metroceara.data.ScheduleStore
 import io.github.giova.metroceara.data.Station
 import io.github.giova.metroceara.data.formatTime
 import io.github.giova.metroceara.data.vehicleName
@@ -183,9 +185,14 @@ private fun StationSummary(
             modifier = Modifier.padding(top = 12.dp),
         ) {
             val sunday = remember(now) { isSundayToday() }
-            // Com a grade de hoje baixada, ela já diz se há operação especial.
-            if (sunday && !scheduleIsToday) {
+            val day = remember(now) { ScheduleStore.today() }
+            // Domingo com operação anunciada pelo Metrofor: a notícia dela, no topo, já explica.
+            if (sunday && Regras.current.operations[day] == null) {
                 SundayNotice(modifier = Modifier.padding(bottom = 6.dp))
+            }
+            val stopped = Regras.current.stopped(day, station.routeName)
+            if (stopped) {
+                SundayNotice(modifier = Modifier.padding(bottom = 6.dp), text = stringResource(R.string.line_stopped_today))
             }
             departures.forEach { item ->
                 Row(
@@ -221,7 +228,7 @@ private fun StationSummary(
             val runningToday = departures.any { it.departure?.tomorrow == false }
             val bikeRule = bikeRuleFor(station.stopName, station.routeName)
             val known = !sunday || bikeRule?.special == true
-            if (runningToday && bikeRule != null && (known || scheduleIsToday)) {
+            if (runningToday && !stopped && bikeRule != null && (known || scheduleIsToday)) {
                 BikeBoardingNotice(
                     rule = remember(now, bikeRule, known) {
                         if (known) bikeBoarding(bikeRule, nowDayOfWeek(), now) else BikeBoarding.UNKNOWN

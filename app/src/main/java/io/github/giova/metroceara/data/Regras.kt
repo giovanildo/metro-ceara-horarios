@@ -12,6 +12,13 @@ data class BikeSpecialDay(val lines: Set<String>, val windows: List<BikeWindow>)
 /** Endereço de uma estação e, se o GTFS a põe no lugar errado, a posição certa. */
 data class StationInfo(val name: String, val address: String, val lat: Double?, val lon: Double?)
 
+/**
+ * Um dia de operação especial anunciado numa notícia do Metrofor (feriado, ENEM,
+ * eleição): a manchete, o link, se a notícia diz que o horário não muda, e as
+ * linhas que não circulam (nomes em minúsculas).
+ */
+data class SpecialOperation(val title: String, val link: String?, val normal: Boolean, val stopped: Set<String>)
+
 /** Uma integração entre duas estações, com a passagem em cada sentido. */
 data class IntegracaoRegra(
     val a: String,
@@ -41,6 +48,8 @@ class Regras(
     val stations: Map<String, StationInfo> = emptyMap(),
     /** Passagem por linha (nome em minúsculas), já no texto mostrado. */
     val fares: Map<String, String> = emptyMap(),
+    /** Dias de operação especial ("AAAA-MM-DD"), das notícias do Metrofor. */
+    val operations: Map<String, SpecialOperation> = emptyMap(),
 ) {
     /** A partida cai num horário de pico (metrô costuma ir cheio)? */
     fun isPeak(minutes: Int): Boolean = peak.any { minutes in it }
@@ -53,6 +62,10 @@ class Regras(
         stations[stopId]?.takeIf { plain(it.name) == plain(name) }
 
     fun fare(routeName: String): String? = fares[routeName.trim().lowercase()]
+
+    /** O Metrofor avisou que [routeName] não circula em [day]? */
+    fun stopped(day: String, routeName: String): Boolean =
+        operations[day]?.stopped?.contains(routeName.trim().lowercase()) == true
 
     companion object {
         /** Sem arquivo (ou com erro nele), o app segue sem avisos de bike e de passagem. */
@@ -142,9 +155,21 @@ class Regras(
             val fares = root.optJSONObject("passagem")?.let { o ->
                 o.keys().asSequence().filterNot { it.startsWith("_") }.associate { it.trim().lowercase() to o.getString(it) }
             }.orEmpty()
+            val operations = root.optJSONObject("operacoes")?.let { o ->
+                o.keys().asSequence().filterNot { it.startsWith("_") }.associateWith { day ->
+                    val op = o.getJSONObject(day)
+                    val stopped = op.optJSONArray("paradas") ?: JSONArray()
+                    SpecialOperation(
+                        title = op.getString("titulo"),
+                        link = op.optString("link").takeIf { it.startsWith("https://") },
+                        normal = op.optBoolean("normal"),
+                        stopped = (0 until stopped.length()).map { stopped.getString(it).trim().lowercase() }.toSet(),
+                    )
+                }
+            }.orEmpty()
             return Regras(
                 byName(bike.getJSONObject("linhas")), byName(bike.getJSONObject("estacoes")), integracoes, peak, specialDays,
-                stations, fares,
+                stations, fares, operations,
             )
         }
 

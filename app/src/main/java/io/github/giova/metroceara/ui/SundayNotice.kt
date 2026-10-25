@@ -19,11 +19,11 @@ import androidx.compose.ui.unit.dp
 import io.github.giova.metroceara.R
 
 /**
- * Aviso de domingo. As partidas continuam visíveis porque, em dia de operação
- * especial, ainda servem de referência aproximada.
+ * Aviso de domingo (ou de linha parada, com outro [text]). As partidas continuam
+ * visíveis porque, se o aviso estiver errado, ainda servem de referência.
  */
 @Composable
-fun SundayNotice(modifier: Modifier = Modifier) {
+fun SundayNotice(modifier: Modifier = Modifier, text: String = stringResource(R.string.sunday_warning)) {
     Card(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.errorContainer,
@@ -37,7 +37,7 @@ fun SundayNotice(modifier: Modifier = Modifier) {
         ) {
             Icon(Icons.Filled.Warning, contentDescription = null, modifier = Modifier.size(20.dp))
             Text(
-                text = stringResource(R.string.sunday_warning),
+                text = text,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(start = 10.dp),
             )

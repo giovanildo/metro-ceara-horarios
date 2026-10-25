@@ -84,7 +84,7 @@ fun AppRoot() {
     // Cada vez que o app abre ou volta para a frente, baixa a grade do dia do
     // espelho (é pequena). Um download cortado ao fechar o app é refeito aqui.
     var opened by remember { mutableIntStateOf(0) }
-    var notices by remember { mutableStateOf(ScheduleStore.notices(context)) }
+    var notices by remember { mutableStateOf(ScheduleStore.notices()) }
     LaunchedEffect(today, opened) {
         scheduleSyncing = true
         DevLog.log("sync_start")
@@ -100,9 +100,8 @@ fun AppRoot() {
         scheduleSyncFailed = result.isFailure
         scheduleSyncing = false
         if (result.isSuccess) scheduleVersion++
-        // Os avisos são um extra: falhando, ficam os últimos guardados.
-        withContext(Dispatchers.IO) { runCatching { ScheduleStore.syncNotices(context) } }
-        notices = ScheduleStore.notices(context)
+        // As notícias de operação especial vêm no regras.json, já baixado acima.
+        notices = ScheduleStore.notices()
     }
 
     // A primeira abertura copia o banco de assets; isso sai da thread principal.

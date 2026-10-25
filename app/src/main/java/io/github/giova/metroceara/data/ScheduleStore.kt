@@ -59,6 +59,10 @@ object ScheduleStore {
 
     fun todayType(): DayType = typeOf(Calendar.getInstance(zone))
 
+    fun tomorrow(): String = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        .apply { timeZone = zone }
+        .format(Calendar.getInstance(zone).apply { add(Calendar.DAY_OF_MONTH, 1) }.time)
+
     fun tomorrowType(): DayType = typeOf(Calendar.getInstance(zone).apply { add(Calendar.DAY_OF_MONTH, 1) })
 
     private fun typeOf(calendar: Calendar): DayType = when (calendar.get(Calendar.DAY_OF_WEEK)) {
@@ -193,44 +197,17 @@ object ScheduleStore {
         Regras.update(context, String(fetch(MIRROR + "regras.json")))
     }
 
-    /** Um aviso do site do Metrofor: a manchete, o dia ("DD/MM") e o link da notícia, se houver. */
-    data class Notice(val title: String, val link: String?, val day: String = "")
-
-    /** Avisos com mais de [NOTICE_DAYS] dias não aparecem: o feed passa meses sem novidade. */
-    private const val NOTICE_DAYS = 7
-    private const val MAX_NOTICES = 2
-    private const val KEY_NOTICES = "notices"
+    /** A notícia do Metrofor que explica a operação especial de hoje ou de amanhã. */
+    data class Notice(val title: String, val link: String?, val tomorrow: Boolean)
 
     /**
-     * Baixa do espelho os avisos de operação do site do Metrofor (só título e
-     * data; o espelho já filtrou o que muda a viagem). Bloqueia; falha lança.
+     * As notícias de operação especial (feriado, ENEM, eleição) de hoje e de amanhã,
+     * do regras.json baixado. Sem operação anunciada, nada: notícia sem critério não entra.
      */
-    fun syncNotices(context: Context) {
-        val json = String(fetch(MIRROR + "noticias.json"))
-        JSONArray(json) // só guarda se for uma lista válida
-        prefs(context).edit { putString(KEY_NOTICES, json) }
-    }
-
-    /** Os avisos recentes (até [MAX_NOTICES]), o mais novo primeiro. */
-    fun notices(context: Context): List<Notice> {
-        val json = prefs(context).getString(KEY_NOTICES, null) ?: return emptyList()
-        val since = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = zone }
-            .format(Calendar.getInstance(zone).apply { add(Calendar.DAY_OF_MONTH, -NOTICE_DAYS) }.time)
-        return runCatching {
-            val list = JSONArray(json)
-            (0 until list.length()).map { list.getJSONObject(it) }
-                .filter { it.optString("data") >= since }
-                .map {
-                    val date = it.optString("data") // AAAA-MM-DD
-                    Notice(
-                        it.getString("titulo"),
-                        it.optString("link").takeIf { l -> l.startsWith("https://") },
-                        if (date.length == 10) "${date.substring(8)}/${date.substring(5, 7)}" else "",
-                    )
-                }
-                .take(MAX_NOTICES)
-        }.getOrDefault(emptyList())
-    }
+    fun notices(): List<Notice> =
+        listOf(today() to false, tomorrow() to true)
+            .mapNotNull { (day, tomorrow) -> Regras.current.operations[day]?.let { Notice(it.title, it.link, tomorrow) } }
+            .distinctBy { it.title }
 
     private fun prefs(context: Context) =
         context.applicationContext.getSharedPreferences("metrofor_schedules", Context.MODE_PRIVATE)
