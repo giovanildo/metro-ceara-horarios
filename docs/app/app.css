@@ -135,3 +135,14 @@ select, input[type=number] {
 .convite .acoes { display: flex; gap: 8px; flex-wrap: wrap; }
 .qr { display: block; width: 200px; height: 200px; margin: 12px 0; border-radius: 12px; background: #fff; padding: 8px; image-rendering: pixelated; }
 .sobre p { margin: 8px 0; }
+
+/* Roteiro com integração */
+.campo { display: flex; flex-direction: column; gap: 4px; margin: 8px 0; font-size: .9rem; color: var(--texto-2); }
+.campo select { font: inherit; font-size: 1rem; color: var(--texto); background: var(--fundo); border: 1px solid var(--borda); border-radius: 10px; padding: 10px; }
+.roteiro { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.perna { border-left: 5px solid var(--cor, #777); padding-left: 12px; display: flex; flex-direction: column; gap: 2px; }
+.perna span { color: var(--texto-2); font-size: .92rem; }
+.troca { font-size: .88rem; color: var(--texto-2); display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+.selo { font-size: .8rem; font-weight: 600; border: 1px solid currentColor; border-radius: 999px; padding: 1px 9px; color: var(--cartao-texto); }
+.selo.justa { color: #8a5a00; }
+.chegada { font-size: 1.25rem; font-weight: 600; margin: 0; }

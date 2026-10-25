@@ -2,6 +2,7 @@ import {
   agora, bikeAgora, carregar, dataCurta, distancia, falta, hora, infoEstacao, janelasBike, metros, minutosAte, passagem,
   linhaParada, passagemDaLinha, proximas, somarDias, veiculo,
 } from "./dados.js";
+import { PERFIS, Roteador } from "./roteiro.js";
 
 const PERTO_METROS = 3000; // outras linhas aparecem até esta distância (padrão do app)
 const LINK = "https://giovanildo.github.io/metro-ceara-horarios/app/";
@@ -278,6 +279,7 @@ function telaEstacao(linhaId, stopId, sentidoId) {
   html += `<p class="dica">Toque em qualquer horário de hoje (aqui ou em "Todos os horários", mais abaixo) para criar um lembrete na agenda.</p>`;
   html += avisoBike(linha, stopId, t);
   html += blocoIntegracao(stopId, t);
+  html += blocoIrPara(linha, stopId, t);
   html += `<h2>Todos os horários</h2><div class="todos">${hoje.map((m) => {
     const passou = m < t.minutos;
     return `<button data-m="${m}" data-amanha="false" class="${passou ? "passou" : ""}" ${passou ? "disabled" : ""}>${hora(m)}</button>`;
@@ -286,6 +288,98 @@ function telaEstacao(linhaId, stopId, sentidoId) {
 
   tela.querySelectorAll("button[data-m]:not([disabled])").forEach((b) => b.addEventListener("click", () =>
     lembrete(linha, sentido, stopId, +b.dataset.m, b.dataset.amanha === "true")));
+  const irPara = document.getElementById("ir-para");
+  const perfil = document.getElementById("perfil");
+  const mostrar = () => {
+    estado.irPara = irPara.value;
+    try { localStorage.setItem("perfil", perfil.value); } catch { /* segue */ }
+    document.getElementById("roteiro").innerHTML = roteiroHtml(linha, stopId, irPara.value, perfil.value, agora());
+  };
+  irPara?.addEventListener("change", mostrar);
+  perfil?.addEventListener("change", mostrar);
+  if (irPara?.value) mostrar();
+}
+
+// ---------- roteiro com integração (a mesma regra do app: roteiro.js)
+
+const semSufixo = (nome) => nome.replace(/\s+-\s+(AE|NE)$/i, "");
+
+function perfilGuardado() {
+  try { return localStorage.getItem("perfil") || "andando"; } catch { return "andando"; }
+}
+
+/** "Ir para…": as estações das linhas que se alcançam com integração, e o jeito de se deslocar. */
+function blocoIrPara(linha, stopId, t) {
+  const { grade, regras } = estado.dados;
+  const r = new Roteador(grade, regras, perfilGuardado());
+  const grupos = [...r.alcancaveis(linha.id)].filter(([id]) => id !== linha.id).map(([id, caminho]) => {
+    const l = grade.linha(id);
+    const chegada = caminho[caminho.length - 1].paraEst; // ali a pessoa ainda nem embarcou
+    const parada = linhaParada(regras, t.data, l.nome);
+    const via = caminho.length === 1 ? `integração em ${semSufixo(grade.nome(caminho[0].deEst))}` : `${caminho.length} integrações`;
+    const opcoes = grade.estacoesDaLinha(l).filter((e) => e !== chegada).map((e) =>
+      `<option value="${l.id}|${e}" ${parada ? "disabled" : ""} ${estado.irPara === `${l.id}|${e}` ? "selected" : ""}>${esc(semSufixo(grade.nome(e)))}</option>`).join("");
+    return `<optgroup label="${esc(l.nome)} · ${parada ? "não circula hoje" : via}">${opcoes}</optgroup>`;
+  });
+  if (!grupos.length) return "";
+  const perfil = perfilGuardado();
+  return `<h2>Ir para outra linha</h2>
+    <label class="campo">Destino<select id="ir-para"><option value="">Escolha a estação</option>${grupos.join("")}</select></label>
+    <label class="campo">Como você se desloca<select id="perfil">${PERFIS.map((p) =>
+      `<option value="${p.chave}" ${p.chave === perfil ? "selected" : ""}>${esc(p.nome)}</option>`).join("")}</select></label>
+    <div id="roteiro"></div>`;
+}
+
+/** O roteiro até o destino escolhido: trechos, integrações, chegada e os próximos horários. */
+function roteiroHtml(linha, stopId, destino, perfil, t) {
+  if (!destino) return "";
+  const { grade, regras } = estado.dados;
+  const [linhaDestino, estDestino] = destino.split("|");
+  const evitar = new Set(grade.linhas.filter((l) => linhaParada(regras, t.data, l.nome)).map((l) => l.id));
+  const r = new Roteador(grade, regras, perfil);
+  const origem = { linha: linha.id, est: stopId };
+  const alvo = { linha: linhaDestino, est: estDestino };
+  const opcoes = r.planejar(origem, alvo, t.minutos - 2, 3, evitar);
+  const nomeDestino = semSufixo(grade.nome(estDestino));
+  if (!opcoes.length) {
+    const ultimo = r.planejar(origem, alvo, 0, 99, evitar).map((o) => o.sai).sort((a, b) => b - a)[0];
+    return `<p class="vazio">${ultimo != null ? `Sem integração para ${esc(nomeDestino)} hoje depois das ${hora(ultimo)}.`
+      : `Hoje não há como chegar a ${esc(nomeDestino)} com integração saindo daqui.`}</p>`;
+  }
+  const [o, ...outras] = opcoes;
+  const rotulo = (l) => l.nome.startsWith("Linha") ? `${veiculo(l.nome).replace(/^./, (c) => c.toUpperCase())} da ${l.nome}` : l.nome;
+  let html = `<div class="cartao neutro roteiro">`;
+  o.pernas.forEach((p, i) => {
+    const l = grade.linha(p.linha);
+    html += `<div class="perna" style="--cor:${cor(l)}"><strong>${hora(p.sai)} ${esc(semSufixo(grade.nome(p.de)))}</strong>
+      <span>${esc(rotulo(l))}, sentido ${esc(p.sentido.destino)}. Desça em ${esc(semSufixo(grade.nome(p.para)))} às ${hora(p.chega)}.</span></div>`;
+    const x = o.trocas[i];
+    if (x) {
+      const tarifa = passagem(regras, grade.nome(x.lig.deEst), grade.nome(x.lig.paraEst));
+      const t2 = tarifa.tipo === "gratis" ? " · passagem grátis" : tarifa.tipo === "paga" ? " · passagem paga" : "";
+      const justa = x.sobra <= 1;
+      html += `<div class="troca">Integração em ${esc(semSufixo(grade.nome(x.lig.deEst)))} · ${x.precisa} min para trocar de linha${t2}
+        <span class="selo ${justa ? "justa" : ""}">${justa ? "Integração justa" : "Dá tempo"}</span>
+        ${justa ? `<small>${x.seguinte != null ? `Se perder, o próximo ${veiculo(grade.linha(o.pernas[i + 1].linha).nome)} sai às ${hora(x.seguinte)}.` : "É o último do dia: se perder, não há outro."}</small>` : ""}</div>`;
+    }
+  });
+  html += `<p class="chegada">Chega às ${hora(o.chega)}</p>`;
+  if (o.antes != null) {
+    html += `<p class="dica">O ${veiculo(linha.nome)} das ${hora(o.antes)} chega no mesmo horário, mas espera mais na integração.</p>`;
+  }
+  if (perfil === "bicicleta") {
+    for (const p of o.pernas) {
+      const l = grade.linha(p.linha);
+      const j = janelasBike(regras, grade.nome(p.de), l.nome, t.diaSemana, t.data);
+      if (!j) html += `<p class="aviso">Com bicicleta: a ${esc(l.nome)} não aceita bike.</p>`;
+      else if (!bikeAgora(j, p.sai).pode) html += `<p class="aviso">Com bicicleta: a ${esc(l.nome)} não aceita bike às ${hora(p.sai)}.</p>`;
+    }
+  }
+  html += `</div>`;
+  if (outras.length) {
+    html += `<p class="dica">Outros horários: ${outras.map((x) => `${hora(x.sai)} → ${hora(x.chega)}`).join(" · ")}</p>`;
+  }
+  return html;
 }
 
 /** "Pode embarcar com bike no metrô agora, até as 15:00" — mesmas regras e frases do app. */

@@ -1,8 +1,8 @@
 // Guarda o app no celular para abrir sem internet. O app (HTML, CSS, JS,
 // ícones) vem do cache na hora e é atualizado por trás; os horários tentam a
 // internet primeiro e, sem ela, usam a última cópia.
-const CACHE = "metro-ceara-v19";
-const APP = ["./", "index.html", "app.css", "app.js", "dados.js", "manifest.webmanifest",
+const CACHE = "metro-ceara-v20";
+const APP = ["./", "index.html", "app.css", "app.js", "dados.js", "roteiro.js", "manifest.webmanifest",
   "icon-180.png", "icon-192.png", "icon-512.png", "qr.png"];
 
 self.addEventListener("install", (e) => {
