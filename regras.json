@@ -2,7 +2,7 @@
   "_sobre": "Regras do Metrofor que não vêm no GTFS. Fonte única: o app Android, o tools/build_db.py e a versão web leem daqui. Mudou uma regra? Edite este arquivo e gere uma versão nova. Nomes de estação e de linha como aparecem no app; maiúsculas e minúsculas não importam.",
 
   "bike": {
-    "_sobre": "Janelas em que dá para entrar com bicicleta, por tipo de dia. [\"09:00\", \"15:00\"] = das 9h às 15h; [\"20:00\", null] = das 20h até o fim da operação. Lista vazia = sem bike. Linha que não aparece aqui (os VLTs, por enquanto) não tem aviso de bike.",
+    "_sobre": "Janelas em que dá para entrar com bicicleta, por tipo de dia. [\"09:00\", \"15:00\"] = das 9h às 15h; [\"20:00\", null] = das 20h até o fim da operação. Lista vazia = sem bike. Linha que não aparece aqui (Oeste e os VLTs do interior) não tem aviso de bike.",
     "regulamentos": {
       "metrofor-2023": {
         "_fonte": "Regulamento 'Bike é bem-vinda no metrô' (Metrofor, 2023): segunda a sexta das 9h às 15h e a partir das 20h; sábado a partir das 15h; domingo não aparece.",
@@ -12,13 +12,19 @@
       }
     },
     "linhas": {
+      "_sobre": "Só Sul e Nordeste aceitam bike comum (Relatório de Demanda do Metrofor, 3º tri/2025, p. 20). A Linha Oeste não aceita: sem aviso. O VLT de Sobral aparece no relatório com bikes, mas sem horários publicados: sem aviso, como o Cariri.",
       "Linha Sul": "metrofor-2023",
-      "Linha Oeste": "metrofor-2023",
       "Linha Nordeste": "metrofor-2023"
     },
     "estacoes": {
       "_sobre": "Exceções: estação com regra diferente da sua linha (nome da estação → regulamento). Vazio hoje."
     }
+  },
+
+  "pico": {
+    "_sobre": "Faixas em que o metrô costuma ir cheio. O modo viagem só oferece ir sentado pelo terminal quando a partida cai numa delas. [\"06:00\", \"08:00\"] = das 6h às 8h (a partida das 8h já fica de fora).",
+    "_fonte": "Relatório de Demanda do Metrofor, 3º trimestre de 2025, p. 19: as viagens das 6h às 8h e das 16h às 19h concentram cerca de 45% da demanda; o pico é das 17h às 18h.",
+    "faixas": [["06:00", "08:00"], ["16:00", "19:00"]]
   },
 
   "integracoes": [
