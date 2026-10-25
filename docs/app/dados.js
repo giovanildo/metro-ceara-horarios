@@ -177,8 +177,12 @@ export function veiculo(nomeLinha) {
 
 const minDe = (hhmm) => { const [h, m] = hhmm.split(":").map(Number); return h * 60 + m; };
 
-/** As janelas de bike desta estação/linha no dia da semana, ou null se lá não há aviso. */
-export function janelasBike(regras, nomeEstacao, nomeLinha, diaSemana) {
+/**
+ * As janelas de bike desta estação/linha hoje, ou null se lá não há aviso. Num dia
+ * especial anunciado pelo Metrofor (regras.datas_especiais[data]), vale a regra do
+ * dia; nos outros, a do dia da semana. O resultado diz também se é dia especial.
+ */
+export function janelasBike(regras, nomeEstacao, nomeLinha, diaSemana, data) {
   const bike = regras?.bike;
   if (!bike) return null;
   const achar = (tabela, nome) => Object.entries(tabela || {})
@@ -186,9 +190,15 @@ export function janelasBike(regras, nomeEstacao, nomeLinha, diaSemana) {
   const id = achar(bike.estacoes, nomeEstacao) ?? achar(bike.linhas, nomeLinha);
   const reg = id && bike.regulamentos[id];
   if (!reg) return null;
-  const lista = diaSemana === 6 ? reg.sabado : diaSemana === 0 ? (reg.domingo || []) : reg.dias_uteis;
-  return lista.map(([ini, fim]) => ({ ini: minDe(ini), fim: fim == null ? null : minDe(fim) }))
+  const especial = regras.datas_especiais?.[data];
+  const vale = especial && (!especial.linhas?.length
+    || especial.linhas.some((l) => l.trim().toLowerCase() === nomeLinha.trim().toLowerCase()));
+  const lista = vale ? especial.bike
+    : diaSemana === 6 ? reg.sabado : diaSemana === 0 ? (reg.domingo || []) : reg.dias_uteis;
+  const janelas = lista.map(([ini, fim]) => ({ ini: minDe(ini), fim: fim == null ? null : minDe(fim) }))
     .sort((a, b) => a.ini - b.ini);
+  janelas.especial = Boolean(vale);
+  return janelas;
 }
 
 /** Igual ao app: { pode, limite } — limite = fim da janela atual, ou começo da próxima de hoje. */

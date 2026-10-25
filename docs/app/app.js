@@ -280,17 +280,18 @@ function telaEstacao(linhaId, stopId, sentidoId) {
 /** "Pode embarcar com bike no metrô agora, até as 15:00" — mesmas regras e frases do app. */
 function avisoBike(linha, stopId, t) {
   const { grade, regras } = estado.dados;
-  // Domingo só tem operação especial (regra de bike desconhecida); sem mais partidas, não há o que embarcar.
-  if (t.diaSemana === 0) return "";
+  // Domingo só tem operação especial: sem regra do dia anunciada, a da bike é desconhecida.
+  // Sem mais partidas, não há o que embarcar.
   const aindaHoje = grade.sentidosDePartida(linha, stopId).some((s) => grade.partidas(s, stopId).some((m) => m >= t.minutos));
   if (!aindaHoje) return "";
-  const janelas = janelasBike(regras, grade.nome(stopId), linha.nome, t.diaSemana);
-  if (!janelas) return "";
+  const janelas = janelasBike(regras, grade.nome(stopId), linha.nome, t.diaSemana, t.data);
+  if (!janelas || (t.diaSemana === 0 && !janelas.especial)) return "";
   const v = veiculo(linha.nome);
   const b = bikeAgora(janelas, t.minutos);
   const texto = b.pode
     ? (b.limite != null ? `Pode embarcar com bike no ${v} agora, até as ${hora(b.limite)}` : `Pode embarcar com bike no ${v} agora, até o fim da operação`)
-    : (b.limite != null ? `Bike no ${v} só a partir das ${hora(b.limite)}` : `Hoje não há horário para embarcar com bike no ${v}`);
+    : b.limite != null ? `Bike no ${v} só a partir das ${hora(b.limite)}`
+      : janelas.length ? `Não há mais horário hoje para embarcar com bike no ${v}` : `Hoje não há embarque com bike no ${v}`;
   return `<p class="bike">🚲 ${texto}</p>`;
 }
 
