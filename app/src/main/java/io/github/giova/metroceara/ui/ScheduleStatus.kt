@@ -10,6 +10,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import io.github.giova.metroceara.R
 import io.github.giova.metroceara.data.ScheduleSource
@@ -32,8 +36,8 @@ fun scheduleStatusText(source: ScheduleSource, syncing: Boolean, failed: Boolean
 }
 
 /**
- * Linha de status dos horários. Sem botão de baixar de novo: o app baixa
- * sozinho a grade do dia (uma vez), e baixar outra vez daria a mesma.
+ * Linha de status dos horários. Sem botão de baixar de novo: o app baixa a
+ * grade do dia sozinho, toda vez que é aberto.
  */
 @Composable
 fun ScheduleStatus(
@@ -66,3 +70,22 @@ private fun formatClock(millis: Long): String =
     SimpleDateFormat("HH:mm", Locale.US)
         .apply { timeZone = TimeZone.getTimeZone("America/Fortaleza") }
         .format(Date(millis))
+
+/**
+ * Os avisos de operação do site do Metrofor (horário especial, gratuidade,
+ * interrupção), só a manchete, com a fonte na frente. Nada a tocar.
+ */
+@Composable
+fun MetroforNotices(titles: List<String>, modifier: Modifier = Modifier) {
+    titles.forEach { title ->
+        Text(
+            text = buildAnnotatedString {
+                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(stringResource(R.string.notice_source)) }
+                append(" ")
+                append(title)
+            },
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = modifier,
+        )
+    }
+}

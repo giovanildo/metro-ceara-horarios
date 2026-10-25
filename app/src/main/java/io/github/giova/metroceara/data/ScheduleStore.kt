@@ -2,6 +2,7 @@ package io.github.giova.metroceara.data
 
 import android.content.Context
 import androidx.core.content.edit
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.net.URL
@@ -182,6 +183,35 @@ object ScheduleStore {
 
     private fun file(context: Context, type: DayType) =
         File(context.applicationContext.noBackupFilesDir, "schedules/${type.name.lowercase()}.db")
+
+    /** Avisos com mais de [NOTICE_DAYS] dias não aparecem: o feed passa meses sem novidade. */
+    private const val NOTICE_DAYS = 7
+    private const val MAX_NOTICES = 2
+    private const val KEY_NOTICES = "notices"
+
+    /**
+     * Baixa do espelho os avisos de operação do site do Metrofor (só título e
+     * data; o espelho já filtrou o que muda a viagem). Bloqueia; falha lança.
+     */
+    fun syncNotices(context: Context) {
+        val json = String(fetch(MIRROR + "noticias.json"))
+        JSONArray(json) // só guarda se for uma lista válida
+        prefs(context).edit { putString(KEY_NOTICES, json) }
+    }
+
+    /** As manchetes dos avisos recentes (até [MAX_NOTICES]), a mais nova primeiro. */
+    fun notices(context: Context): List<String> {
+        val json = prefs(context).getString(KEY_NOTICES, null) ?: return emptyList()
+        val since = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = zone }
+            .format(Calendar.getInstance(zone).apply { add(Calendar.DAY_OF_MONTH, -NOTICE_DAYS) }.time)
+        return runCatching {
+            val list = JSONArray(json)
+            (0 until list.length()).map { list.getJSONObject(it) }
+                .filter { it.optString("data") >= since }
+                .map { it.getString("titulo") }
+                .take(MAX_NOTICES)
+        }.getOrDefault(emptyList())
+    }
 
     private fun prefs(context: Context) =
         context.applicationContext.getSharedPreferences("metrofor_schedules", Context.MODE_PRIVATE)

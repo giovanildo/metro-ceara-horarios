@@ -332,6 +332,16 @@ Detalhes que valem saber:
   tiver sido baixada, o app não inventa horário. **Se amanhã for domingo**, a
   lista não mostra horários de amanhã (metrô e VLT normalmente não circulam,
   embora o GTFS diga que sim).
+- **Avisos do Metrofor.** Abaixo da linha "Horários de hoje…", a tela inicial
+  mostra até 2 avisos de operação do site do Metrofor, só a manchete e sem nada
+  para tocar: "**Metrofor:** Eleições 2026: Veja os horários do metrô e VLTs em
+  operação gratuita de 2º turno". A tarefa do espelho lê o feed
+  `ce.gov.br/metrofor/feed/` (o certificado do site é incompleto, por isso não
+  vai direto do app), fica só com manchetes que mudam a viagem — horário,
+  operação especial, gratuidade, feriado, interrupção, greve… (`AVISO` em
+  `tools/build_web_data.py`) — e publica `noticias.json` no ramo `dados`. O app
+  e a versão lite mostram só os dos **últimos 7 dias**; sem aviso recente, nada
+  aparece. Se o site falhar, ficam os últimos guardados e os horários seguem.
 - **Sem mais partidas hoje**, além da frase, aparece o último horário de hoje e
   o primeiro do próximo dia com metrô — amanhã, ou a segunda quando amanhã é
   domingo: "Último de hoje: 17:12 · primeiro de segunda: 05:44 (domingo, só em
