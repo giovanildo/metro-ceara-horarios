@@ -218,7 +218,10 @@ aviso: o Relatório de Demanda do Metrofor (3º tri/2025, p. 20) só registra bi
 na Sul, na Nordeste e em Sobral. Quando as fontes do Metrofor divergem, vale a
 mais recente. Dobrável fechada na bolsa conta como bagagem. No
 domingo o aviso de bike some, porque nesse dia só há operação especial e a regra
-dela não é conhecida — a não ser que o Metrofor a tenha anunciado (abaixo).
+dela não é conhecida — a não ser que o Metrofor a tenha anunciado (abaixo). Num
+domingo de operação especial com a grade do dia baixada e sem regra anunciada,
+o aviso diz "Operação especial: o Metrofor não informou se dá para embarcar com
+bike hoje", em vez de calar.
 
 **Feriados e dias especiais.** Nas operações especiais, o Metrofor anuncia em
 notícia a regra da bike do dia: nos feriados, "nas linhas Sul e Nordeste, o

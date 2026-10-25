@@ -32,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.giova.metroceara.R
 import io.github.giova.metroceara.data.bikeRuleFor
+import io.github.giova.metroceara.data.BikeBoarding
 import io.github.giova.metroceara.data.bikeBoarding
 import io.github.giova.metroceara.data.nowDayOfWeek
 import io.github.giova.metroceara.data.Station
@@ -212,13 +213,17 @@ private fun StationSummary(
                     )
                 }
             }
-            // No domingo especial a regra de bike é desconhecida: melhor calar. E
-            // sem mais partidas hoje, "pode embarcar" não faria sentido.
+            // No domingo há só operação especial: sem regra de bike anunciada para o
+            // dia, o aviso diz que não se sabe (com a grade do dia; sem ela, já há o
+            // aviso de domingo). Sem mais partidas hoje, "pode embarcar" não faria sentido.
             val runningToday = departures.any { it.departure?.tomorrow == false }
             val bikeRule = bikeRuleFor(station.stopName, station.routeName)
-            if ((!sunday || bikeRule?.special == true) && runningToday && bikeRule != null) {
+            val known = !sunday || bikeRule?.special == true
+            if (runningToday && bikeRule != null && (known || scheduleIsToday)) {
                 BikeBoardingNotice(
-                    rule = remember(now, bikeRule) { bikeBoarding(bikeRule, nowDayOfWeek(), now) },
+                    rule = remember(now, bikeRule, known) {
+                        if (known) bikeBoarding(bikeRule, nowDayOfWeek(), now) else BikeBoarding.UNKNOWN
+                    },
                     vehicle = vehicleName(station.routeName),
                     modifier = Modifier.padding(top = 6.dp),
                 )

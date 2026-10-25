@@ -22,6 +22,7 @@ import io.github.giova.metroceara.data.formatTime
 @Composable
 fun BikeBoardingNotice(rule: BikeBoarding, vehicle: String, modifier: Modifier = Modifier) {
     val text = when {
+        rule.unknown -> stringResource(R.string.bike_boarding_unknown)
         rule.allowed && rule.boundary != null ->
             stringResource(R.string.bike_boarding_until, vehicle, formatTime(rule.boundary))
         rule.allowed -> stringResource(R.string.bike_boarding_until_close, vehicle)

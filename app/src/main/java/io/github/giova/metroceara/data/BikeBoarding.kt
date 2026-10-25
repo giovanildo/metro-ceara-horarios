@@ -53,7 +53,13 @@ data class BikeBoarding(
     val boundary: Int?,
     /** Hoje tem (ou teve) alguma janela de bike; falso = dia sem bike nenhuma. */
     val anyToday: Boolean = true,
-)
+    /** Operação especial (domingo) sem regra de bike anunciada: o app não sabe. */
+    val unknown: Boolean = false,
+) {
+    companion object {
+        val UNKNOWN = BikeBoarding(allowed = false, boundary = null, unknown = true)
+    }
+}
 
 fun bikeBoarding(rule: BikeRule, dayOfWeek: Int, minutes: Int): BikeBoarding {
     val windows = rule.windowsFor(dayOfWeek).sortedBy { it.startMinutes }
