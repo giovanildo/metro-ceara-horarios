@@ -80,6 +80,11 @@ export async function carregar() {
     json("bicicletar.json").catch(() => []),
     json("noticias.json").catch(() => []),
   ]);
+  // Onde o GTFS põe a estação no lugar errado (Sobral, Escola do Cariri), vale a posição de regras.json.
+  for (const [id, e] of Object.entries(grade?.estacoes || {})) {
+    const posicao = infoEstacao(regras, id, e.nome)?.posicao;
+    if (posicao) [e.lat, e.lon] = posicao;
+  }
   // O próximo dia com metrô: amanhã, ou a segunda quando amanhã é domingo
   // (metrô e VLT normalmente não circulam, embora o GTFS diga que sim).
   const proximoEhSegunda = (hoje.diaSemana + 1) % 7 === 0;
@@ -185,6 +190,23 @@ export function veiculo(nomeLinha) {
 // ---------- regras do Metrofor (regras.json, o mesmo arquivo do app)
 
 const minDe = (hhmm) => { const [h, m] = hhmm.split(":").map(Number); return h * 60 + m; };
+const simples = (s) => s.normalize("NFD").replace(/[^A-Za-z0-9]/g, "").toLowerCase();
+
+/**
+ * Endereço (e posição corrigida, se houver) da estação, por stop_id. O nome tem de
+ * bater: se o Metrofor renumerar as estações, nada vai para a estação errada.
+ */
+export function infoEstacao(regras, stopId, nome) {
+  const e = regras?.estacoes?.[stopId];
+  return e && simples(e.nome) === simples(nome) ? e : null;
+}
+
+/** "R$ 3,60 (meia R$ 1,80) · dinheiro ou Pix", ou null. */
+export function passagemDaLinha(regras, nomeLinha) {
+  const [, texto] = Object.entries(regras?.passagem || {})
+    .find(([k]) => !k.startsWith("_") && k.trim().toLowerCase() === nomeLinha.trim().toLowerCase()) || [];
+  return texto ?? null;
+}
 
 /**
  * As janelas de bike desta estação/linha hoje, ou null se lá não há aviso. Num dia

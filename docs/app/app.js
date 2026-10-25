@@ -1,6 +1,6 @@
 import {
-  agora, bikeAgora, carregar, dataCurta, distancia, falta, hora, janelasBike, metros, minutosAte, passagem,
-  proximas, somarDias, veiculo,
+  agora, bikeAgora, carregar, dataCurta, distancia, falta, hora, infoEstacao, janelasBike, metros, minutosAte, passagem,
+  passagemDaLinha, proximas, somarDias, veiculo,
 } from "./dados.js";
 
 const PERTO_METROS = 3000; // outras linhas aparecem até esta distância (padrão do app)
@@ -190,7 +190,7 @@ function telaInicio() {
   }
   html += `<h2>Linhas</h2><div class="lista-linhas">${grade.linhas.map((l) =>
     `<a href="#/linha/${l.id}" style="--cor:${cor(l)}"><strong>${esc(l.nome)}</strong>
-      <small>${esc(l.descricao)} · ${grade.estacoesDaLinha(l).length} estações</small></a>`).join("")}</div>`;
+      <small>${esc(l.descricao)} · ${grade.estacoesDaLinha(l).length ? `${grade.estacoesDaLinha(l).length} estações` : "não opera hoje"}</small></a>`).join("")}</div>`;
   tela.innerHTML = html;
   document.getElementById("localizar")?.addEventListener("click", localizar);
   document.getElementById("instalar")?.addEventListener("click", instalar);
@@ -233,7 +233,8 @@ function telaLinha(linhaId) {
   tela.innerHTML = `<h2><span class="ponto" style="background:${cor(linha)}"></span> ${esc(linha.nome)}</h2>
     <p class="dica">${esc(linha.descricao)}</p>
     <div class="lista-estacoes">${grade.estacoesDaLinha(linha).map((id) =>
-      `<a href="#/estacao/${linha.id}/${id}">${esc(grade.nome(id))}</a>`).join("")}</div>`;
+      `<a href="#/estacao/${linha.id}/${id}">${esc(grade.nome(id))}</a>`).join("")}</div>
+    ${grade.estacoesDaLinha(linha).length ? "" : `<p class="vazio">Esta linha não opera hoje.</p>`}`;
 }
 
 function telaEstacao(linhaId, stopId, sentidoId) {
@@ -248,6 +249,11 @@ function telaEstacao(linhaId, stopId, sentidoId) {
 
   let html = `<h2 style="font-size:1.4rem;margin-bottom:0">${esc(grade.nome(stopId))}</h2>
     <p class="dica" style="margin-top:2px"><span class="ponto" style="background:${cor(linha)}"></span> ${esc(linha.nome)}</p>`;
+  const endereco = infoEstacao(estado.dados.regras, stopId, grade.nome(stopId))?.endereco;
+  const tarifa = passagemDaLinha(estado.dados.regras, linha.nome);
+  if (endereco || tarifa) {
+    html += `<p class="dica">${[endereco && esc(endereco), tarifa && `Passagem: ${esc(tarifa)}`].filter(Boolean).join("<br>")}</p>`;
+  }
   if (sentidos.length > 1) {
     html += `<nav class="abas">${sentidos.map((s) =>
       `<a href="#/estacao/${linha.id}/${stopId}/${s.id}" class="${s === sentido ? "ativa" : ""}">→ ${esc(s.destino)}</a>`).join("")}</nav>`;
@@ -363,7 +369,9 @@ function telaSobre() {
 
     <h2>De onde vêm os horários</h2>
     <p>Do GTFS público do Metrofor, atualizado várias vezes por dia. São os horários programados: o app não sabe de
-      atrasos em tempo real.${indice.atualizado ? ` Última atualização: ${dataCurta(indice.atualizado.slice(0, 10))} às ${indice.atualizado.slice(11, 16)}.` : ""}</p>
+      atrasos em tempo real.${indice.atualizado ? ` Última atualização: ${dataCurta(indice.atualizado.slice(0, 10))} às ${indice.atualizado.slice(11, 16)}.` : ""}
+      Endereços e passagens: páginas das linhas no site do Metrofor. Posição de algumas estações de Sobral e do Cariri,
+      que o GTFS põe no lugar errado: © colaboradores do OpenStreetMap.</p>
 
     <h2>Privacidade</h2>
     <p>Sem anúncios, sem cadastro e sem rastreadores. Sua localização é usada só no celular, para achar a estação mais
