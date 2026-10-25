@@ -25,3 +25,6 @@ __pycache__/
 tools/play/pepk.jar
 tools/play/*.pem
 tools/play/*.zip
+
+# Material de consulta do Metrofor (PDFs, textos): não é nosso para republicar.
+referencias/
