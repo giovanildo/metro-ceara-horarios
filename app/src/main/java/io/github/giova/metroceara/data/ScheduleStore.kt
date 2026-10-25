@@ -184,6 +184,15 @@ object ScheduleStore {
     private fun file(context: Context, type: DayType) =
         File(context.applicationContext.noBackupFilesDir, "schedules/${type.name.lowercase()}.db")
 
+    /**
+     * Baixa do espelho as regras do Metrofor (bike, integrações, passagem, pico)
+     * e passa a usá-las. Bloqueia; falha (rede ou arquivo com erro) lança e
+     * mantém as anteriores.
+     */
+    fun syncRules(context: Context) {
+        Regras.update(context, String(fetch(MIRROR + "regras.json")))
+    }
+
     /** Um aviso de operação do site do Metrofor: a manchete e o link da notícia, se houver. */
     data class Notice(val title: String, val link: String?)
 

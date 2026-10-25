@@ -1,6 +1,7 @@
 package io.github.giova.metroceara.data
 
 import android.content.Context
+import java.io.File
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -15,25 +16,48 @@ data class IntegracaoRegra(
 )
 
 /**
- * As regras do Metrofor que não vêm no GTFS (bike no metrô, integrações e
- * passagem), lidas de `assets/regras.json` — o mesmo arquivo que o
- * `tools/build_db.py` e a versão web usam. Carregadas uma vez, ao abrir o app.
+ * As regras do Metrofor que não vêm no GTFS (bike no metrô, integrações,
+ * passagem e horários de pico), de `assets/regras.json` — o mesmo arquivo que o
+ * `tools/build_db.py` e a versão web usam. O espelho publica uma cópia dele, que
+ * o app baixa a cada abertura ([update]): mudar uma regra no GitHub chega aos
+ * celulares sem versão nova. Sem cópia baixada (ou com erro nela), vale a do APK.
  */
 class Regras(
     val bikeByLine: Map<String, BikeRule>,
     val bikeByStation: Map<String, BikeRule>,
     val integracoes: List<IntegracaoRegra>,
+    /** Faixas de pico, em minutos desde a meia-noite (início incluído, fim não). */
+    val peak: List<IntRange> = emptyList(),
 ) {
+    /** A partida cai num horário de pico (metrô costuma ir cheio)? */
+    fun isPeak(minutes: Int): Boolean = peak.any { minutes in it }
+
     companion object {
         /** Sem arquivo (ou com erro nele), o app segue sem avisos de bike e de passagem. */
         @Volatile var current = Regras(emptyMap(), emptyMap(), emptyList())
             private set
 
+        private const val FILE = "regras.json"
+
         fun init(context: Context) {
-            runCatching {
-                context.assets.open("regras.json").bufferedReader().use { parse(it.readText()) }
-            }.onSuccess { current = it }
+            val downloaded = File(context.filesDir, FILE)
+            runCatching { parse(downloaded.readText()) }
+                .recoverCatching { context.assets.open(FILE).bufferedReader().use { parse(it.readText()) } }
+                .onSuccess { current = it }
                 .onFailure { DevLog.log("regras_erro", "erro" to it.toString()) }
+        }
+
+        /**
+         * Troca as regras pelas [json] baixadas do espelho e guarda a cópia.
+         * Arquivo com erro lança exceção e não muda nada.
+         */
+        fun update(context: Context, json: String) {
+            val rules = parse(json)
+            val target = File(context.filesDir, FILE)
+            val temp = File(context.filesDir, "$FILE.tmp")
+            temp.writeText(json)
+            check(temp.renameTo(target)) { "não foi possível guardar $FILE" }
+            current = rules
         }
 
         fun parse(json: String): Regras {
@@ -65,8 +89,17 @@ class Regras(
                     )
                 }
             }
-            return Regras(byName(bike.getJSONObject("linhas")), byName(bike.getJSONObject("estacoes")), integracoes)
+            val peak = root.optJSONObject("pico")?.getJSONArray("faixas")?.let { list ->
+                (0 until list.length()).map { i ->
+                    val w = list.getJSONArray(i)
+                    clock(w.getString(0)) until clock(w.getString(1))
+                }
+            }.orEmpty()
+            return Regras(byName(bike.getJSONObject("linhas")), byName(bike.getJSONObject("estacoes")), integracoes, peak)
         }
+
+        /** "HH:MM" em minutos desde a meia-noite. */
+        private fun clock(text: String): Int = text.split(":").let { (h, m) -> h.toInt() * 60 + m.toInt() }
 
         private fun windows(array: JSONArray): List<BikeWindow> = (0 until array.length()).map { i ->
             val w = array.getJSONArray(i)

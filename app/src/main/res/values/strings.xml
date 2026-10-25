@@ -130,13 +130,13 @@
     <string name="transfer_free">Integração gratuita: não paga outra passagem</string>
     <string name="transfer_paid">Integração paga: é preciso pagar outra passagem</string>
     <string name="settings_seated">Oferecer ir sentado pelo terminal até</string>
-    <string name="settings_seated_desc">Se você estiver perto de um terminal e for no sentido contrário, o modo viagem oferece ir até o terminal e voltar sentado no mesmo metrô ou VLT. Leva um pouco mais de tempo.</string>
+    <string name="settings_seated_desc">Nos horários de pico (6h às 8h e 16h às 19h), se você estiver perto de um terminal e for no sentido contrário, o modo viagem oferece ir até o terminal e voltar sentado no mesmo metrô ou VLT. Leva um pouco mais de tempo.</string>
     <string name="trip_choice_title">Como você quer ir?</string>
     <string name="trip_choice_direct">Direto</string>
     <string name="trip_choice_direct_desc">Embarca aqui às %1$s e chega às %2$s.</string>
     <string name="trip_choice_seated">Sentado, pelo terminal %1$s</string>
     <string name="trip_choice_seated_desc">Embarca às %1$s no sentido %2$s, fica no %6$s e volta às %3$s. Chega às %4$s (+%5$d min).</string>
-    <string name="trip_choice_note">O app não sabe a lotação. Perto do terminal, no horário de pico, costuma valer a pena.</string>
+    <string name="trip_choice_note">Das 6h às 8h e das 16h às 19h o metrô costuma ir cheio, segundo o Metrofor. Perto do terminal, ir até ele e voltar sentado costuma valer a pena.</string>
     <string name="trip_via_terminal">indo sentado, pelo terminal %1$s</string>
     <string name="trip_turnaround_title">%1$s: fique no %2$s</string>
     <string name="trip_turnaround_text">Ele volta às %1$s no sentido %2$s.</string>

@@ -8,6 +8,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.res.stringResource
+import io.github.giova.metroceara.data.Regras
 import io.github.giova.metroceara.data.distanceMeters
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -87,6 +88,11 @@ fun AppRoot() {
     LaunchedEffect(today, opened) {
         scheduleSyncing = true
         DevLog.log("sync_start")
+        // As regras vêm antes: a montagem da grade usa as integrações delas.
+        withContext(Dispatchers.IO) {
+            runCatching { ScheduleStore.syncRules(context) }
+                .onFailure { DevLog.log("regras_sync_fail", "reason" to (it.message ?: it.javaClass.simpleName)) }
+        }
         val result = withContext(Dispatchers.IO) {
             runCatching { ScheduleStore.sync(context, MetroforDatabase.bundledFile(context)) }
         }
@@ -336,9 +342,11 @@ fun AppRoot() {
         }
 
         // "Sentado pelo terminal": se o terminal do outro sentido está perto,
-        // vai até ele e volta no mesmo trem, que lá esvazia.
+        // vai até ele e volta no mesmo trem, que lá esvazia. Só no horário de
+        // pico, quando o metrô costuma ir cheio (regras.json, "pico").
         val seated = run {
             if (settings.seatedMaxStations <= 0) return@run null
+            if (!Regras.current.isPeak(direct.stops.first().scheduled)) return@run null
             val back = repo.directions(routeId).firstOrNull { it.id != direction.id } ?: return@run null
             val toTerminal = repo.stops(routeId, back.id).dropWhile { it.id != origin.id }
             val terminal = toTerminal.lastOrNull() ?: return@run null

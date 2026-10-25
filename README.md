@@ -173,7 +173,11 @@ o Android só usa a forma, e o ícone do app, de fundo cheio, virava um quadrado
   trem, ele volta às HH:MM"; na volta, as estações repetidas são reconhecidas
   como volta (o GPS sempre casa com a próxima ocorrência à frente). O trem não
   sai do terminal antes do horário: adiantamento medido na ida é descartado ali.
-  O app não sabe a lotação — é uma sugestão de quem anda de metrô.
+  **Só no horário de pico**: a pergunta aparece quando a partida cai das 6h às
+  8h ou das 16h às 19h, faixas que concentram ~45% dos passageiros segundo o
+  Relatório de Demanda do Metrofor (3º tri/2025); fora delas a viagem começa
+  direto. As faixas ficam em `regras.json` (`pico`), junto das outras regras do
+  Metrofor.
 - O destino pode estar nos **dois sentidos**, tanto pelo cartão do topo quanto
   pelo botão da tela de horários (antes, ali, só o sentido da aba aberta).
 - Durante a viagem, o cartão da estação em destaque some da tela inicial: o da
@@ -201,13 +205,16 @@ bicicletas há agora e confundia.
 - **Na tela de partidas** de cada estação, medida a partir dela e escondida
   acima de 600 m, porque a essa distância deixa de ajudar.
 
-Nas linhas Sul, Oeste e Nordeste, o app diz também **se dá para embarcar com
+Nas linhas Sul e Nordeste, o app diz também **se dá para embarcar com
 bicicleta agora** (no metrô ou no VLT, conforme a linha; o aviso some quando
 não há mais partidas no dia), na tela de partidas e no cartão da tela inicial. As
 janelas vêm do regulamento
 [*Bike é bem-vinda no metrô*](https://www.ce.gov.br/metrofor/wp-content/uploads/sites/75/2023/03/Regula_Bikes_2023.pdf)
 (Metrofor, 2023): segunda a sexta das 9h às 15h e a partir das 20h; sábado a
-partir das 15h. Os VLTs não aparecem no regulamento, por isso ficam de fora; no
+partir das 15h. A **Linha Oeste não aceita bike** comum, e os VLTs de Sobral e do
+Cariri ficam sem aviso: o Relatório de Demanda do Metrofor (3º tri/2025, p. 20)
+conta bikes só na Sul, na Nordeste e no VLT Sobral, e não há horários
+publicados para Sobral. Dobrável fechada na bolsa conta como bagagem. No
 domingo o aviso de bike some, porque nesse dia só há operação especial e a regra
 dela não é conhecida.
 
@@ -215,7 +222,7 @@ As regras ficam na seção `bike` de
 [`app/src/main/assets/regras.json`](app/src/main/assets/regras.json): cada
 regulamento tem janelas de horário (`["09:00", "15:00"]`, ou `["20:00", null]` =
 até o fim da operação) para dias úteis, sábado e domingo. Há uma tabela **por
-linha** (`linhas`, hoje Sul, Oeste e Nordeste com o regulamento de 2023; linha
+linha** (`linhas`, hoje Sul e Nordeste com o regulamento de 2023; linha
 fora dela não tem aviso) e outra de **exceções por estação** (`estacoes`, vazia
 hoje), que vale antes da da linha. Mudou o regulamento ou alguma estação tem
 regra própria: é só editar o arquivo e gerar uma versão nova. Ficam fora das
@@ -223,9 +230,18 @@ Configurações de propósito — são regra do Metrofor, não preferência de q
 o app.
 
 O `regras.json` é a **fonte única** das regras que não vêm do GTFS (bike,
-integrações e passagem): o app lê ao abrir (`data/Regras.kt`), e o
-`tools/build_db.py` e a futura versão web leem o mesmo arquivo. Com o arquivo
-ilegível, o app segue sem avisos de bike e de passagem, em vez de fechar.
+integrações, passagem e horários de pico): o app (`data/Regras.kt`), o
+`tools/build_db.py` e a versão lite leem o mesmo arquivo.
+
+**Mudar uma regra não exige versão nova do app.** A tarefa do espelho publica
+uma cópia de `app/src/main/assets/regras.json` no ramo `dados` a cada rodada, e
+o app a baixa sempre que abre (antes da grade, porque a montagem da grade usa
+as integrações) e passa a usá-la na hora; a lite lê a mesma cópia. Então basta
+editar o arquivo na `main` (pelo próprio site do GitHub, se quiser) e rodar a
+tarefa (Actions → "Dados da versão web" → Run workflow) ou esperar a próxima
+rodada: em minutos ou horas os celulares recebem. Um arquivo com erro no
+espelho é ignorado: o app segue com a última cópia boa e, sem nenhuma, com a do
+APK. Com tudo ilegível, segue sem avisos de bike e de passagem, em vez de fechar.
 
 Um ícone de **engrenagem** no topo abre as **Configurações**, com as distâncias
 e os tempos que antes eram fixos no código (`data/Settings.kt`; padrões entre
