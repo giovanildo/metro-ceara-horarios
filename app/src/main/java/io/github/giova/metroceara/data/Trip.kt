@@ -14,6 +14,21 @@ data class TripStop(
 )
 
 /**
+ * A integração no fim de um trecho de roteiro: na chegada, a pessoa desce e vai
+ * a pé ([walkMinutes]) para [nextRoute], que sai às [nextDeparture] rumo a
+ * [nextHeadsign]; o roteiro termina em [finalDestination].
+ */
+data class TripTransfer(
+    val nextRoute: String,
+    val nextHeadsign: String,
+    val nextDeparture: Int,
+    val walkMinutes: Int,
+    val finalDestination: String,
+    /** `true` grátis, `false` paga, `null` não informada. */
+    val free: Boolean? = null,
+)
+
+/**
  * O que a pessoa escolheu: uma viagem de [stops].first() até [stops].last(),
  * na linha [routeName] rumo a [headsign].
  */
@@ -30,6 +45,8 @@ data class TripPlan(
      * -1 = viagem direta.
      */
     val turnaroundIndex: Int = -1,
+    /** Trecho de um roteiro com integração: o destino é a estação de integração. */
+    val transfer: TripTransfer? = null,
 ) {
     val viaTerminal get() = turnaroundIndex in 0 until stops.lastIndex
     val terminal get() = stops.getOrNull(turnaroundIndex)
@@ -46,6 +63,13 @@ data class TripPlan(
         .put("headsign", headsign)
         .put("alert", alertStationsBefore)
         .put("turn", turnaroundIndex)
+        .apply {
+            transfer?.let {
+                put("transfer", JSONObject().put("route", it.nextRoute).put("headsign", it.nextHeadsign)
+                    .put("t", it.nextDeparture).put("walk", it.walkMinutes).put("final", it.finalDestination)
+                    .put("free", it.free ?: JSONObject.NULL))
+            }
+        }
         .put("stops", JSONArray().apply {
             stops.forEach {
                 put(JSONObject().put("id", it.stopId).put("name", it.name)
@@ -68,6 +92,16 @@ data class TripPlan(
                 },
                 alertStationsBefore = o.optInt("alert", 2),
                 turnaroundIndex = o.optInt("turn", -1),
+                transfer = o.optJSONObject("transfer")?.let {
+                    TripTransfer(
+                        nextRoute = it.getString("route"),
+                        nextHeadsign = it.getString("headsign"),
+                        nextDeparture = it.getInt("t"),
+                        walkMinutes = it.getInt("walk"),
+                        finalDestination = it.getString("final"),
+                        free = if (it.isNull("free")) null else it.getBoolean("free"),
+                    )
+                },
             )
         }.getOrNull()
     }

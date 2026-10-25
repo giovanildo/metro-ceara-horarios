@@ -213,6 +213,10 @@ class TripService : Service() {
     private fun spokenAlert(trip: ActiveTrip): String {
         val left = trip.progress.stationsLeft(trip.plan)
         val prefix = if (trip.progress.presumed) getString(R.string.trip_presumed_prefix) + ", " else ""
+        if (trip.plan.transfer != null) {
+            return getString(R.string.trip_transfer_alert_title, trip.plan.destination.name) + ". " + prefix +
+                TripNotifications.transferAlert(this, trip).replaceFirstChar { if (prefix.isNotEmpty()) it.lowercaseChar() else it }
+        }
         return getString(R.string.trip_alert_title) + ". " + prefix + getString(
             R.string.trip_alert_text,
             resources.getQuantityString(R.plurals.trip_stations_left, left, left),
