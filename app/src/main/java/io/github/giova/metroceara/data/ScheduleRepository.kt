@@ -12,8 +12,15 @@ class ScheduleRepository(context: Context) {
     /** De onde vêm os horários deste repositório. */
     val source: ScheduleSource = opened.second
 
-    /** A grade provável de amanhã, ou `null` se não há como saber. */
+    /** A grade provável de amanhã, ou `null` se não há como saber (ou amanhã é domingo). */
     private val tomorrowDb = MetroforDatabase.openTomorrow(context)
+
+    /** Amanhã é domingo: o próximo dia com metrô é a segunda, um dia útil. */
+    private val mondayDb = if (ScheduleStore.tomorrowType() == DayType.SUNDAY) {
+        MetroforDatabase.openType(context, DayType.WEEKDAY)
+    } else {
+        null
+    }
 
     fun routes(): List<Route> = db.rawQuery(
         """
@@ -73,6 +80,14 @@ class ScheduleRepository(context: Context) {
      */
     fun departuresTomorrow(stopId: String, routeId: String, directionId: Int): List<Int>? =
         tomorrowDb?.let { departuresIn(it, stopId, routeId, directionId) }
+
+    /** O último horário de hoje e o primeiro do próximo dia com metrô, para quando hoje acabou. */
+    fun dayEnd(stopId: String, routeId: String, directionId: Int): DayEnd {
+        val last = departures(stopId, routeId, directionId).lastOrNull()
+        val monday = tomorrowDb == null && mondayDb != null
+        val next = (tomorrowDb ?: mondayDb)?.let { departuresIn(it, stopId, routeId, directionId).firstOrNull() }
+        return DayEnd(last, next, monday)
+    }
 
     private fun departuresIn(
         db: android.database.sqlite.SQLiteDatabase,

@@ -204,6 +204,13 @@ private fun StationSummary(
                         fontWeight = FontWeight.Medium,
                     )
                 }
+                item.dayEnd?.let { dayEndText(it) }?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
             // No domingo especial a regra de bike é desconhecida: melhor calar. E
             // sem mais partidas hoje, "pode embarcar" não faria sentido.

@@ -34,6 +34,14 @@ data class Departure(
 )
 
 /**
+ * Para quando não há mais partidas hoje: o último horário de hoje (`null` se
+ * hoje não teve nenhum) e o primeiro do próximo dia com metrô — amanhã, ou a
+ * segunda-feira quando amanhã é domingo ([nextIsMonday]); `null` se a grade
+ * desse dia não é conhecida.
+ */
+data class DayEnd(val lastToday: Int?, val nextFirst: Int?, val nextIsMonday: Boolean)
+
+/**
  * Uma estação junto da linha que a serve.
  *
  * Uma parada pode pertencer a mais de uma linha (Campo dos Velhos, em Sobral),

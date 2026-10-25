@@ -25,6 +25,9 @@
     <string name="home_no_fix">Não consegui obter sua localização. Tente de novo em um lugar aberto, ou fixe uma estação pela estrela.</string>
     <string name="home_try_again">Tentar de novo</string>
     <string name="home_no_departures">sem partidas hoje</string>
+    <string name="day_end_last">Último de hoje: %1$s</string>
+    <string name="day_end_next_tomorrow">primeiro de amanhã: %1$s</string>
+    <string name="day_end_next_monday">primeiro de segunda: %1$s (domingo, só em operação especial)</string>
     <string name="pin_station">Fixar esta estação na tela inicial</string>
     <string name="unpin_station">Desafixar esta estação</string>
 

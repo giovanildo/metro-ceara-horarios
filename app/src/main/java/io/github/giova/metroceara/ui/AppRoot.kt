@@ -427,14 +427,16 @@ fun AppRoot() {
     // Nos terminais, o sentido que termina ali só tem chegadas: fica de fora.
     fun departuresAt(station: Station): List<HomeDeparture> =
         repo.directions(station.routeId).filterNot { repo.endsAt(station.stopId, station.routeId, it.id) }.map { direction ->
+            val departure = nextDepartures(
+                repo.departures(station.stopId, station.routeId, direction.id),
+                now,
+                count = 1,
+                tomorrow = repo.departuresTomorrow(station.stopId, station.routeId, direction.id),
+            ).firstOrNull()
             HomeDeparture(
                 headsign = direction.headsign,
-                departure = nextDepartures(
-                    repo.departures(station.stopId, station.routeId, direction.id),
-                    now,
-                    count = 1,
-                    tomorrow = repo.departuresTomorrow(station.stopId, station.routeId, direction.id),
-                ).firstOrNull(),
+                departure = departure,
+                dayEnd = if (departure == null) repo.dayEnd(station.stopId, station.routeId, direction.id) else null,
             )
         }
 
@@ -510,6 +512,7 @@ fun AppRoot() {
                 tomorrowFor = { direction ->
                     repo.departuresTomorrow(stop.id, route.id, direction.id)
                 },
+                dayEndFor = { direction -> repo.dayEnd(stop.id, route.id, direction.id) },
                 destinationsFor = { direction ->
                     repo.stops(route.id, direction.id).dropWhile { it.id != stop.id }.drop(1)
                 },

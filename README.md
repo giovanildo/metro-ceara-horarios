@@ -294,7 +294,8 @@ os dias:
 
 Por isso o feed é baixado pela tarefa do GitHub que também alimenta a versão
 lite ([`dados-web.yml`](.github/workflows/dados-web.yml)), **quatro vezes por
-dia** (04:30, 10:00, 15:00 e 20:00 de Fortaleza; o GitHub pode atrasar até ~1 h):
+dia** (01:00, 10:00, 15:00 e 20:00 de Fortaleza; o GitHub chega a atrasar ~5 h, e
+o Metrofor já publica a grade do dia logo depois da meia-noite):
 se o site do Metrofor falhar de manhã ou a grade mudar durante o dia, a rodada
 seguinte corrige. Ela guarda o zip original de cada tipo de dia no ramo
 `dados` (`gtfs-dia-util.zip`, `gtfs-sabado.zip`, `gtfs-domingo.zip`), e o
@@ -327,8 +328,16 @@ Detalhes que valem saber:
   operação especial e o aviso de domingo some. Sem ela, o aviso aparece.
 - **Depois da última viagem do dia**, as partidas de "amanhã" vêm da grade do
   tipo de dia de amanhã, e não da de hoje repetida: num domingo de eleição,
-  segunda mostra a grade de dia útil. Se amanhã for sábado ou domingo e essa
-  grade nunca tiver sido baixada, o app não inventa horário.
+  segunda mostra a grade de dia útil. Se amanhã for sábado e essa grade nunca
+  tiver sido baixada, o app não inventa horário. **Se amanhã for domingo**, a
+  lista não mostra horários de amanhã (metrô e VLT normalmente não circulam,
+  embora o GTFS diga que sim).
+- **Sem mais partidas hoje**, além da frase, aparece o último horário de hoje e
+  o primeiro do próximo dia com metrô — amanhã, ou a segunda quando amanhã é
+  domingo: "Último de hoje: 17:12 · primeiro de segunda: 05:44 (domingo, só em
+  operação especial)" (tela inicial,
+  em cada sentido, e tela da estação; `ScheduleRepository.dayEnd`). A versão
+  lite faz igual.
 - **Download ruim nunca substitui a grade boa.** A grade nova é montada num
   arquivo temporário e só entra no lugar da atual se passar por três checagens:
   o tamanho recebido bate com o anunciado pelo servidor e com o do índice
@@ -541,7 +550,7 @@ libera acesso a partir de outras páginas —, então os horários chegam pronto
   ela (`null` = não para): a grade de um dia útil inteiro tem ~23 KB. Junto
   vai o zip original (`gtfs-<tipo>.zip`), que o **app Android** baixa.
 - A tarefa [`dados-web.yml`](.github/workflows/dados-web.yml) roda o script
-  quatro vezes por dia (04:30, 10:00, 15:00 e 20:00 de Fortaleza; ou à mão, em Actions → "Dados da versão
+  quatro vezes por dia (01:00, 10:00, 15:00 e 20:00 de Fortaleza; ou à mão, em Actions → "Dados da versão
   web" → Run workflow) e publica o resultado no ramo **`dados`**, fora da
   `main`, para não encher o histórico do app. A web lê de
   `raw.githubusercontent.com/giovanildo/metro-ceara-horarios/dados/…`.
@@ -556,7 +565,8 @@ GitHub Pages da página do app, em `giovanildo.github.io/metro-ceara-horarios/ap
 
 - `dados.js` — download dos JSON (com a última cópia guardada no aparelho, para
   abrir sem internet), relógio sempre no fuso de Fortaleza, grade do tipo de
-  dia, próximas partidas (acabando as de hoje, seguem as de amanhã) e
+  dia, próximas partidas (acabando as de hoje, seguem as de amanhã; com amanhã
+  domingo, o fim do dia mostra a segunda) e
   distância. É a tradução das mesmas regras do app.
 - `app.js` — as telas: início (estação mais perto de cada linha até 3 km, com a
   próxima partida em cada sentido; a localização só é pedida ao tocar no

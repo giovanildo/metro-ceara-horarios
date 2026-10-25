@@ -47,6 +47,7 @@ import io.github.giova.metroceara.R
 import io.github.giova.metroceara.data.bikeRuleFor
 import io.github.giova.metroceara.data.bikeBoarding
 import io.github.giova.metroceara.data.nowDayOfWeek
+import io.github.giova.metroceara.data.DayEnd
 import io.github.giova.metroceara.data.Departure
 import io.github.giova.metroceara.data.Direction
 import io.github.giova.metroceara.data.Route
@@ -72,6 +73,7 @@ fun DeparturesScreen(
     directions: List<Direction>,
     departuresFor: (Direction) -> List<Int>,
     tomorrowFor: (Direction) -> List<Int>?,
+    dayEndFor: (Direction) -> DayEnd,
     destinationsFor: (Direction) -> List<Stop>,
     onStartTrip: (Direction, Stop) -> Unit,
     tripAllowed: Boolean,
@@ -205,7 +207,20 @@ fun DeparturesScreen(
                 }
 
                 if (next.isEmpty()) {
-                    item { Text(stringResource(R.string.no_more_today)) }
+                    item {
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text(stringResource(R.string.no_more_today))
+                            direction?.let { d ->
+                                dayEndText(remember(d) { dayEndFor(d) })?.let {
+                                    Text(
+                                        text = it,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
+                        }
+                    }
                 } else {
                     item {
                         Card(

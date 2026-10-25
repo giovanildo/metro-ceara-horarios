@@ -1,5 +1,6 @@
 package io.github.giova.metroceara.ui
 
+import io.github.giova.metroceara.data.DayEnd
 import io.github.giova.metroceara.data.Departure
 import io.github.giova.metroceara.data.Station
 
@@ -7,6 +8,8 @@ import io.github.giova.metroceara.data.Station
 data class HomeDeparture(
     val headsign: String,
     val departure: Departure?,
+    /** Só quando não há [departure]: o último de hoje e o primeiro do próximo dia. */
+    val dayEnd: DayEnd? = null,
 )
 
 /**
