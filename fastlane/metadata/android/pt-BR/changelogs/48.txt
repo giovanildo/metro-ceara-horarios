@@ -1,0 +1,4 @@
+• Destino em outra linha: no Iniciar, busque a estação pelo nome e veja o roteiro com a integração, os horários e a chegada.
+• O app sugere o melhor horário de saída e avisa quando a integração é justa.
+• Modo viagem até a integração: avisa antes e diz para onde ir; depois, é só iniciar o próximo trecho.
+• Configurações → Integração: andando, sem pressa, de bicicleta ou de cadeira de rodas.
