@@ -127,18 +127,26 @@ def extrair(titulo, conteudo, publicada, link=""):
     return regras
 
 
-def buscar(hoje=None, dias=45):
-    """As regras de bike por data das noticias recentes do Metrofor (certificado incompleto: sem verificacao)."""
-    hoje = hoje or datetime.now(FORTALEZA).date()
+def posts_recentes(hoje, dias, busca=None):
+    """As noticias do site dos ultimos [dias] (com [busca], so as que a citam).
+    O certificado do site vem incompleto: sem verificacao."""
     ctx = ssl.create_default_context()
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
     depois = (hoje - timedelta(days=dias)).isoformat() + "T00:00:00"
-    url = API + "?" + urllib.parse.urlencode({
-        "search": "bicicletas", "after": depois, "per_page": 50, "_fields": "date,title,content,link"})
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (metro-ceara-horarios)"})
+    params = {"after": depois, "per_page": 100, "_fields": "date,title,content,link"}
+    if busca:
+        params["search"] = busca
+    req = urllib.request.Request(API + "?" + urllib.parse.urlencode(params),
+                                 headers={"User-Agent": "Mozilla/5.0 (metro-ceara-horarios)"})
     with urllib.request.urlopen(req, context=ctx, timeout=60) as resp:
-        posts = json.load(resp)
+        return json.load(resp)
+
+
+def buscar(hoje=None, dias=45):
+    """As regras de bike por data das noticias recentes do Metrofor."""
+    hoje = hoje or datetime.now(FORTALEZA).date()
+    posts = posts_recentes(hoje, dias, "bicicletas")
     regras = {}
     for p in sorted(posts, key=lambda p: p["date"]):
         publicada = date.fromisoformat(p["date"][:10])

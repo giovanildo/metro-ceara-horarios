@@ -16,9 +16,10 @@ Arquivos em SAIDA:
     gtfs-<tipo>.zip             o GTFS original do Metrofor (o app Android baixa daqui)
     bicicletar.json             estacoes do Bicicletar
     regras.json                 app/src/main/assets/regras.json mais as datas especiais
-                                de bike tiradas das noticias (tools/datas_especiais.py)
+                                de bike (tools/datas_especiais.py) e as operacoes especiais
+                                (tools/operacoes.py) tiradas das noticias
     noticias.json               ultimas noticias do site do Metrofor: titulo, data e link
-                                (o app e a versao lite mostram ate 2 dos ultimos 7 dias)
+                                (so para o app ate a versao 1.45; hoje o aviso e o de operacoes)
 """
 import html
 import io
@@ -36,6 +37,7 @@ from datetime import datetime, timedelta, timezone
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import build_db as gtfs  # noqa: E402  (mesmo tratamento de nomes, cores e Bicicletar)
 import datas_especiais  # noqa: E402
+import operacoes  # noqa: E402
 
 FORTALEZA = timezone(timedelta(hours=-3))  # sem horario de verao
 TIPOS = {5: "sabado", 6: "domingo"}  # weekday() -> tipo; o resto e dia util
@@ -186,7 +188,25 @@ def regras_com_datas_especiais(out):
         except (OSError, ValueError):
             automaticas = {}
     regras["datas_especiais"] = {**automaticas, **manuais}
+    regras["operacoes"] = operacoes_das_noticias(out, regras.get("operacoes", {}))
     return regras
+
+
+def operacoes_das_noticias(out, manuais):
+    """Os dias de operacao especial anunciados nas noticias; os postos a mao em
+    regras.json ganham. Se o site falhar, ficam os da publicacao anterior."""
+    try:
+        automaticas = operacoes.buscar()
+        print(f"operacoes especiais nas noticias: {', '.join(automaticas) or 'nenhuma'}")
+    except Exception as e:  # noqa: BLE001
+        print(f"operacoes especiais: {e}; mantidas as da publicacao anterior")
+        try:
+            with open(os.path.join(out, "regras.json"), encoding="utf-8") as fh:
+                automaticas = {d: o for d, o in json.load(fh).get("operacoes", {}).items()
+                               if not d.startswith("_") and "link" in o}
+        except (OSError, ValueError):
+            automaticas = {}
+    return {**automaticas, **manuais}
 
 
 def escrever(path, data):
