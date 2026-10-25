@@ -184,6 +184,9 @@ object ScheduleStore {
     private fun file(context: Context, type: DayType) =
         File(context.applicationContext.noBackupFilesDir, "schedules/${type.name.lowercase()}.db")
 
+    /** Um aviso de operação do site do Metrofor: a manchete e o link da notícia, se houver. */
+    data class Notice(val title: String, val link: String?)
+
     /** Avisos com mais de [NOTICE_DAYS] dias não aparecem: o feed passa meses sem novidade. */
     private const val NOTICE_DAYS = 7
     private const val MAX_NOTICES = 2
@@ -199,8 +202,8 @@ object ScheduleStore {
         prefs(context).edit { putString(KEY_NOTICES, json) }
     }
 
-    /** As manchetes dos avisos recentes (até [MAX_NOTICES]), a mais nova primeiro. */
-    fun notices(context: Context): List<String> {
+    /** Os avisos recentes (até [MAX_NOTICES]), o mais novo primeiro. */
+    fun notices(context: Context): List<Notice> {
         val json = prefs(context).getString(KEY_NOTICES, null) ?: return emptyList()
         val since = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = zone }
             .format(Calendar.getInstance(zone).apply { add(Calendar.DAY_OF_MONTH, -NOTICE_DAYS) }.time)
@@ -208,7 +211,7 @@ object ScheduleStore {
             val list = JSONArray(json)
             (0 until list.length()).map { list.getJSONObject(it) }
                 .filter { it.optString("data") >= since }
-                .map { it.getString("titulo") }
+                .map { Notice(it.getString("titulo"), it.optString("link").takeIf { l -> l.startsWith("https://") }) }
                 .take(MAX_NOTICES)
         }.getOrDefault(emptyList())
     }

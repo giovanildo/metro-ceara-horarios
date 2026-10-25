@@ -1,5 +1,8 @@
 package io.github.giova.metroceara.ui
 
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -9,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -17,6 +21,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import io.github.giova.metroceara.R
 import io.github.giova.metroceara.data.ScheduleSource
+import io.github.giova.metroceara.data.ScheduleStore
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -73,19 +78,28 @@ private fun formatClock(millis: Long): String =
 
 /**
  * Os avisos de operação do site do Metrofor (horário especial, gratuidade,
- * interrupção), só a manchete, com a fonte na frente. Nada a tocar.
+ * interrupção): a manchete, com a fonte na frente. Tocar abre a notícia no
+ * navegador, no site do Metrofor.
  */
 @Composable
-fun MetroforNotices(titles: List<String>, modifier: Modifier = Modifier) {
-    titles.forEach { title ->
+fun MetroforNotices(notices: List<ScheduleStore.Notice>, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    notices.forEach { notice ->
         Text(
             text = buildAnnotatedString {
                 withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(stringResource(R.string.notice_source)) }
                 append(" ")
-                append(title)
+                append(notice.title)
+                if (notice.link != null) append(" ›")
             },
             style = MaterialTheme.typography.bodyMedium,
-            modifier = modifier,
+            modifier = modifier.then(
+                notice.link?.let { link ->
+                    Modifier.clickable {
+                        runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link))) }
+                    }
+                } ?: Modifier,
+            ),
         )
     }
 }
