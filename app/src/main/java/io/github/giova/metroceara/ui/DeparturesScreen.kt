@@ -138,7 +138,7 @@ fun DeparturesScreen(
         directions.any { d -> departuresFor(d).any { it >= now } }
     }
     val bikeRule = remember(route.id, now, runningToday) {
-        bikeRuleFor(stop.name, route.name)?.takeIf { !sunday && runningToday }?.let { bikeBoarding(it, nowDayOfWeek(), now) }
+        bikeRuleFor(stop.name, route.name)?.takeIf { (!sunday || it.special) && runningToday }?.let { bikeBoarding(it, nowDayOfWeek(), now) }
     }
 
     Scaffold(

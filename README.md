@@ -218,7 +218,24 @@ aviso: o Relatório de Demanda do Metrofor (3º tri/2025, p. 20) só registra bi
 na Sul, na Nordeste e em Sobral. Quando as fontes do Metrofor divergem, vale a
 mais recente. Dobrável fechada na bolsa conta como bagagem. No
 domingo o aviso de bike some, porque nesse dia só há operação especial e a regra
-dela não é conhecida.
+dela não é conhecida — a não ser que o Metrofor a tenha anunciado (abaixo).
+
+**Feriados e dias especiais.** Nas operações especiais, o Metrofor anuncia em
+notícia a regra da bike do dia: nos feriados, "nas linhas Sul e Nordeste, o
+embarque com bicicletas estará liberado entre 9h e 15h"; nos domingos do ENEM e
+nas vésperas de Natal e Ano-Novo, "não haverá embarque com bicicletas"; na
+eleição de 2024, "a partir das 9h até o encerramento". A tarefa do espelho lê
+sozinha essas notícias ([`tools/datas_especiais.py`](tools/datas_especiais.py),
+pela API do WordPress do site, notícias dos últimos 45 dias com "bicicletas"),
+tira a data (`quinta-feira (19)`, `(20/11)`, `dias 9 e 16 de novembro`,
+conferindo o dia da semana), as linhas e as janelas, e publica em
+`datas_especiais` do `regras.json` do espelho. Nesse dia, o app e a lite usam a
+regra do dia no lugar da do dia da semana, até num domingo ("Hoje não há
+embarque com bike no metrô", "Não há mais horário hoje…"). É conservador: notícia
+sem data clara ou com regra que ele não entende fica de fora, e vale a regra
+normal. Conferido com as 31 notícias de bike do site (2012–2026): acertou as 13
+datas especiais de out/2024 a jun/2026. Uma data posta à mão em `datas_especiais`
+do `regras.json` ganha da tirada das notícias.
 
 As regras ficam na seção `bike` de
 [`app/src/main/assets/regras.json`](app/src/main/assets/regras.json): cada

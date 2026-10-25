@@ -27,6 +27,7 @@ fun BikeBoardingNotice(rule: BikeBoarding, vehicle: String, modifier: Modifier =
         rule.allowed -> stringResource(R.string.bike_boarding_until_close, vehicle)
         rule.boundary != null ->
             stringResource(R.string.bike_boarding_from, vehicle, formatTime(rule.boundary))
+        rule.anyToday -> stringResource(R.string.bike_boarding_no_more_today, vehicle)
         else -> stringResource(R.string.bike_boarding_not_today, vehicle)
     }
     val color = if (rule.allowed) {

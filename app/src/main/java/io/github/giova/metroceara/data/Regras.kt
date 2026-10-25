@@ -5,6 +5,9 @@ import java.io.File
 import org.json.JSONArray
 import org.json.JSONObject
 
+/** A regra de bike de um dia especial: as linhas (vazio = todas com bike) e as janelas (vazio = sem bike). */
+data class BikeSpecialDay(val lines: Set<String>, val windows: List<BikeWindow>)
+
 /** Uma integração entre duas estações, com a passagem em cada sentido. */
 data class IntegracaoRegra(
     val a: String,
@@ -28,6 +31,8 @@ class Regras(
     val integracoes: List<IntegracaoRegra>,
     /** Faixas de pico, em minutos desde a meia-noite (início incluído, fim não). */
     val peak: List<IntRange> = emptyList(),
+    /** Regra de bike de dias especiais ("AAAA-MM-DD"), no lugar da do dia da semana. */
+    val bikeSpecialDays: Map<String, BikeSpecialDay> = emptyMap(),
 ) {
     /** A partida cai num horário de pico (metrô costuma ir cheio)? */
     fun isPeak(minutes: Int): Boolean = peak.any { minutes in it }
@@ -95,7 +100,19 @@ class Regras(
                     clock(w.getString(0)) until clock(w.getString(1))
                 }
             }.orEmpty()
-            return Regras(byName(bike.getJSONObject("linhas")), byName(bike.getJSONObject("estacoes")), integracoes, peak)
+            val specialDays = root.optJSONObject("datas_especiais")?.let { o ->
+                o.keys().asSequence().filterNot { it.startsWith("_") }.associateWith { day ->
+                    val d = o.getJSONObject(day)
+                    val lines = d.optJSONArray("linhas") ?: JSONArray()
+                    BikeSpecialDay(
+                        lines = (0 until lines.length()).map { lines.getString(it).trim().lowercase() }.toSet(),
+                        windows = windows(d.getJSONArray("bike")),
+                    )
+                }
+            }.orEmpty()
+            return Regras(
+                byName(bike.getJSONObject("linhas")), byName(bike.getJSONObject("estacoes")), integracoes, peak, specialDays,
+            )
         }
 
         /** "HH:MM" em minutos desde a meia-noite. */

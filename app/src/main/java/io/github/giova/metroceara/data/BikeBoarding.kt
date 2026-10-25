@@ -16,6 +16,8 @@ data class BikeRule(
     val weekday: List<BikeWindow>,
     val saturday: List<BikeWindow>,
     val sunday: List<BikeWindow> = emptyList(),
+    /** Regra de um dia especial (feriado, ENEM, eleição): vale até no domingo. */
+    val special: Boolean = false,
 ) {
     fun windowsFor(dayOfWeek: Int): List<BikeWindow> = when (dayOfWeek) {
         Calendar.SATURDAY -> saturday
@@ -24,11 +26,19 @@ data class BikeRule(
     }
 }
 
-/** A regra que vale nesta estação desta linha, ou `null` se lá não há aviso de bike. */
-fun bikeRuleFor(stationName: String, lineName: String): BikeRule? {
+/**
+ * A regra que vale hoje nesta estação desta linha, ou `null` se lá não há aviso
+ * de bike. Num dia especial anunciado pelo Metrofor (regras.json,
+ * "datas_especiais"), vale a regra do dia, para qualquer dia da semana.
+ */
+fun bikeRuleFor(stationName: String, lineName: String, today: String = ScheduleStore.today()): BikeRule? {
     // As regras ficam em assets/regras.json (seção "bike"), não aqui.
     val rules = Regras.current
-    return rules.bikeByStation[stationName.trim().lowercase()] ?: rules.bikeByLine[lineName.trim().lowercase()]
+    val line = lineName.trim().lowercase()
+    val normal = rules.bikeByStation[stationName.trim().lowercase()] ?: rules.bikeByLine[line]
+    val special = rules.bikeSpecialDays[today]?.takeIf { normal != null && (it.lines.isEmpty() || line in it.lines) }
+        ?: return normal
+    return BikeRule(special.windows, special.windows, special.windows, special = true)
 }
 
 /**
@@ -38,7 +48,12 @@ fun bikeRuleFor(stationName: String, lineName: String): BikeRule? {
  * janela de hoje quando não; `null` quer dizer "até o fim da operação" ou
  * "nenhuma janela hoje", respectivamente.
  */
-data class BikeBoarding(val allowed: Boolean, val boundary: Int?)
+data class BikeBoarding(
+    val allowed: Boolean,
+    val boundary: Int?,
+    /** Hoje tem (ou teve) alguma janela de bike; falso = dia sem bike nenhuma. */
+    val anyToday: Boolean = true,
+)
 
 fun bikeBoarding(rule: BikeRule, dayOfWeek: Int, minutes: Int): BikeBoarding {
     val windows = rule.windowsFor(dayOfWeek).sortedBy { it.startMinutes }
@@ -47,7 +62,7 @@ fun bikeBoarding(rule: BikeRule, dayOfWeek: Int, minutes: Int): BikeBoarding {
         if (minutes >= window.startMinutes && (end == null || minutes < end)) return BikeBoarding(true, end)
     }
     val next = windows.map { it.startMinutes }.firstOrNull { it > minutes }
-    return BikeBoarding(false, next)
+    return BikeBoarding(false, next, anyToday = windows.isNotEmpty())
 }
 
 private fun toMinutes(hhmm: String): Int {

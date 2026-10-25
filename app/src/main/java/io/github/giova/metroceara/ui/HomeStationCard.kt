@@ -216,7 +216,7 @@ private fun StationSummary(
             // sem mais partidas hoje, "pode embarcar" não faria sentido.
             val runningToday = departures.any { it.departure?.tomorrow == false }
             val bikeRule = bikeRuleFor(station.stopName, station.routeName)
-            if (!sunday && runningToday && bikeRule != null) {
+            if ((!sunday || bikeRule?.special == true) && runningToday && bikeRule != null) {
                 BikeBoardingNotice(
                     rule = remember(now, bikeRule) { bikeBoarding(bikeRule, nowDayOfWeek(), now) },
                     vehicle = vehicleName(station.routeName),

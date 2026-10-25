@@ -40,7 +40,8 @@
     <string name="bike_boarding_until">Pode embarcar com bike no %1$s agora, até as %2$s</string>
     <string name="bike_boarding_until_close">Pode embarcar com bike no %1$s agora, até o fim da operação</string>
     <string name="bike_boarding_from">Bike no %1$s só a partir das %2$s</string>
-    <string name="bike_boarding_not_today">Hoje não há horário para embarcar com bike no %1$s</string>
+    <string name="bike_boarding_not_today">Hoje não há embarque com bike no %1$s</string>
+    <string name="bike_boarding_no_more_today">Não há mais horário hoje para embarcar com bike no %1$s</string>
 
     <string name="sunday_warning">Aos domingos o metrô e os VLTs normalmente não circulam. Em dias de operação especial (eleição, ENEM, eventos), os horários podem ser diferentes destes.</string>
 
