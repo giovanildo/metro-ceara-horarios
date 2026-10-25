@@ -9,6 +9,19 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.res.stringResource
 import io.github.giova.metroceara.data.Regras
+import io.github.giova.metroceara.data.transferRule
+import io.github.giova.metroceara.data.transferMinutes
+import io.github.giova.metroceara.data.nowDayOfWeek
+import io.github.giova.metroceara.data.formatTime
+import io.github.giova.metroceara.data.bikeRuleFor
+import io.github.giova.metroceara.data.bikeBoarding
+import io.github.giova.metroceara.data.TripTransfer
+import io.github.giova.metroceara.data.TransferFare
+import io.github.giova.metroceara.data.Router
+import io.github.giova.metroceara.data.RoutePoint
+import io.github.giova.metroceara.data.Mobility
+import io.github.giova.metroceara.data.Itinerary
+import androidx.compose.runtime.produceState
 import io.github.giova.metroceara.data.distanceMeters
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -53,6 +66,7 @@ import io.github.giova.metroceara.data.SettingsStore
 import io.github.giova.metroceara.data.nearestPerRoute
 import io.github.giova.metroceara.data.nextDepartures
 import io.github.giova.metroceara.data.nowMinutes
+import kotlin.math.ceil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -64,6 +78,18 @@ private const val TICK_MILLIS = 15_000L
 private const val HOME_GPS_MIN_METERS = 30f
 
 private const val USER_POSITION_MAX_AGE_MILLIS = 10L * 60 * 1000
+
+/** Andando a uns 4,5 km/h, para contar a caminhada até a estação de partida do roteiro. */
+private const val WALK_METERS_PER_MINUTE = 75.0
+
+/** Até essa caminhada, a pessoa já está na estação. */
+private const val ORIGIN_WALK_FREE_MINUTES = 3
+
+/** Estações de partida do roteiro: só as que ficam até essa caminhada (Parangaba e Parangaba - NE, por exemplo). */
+private const val ORIGIN_WALK_MAX_MINUTES = 10
+
+/** O cartão do próximo trecho some este tempo depois da partida prevista dele. */
+private const val PENDING_LEG_MINUTES = 60
 
 private fun formatKm(meters: Double): String =
     if (meters < 1000) "${meters.toInt()} m" else "%.1f km".format(meters / 1000).replace('.', ',')
@@ -372,6 +398,97 @@ fun AppRoot() {
         homeState.station?.let(::add)
         otherLines.forEach { add(it.first) }
     }.filter { tripAllowedFrom(it.lat, it.lon) }
+
+    // ------------------------------------------------- roteiro com integração ----
+    val router = remember(repo, settings) {
+        Router(repo.timetable, repo.transferLinks()) { link, arrival -> transferMinutes(link.baseMinutes, arrival, settings) }
+    }
+    val stoppedRoutes = remember(repo, today) {
+        repo.routes().filter { Regras.current.stopped(today, it.name) }.map { it.id }.toSet()
+    }
+    // O roteiro esperando "Iniciar viagem" e, depois do 1º trecho, o próximo a começar.
+    var routeOptions by remember { mutableStateOf<List<RouteView>?>(null) }
+    var pendingLeg by rememberSaveable { mutableStateOf<String?>(null) }
+
+    // Minutos a pé da pessoa até a estação (0 sem localização, ou já nela).
+    fun walkTo(station: Station): Int =
+        userDistanceTo(station.lat, station.lon)?.let { ceil(it / WALK_METERS_PER_MINUTE).toInt() }
+            ?.takeIf { it > ORIGIN_WALK_FREE_MINUTES } ?: 0
+
+    // De cada estação de partida a uma caminhada curta da pessoa, contando o
+    // tempo a pé, fica a que chega primeiro. Longe de todas, só a mais perto:
+    // ninguém quer ouvir "ande 37 min até outra linha".
+    fun bestPlans(origins: List<Station>, destination: RoutePoint, limit: Int = 4): List<Itinerary> {
+        val late = nowMinutes() - settings.lateBoardingMinutes
+        val near = origins.filter { walkTo(it) <= ORIGIN_WALK_MAX_MINUTES }.ifEmpty { listOfNotNull(origins.minByOrNull(::walkTo)) }
+        return near.map { o ->
+            val walk = walkTo(o)
+            router.plan(RoutePoint(o.routeId, o.stopId), destination, if (walk > 0) nowMinutes() + walk else late, limit, stoppedRoutes)
+        }
+            .filter { it.isNotEmpty() }
+            .minWithOrNull(compareBy<List<Itinerary>> { it.first().arrival }.thenByDescending { it.first().departure })
+            .orEmpty()
+    }
+
+    fun routeView(itinerary: Itinerary): RouteView {
+        // "Parangaba - NE", "Expedicionarios - AE": o sufixo da grade só separa as plataformas.
+        fun stopName(id: String) = (repo.stop(id)?.name ?: id).replace(Regex("\\s+-\\s+(AE|NE)$", RegexOption.IGNORE_CASE), "")
+        fun headsign(routeId: String, direction: Int) =
+            repo.directions(routeId).firstOrNull { it.id == direction }?.headsign.orEmpty()
+        val legs = itinerary.legs.map { leg ->
+            val route = repo.route(leg.routeId)
+            LegView(route?.name.orEmpty(), route?.colorHex.orEmpty(), headsign(leg.routeId, leg.directionId),
+                stopName(leg.fromStop), stopName(leg.toStop), leg.departure, leg.arrival)
+        }
+        val transfers = itinerary.transfers.map { t ->
+            TransferView(stopName(t.link.fromStop), t.needMinutes, t.tight, t.nextDeparture,
+                // A regra de passagem usa o nome da grade, com o sufixo.
+                transferRule(repo.stop(t.link.fromStop)?.name.orEmpty(), repo.stop(t.link.toStop)?.name.orEmpty()).fare)
+        }
+        // Com bicicleta, confere a regra de bike no embarque de cada trecho.
+        val warnings = if (settings.mobility != Mobility.BIKE) emptyList() else legs.mapNotNull { leg ->
+            val rule = bikeRuleFor(leg.fromName, leg.routeName)
+            when {
+                rule == null -> context.getString(R.string.route_bike_no_line, leg.routeName)
+                !bikeBoarding(rule, nowDayOfWeek(), leg.departure).allowed ->
+                    context.getString(R.string.route_bike_not_now, leg.routeName, formatTime(leg.departure))
+                else -> null
+            }
+        }.distinct()
+        val walk = tripOrigins.firstOrNull { it.stopId == itinerary.legs.first().fromStop }?.let(::walkTo) ?: 0
+        val walkNote = if (walk > 0) listOf(context.getString(R.string.route_walk_to_origin, legs.first().fromName, walk)) else emptyList()
+        return RouteView(itinerary, legs, transfers, walkNote + warnings)
+    }
+
+    // Começa o 1º trecho do roteiro; o resto fica guardado para o cartão "Próximo trecho".
+    fun startRoute(view: RouteView) {
+        val itinerary = view.itinerary
+        val first = itinerary.legs.first()
+        val stops = leg(first.routeId, first.directionId, first.fromStop, first.toStop,
+            repo.tripTimes(first.tripId, first.routeId))
+        val route = repo.route(first.routeId)
+        if (stops == null || stops.size < 2 || route == null) {
+            tripMessage = context.getString(R.string.trip_no_trip_today)
+            return
+        }
+        val next = view.legs.getOrNull(1)
+        val transfer = view.transfers.firstOrNull()
+        val plan = TripPlan(
+            first.routeId, route.name, view.legs.first().headsign, stops, settings.alertStationsBefore,
+            transfer = if (next != null && transfer != null) {
+                TripTransfer(next.routeName, next.headsign, next.departure, transfer.needMinutes, view.destinationName,
+                    when (transfer.fare) { TransferFare.FREE -> true; TransferFare.PAID -> false; TransferFare.UNKNOWN -> null })
+            } else {
+                null
+            },
+        )
+        val last = itinerary.legs.last()
+        pendingLeg = itinerary.legs.getOrNull(1)?.let { n ->
+            listOf(n.routeId, n.fromStop, last.routeId, last.toStop, (n.departure + PENDING_LEG_MINUTES).toString()).joinToString("|")
+        }
+        confirmAndLaunch(plan)
+    }
+
     if (pickingHomeDestination && tripOrigins.isNotEmpty()) {
         val groups = remember(repo, tripOrigins) {
             tripOrigins.flatMap { origin ->
@@ -388,6 +505,42 @@ fun AppRoot() {
                 }
             }
         }
+        // As linhas que só se alcançam com integração, fechadas até a pessoa abrir.
+        val originRoutes = tripOrigins.map { it.routeId }.toSet()
+        val others = remember(repo, router, tripOrigins, stoppedRoutes) {
+            val reach = originRoutes.flatMap { router.reachable(it) }.toSet() - originRoutes
+            // O caminho do subtítulo sai das partidas a uma caminhada curta, como o roteiro.
+            val nearRoutes = tripOrigins.filter { walkTo(it) <= ORIGIN_WALK_MAX_MINUTES }.map { it.routeId }
+                .ifEmpty { listOfNotNull(tripOrigins.minByOrNull(::walkTo)?.routeId) }
+            repo.routes().filter { it.id in reach }.mapNotNull { route ->
+                val via = nearRoutes.mapNotNull { router.via(it, route.id) }.minByOrNull { it.size }
+                    ?: originRoutes.mapNotNull { router.via(it, route.id) }.minByOrNull { it.size }
+                    ?: return@mapNotNull null
+                // A estação onde se chega a pé não é destino: ali a pessoa ainda nem embarcou.
+                val arrivalStop = via.lastOrNull()?.toStop
+                val stops = repo.directions(route.id).maxByOrNull { repo.stops(route.id, it.id).size }
+                    ?.let { repo.stops(route.id, it.id) }.orEmpty().filter { it.id != arrivalStop }
+                OtherLineGroup(route.id, route.name, route.colorHex,
+                    via.map { repo.stop(it.fromStop)?.name.orEmpty() }, stops, stopped = route.id in stoppedRoutes)
+            }
+        }
+        // A chegada prevista em cada estação da lista, calculada fora da tela.
+        val arrivals by produceState(emptyMap<String, Int>(), groups, others, router) {
+            value = withContext(Dispatchers.IO) {
+                val from = nowMinutes() - settings.lateBoardingMinutes
+                val same = groups.flatMap { g ->
+                    val times = repo.nextTrip(g.origin.id, g.routeId, g.direction.id, from)?.second.orEmpty()
+                    g.stops.mapNotNull { s -> times[s.id]?.let { "${g.routeId}:${s.id}" to it } }
+                }
+                val other = others.filterNot { it.stopped }.flatMap { g ->
+                    g.stops.mapNotNull { s ->
+                        bestPlans(tripOrigins, RoutePoint(g.routeId, s.id), limit = 1).firstOrNull()
+                            ?.let { "${g.routeId}:${s.id}" to it.arrival }
+                    }
+                }
+                (same + other).toMap()
+            }
+        }
         DestinationDialog(
             groups = groups,
             onPick = { group, destination ->
@@ -395,6 +548,35 @@ fun AppRoot() {
                 startTrip(group.routeId, group.direction, group.origin, destination)
             },
             onDismiss = { pickingHomeDestination = false },
+            others = others,
+            arrivals = arrivals,
+            onPickOther = { group, destination ->
+                pickingHomeDestination = false
+                val plans = bestPlans(tripOrigins, RoutePoint(group.routeId, destination.id))
+                if (plans.isEmpty()) {
+                    val last = tripOrigins.mapNotNull {
+                        router.lastDeparture(RoutePoint(it.routeId, it.stopId), RoutePoint(group.routeId, destination.id), stoppedRoutes)
+                    }.maxOrNull()
+                    tripMessage = if (last != null) {
+                        context.getString(R.string.route_none_after, destination.name, formatTime(last))
+                    } else {
+                        context.getString(R.string.route_none_today, destination.name)
+                    }
+                } else {
+                    routeOptions = plans.map(::routeView)
+                }
+            },
+        )
+    }
+
+    routeOptions?.let { options ->
+        RouteDialog(
+            options = options,
+            onStart = { view ->
+                routeOptions = null
+                startRoute(view)
+            },
+            onDismiss = { routeOptions = null },
         )
     }
 
@@ -588,8 +770,23 @@ fun AppRoot() {
                             onStop = { TripTracker.stop(context) },
                         )
                     } else {
+                        // Depois do 1º trecho de um roteiro: o próximo, com os horários de agora
+                        // (se a pessoa perdeu o VLT, já aparece o seguinte).
+                        val next = remember(pendingLeg, now, router) {
+                            pendingLeg?.split("|")?.takeIf { it.size == 5 && now <= it[4].toInt() }?.let { p ->
+                                router.plan(RoutePoint(p[0], p[1]), RoutePoint(p[2], p[3]),
+                                    now - settings.lateBoardingMinutes, limit = 1, avoid = stoppedRoutes).firstOrNull()
+                            }?.let(::routeView)
+                        }
+                        if (next != null) {
+                            NextLegCard(
+                                next = next,
+                                onStart = { startRoute(next) },
+                                onDismiss = { pendingLeg = null },
+                            )
+                        }
                         // A mais de 3 km de qualquer estação, o modo viagem não aparece.
-                        if (homeState.station == null || tripOrigins.isNotEmpty()) {
+                        if (next == null && (homeState.station == null || tripOrigins.isNotEmpty())) {
                             TripStartCard(
                                 origins = tripOrigins,
                                 alertStationsBefore = settings.alertStationsBefore,

@@ -35,6 +35,18 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import io.github.giova.metroceara.ui.theme.routeColor
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.foundation.background
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
@@ -251,40 +263,144 @@ data class DestinationGroup(
     val stops: List<Stop>,
 )
 
-/** Escolha do destino: as estações seguintes, em cada linha e sentido oferecidos. */
+/**
+ * Uma linha que só se alcança com integração: as estações dela (o app escolhe o
+ * sentido) e de onde se chega ("integração em Parangaba").
+ */
+data class OtherLineGroup(
+    val routeId: String,
+    val routeName: String,
+    val colorHex: String,
+    /** Onde a pessoa troca de linha; com mais de uma, só a contagem aparece. */
+    val transferStations: List<String>,
+    val stops: List<Stop>,
+    /** O Metrofor avisou que a linha não circula hoje. */
+    val stopped: Boolean = false,
+)
+
+/**
+ * Escolha do destino: as estações seguintes, em cada linha e sentido oferecidos,
+ * e as outras linhas (fechadas até a pessoa abrir), com busca pelo nome.
+ * [arrivals] traz a chegada prevista por "linha:estação", quando já calculada.
+ */
 @Composable
 fun DestinationDialog(
     groups: List<DestinationGroup>,
     onPick: (DestinationGroup, Stop) -> Unit,
     onDismiss: () -> Unit,
+    others: List<OtherLineGroup> = emptyList(),
+    arrivals: Map<String, Int> = emptyMap(),
+    onPickOther: (OtherLineGroup, Stop) -> Unit = { _, _ -> },
 ) {
     val shown = groups.filter { it.stops.isNotEmpty() }
+    var query by rememberSaveable { mutableStateOf("") }
+    val open = remember { mutableStateMapOf<String, Boolean>() }
+    val needle = plainText(query)
+    @Composable
+    fun otherDetail(group: OtherLineGroup): String {
+        val count = pluralStringResource(R.plurals.stations_count, group.stops.size, group.stops.size)
+        return if (group.transferStations.size == 1) {
+            stringResource(R.string.dest_other_line, count, group.transferStations.first())
+        } else {
+            stringResource(R.string.dest_other_line_multi, count, group.transferStations.size)
+        }
+    }
+    @Composable
+    fun arrivalText(routeId: String, stop: Stop, stopped: Boolean = false): String? =
+        if (stopped) stringResource(R.string.dest_stopped)
+        else arrivals["$routeId:${stop.id}"]?.let { stringResource(R.string.dest_arrives, formatTime(it)) }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.trip_pick_destination)) },
         text = {
-            LazyColumn(modifier = Modifier.heightIn(max = 420.dp)) {
-                shown.forEachIndexed { groupIndex, group ->
-                    if (shown.size > 1) {
-                        item(key = "h$groupIndex") {
-                            Text(
-                                text = group.title,
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(top = 12.dp, bottom = 4.dp),
-                            )
+            Column {
+                if (others.isNotEmpty()) {
+                    OutlinedTextField(
+                        value = query,
+                        onValueChange = { query = it },
+                        placeholder = { Text(stringResource(R.string.dest_search)) },
+                        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                        singleLine = true,
+                        shape = RoundedCornerShape(28.dp),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                    )
+                }
+                LazyColumn(modifier = Modifier.heightIn(max = 420.dp)) {
+                    if (needle.isNotEmpty()) {
+                        val same = shown.flatMap { g -> g.stops.filter { plainText(it.name).contains(needle) }.map { g to it } }
+                        val other = others.flatMap { g -> g.stops.filter { plainText(it.name).contains(needle) }.map { g to it } }
+                        if (same.isEmpty() && other.isEmpty()) {
+                            item { Text(stringResource(R.string.dest_none), modifier = Modifier.padding(vertical = 12.dp)) }
                         }
-                    }
-                    items(group.stops, key = { "$groupIndex-${it.id}" }) { stop ->
-                        Text(
-                            text = stop.name,
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onPick(group, stop) }
-                                .padding(vertical = 12.dp),
-                        )
-                        HorizontalDivider()
+                        items(same, key = { (g, s) -> "s${g.routeId}-${g.direction.id}-${s.id}" }) { (group, stop) ->
+                            DestinationRow(stop.name, listOfNotNull(group.title, arrivalText(group.routeId, stop)).joinToString(" · ")) {
+                                onPick(group, stop)
+                            }
+                        }
+                        items(other, key = { (g, s) -> "o${g.routeId}-${s.id}" }) { (group, stop) ->
+                            DestinationRow(
+                                stop.name,
+                                listOfNotNull(group.routeName, otherDetail(group).substringAfter(" · "),
+                                    arrivalText(group.routeId, stop, group.stopped)).joinToString(" · "),
+                                enabled = !group.stopped,
+                            ) { onPickOther(group, stop) }
+                        }
+                    } else {
+                        shown.forEachIndexed { groupIndex, group ->
+                            if (shown.size > 1 || others.isNotEmpty()) {
+                                item(key = "h$groupIndex") {
+                                    Text(
+                                        text = group.title,
+                                        style = MaterialTheme.typography.labelLarge,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.padding(top = 12.dp, bottom = 4.dp),
+                                    )
+                                }
+                            }
+                            items(group.stops, key = { "$groupIndex-${it.id}" }) { stop ->
+                                DestinationRow(stop.name, arrivalText(group.routeId, stop)) { onPick(group, stop) }
+                            }
+                        }
+                        others.forEach { group ->
+                            val expanded = open[group.routeId] == true
+                            item(key = "oh${group.routeId}") {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { open[group.routeId] = !expanded }
+                                        .padding(top = 14.dp, bottom = 10.dp),
+                                ) {
+                                    Spacer(
+                                        modifier = Modifier
+                                            .size(10.dp)
+                                            .background(routeColor(group.colorHex), RoundedCornerShape(50)),
+                                    )
+                                    Column(modifier = Modifier.weight(1f).padding(start = 10.dp)) {
+                                        Text(group.routeName, style = MaterialTheme.typography.labelLarge,
+                                            color = MaterialTheme.colorScheme.primary)
+                                        Text(
+                                            text = if (group.stopped) stringResource(R.string.dest_stopped) else otherDetail(group),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                    Icon(
+                                        if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                                        contentDescription = null,
+                                    )
+                                }
+                                HorizontalDivider()
+                            }
+                            if (expanded) {
+                                items(group.stops, key = { "o${group.routeId}-${it.id}" }) { stop ->
+                                    DestinationRow(stop.name, arrivalText(group.routeId, stop, group.stopped), enabled = !group.stopped) {
+                                        onPickOther(group, stop)
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -293,6 +409,30 @@ fun DestinationDialog(
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     )
 }
+
+@Composable
+private fun DestinationRow(name: String, detail: String?, enabled: Boolean = true, onClick: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(vertical = 10.dp),
+    ) {
+        Text(
+            text = name,
+            style = MaterialTheme.typography.bodyLarge,
+            color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        detail?.let {
+            Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+    HorizontalDivider()
+}
+
+/** "José de Alencar" e "jose de alencar" viram o mesmo texto, para a busca. */
+private fun plainText(text: String): String =
+    java.text.Normalizer.normalize(text.trim(), java.text.Normalizer.Form.NFD).replace(Regex("\\p{M}+"), "").lowercase()
 
 /** Direto ou sentado pelo terminal: horários dos dois para a pessoa escolher. */
 @Composable

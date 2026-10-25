@@ -3,6 +3,7 @@ package io.github.giova.metroceara.ui
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.Switch
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.FilterChip
 import android.os.Build
 import androidx.compose.foundation.layout.Column
@@ -32,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.giova.metroceara.R
 import io.github.giova.metroceara.data.AppSettings
+import io.github.giova.metroceara.data.Mobility
 import kotlin.math.roundToInt
 
 /** Distâncias e tempos ajustáveis, em linguagem de passageiro. */
@@ -169,6 +171,47 @@ fun SettingsScreen(
                 description = R.string.settings_give_up_desc,
                 value = settings.tripGiveUpMinutes, range = 10..60, step = 5, format = { "$it min" },
             ) { onChange(settings.copy(tripGiveUpMinutes = it)) }
+
+            SectionTitle(R.string.settings_section_transfer)
+            Text(
+                text = stringResource(R.string.settings_mobility),
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+            Text(
+                text = stringResource(R.string.settings_mobility_desc),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            listOf(
+                Mobility.WALKING to (R.string.mobility_walking to R.string.mobility_walking_desc),
+                Mobility.RELAXED to (R.string.mobility_relaxed to R.string.mobility_relaxed_desc),
+                Mobility.BIKE to (R.string.mobility_bike to R.string.mobility_bike_desc),
+                Mobility.WHEELCHAIR to (R.string.mobility_wheelchair to R.string.mobility_wheelchair_desc),
+            ).forEach { (mobility, texts) ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onChange(settings.copy(mobility = mobility)) }
+                        .padding(vertical = 4.dp),
+                ) {
+                    RadioButton(selected = settings.mobility == mobility, onClick = { onChange(settings.copy(mobility = mobility)) })
+                    Column {
+                        Text(stringResource(texts.first), style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            text = stringResource(texts.second),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+            SettingSlider(
+                title = R.string.settings_transfer_extra,
+                description = R.string.settings_transfer_extra_desc,
+                value = settings.transferExtraMinutes, range = 0..10, step = 1, format = { "$it min" },
+            ) { onChange(settings.copy(transferExtraMinutes = it)) }
 
             SectionTitle(R.string.settings_section_gps)
             SettingSlider(
