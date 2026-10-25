@@ -14,6 +14,7 @@ import io.github.giova.metroceara.MainActivity
 import io.github.giova.metroceara.R
 import io.github.giova.metroceara.data.SettingsStore
 import io.github.giova.metroceara.data.TripFix
+import io.github.giova.metroceara.data.TripPlan
 import io.github.giova.metroceara.data.TripTransfer
 import io.github.giova.metroceara.data.formatTime
 import io.github.giova.metroceara.data.vehicleName
@@ -167,11 +168,11 @@ internal object TripNotifications {
      * Fica na barra depois que a viagem encerra. Devolve o texto, para a voz.
      */
     fun arrived(context: Context, trip: ActiveTrip, belongings: Boolean): String {
-        val text = trip.plan.transfer?.let { transferArrived(context, trip.plan.destination.name, it) }
+        val text = simulated(context, trip.plan, trip.plan.transfer?.let { transferArrived(context, trip.plan.destination.name, it) }
             ?: context.getString(
                 if (belongings) R.string.trip_arrived_belongings else R.string.trip_arrived,
                 trip.plan.destination.name,
-            )
+            ))
         val notification = NotificationCompat.Builder(context, CHANNEL_STATION)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(trip.plan.destination.name)
@@ -186,6 +187,10 @@ internal object TripNotifications {
         }
         return text
     }
+
+    /** Na simulação, "Simulação: " na frente, para ninguém confundir com uma viagem de verdade. */
+    fun simulated(context: Context, plan: TripPlan, text: String): String =
+        if (plan.simulated) context.getString(R.string.trip_sim) + ": " + text else text
 
     /** "Desça em Parangaba e vá para a Linha Nordeste, 2 min a pé. VLT às 08:10, sentido Iate. Passagem grátis." */
     fun transferArrived(context: Context, station: String, t: TripTransfer): String =
@@ -214,9 +219,9 @@ internal object TripNotifications {
         val plan = trip.plan
         val progress = trip.progress
         val left = progress.stationsLeft(plan)
-        val title = plan.transfer?.let {
+        val title = simulated(context, plan, plan.transfer?.let {
             context.getString(R.string.trip_notification_title_transfer, it.finalDestination, plan.destination.name)
-        } ?: context.getString(R.string.trip_notification_title, plan.destination.name)
+        } ?: context.getString(R.string.trip_notification_title, plan.destination.name))
         val text = when {
             trip.arrived -> context.getString(R.string.trip_arrived, plan.destination.name)
             progress.index < 0 -> context.getString(
@@ -228,7 +233,7 @@ internal object TripNotifications {
                 plan.stops[progress.index].name,
                 context.resources.getQuantityString(R.plurals.trip_stations_left, left, left),
                 formatTime(progress.arrivalMinutes.roundToInt()),
-                context.getString(if (progress.fix == TripFix.GPS) R.string.trip_fix_gps else R.string.trip_fix_schedule),
+                context.getString(io.github.giova.metroceara.ui.fixLabel(progress.fix)),
             ) + (progress.gpsSilentMinutes?.let {
                 " · " + context.getString(R.string.trip_gps_lost_short, it.toInt().coerceAtLeast(1))
             } ?: "")
@@ -264,8 +269,8 @@ internal object TripNotifications {
         val notification = NotificationCompat.Builder(context, if (sound) CHANNEL_ALERT_SOUND else CHANNEL_ALERT_SILENT)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(
-                transfer?.let { context.getString(R.string.trip_transfer_alert_title, trip.plan.destination.name) }
-                    ?: context.getString(R.string.trip_alert_title),
+                simulated(context, trip.plan, transfer?.let { context.getString(R.string.trip_transfer_alert_title, trip.plan.destination.name) }
+                    ?: context.getString(R.string.trip_alert_title)),
             )
             .setContentText(text)
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))

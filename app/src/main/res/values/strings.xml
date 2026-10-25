@@ -127,8 +127,12 @@
     <string name="trip_channel_station">Aviso a cada estação</string>
     <string name="trip_station_text">Faltam %1$s para %2$s.</string>
     <string name="trip_far_title">Longe da estação de partida</string>
-    <string name="trip_far_warning">Você está a %1$s de %2$s. Até o GPS te encontrar na linha, a posição vai sair só da tabela de horários. Iniciar mesmo assim?</string>
-    <string name="trip_far_start">Iniciar mesmo assim</string>
+    <string name="trip_far_warning">Você está a %1$s de %2$s. Quer só simular a viagem, seguindo a tabela de horários, ou esperar o GPS te encontrar na linha?</string>
+    <string name="trip_far_simulate">Simular a viagem</string>
+    <string name="trip_far_wait">Esperar o GPS</string>
+    <string name="trip_sim">Simulação</string>
+    <string name="trip_card_title_sim">Simulação · %1$s</string>
+    <string name="trip_fix_simulated">simulação, pela tabela de horários</string>
     <string name="trip_too_far">Você está a %1$s de %2$s. O modo viagem só fica disponível a até %3$s da estação de partida.</string>
     <string name="trip_gps_lost_title">Sem GPS há %1$d min</string>
     <string name="trip_gps_lost_body">Posição estimada pela tabela de horários. Confira o nome das estações pela janela.</string>

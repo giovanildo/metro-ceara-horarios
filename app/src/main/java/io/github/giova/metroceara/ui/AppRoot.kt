@@ -88,6 +88,9 @@ private const val ORIGIN_WALK_FREE_MINUTES = 3
 /** Estações de partida do roteiro: só as que ficam até essa caminhada (Parangaba e Parangaba - NE, por exemplo). */
 private const val ORIGIN_WALK_MAX_MINUTES = 10
 
+/** Marca, no próximo trecho guardado, que o roteiro é uma simulação. */
+private const val SIMULATED_LEG = "sim"
+
 /** O cartão do próximo trecho some este tempo depois da partida prevista dele. */
 private const val PENDING_LEG_MINUTES = 60
 
@@ -461,7 +464,7 @@ fun AppRoot() {
     }
 
     // Começa o 1º trecho do roteiro; o resto fica guardado para o cartão "Próximo trecho".
-    fun startRoute(view: RouteView) {
+    fun startRoute(view: RouteView, simulate: Boolean = false) {
         val itinerary = view.itinerary
         val first = itinerary.legs.first()
         val stops = leg(first.routeId, first.directionId, first.fromStop, first.toStop,
@@ -484,9 +487,11 @@ fun AppRoot() {
         )
         val last = itinerary.legs.last()
         pendingLeg = itinerary.legs.getOrNull(1)?.let { n ->
-            listOf(n.routeId, n.fromStop, last.routeId, last.toStop, (n.departure + PENDING_LEG_MINUTES).toString()).joinToString("|")
+            listOfNotNull(n.routeId, n.fromStop, last.routeId, last.toStop, (n.departure + PENDING_LEG_MINUTES).toString(),
+                SIMULATED_LEG.takeIf { simulate }).joinToString("|")
         }
-        confirmAndLaunch(plan)
+        // O trecho seguinte de uma simulação continua simulação, sem perguntar de novo.
+        if (simulate) launchTrip(plan.copy(simulated = true)) else confirmAndLaunch(plan)
     }
 
     if (pickingHomeDestination && tripOrigins.isNotEmpty()) {
@@ -597,14 +602,21 @@ fun AppRoot() {
             onDismissRequest = { farTrip = null },
             title = { Text(stringResource(R.string.trip_far_title)) },
             text = { Text(stringResource(R.string.trip_far_warning, formatKm(distance), plan.origin.name)) },
+            // Simular: só pela tabela, marcado "Simulação" (o próximo trecho de um roteiro
+            // também). Esperar o GPS: a viagem de verdade, que começa quando ele achar a pessoa.
             confirmButton = {
-                TextButton(onClick = {
-                    farTrip = null
-                    launchTrip(plan)
-                }) { Text(stringResource(R.string.trip_far_start)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { farTrip = null }) { Text(stringResource(R.string.cancel)) }
+                Column(horizontalAlignment = Alignment.End) {
+                    TextButton(onClick = {
+                        farTrip = null
+                        pendingLeg = pendingLeg?.let { "$it|$SIMULATED_LEG" }
+                        launchTrip(plan.copy(simulated = true))
+                    }) { Text(stringResource(R.string.trip_far_simulate)) }
+                    TextButton(onClick = {
+                        farTrip = null
+                        launchTrip(plan)
+                    }) { Text(stringResource(R.string.trip_far_wait)) }
+                    TextButton(onClick = { farTrip = null }) { Text(stringResource(R.string.cancel)) }
+                }
             },
         )
     }
@@ -772,8 +784,9 @@ fun AppRoot() {
                     } else {
                         // Depois do 1º trecho de um roteiro: o próximo, com os horários de agora
                         // (se a pessoa perdeu o VLT, já aparece o seguinte).
+                        val pending = pendingLeg?.split("|")
                         val next = remember(pendingLeg, now, router) {
-                            pendingLeg?.split("|")?.takeIf { it.size == 5 && now <= it[4].toInt() }?.let { p ->
+                            pending?.takeIf { it.size >= 5 && now <= it[4].toInt() }?.let { p ->
                                 router.plan(RoutePoint(p[0], p[1]), RoutePoint(p[2], p[3]),
                                     now - settings.lateBoardingMinutes, limit = 1, avoid = stoppedRoutes).firstOrNull()
                             }?.let(::routeView)
@@ -781,7 +794,7 @@ fun AppRoot() {
                         if (next != null) {
                             NextLegCard(
                                 next = next,
-                                onStart = { startRoute(next) },
+                                onStart = { startRoute(next, simulate = pending?.getOrNull(5) == SIMULATED_LEG) },
                                 onDismiss = { pendingLeg = null },
                             )
                         }

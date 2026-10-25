@@ -63,6 +63,7 @@ class TripService : Service() {
             "via_terminal" to plan.terminal?.takeIf { plan.viaTerminal }?.name,
             "alert_at" to plan.stops[plan.alertIndex].name,
             "sound" to TripTracker.isSoundEnabled(this), "station_alerts" to TripTracker.isStationAlertsEnabled(this),
+            "simulated" to plan.simulated,
         )
         var lastLogged: Triple<Int, TripFix, Boolean>? = null
         var trip = ActiveTrip(plan, estimator.progress(nowMinutes()), alerted = false, arrived = false)
@@ -205,7 +206,10 @@ class TripService : Service() {
     }
 
     /** "Prepare-se para descer. Faltam 2 estações para Benfica." */
-    private fun spokenAlert(trip: ActiveTrip): String {
+    private fun spokenAlert(trip: ActiveTrip): String =
+        (if (trip.plan.simulated) getString(R.string.trip_sim) + ". " else "") + spokenAlertText(trip)
+
+    private fun spokenAlertText(trip: ActiveTrip): String {
         val left = trip.progress.stationsLeft(trip.plan)
         val prefix = if (trip.progress.presumed) getString(R.string.trip_presumed_prefix) + ", " else ""
         if (trip.plan.transfer != null) {

@@ -86,7 +86,10 @@ fun TripCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = stringResource(R.string.trip_card_title, plan.routeName),
+                        text = stringResource(
+                            if (plan.simulated) R.string.trip_card_title_sim else R.string.trip_card_title,
+                            plan.routeName,
+                        ),
                         style = MaterialTheme.typography.labelLarge,
                     )
                     Text(
@@ -134,7 +137,7 @@ fun TripCard(
                         plan.stops[progress.index].name,
                         pluralStringResource(R.plurals.trip_stations_left, left, left),
                         formatTime(progress.arrivalMinutes.roundToInt()),
-                        stringResource(if (progress.fix == TripFix.GPS) R.string.trip_fix_gps else R.string.trip_fix_schedule),
+                        stringResource(fixLabel(progress.fix)),
                     )
                 },
                 style = MaterialTheme.typography.bodyMedium,
@@ -492,4 +495,11 @@ private fun ChoiceOption(title: String, description: String, onClick: () -> Unit
             Text(description, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 4.dp))
         }
     }
+}
+
+/** "pelo GPS", "presumida pela tabela de horários" ou, na simulação, "simulação, pela tabela de horários". */
+fun fixLabel(fix: TripFix): Int = when (fix) {
+    TripFix.GPS -> R.string.trip_fix_gps
+    TripFix.SCHEDULE -> R.string.trip_fix_schedule
+    TripFix.SIMULATED -> R.string.trip_fix_simulated
 }
