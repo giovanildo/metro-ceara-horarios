@@ -381,24 +381,50 @@ Detalhes que valem saber:
   para outro, o app só recusa um feed que não dá para ler ou que não tem linhas
   nem estações. Zero viagens é aceito: num domingo comum pode ser exatamente a
   verdade.
-- **Domingo.** Se a grade de domingo foi baixada hoje, ela já diz se há
-  operação especial e o aviso de domingo some. Sem ela, o aviso aparece.
+- **Domingo.** O aviso de domingo ("normalmente não circulam") aparece a não ser
+  que o Metrofor tenha anunciado operação especial para o dia (veja
+  **Operação especial**, abaixo). A grade do dia não serve de sinal: num domingo
+  comum (18/10/2026) o feed trouxe a grade de dia útil inteira, e no da eleição
+  (25/10) uma grade própria.
 - **Depois da última viagem do dia**, as partidas de "amanhã" vêm da grade do
   tipo de dia de amanhã, e não da de hoje repetida: num domingo de eleição,
   segunda mostra a grade de dia útil. Se amanhã for sábado e essa grade nunca
   tiver sido baixada, o app não inventa horário. **Se amanhã for domingo**, a
   lista não mostra horários de amanhã (metrô e VLT normalmente não circulam,
   embora o GTFS diga que sim).
-- **Avisos do Metrofor.** Abaixo da linha "Horários de hoje…", a tela inicial
-  mostra até 2 notícias dos últimos 7 dias do site do Metrofor: a data e a
-  manchete, com uma seta no fim — "**Metrofor, 22/10:** Eleições 2026: Veja os
-  horários do metrô e VLTs em operação gratuita de 2º turno ›" —, e tocar abre a notícia no navegador, no
-  site do Metrofor (o app não envia nada; a política de privacidade avisa). A tarefa do espelho lê o feed
-  `ce.gov.br/metrofor/feed/` (o certificado do site é incompleto, por isso não
-  vai direto do app) e publica as últimas notícias, sem filtro de assunto, em
-  `noticias.json` (título, data e link) no ramo `dados`. O app
-  e a versão lite mostram só os dos **últimos 7 dias**; sem aviso recente, nada
-  aparece. Se o site falhar, ficam os últimos guardados e os horários seguem.
+- **Operação especial (feriado, domingo, ENEM, eleição).** O Metrofor publica
+  uma notícia para todo dia com horário diferente do normal, e é ela que
+  aparece, abaixo da linha "Horários de hoje…": "**Metrofor, hoje:** Eleições
+  2026: Veja os horários do metrô e VLTs em operação gratuita de 2º turno ›" (e
+  "**Metrofor, amanhã:**" na véspera). Tocar abre a notícia no navegador. Num dia
+  sem operação anunciada não aparece nada: notícias sem relação com o horário
+  (campanhas, obras, balanços) ficam de fora. A tela da estação também mostra a
+  do dia, e numa linha que a notícia diz que não circula ("Não haverá operação
+  no VLT de Sobral e no VLT do Cariri") aparece "O Metrofor avisou que esta
+  linha não circula hoje.", sem o aviso de bike. As partidas continuam visíveis.
+
+  A tarefa do espelho lê as notícias dos últimos 45 dias pela API do site
+  ([`tools/operacoes.py`](tools/operacoes.py)) e publica em `operacoes` do
+  `regras.json`: por data, a manchete, o link, se o horário segue normal e as
+  linhas paradas. O leitor pega só títulos de operação ("horários especiais",
+  "operação especial", "funcionamento normal", "não altera horários"), deixa de
+  fora mudança que vale dali em diante ("novos horários", "passa a operar",
+  "volta a operar") e tira as datas de "(21/4)", "19 de março", "sexta-feira
+  (7)" ou "Quarta-feira de Cinzas (18)", conferindo o dia da semana. Separa o
+  que cada data diz: na Semana Santa de 2024, "na quinta-feira, todas as linhas
+  funcionam normalmente" não vira aviso, e só a sexta fica especial. Também
+  entende as tabelas do Carnaval ("SOBRAL E REGIÃO DO CARIRI / Terça - 13/2/2024
+  Não haverá operação"). Quando duas notícias falam do mesmo dia, vale a que
+  trata dele (o feriado de 15/11/2025, e não a do ENEM, que só cita a véspera),
+  e as linhas paradas das duas se somam. **Conferido com todas as 1.168
+  notícias do site (2008–2026):** desde 2022, as 68 notícias de operação caem
+  nas 101 datas certas, incluindo os sábados de encerramento antecipado, como
+  as vésperas do ENEM e os dois sábados da eleição de 2026. É conservador: sem
+  data clara, a notícia fica de fora. Uma data posta à mão em `operacoes` do
+  `regras.json` ganha da tirada das notícias.
+
+  O `noticias.json` do espelho, com as últimas notícias sem filtro, continua
+  sendo publicado só para quem ainda tem o app até a versão 1.45.
 - **Sem mais partidas hoje**, além da frase, aparece o último horário de hoje e
   o primeiro do próximo dia com metrô — amanhã, ou a segunda quando amanhã é
   domingo: "Último de hoje: 17:12 · primeiro de segunda: 05:44 (domingo, só em
@@ -559,8 +585,12 @@ resolve o SDK e o wrapper sozinho.
 
 ```
 tools/build_db.py                    GTFS oficial -> SQLite embarcado
+tools/build_web_data.py              espelho: grade do dia, Bicicletar e regras.json no ramo dados
+tools/datas_especiais.py             regra de bike de dias especiais, das notícias do Metrofor
+tools/operacoes.py                   dias de operação especial e linhas paradas, das notícias
 app/src/main/assets/metrofor.db      banco gerado (não editar à mão)
-app/src/main/assets/regras.json      regras fora do GTFS: bike, integrações, passagem
+app/src/main/assets/regras.json      regras fora do GTFS: bike, integrações, passagem,
+                                     endereços, operações especiais
 app/src/main/java/.../data/          modelos, abertura do banco, consultas, relógio
 app/src/main/java/.../ui/            telas Compose: linhas -> estações -> partidas
 ```
