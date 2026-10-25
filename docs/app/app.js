@@ -109,6 +109,11 @@ function partidasComAmanha(linha, sentido, stopId) {
   return { hoje, amanha };
 }
 
+/** Os avisos de operação do site do Metrofor, só a manchete. */
+function avisosMetrofor() {
+  return estado.dados.avisos.map((t) => `<p class="aviso-metrofor"><strong>Metrofor:</strong> ${esc(t)}</p>`).join("");
+}
+
 /** "Último de hoje: 17:12 · primeiro de segunda: 05:44", para quando hoje acabou. */
 function fimDoDia(linha, sentido, stopId) {
   const ultimo = estado.dados.grade.partidas(sentido, stopId).at(-1);
@@ -135,7 +140,7 @@ function textoPartida(p, minutos) {
 function telaInicio() {
   const { grade } = estado.dados;
   const t = agora();
-  let html = avisoDomingo(t) + convite();
+  let html = avisoDomingo(t) + avisosMetrofor() + convite();
 
   if (!estado.pos) {
     html += `<div class="cartao">

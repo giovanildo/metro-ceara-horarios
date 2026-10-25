@@ -74,10 +74,11 @@ export async function carregar() {
   const indice = await json("indice.json");
   const hoje = agora();
   const tipo = tipoDoDia(hoje.diaSemana);
-  const [grade, regras, bike] = await Promise.all([
+  const [grade, regras, bike, noticias] = await Promise.all([
     carregarGrade(indice, tipo),
     json("regras.json").catch(() => null),
     json("bicicletar.json").catch(() => []),
+    json("noticias.json").catch(() => []),
   ]);
   // O próximo dia com metrô: amanhã, ou a segunda quando amanhã é domingo
   // (metrô e VLT normalmente não circulam, embora o GTFS diga que sim).
@@ -85,6 +86,8 @@ export async function carregar() {
   const proximoTipo = tipoDoDia(proximoEhSegunda ? 1 : (hoje.diaSemana + 1) % 7);
   return {
     indice, grade, regras, bike, tipo, proximoEhSegunda,
+    // Avisos de operação do site do Metrofor: só a manchete, dos últimos 7 dias, no máximo 2.
+    avisos: noticias.filter((n) => n.data >= somarDias(hoje.data, -7)).slice(0, 2).map((n) => n.titulo),
     proximoDia: () => carregarGrade(indice, proximoTipo),
   };
 }
