@@ -126,12 +126,13 @@ private fun RouteCard(route: Route, stationCount: Int, onClick: () -> Unit) {
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                // Linha sem viagens na grade do dia (o VLT Aeroporto, no sábado).
                 Text(
-                    text = pluralStringResource(
-                        R.plurals.stations_count,
-                        stationCount,
-                        stationCount,
-                    ),
+                    text = if (stationCount == 0) {
+                        stringResource(R.string.route_not_running_today)
+                    } else {
+                        pluralStringResource(R.plurals.stations_count, stationCount, stationCount)
+                    },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

@@ -79,6 +79,14 @@ fun StopsScreen(
                 .padding(padding),
             contentPadding = PaddingValues(bottom = 16.dp),
         ) {
+            if (stops.isEmpty()) {
+                item {
+                    Text(
+                        text = stringResource(R.string.line_not_running_today),
+                        modifier = Modifier.padding(16.dp),
+                    )
+                }
+            }
             itemsIndexed(stops, key = { _, stop -> stop.id }) { index, stop ->
                 StationRow(
                     name = stop.name,
