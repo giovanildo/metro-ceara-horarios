@@ -136,8 +136,8 @@ function fimDoDia(linha, sentido, stopId) {
   return partes.join(" · ");
 }
 
-function textoPartida(p, minutos) {
-  if (!p) return "sem mais partidas hoje";
+function textoPartida(p, minutos, sentido) {
+  if (!p) return sentido?.naoPublicado ? "horários não publicados" : "sem mais partidas hoje";
   return `${hora(p.m)}${p.amanha ? " (amanhã)" : ""} · ${falta(minutosAte(p, minutos))}`;
 }
 
@@ -178,7 +178,7 @@ function telaInicio() {
             const { hoje, amanha } = partidasComAmanha(linha, s, id);
             const p = proximas(hoje, t.minutos, 1, amanha)[0];
             const fim = p ? "" : fimDoDia(linha, s, id);
-            return `<div class="partida"><span>→ ${esc(s.destino)}</span><span class="hora">${textoPartida(p, t.minutos)}</span></div>`
+            return `<div class="partida"><span>→ ${esc(s.destino)}</span><span class="hora">${textoPartida(p, t.minutos, s)}</span></div>`
               + (fim ? `<p class="dica fim-do-dia">${fim}</p>` : "");
           }).join("")}
         </a></div>`;
@@ -258,7 +258,8 @@ function telaEstacao(linhaId, stopId, sentidoId) {
   html += `<h2>Próximas partidas</h2>`;
   if (!lista.length) {
     const fim = fimDoDia(linha, sentido, stopId);
-    html += `<p class="vazio">Sem mais partidas hoje.</p>${fim ? `<p class="dica">${fim}</p>` : ""}`;
+    const vazio = sentido.naoPublicado ? "O Metrofor não publicou os horários deste sentido hoje." : "Sem mais partidas hoje.";
+    html += `<p class="vazio">${vazio}</p>${fim ? `<p class="dica">${fim}</p>` : ""}`;
   } else {
     html += `<div class="cartao proximas" style="padding:4px 0">${lista.map((p, i) =>
       `<button data-m="${p.m}" data-amanha="${p.amanha}">
@@ -323,7 +324,7 @@ function blocoIntegracao(stopId, t) {
           ${sentidos.map((s) => {
             const { hoje, amanha } = partidasComAmanha(linha, s, id);
             const p = proximas(hoje, t.minutos + caminhada, 1, amanha)[0];
-            return `<div class="partida"><span>→ ${esc(s.destino)}</span><span class="hora">${textoPartida(p, t.minutos)}</span></div>`;
+            return `<div class="partida"><span>→ ${esc(s.destino)}</span><span class="hora">${textoPartida(p, t.minutos, s)}</span></div>`;
           }).join("")}
           <p class="dica" style="margin:10px 0 0">Toque para ver todos os horários de lá</p>
         </a></div>`;

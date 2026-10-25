@@ -101,6 +101,15 @@ export class Grade {
     this.linhas = g.linhas;
     this.estacoes = g.estacoes;
     this.integracoes = g.integracoes || [];
+    // A grade do dia às vezes só traz a ida (Linha Norte de Sobral, nos dias úteis):
+    // a volta entra sem viagens, para a tela dizer que o Metrofor não a publicou.
+    for (const linha of this.linhas) {
+      const [so] = linha.sentidos;
+      if (linha.sentidos.length === 1 && so.estacoes.length > 1) {
+        linha.sentidos.push({ id: 1 - so.id, destino: this.estacoes[so.estacoes[0]]?.nome ?? "", estacoes: [...so.estacoes].reverse(),
+          viagens: [], naoPublicado: true });
+      }
+    }
     /** stopId -> [{ linha, sentido, pos }] */
     this.passagens = new Map();
     for (const linha of this.linhas) {
