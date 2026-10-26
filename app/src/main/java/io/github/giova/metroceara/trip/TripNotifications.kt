@@ -14,9 +14,11 @@ import io.github.giova.metroceara.MainActivity
 import io.github.giova.metroceara.R
 import io.github.giova.metroceara.data.SettingsStore
 import io.github.giova.metroceara.data.TripFix
+import io.github.giova.metroceara.data.TripJourney
 import io.github.giova.metroceara.data.TripPlan
 import io.github.giova.metroceara.data.TripTransfer
 import io.github.giova.metroceara.data.formatTime
+import io.github.giova.metroceara.data.lineWithArticle
 import io.github.giova.metroceara.data.vehicleName
 import kotlin.math.roundToInt
 
@@ -34,6 +36,7 @@ internal object TripNotifications {
     const val ONGOING_ID = 1001
     private const val ALERT_ID = 1002
     private const val STATION_ID = 1003
+    private const val MISSED_ID = 1004
 
     private const val CHANNEL_ONGOING = "trip_ongoing"
     private const val CHANNEL_ALERT_SOUND = "trip_alert_sound"
@@ -104,7 +107,7 @@ internal object TripNotifications {
             index == plan.stops.lastIndex -> context.getString(R.string.trip_arrived, plan.destination.name)
             left == COUNT_AT_STATIONS_LEFT -> context.getString(
                 R.string.trip_station_text,
-                context.resources.getQuantityString(R.plurals.trip_stations_left, left, left),
+                context.resources.getQuantityString(R.plurals.trip_left, left, left),
                 plan.destination.name,
             )
             else -> null
@@ -195,7 +198,7 @@ internal object TripNotifications {
     /** "Desça em Parangaba e vá para a Linha Nordeste, 2 min a pé. VLT às 08:10, sentido Iate. Passagem grátis." */
     fun transferArrived(context: Context, station: String, t: TripTransfer): String =
         context.getString(
-            R.string.trip_transfer_arrived, station, t.nextRoute, t.walkMinutes,
+            R.string.trip_transfer_arrived, station, lineWithArticle(t.nextRoute), t.walkMinutes,
             vehicleName(t.nextRoute).replaceFirstChar { it.uppercase() }, formatTime(t.nextDeparture), t.nextHeadsign,
         ) + when (t.free) {
             true -> " " + context.getString(R.string.trip_transfer_free)
@@ -209,9 +212,71 @@ internal object TripNotifications {
         val t = trip.plan.transfer ?: return ""
         return context.getString(
             R.string.trip_transfer_alert_text,
-            context.resources.getQuantityString(R.plurals.trip_stations_left, left, left),
+            context.resources.getQuantityString(R.plurals.trip_left, left, left),
             trip.plan.destination.name, t.nextRoute, formatTime(t.nextDeparture),
         )
+    }
+
+    /**
+     * "Você perdeu o VLT das 08:10. Próximo às 08:50, sentido Iate. Chega ao
+     * Papicu às 09:20." Com vibração e o som de alarme, como o aviso de descida.
+     */
+    fun missed(context: Context, missed: TripPlan, next: TripPlan): String {
+        val vehicle = vehicleName(missed.routeName)
+        val title = simulated(context, next, context.getString(R.string.trip_missed_title, vehicle, formatTime(missed.origin.scheduled)))
+        val text = context.getString(
+            R.string.trip_missed_text, formatTime(next.origin.scheduled), next.headsign,
+            next.journey?.finalName ?: next.destination.name, formatTime(next.journey?.arrival ?: next.destination.scheduled),
+        )
+        val sound = TripTracker.isSoundEnabled(context)
+        val notification = NotificationCompat.Builder(context, if (sound) CHANNEL_ALERT_SOUND else CHANNEL_ALERT_SILENT)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(title)
+            .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setVibrate(VIBRATION)
+            .setAutoCancel(true)
+            .setContentIntent(openApp(context))
+            .apply { if (sound) setSound(alarmUri(), AudioManager.STREAM_ALARM) }
+            .build()
+        // Espaço próprio: o aviso de descida do trecho novo (logo em seguida, num trecho curto) não o apaga.
+        runCatching { context.getSystemService(NotificationManager::class.java).notify(MISSED_ID, notification) }
+        return "$title. $text"
+    }
+
+    /**
+     * O que acontece agora num roteiro com integração: "Agora: Linha Sul, em Couto
+     * Fernandes · Integração em Parangaba às 08:01 · Linha Nordeste às 08:10", ou,
+     * esperando o trem depois de uma integração, "Indo para a Linha Nordeste ·
+     * VLT às 08:10, sentido Iate · em 8 min".
+     */
+    fun journeyLine(context: Context, trip: ActiveTrip, journey: TripJourney): String? {
+        val plan = trip.plan
+        val progress = trip.progress
+        if (trip.arrived && plan.transfer == null) return null
+        if (progress.index < 0) {
+            if (journey.current == 0) return null
+            val wait = (plan.origin.scheduled + progress.delayMinutes - nowOfDay()).roundToInt().coerceAtLeast(0)
+            return context.getString(
+                R.string.trip_journey_walking, lineWithArticle(plan.routeName),
+                vehicleName(plan.routeName).replaceFirstChar { it.uppercase() },
+                formatTime(plan.origin.scheduled), plan.headsign, wait,
+            )
+        }
+        val now = context.getString(R.string.trip_journey_now, plan.routeName, plan.stops[progress.index].name)
+        val then = plan.transfer?.let {
+            context.getString(R.string.trip_journey_then, plan.destination.name, formatTime(plan.destination.scheduled),
+                it.nextRoute, formatTime(it.nextDeparture))
+        }
+        return listOfNotNull(now, then).joinToString(" · ")
+    }
+
+    /** Minutos desde a meia-noite, no fuso de Fortaleza. */
+    private fun nowOfDay(): Double {
+        val c = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("America/Fortaleza"))
+        return c.get(java.util.Calendar.HOUR_OF_DAY) * 60 + c.get(java.util.Calendar.MINUTE) + c.get(java.util.Calendar.SECOND) / 60.0
     }
 
     /** A notificação fixa enquanto a viagem dura. */
@@ -219,10 +284,16 @@ internal object TripNotifications {
         val plan = trip.plan
         val progress = trip.progress
         val left = progress.stationsLeft(plan)
-        val title = simulated(context, plan, plan.transfer?.let {
-            context.getString(R.string.trip_notification_title_transfer, it.finalDestination, plan.destination.name)
-        } ?: context.getString(R.string.trip_notification_title, plan.destination.name))
-        val text = when {
+        val journey = plan.journey
+        val title = simulated(context, plan, when {
+            journey != null -> context.getString(
+                R.string.trip_journey_title, journey.originName, journey.finalName,
+                formatTime((if (plan.transfer == null) progress.arrivalMinutes.roundToInt() else journey.arrival)),
+            )
+            plan.transfer != null -> context.getString(R.string.trip_notification_title_transfer, plan.transfer.finalDestination, plan.destination.name)
+            else -> context.getString(R.string.trip_notification_title, plan.destination.name)
+        })
+        val text = journey?.let { journeyLine(context, trip, it) } ?: when {
             trip.arrived -> context.getString(R.string.trip_arrived, plan.destination.name)
             progress.index < 0 -> context.getString(
                 R.string.trip_waiting, plan.origin.name, formatTime((plan.origin.scheduled + progress.delayMinutes).roundToInt()),
@@ -247,6 +318,13 @@ internal object TripNotifications {
             .setOnlyAlertOnce(true)
             .setContentIntent(openApp(context))
             .addAction(0, context.getString(R.string.trip_stop), stopIntent(context))
+            .apply {
+                journey?.let { j ->
+                    val total = (j.arrival - j.legs.first().departure).coerceAtLeast(1)
+                    val done = (nowOfDay() - j.legs.first().departure).roundToInt().coerceIn(0, total)
+                    setProgress(total, done, false)
+                }
+            }
             .build()
     }
 
@@ -256,7 +334,7 @@ internal object TripNotifications {
         val transfer = trip.plan.transfer
         val text = (if (transfer != null) transferAlert(context, trip) else context.getString(
             R.string.trip_alert_text,
-            context.resources.getQuantityString(R.plurals.trip_stations_left, left, left),
+            context.resources.getQuantityString(R.plurals.trip_left, left, left),
             trip.plan.destination.name,
         )).let { if (trip.progress.presumed) context.getString(R.string.trip_presumed_prefix) + ": " + it else it }
             .let {

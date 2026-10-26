@@ -17,13 +17,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -33,7 +28,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -243,42 +237,4 @@ private fun Tip(text: String, warning: Boolean = false) {
             )
             .padding(10.dp),
     )
-}
-
-/**
- * Depois do primeiro trecho (etapa 2): na tela inicial, o resto do roteiro
- * e o botão para começar o próximo trecho.
- */
-@Composable
-fun NextLegCard(next: RouteView, onStart: () -> Unit, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
-    val leg = next.legs.first()
-    Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
-        modifier = modifier.fillMaxWidth(),
-    ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Filled.Navigation, contentDescription = null)
-                Column(modifier = Modifier.padding(start = 12.dp)) {
-                    Text(
-                        text = stringResource(R.string.route_next_title, leg.fromName),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Text(
-                        text = stringResource(
-                            R.string.route_next_text,
-                            lineLabel(leg.routeName), formatTime(leg.departure), leg.headsign,
-                            next.destinationName, formatTime(next.itinerary.arrival),
-                        ),
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = onStart) { Text(stringResource(R.string.route_next_start)) }
-                TextButton(onClick = onDismiss) { Text(stringResource(R.string.route_next_dismiss)) }
-            }
-        }
-    }
 }

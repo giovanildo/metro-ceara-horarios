@@ -35,6 +35,10 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import io.github.giova.metroceara.data.TripJourney
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.foundation.shape.CircleShape
 import io.github.giova.metroceara.ui.theme.routeColor
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.remember
@@ -78,6 +82,7 @@ fun TripCard(
     val plan = trip.plan
     val progress = trip.progress
     val left = progress.stationsLeft(plan)
+    val journey = plan.journey
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
         modifier = modifier.fillMaxWidth(),
@@ -86,14 +91,28 @@ fun TripCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = stringResource(
-                            if (plan.simulated) R.string.trip_card_title_sim else R.string.trip_card_title,
-                            plan.routeName,
-                        ),
+                        text = if (journey != null) {
+                            stringResource(
+                                if (plan.simulated) R.string.trip_card_title_journey_sim else R.string.trip_card_title_journey,
+                                journey.originName, journey.finalName,
+                            )
+                        } else {
+                            stringResource(
+                                if (plan.simulated) R.string.trip_card_title_sim else R.string.trip_card_title,
+                                plan.routeName,
+                            )
+                        },
                         style = MaterialTheme.typography.labelLarge,
                     )
                     Text(
-                        text = "${plan.origin.name} → ${plan.destination.name}",
+                        text = if (journey != null) {
+                            stringResource(
+                                R.string.trip_journey_arrival,
+                                formatTime(if (plan.transfer == null) progress.arrivalMinutes.roundToInt() else journey.arrival),
+                            )
+                        } else {
+                            "${plan.origin.name} → ${plan.destination.name}"
+                        },
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                     )
@@ -126,6 +145,13 @@ fun TripCard(
             Text(
                 text = when {
                     trip.arrived -> stringResource(R.string.trip_arrived, plan.destination.name)
+                    progress.index < 0 && (journey?.current ?: 0) > 0 -> stringResource(
+                        R.string.trip_journey_walking, io.github.giova.metroceara.data.lineWithArticle(plan.routeName),
+                        vehicleName(plan.routeName).replaceFirstChar { it.uppercase() },
+                        formatTime(plan.origin.scheduled), plan.headsign,
+                        (plan.origin.scheduled + progress.delayMinutes - io.github.giova.metroceara.data.nowMinutes())
+                            .roundToInt().coerceAtLeast(0),
+                    )
                     progress.index < 0 -> stringResource(
                         R.string.trip_waiting,
                         plan.origin.name,
@@ -178,6 +204,7 @@ fun TripCard(
                     }
                 }
             }
+            journey?.let { JourneyTimeline(it) }
             Text(
                 text = if (trip.alerted) {
                     stringResource(R.string.trip_alert_sent)
@@ -502,4 +529,74 @@ fun fixLabel(fix: TripFix): Int = when (fix) {
     TripFix.GPS -> R.string.trip_fix_gps
     TripFix.SCHEDULE -> R.string.trip_fix_schedule
     TripFix.SIMULATED -> R.string.trip_fix_simulated
+}
+
+/**
+ * A linha do tempo de um roteiro com integração: cada trecho na cor da linha,
+ * com as integrações entre eles; o que já passou fica apagado.
+ */
+@Composable
+private fun JourneyTimeline(journey: TripJourney) {
+    Column(modifier = Modifier.fillMaxWidth().padding(top = 12.dp)) {
+        journey.legs.forEachIndexed { i, leg ->
+            val state = when {
+                i < journey.current -> stringResource(R.string.trip_journey_done)
+                i == journey.current -> stringResource(R.string.trip_journey_current)
+                else -> null
+            }
+            TimelineRow(
+                color = routeColor(leg.colorHex),
+                title = "${formatTime(leg.departure)} ${leg.fromName}",
+                detail = listOfNotNull(stringResource(R.string.trip_journey_leg, lineLabel(leg.routeName), leg.toName), state)
+                    .joinToString(" · "),
+                past = i < journey.current,
+                current = i == journey.current,
+            )
+            if (i < journey.legs.lastIndex) {
+                TimelineRow(
+                    color = MaterialTheme.colorScheme.outline,
+                    title = stringResource(R.string.trip_journey_transfer, leg.toName),
+                    detail = null,
+                    past = i < journey.current,
+                    current = false,
+                )
+            }
+        }
+        val last = journey.legs.last()
+        TimelineRow(
+            color = routeColor(last.colorHex),
+            title = "${formatTime(last.arrival)} ${last.toName}",
+            detail = null,
+            past = false,
+            current = false,
+        )
+    }
+}
+
+@Composable
+private fun TimelineRow(color: Color, title: String, detail: String?, past: Boolean, current: Boolean) {
+    val alpha = if (past) 0.55f else 1f
+    Row(verticalAlignment = Alignment.Top, modifier = Modifier.padding(vertical = 3.dp)) {
+        Spacer(
+            modifier = Modifier
+                .padding(top = 4.dp)
+                .size(if (current) 12.dp else 10.dp)
+                .background(color.copy(alpha = alpha), CircleShape),
+        )
+        Column(modifier = Modifier.padding(start = 10.dp)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = if (current) FontWeight.Bold else FontWeight.Medium,
+                color = LocalContentColor.current.copy(alpha = alpha),
+            )
+            detail?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = LocalContentColor.current.copy(alpha = alpha * 0.8f),
+                )
+            }
+        }
+    }
 }

@@ -85,9 +85,22 @@
     <string name="trip_arrived">Você chegou a %1$s.</string>
     <string name="trip_alert_title">Prepare-se para descer</string>
     <string name="trip_transfer_alert_title">Prepare-se: integração em %1$s</string>
-    <string name="trip_transfer_alert_text">Faltam %1$s para %2$s. Depois, %3$s às %4$s.</string>
-    <string name="trip_transfer_arrived">Desça em %1$s e vá para a %2$s, %3$d min a pé. %4$s às %5$s, sentido %6$s.</string>
+    <string name="trip_transfer_alert_text">%1$s para %2$s. Depois, %3$s às %4$s.</string>
+    <string name="trip_transfer_arrived">Desça em %1$s e vá para %2$s, %3$d min a pé. %4$s às %5$s, sentido %6$s.</string>
     <string name="trip_transfer_free">Passagem grátis.</string>
+    <string name="trip_missed_title">Você perdeu o %1$s das %2$s</string>
+    <string name="trip_missed_text">Próximo às %1$s, sentido %2$s. Chegada em %3$s às %4$s.</string>
+    <string name="trip_journey_title">%1$s → %2$s · chegada %3$s</string>
+    <string name="trip_journey_now">Agora: %1$s, em %2$s</string>
+    <string name="trip_journey_then">Integração em %1$s às %2$s · %3$s às %4$s</string>
+    <string name="trip_journey_walking">Indo para %1$s · %2$s às %3$s, sentido %4$s · em %5$d min</string>
+    <string name="trip_card_title_journey">Modo viagem · %1$s → %2$s</string>
+    <string name="trip_card_title_journey_sim">Simulação · %1$s → %2$s</string>
+    <string name="trip_journey_arrival">Chega às %1$s</string>
+    <string name="trip_journey_done">feito</string>
+    <string name="trip_journey_current">agora</string>
+    <string name="trip_journey_leg">%1$s até %2$s</string>
+    <string name="trip_journey_transfer">Integração em %1$s</string>
     <string name="route_title">%1$s → %2$s</string>
     <string name="route_leg">%1$s, sentido %2$s. Desça em %3$s às %4$s.</string>
     <string name="route_transfer">Integração em %1$s · %2$d min para trocar de linha</string>
@@ -102,10 +115,6 @@
     <string name="route_option_wait">espera %1$d min nas integrações</string>
     <string name="route_start">Iniciar viagem</string>
     <string name="route_other_times">Outros horários</string>
-    <string name="route_next_title">Próximo trecho, em %1$s</string>
-    <string name="route_next_text">%1$s às %2$s, sentido %3$s. Destino: %4$s, às %5$s.</string>
-    <string name="route_next_start">Iniciar o próximo trecho</string>
-    <string name="route_next_dismiss">Dispensar</string>
     <string name="route_none_today">Hoje não há como chegar a %1$s com integração saindo daqui.</string>
     <string name="route_none_after">Sem integração para %1$s hoje depois das %2$s.</string>
     <string name="route_walk_to_origin">Saindo de %1$s, a uns %2$d min a pé de você.</string>
@@ -119,7 +128,12 @@
     <string name="dest_none">Nenhuma estação com esse nome.</string>
     <string name="trip_transfer_paid">Passagem paga.</string>
     <string name="trip_notification_title_transfer">Viagem até %1$s · integração em %2$s</string>
-    <string name="trip_alert_text">Faltam %1$s para %2$s.</string>
+    <string name="trip_alert_text">%1$s para %2$s.</string>
+    <!-- "Falta 1 estação" / "Faltam 2 estações": o começo dos avisos de descida e de estação. -->
+    <plurals name="trip_left">
+        <item quantity="one">Falta %1$d estação</item>
+        <item quantity="other">Faltam %1$d estações</item>
+    </plurals>
     <plurals name="trip_stations_left">
         <item quantity="one">%1$d estação</item>
         <item quantity="other">%1$d estações</item>
@@ -135,7 +149,7 @@
     <string name="trip_start_button">Iniciar</string>
     <string name="trip_station_alerts">Avisar cada estação (voz)</string>
     <string name="trip_channel_station">Aviso a cada estação</string>
-    <string name="trip_station_text">Faltam %1$s para %2$s.</string>
+    <string name="trip_station_text">%1$s para %2$s.</string>
     <string name="trip_far_title">Longe da estação de partida</string>
     <string name="trip_far_warning">Você está a %1$s de %2$s. Quer só simular a viagem, seguindo a tabela de horários, ou esperar o GPS te encontrar na linha?</string>
     <string name="trip_far_simulate">Simular a viagem</string>

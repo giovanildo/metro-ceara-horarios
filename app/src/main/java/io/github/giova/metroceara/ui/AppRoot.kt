@@ -9,14 +9,13 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.res.stringResource
 import io.github.giova.metroceara.data.Regras
+import io.github.giova.metroceara.data.JourneyPlanner
 import io.github.giova.metroceara.data.transferRule
 import io.github.giova.metroceara.data.transferMinutes
 import io.github.giova.metroceara.data.nowDayOfWeek
 import io.github.giova.metroceara.data.formatTime
 import io.github.giova.metroceara.data.bikeRuleFor
 import io.github.giova.metroceara.data.bikeBoarding
-import io.github.giova.metroceara.data.TripTransfer
-import io.github.giova.metroceara.data.TransferFare
 import io.github.giova.metroceara.data.Router
 import io.github.giova.metroceara.data.RoutePoint
 import io.github.giova.metroceara.data.Mobility
@@ -92,11 +91,6 @@ private const val ORIGIN_WALK_MAX_MINUTES = 10
 /** Pedido de abrir uma estação vindo de fora da tela (toque no widget). */
 val OpenStationRequest = kotlinx.coroutines.flow.MutableStateFlow<Pair<String, String>?>(null)
 
-/** Marca, no próximo trecho guardado, que o roteiro é uma simulação. */
-private const val SIMULATED_LEG = "sim"
-
-/** O cartão do próximo trecho some este tempo depois da partida prevista dele. */
-private const val PENDING_LEG_MINUTES = 60
 
 private fun formatKm(meters: Double): String =
     if (meters < 1000) "${meters.toInt()} m" else "%.1f km".format(meters / 1000).replace('.', ',')
@@ -348,17 +342,8 @@ fun AppRoot() {
 
     // Trecho de uma viagem: as estações de [fromId] até [toId] no sentido dado,
     // com o horário de um trem específico em cada uma.
-    fun leg(routeId: String, directionId: Int, fromId: String, toId: String, times: Map<String, Int>): List<TripStop>? {
-        val coords = repo.stations().filter { it.routeId == routeId }.associateBy { it.stopId }
-        val path = repo.stops(routeId, directionId).dropWhile { it.id != fromId }
-        val end = path.indexOfFirst { it.id == toId }
-        if (path.isEmpty() || end < 0) return null
-        return path.take(end + 1).map { stop ->
-            val station = coords[stop.id] ?: return null
-            val time = times[stop.id] ?: return null
-            TripStop(stop.id, stop.name, station.lat, station.lon, time)
-        }
-    }
+    fun leg(routeId: String, directionId: Int, fromId: String, toId: String, times: Map<String, Int>): List<TripStop>? =
+        repo.tripStops(routeId, directionId, fromId, toId, times)
 
     // Confere a distância até a partida e começa (ou pergunta antes).
     fun confirmAndLaunch(plan: TripPlan) {
@@ -434,9 +419,8 @@ fun AppRoot() {
     val stoppedRoutes = remember(repo, today) {
         repo.routes().filter { Regras.current.stopped(today, it.name) }.map { it.id }.toSet()
     }
-    // O roteiro esperando "Iniciar viagem" e, depois do 1º trecho, o próximo a começar.
+    // O roteiro esperando "Iniciar viagem".
     var routeOptions by remember { mutableStateOf<List<RouteView>?>(null) }
-    var pendingLeg by rememberSaveable { mutableStateOf<String?>(null) }
 
     // Minutos a pé da pessoa até a estação (0 sem localização, ou já nela).
     fun walkTo(station: Station): Int =
@@ -489,34 +473,14 @@ fun AppRoot() {
     }
 
     // Começa o 1º trecho do roteiro; o resto fica guardado para o cartão "Próximo trecho".
-    fun startRoute(view: RouteView, simulate: Boolean = false) {
-        val itinerary = view.itinerary
-        val first = itinerary.legs.first()
-        val stops = leg(first.routeId, first.directionId, first.fromStop, first.toStop,
-            repo.tripTimes(first.tripId, first.routeId))
-        val route = repo.route(first.routeId)
-        if (stops == null || stops.size < 2 || route == null) {
+    // Começa o roteiro inteiro: o modo viagem segue de um trecho para o outro sozinho.
+    fun startRoute(view: RouteView) {
+        val plan = JourneyPlanner.plan(repo, view.itinerary, settings, simulated = false)
+        if (plan == null) {
             tripMessage = context.getString(R.string.trip_no_trip_today)
             return
         }
-        val next = view.legs.getOrNull(1)
-        val transfer = view.transfers.firstOrNull()
-        val plan = TripPlan(
-            first.routeId, route.name, view.legs.first().headsign, stops, settings.alertStationsBefore,
-            transfer = if (next != null && transfer != null) {
-                TripTransfer(next.routeName, next.headsign, next.departure, transfer.needMinutes, view.destinationName,
-                    when (transfer.fare) { TransferFare.FREE -> true; TransferFare.PAID -> false; TransferFare.UNKNOWN -> null })
-            } else {
-                null
-            },
-        )
-        val last = itinerary.legs.last()
-        pendingLeg = itinerary.legs.getOrNull(1)?.let { n ->
-            listOfNotNull(n.routeId, n.fromStop, last.routeId, last.toStop, (n.departure + PENDING_LEG_MINUTES).toString(),
-                SIMULATED_LEG.takeIf { simulate }).joinToString("|")
-        }
-        // O trecho seguinte de uma simulação continua simulação, sem perguntar de novo.
-        if (simulate) launchTrip(plan.copy(simulated = true)) else confirmAndLaunch(plan)
+        confirmAndLaunch(plan)
     }
 
     if (pickingHomeDestination && tripOrigins.isNotEmpty()) {
@@ -627,13 +591,12 @@ fun AppRoot() {
             onDismissRequest = { farTrip = null },
             title = { Text(stringResource(R.string.trip_far_title)) },
             text = { Text(stringResource(R.string.trip_far_warning, formatKm(distance), plan.origin.name)) },
-            // Simular: só pela tabela, marcado "Simulação" (o próximo trecho de um roteiro
+            // Simular: só pela tabela, marcado "Simulação" (os trechos seguintes de um roteiro
             // também). Esperar o GPS: a viagem de verdade, que começa quando ele achar a pessoa.
             confirmButton = {
                 Column(horizontalAlignment = Alignment.End) {
                     TextButton(onClick = {
                         farTrip = null
-                        pendingLeg = pendingLeg?.let { "$it|$SIMULATED_LEG" }
                         launchTrip(plan.copy(simulated = true))
                     }) { Text(stringResource(R.string.trip_far_simulate)) }
                     TextButton(onClick = {
@@ -813,24 +776,8 @@ fun AppRoot() {
                             onStop = { TripTracker.stop(context) },
                         )
                     } else {
-                        // Depois do 1º trecho de um roteiro: o próximo, com os horários de agora
-                        // (se a pessoa perdeu o VLT, já aparece o seguinte).
-                        val pending = pendingLeg?.split("|")
-                        val next = remember(pendingLeg, now, router) {
-                            pending?.takeIf { it.size >= 5 && now <= it[4].toInt() }?.let { p ->
-                                router.plan(RoutePoint(p[0], p[1]), RoutePoint(p[2], p[3]),
-                                    now - settings.lateBoardingMinutes, limit = 1, avoid = stoppedRoutes).firstOrNull()
-                            }?.let(::routeView)
-                        }
-                        if (next != null) {
-                            NextLegCard(
-                                next = next,
-                                onStart = { startRoute(next, simulate = pending?.getOrNull(5) == SIMULATED_LEG) },
-                                onDismiss = { pendingLeg = null },
-                            )
-                        }
                         // A mais de 3 km de qualquer estação, o modo viagem não aparece.
-                        if (next == null && (homeState.station == null || tripOrigins.isNotEmpty())) {
+                        if (homeState.station == null || tripOrigins.isNotEmpty()) {
                             TripStartCard(
                                 origins = tripOrigins,
                                 alertStationsBefore = settings.alertStationsBefore,

@@ -18,6 +18,9 @@ import io.github.giova.metroceara.data.DevLog
 import io.github.giova.metroceara.data.SettingsStore
 import io.github.giova.metroceara.data.TripEstimator
 import io.github.giova.metroceara.data.TripPlan
+import io.github.giova.metroceara.data.JourneyPlanner
+import io.github.giova.metroceara.data.RoutePoint
+import io.github.giova.metroceara.data.ScheduleRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -47,14 +50,16 @@ class TripService : Service() {
             finish()
             return START_NOT_STICKY
         }
-        val plan = intent?.getStringExtra(EXTRA_PLAN)?.let(TripPlan::fromJson)
-        if (plan == null) {
+        val started0 = intent?.getStringExtra(EXTRA_PLAN)?.let(TripPlan::fromJson)
+        if (started0 == null) {
             finish()
             return START_NOT_STICKY
         }
+        // Muda de trecho num roteiro com integração (switchTo, mais abaixo).
+        var plan: TripPlan = started0
         TripNotifications.createChannels(this)
         val settings = SettingsStore.get(this)
-        val estimator = TripEstimator(plan, gpsLostMinutes = settings.gpsLostSeconds / 60.0)
+        var estimator = TripEstimator(plan, gpsLostMinutes = settings.gpsLostSeconds / 60.0)
         DevLog.log(
             "trip_start", "line" to plan.routeName, "headsign" to plan.headsign,
             "from" to plan.origin.name, "to" to plan.destination.name,
@@ -87,13 +92,54 @@ class TripService : Service() {
         job = scope.launch {
             // A origem não é anunciada: a pessoa já está nela.
             var announced = 0
+            // Roteiro com integração: a grade e o calculador de roteiros, para o próximo trecho.
+            val repo by lazy { ScheduleRepository(this@TripService) }
+            val router by lazy { JourneyPlanner.router(repo, settings) }
+
+            // Troca para outro trecho (o próximo, ou o mesmo com o trem seguinte).
+            fun switchTo(next: TripPlan, reason: String) {
+                plan = next
+                estimator = TripEstimator(next, gpsLostMinutes = settings.gpsLostSeconds / 60.0)
+                announced = 0
+                trip = ActiveTrip(next, estimator.progress(nowMinutes()), alerted = false, arrived = false)
+                DevLog.log(
+                    "trip_leg", "reason" to reason, "line" to next.routeName, "from" to next.origin.name,
+                    "to" to next.destination.name, "dep" to formatTime(next.origin.scheduled),
+                    "leg" to next.journey?.current,
+                )
+            }
+
+            // O próximo trecho do roteiro, saindo de [from] (a estação de integração ou,
+            // se a pessoa perdeu o trem, a partida do trecho atual) a partir de agora.
+            fun nextLeg(from: RoutePoint, doneLegs: Int): TripPlan? {
+                val journey = plan.journey ?: return null
+                val itinerary = router.plan(from, RoutePoint(journey.destRouteId, journey.destStopId),
+                    nowMinutes().toInt(), limit = 1).firstOrNull() ?: return null
+                return JourneyPlanner.plan(repo, itinerary, settings, plan.simulated, done = journey.legs.take(doneLegs))
+            }
+
             fun update() {
+                // Depois de uma integração, o GPS ainda vê a pessoa na plataforma 3 min depois
+                // da partida: ela perdeu o trem. Refaz o roteiro com o seguinte.
+                val journey = plan.journey
+                if (journey != null && journey.current > 0 && estimator.missedDeparture(nowMinutes(), MISSED_AFTER_MINUTES)) {
+                    val missed = plan
+                    nextLeg(RoutePoint(missed.routeId, missed.origin.stopId), doneLegs = journey.current)
+                        ?.takeIf { it.origin.scheduled > missed.origin.scheduled }
+                        ?.let { next ->
+                            val text = TripNotifications.missed(this@TripService, missed, next)
+                            DevLog.log("trip_missed", "dep" to formatTime(missed.origin.scheduled), "next" to formatTime(next.origin.scheduled))
+                            if (TripTracker.isSoundEnabled(this@TripService)) voice?.speak(text)
+                            switchTo(next, "missed")
+                        }
+                }
                 val progress = estimator.progress(nowMinutes())
                 val arrived = progress.index >= plan.stops.lastIndex
                 var alerted = trip.alerted
                 var alertedNow = false
-                // Partiu da origem e chegou na estação de aviso (ou já passou dela).
-                if (!alerted && progress.index >= plan.alertIndex) {
+                // Partiu da origem e chegou na estação de aviso (ou já passou dela). Se já
+                // chegou ao destino (GPS que volta depois do túnel), vale só o aviso de chegada.
+                if (!alerted && progress.index >= plan.alertIndex && (!arrived || plan.stops.size <= 2)) {
                     alerted = true
                     alertedNow = true
                     trip = trip.copy(progress = progress)
@@ -144,6 +190,12 @@ class TripService : Service() {
                     )
                 }
                 trip = trip.copy(progress = progress, alerted = alerted, arrived = arrived)
+                // Chegou à integração: segue no próximo trecho, sem a pessoa tocar em nada.
+                if (arrived && plan.transfer != null && plan.journey != null) {
+                    val done = (plan.journey?.current ?: 0) + 1
+                    nextLeg(RoutePoint(plan.routeId, plan.destination.stopId), doneLegs = done)
+                        ?.let { switchTo(it, "transfer") }
+                }
                 TripTracker.publish(trip)
                 runCatching {
                     getSystemService(NotificationManager::class.java)
@@ -218,7 +270,7 @@ class TripService : Service() {
         }
         return getString(R.string.trip_alert_title) + ". " + prefix + getString(
             R.string.trip_alert_text,
-            resources.getQuantityString(R.plurals.trip_stations_left, left, left),
+            resources.getQuantityString(R.plurals.trip_left, left, left),
             trip.plan.destination.name,
         ).replaceFirstChar { if (prefix.isNotEmpty()) it.lowercaseChar() else it }.let {
             if (SettingsStore.get(this).remindBelongings) it + " " + getString(R.string.trip_belongings) else it
@@ -254,5 +306,7 @@ class TripService : Service() {
         private const val GPS_INTERVAL_MILLIS = 5_000L
         private const val TICK_MILLIS = 15_000L
         private const val ARRIVED_LINGER_MILLIS = 8_000L
+        /** Depois de uma integração: ainda na plataforma tanto tempo depois da partida = perdeu o trem. */
+        private const val MISSED_AFTER_MINUTES = 3.0
     }
 }
