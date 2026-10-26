@@ -95,3 +95,7 @@ data class TransferTarget(
  */
 fun vehicleName(routeName: String): String =
     if (routeName.trim().equals("Linha Sul", ignoreCase = true)) "metrô" else "VLT"
+
+/** "a Linha Nordeste", "o VLT Aeroporto": o nome da linha com o artigo certo ("vá para…"). */
+fun lineWithArticle(routeName: String): String =
+    (if (routeName.trim().startsWith("Linha", ignoreCase = true)) "a " else "o ") + routeName

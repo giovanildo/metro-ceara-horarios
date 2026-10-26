@@ -140,6 +140,22 @@ class ScheduleRepository(context: Context) {
         return tripId to times
     }
 
+    /**
+     * As estações de [fromId] até [toId] no sentido dado, com o horário de um
+     * trem ([times]) em cada uma: o trecho que o modo viagem acompanha.
+     */
+    fun tripStops(routeId: String, directionId: Int, fromId: String, toId: String, times: Map<String, Int>): List<TripStop>? {
+        val coords = stations().filter { it.routeId == routeId }.associateBy { it.stopId }
+        val path = stops(routeId, directionId).dropWhile { it.id != fromId }
+        val end = path.indexOfFirst { it.id == toId }
+        if (path.isEmpty() || end < 0) return null
+        return path.take(end + 1).map { stop ->
+            val station = coords[stop.id] ?: return null
+            val time = times[stop.id] ?: return null
+            TripStop(stop.id, stop.name, station.lat, station.lon, time)
+        }
+    }
+
     /** Os horários de uma viagem, por estação (para montar o trecho de um roteiro). */
     fun tripTimes(tripId: String, routeId: String): Map<String, Int> = db.rawQuery(
         "SELECT stop_id, minutes FROM departure WHERE trip_id = ? AND route_id = ?",

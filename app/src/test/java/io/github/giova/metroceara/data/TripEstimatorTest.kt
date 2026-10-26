@@ -49,6 +49,25 @@ class TripEstimatorTest {
     }
 
     @Test
+    fun `ainda na plataforma 3 min depois da partida, perdeu o trem`() {
+        val estimator = TripEstimator(plan())
+        val origin = stops[0]
+        estimator.onLocation(origin.lat, origin.lon, 10f, 929.0) // chegou à plataforma
+        estimator.onLocation(origin.lat, origin.lon, 10f, 932.0)
+        assertEquals(false, estimator.missedDeparture(932.0, 3.0)) // 15:32: ainda pode estar atrasado
+        estimator.onLocation(origin.lat, origin.lon, 10f, 933.5)
+        assertEquals(true, estimator.missedDeparture(933.5, 3.0))
+    }
+
+    @Test
+    fun `embarcou e o GPS o viu na estacao seguinte, nao perdeu`() {
+        val estimator = TripEstimator(plan())
+        estimator.onLocation(stops[0].lat, stops[0].lon, 10f, 929.0)
+        estimator.onLocation(stops[1].lat, stops[1].lon, 10f, 931.5)
+        assertEquals(false, estimator.missedDeparture(934.0, 3.0))
+    }
+
+    @Test
     fun `simulacao segue so a tabela, sem GPS`() {
         val estimator = TripEstimator(plan(simulated = true))
         estimator.onLocation(homeLat, homeLon, 11f, 925.0)

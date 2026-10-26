@@ -28,6 +28,33 @@ data class TripTransfer(
     val free: Boolean? = null,
 )
 
+/** Um trecho do roteiro, para a linha do tempo da viagem. */
+data class JourneyLeg(
+    val routeName: String,
+    val colorHex: String,
+    val headsign: String,
+    val fromName: String,
+    val toName: String,
+    val departure: Int,
+    val arrival: Int,
+)
+
+/**
+ * O roteiro com integração inteiro: o destino final, os trechos (os feitos e
+ * os que faltam) e qual está em andamento ([current]). O serviço do modo
+ * viagem segue de um trecho para o outro sozinho.
+ */
+data class TripJourney(
+    val destRouteId: String,
+    val destStopId: String,
+    val finalName: String,
+    val legs: List<JourneyLeg>,
+    val current: Int,
+) {
+    val originName get() = legs.first().fromName
+    val arrival get() = legs.last().arrival
+}
+
 /**
  * O que a pessoa escolheu: uma viagem de [stops].first() até [stops].last(),
  * na linha [routeName] rumo a [headsign].
@@ -52,6 +79,8 @@ data class TripPlan(
      * Segue só a tabela de horários, sem GPS, e tudo aparece marcado "Simulação".
      */
     val simulated: Boolean = false,
+    /** Num roteiro com integração, o roteiro inteiro; este plano é o trecho [TripJourney.current]. */
+    val journey: TripJourney? = null,
 ) {
     val viaTerminal get() = turnaroundIndex in 0 until stops.lastIndex
     val terminal get() = stops.getOrNull(turnaroundIndex)
@@ -69,6 +98,18 @@ data class TripPlan(
         .put("alert", alertStationsBefore)
         .put("turn", turnaroundIndex)
         .put("sim", simulated)
+        .apply {
+            journey?.let { j ->
+                put("journey", JSONObject().put("route", j.destRouteId).put("stop", j.destStopId)
+                    .put("final", j.finalName).put("current", j.current)
+                    .put("legs", JSONArray().apply {
+                        j.legs.forEach {
+                            put(JSONObject().put("route", it.routeName).put("color", it.colorHex).put("headsign", it.headsign)
+                                .put("from", it.fromName).put("to", it.toName).put("dep", it.departure).put("arr", it.arrival))
+                        }
+                    }))
+            }
+        }
         .apply {
             transfer?.let {
                 put("transfer", JSONObject().put("route", it.nextRoute).put("headsign", it.nextHeadsign)
@@ -99,6 +140,20 @@ data class TripPlan(
                 alertStationsBefore = o.optInt("alert", 2),
                 turnaroundIndex = o.optInt("turn", -1),
                 simulated = o.optBoolean("sim"),
+                journey = o.optJSONObject("journey")?.let { j ->
+                    val legs = j.getJSONArray("legs")
+                    TripJourney(
+                        destRouteId = j.getString("route"),
+                        destStopId = j.getString("stop"),
+                        finalName = j.getString("final"),
+                        current = j.getInt("current"),
+                        legs = (0 until legs.length()).map { i ->
+                            val l = legs.getJSONObject(i)
+                            JourneyLeg(l.getString("route"), l.getString("color"), l.getString("headsign"),
+                                l.getString("from"), l.getString("to"), l.getInt("dep"), l.getInt("arr"))
+                        },
+                    )
+                },
                 transfer = o.optJSONObject("transfer")?.let {
                     TripTransfer(
                         nextRoute = it.getString("route"),
@@ -157,6 +212,8 @@ class TripEstimator(
     private var lastSatellite: Double? = null
     /** O GPS já pôs a pessoa numa estação da viagem pelo menos uma vez. */
     private var seenAtStation = false
+    /** A última estação em que o GPS viu a pessoa, e quando. */
+    private var lastStationFix: Pair<Int, Double>? = null
 
     /**
      * Uma posição. Só conta se for precisa e estiver perto de uma estação da
@@ -191,11 +248,22 @@ class TripEstimator(
         index = nearest
         lastFix = TripFix.GPS
         seenAtStation = true
+        lastStationFix = nearest to nowMinutes
         // Estar na estação i agora quer dizer atraso de (agora − horário em i).
         // Na origem, chegar cedo não é adiantamento: o trem ainda vai passar.
         val measured = nowMinutes - plan.stops[nearest].scheduled
         val accepted = if (nearest == 0) measured.coerceAtLeast(0.0) else measured
         if (kotlin.math.abs(accepted) <= MAX_DELAY_MINUTES) delay = accepted
+    }
+
+    /**
+     * O GPS ainda vê a pessoa na estação de partida (há no máximo 1 minuto),
+     * quando o trem já devia ter saído há [afterMinutes]: ela perdeu o trem.
+     */
+    fun missedDeparture(nowMinutes: Double, afterMinutes: Double): Boolean {
+        val (station, at) = lastStationFix ?: return false
+        return !plan.simulated && station == 0 && nowMinutes - at <= 1.0 &&
+            nowMinutes >= plan.origin.scheduled + afterMinutes
     }
 
     /** O estado agora, avançando pela grade quando o GPS não diz nada novo. */
