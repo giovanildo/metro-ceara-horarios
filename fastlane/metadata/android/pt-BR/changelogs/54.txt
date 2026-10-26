@@ -1,0 +1,2 @@
+• Com letra grande (como nos Samsung), os botões "Encerrar viagem" e "Apagar registro" não ficam mais espremidos.
+• O aviso "Aviso em…, 2 estações antes" ficou legível no tema escuro.
