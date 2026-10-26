@@ -171,16 +171,33 @@ pessoa fica nas **Configurações → Integração**: "Como você se desloca" e
 | Pico (6h–8h e 16h–19h) | +1 min | `pico.integracao_min` |
 | Pico máximo (17h–18h, Relatório de Demanda) | +2 min | `pico.maximo`, `pico.integracao_maximo_min` |
 
-**Na viagem.** "Iniciar viagem" acompanha o primeiro trecho até a integração. O
-aviso vira "Prepare-se: integração em Parangaba · Faltam 2 estações para
-Parangaba. Depois, Linha Nordeste às 08:10.", e a chegada diz "Desça em
-Parangaba e vá para a Linha Nordeste, 2 min a pé. VLT às 08:10, sentido Iate.
-Passagem grátis.". A notificação fixa mostra "Viagem até Papicu · integração em
-Parangaba". Depois, a tela inicial mostra o cartão **Próximo trecho**, refeito
-com o horário de agora: se a pessoa perdeu o VLT, já aparece o seguinte. O botão
-"Iniciar o próximo trecho" começa o trecho seguinte, que também avisa a próxima
-integração, se houver. O cartão some 1 h depois da partida prevista, ou em
-"Dispensar". (Na etapa 3, o próximo trecho vai começar sozinho.)
+**Na viagem (do começo ao fim, sozinha).** "Iniciar viagem" acompanha o
+roteiro inteiro, trecho por trecho, sem a pessoa tocar em nada
+([`data/Journey.kt`](app/src/main/java/io/github/giova/metroceara/data/Journey.kt)
+e `TripService`):
+
+- **No trecho:** a notificação fixa mostra "Benfica → Papicu · chegada 08:40 ·
+  Agora: Linha Sul, em Couto Fernandes · Integração em Parangaba às 08:01 ·
+  Linha Nordeste às 08:10", com uma barra de progresso da viagem inteira. O
+  cartão no app tem a **linha do tempo** dos trechos ("feito", "agora").
+- **Antes da integração:** "Prepare-se: integração em Parangaba · Faltam 2
+  estações para Parangaba. Depois, Linha Nordeste às 08:10."
+- **Na integração:** "Desça em Parangaba e vá para a Linha Nordeste, 2 min a pé.
+  VLT às 08:10, sentido Iate. Passagem grátis." O serviço calcula o próximo
+  trecho na hora, com o mesmo `Router`, e passa a acompanhá-lo: "Indo para a
+  Linha Nordeste · VLT às 08:10, sentido Iate · em 8 min".
+- **Perdeu o VLT:** se, depois de uma integração, o GPS ainda vê a pessoa na
+  plataforma **3 min depois da partida**, sem tê-la visto na estação seguinte,
+  vem "Você perdeu o VLT das 08:10 · Próximo às 08:50, sentido Iate. Chegada
+  em Papicu às 09:20.", com vibração e voz. O roteiro é refeito com o trem
+  seguinte, e a chegada se atualiza (`TripEstimator.missedDeparture`, com
+  testes).
+- **No destino final:** o aviso de descida de sempre e "Você chegou".
+- Duas ou três integrações (São Benedito → Aeroporto) seguem igual. A
+  **simulação** também passa pelos trechos sozinha.
+
+Os textos usam o artigo certo da linha ("vá para a Linha Nordeste", "o VLT
+Aeroporto") e o singular ("Falta 1 estação").
 
 **Versão lite.** Na tela da estação, "Ir para outra linha": um campo com as
 estações das linhas alcançáveis (por linha, com a integração) e "Como você se
