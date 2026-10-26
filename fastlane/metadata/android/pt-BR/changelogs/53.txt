@@ -1,0 +1,4 @@
+• Viagem com integração do começo ao fim: na troca de linha, o modo viagem segue sozinho para o próximo trecho, sem precisar tocar em nada.
+• Se você perder o VLT na integração, o app avisa e refaz o roteiro com o próximo.
+• A notificação e o app mostram o roteiro inteiro, com o trecho atual e a chegada final.
+• Textos corrigidos: "Falta 1 estação" e "o VLT Aeroporto".
