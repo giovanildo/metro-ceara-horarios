@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -161,7 +162,7 @@ fun AboutScreen(onBack: () -> Unit) {
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.clickable { open(context, REPO_URL) },
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(onClick = { open(context, REPO_URL) }) {
                     Text(stringResource(R.string.about_source_code))
                 }
@@ -180,7 +181,7 @@ fun AboutScreen(onBack: () -> Unit) {
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.clickable { open(context, SITE_URL) },
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(onClick = { open(context, SITE_URL) }) {
                     Text(stringResource(R.string.about_lite_open))
                 }
@@ -267,7 +268,7 @@ private fun DevOptions() {
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(top = 8.dp),
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
                 Button(onClick = { saveLog(context) }) { Text(stringResource(R.string.dev_save)) }
                 OutlinedButton(onClick = {
                     DevLog.clear()
@@ -310,7 +311,7 @@ private fun CloudCopy() {
         color = if (cloud.error != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
         modifier = Modifier.padding(top = 8.dp),
     )
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
         Button(onClick = { picker.launch(null) }) {
             Text(stringResource(if (cloud.folder == null) R.string.dev_cloud_choose else R.string.dev_cloud_change))
         }

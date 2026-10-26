@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -216,14 +217,20 @@ fun TripCard(
                     )
                 },
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                // A cor do cartão, um pouco mais clara: o cinza do tema sumia no fundo lilás.
+                color = LocalContentColor.current.copy(alpha = 0.75f),
                 modifier = Modifier.padding(top = 4.dp),
             )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(top = 8.dp),
+            // Com letra grande, "Encerrar viagem" desce para a linha de baixo em vez
+            // de ser espremido (o texto quebrava letra por letra).
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                itemVerticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             ) {
                 FilterChip(
+                    modifier = Modifier.weight(1f, fill = false),
                     selected = stationAlerts,
                     onClick = { onToggleStationAlerts(!stationAlerts) },
                     label = { Text(stringResource(R.string.trip_station_alerts)) },
@@ -234,7 +241,6 @@ fun TripCard(
                         )
                     },
                 )
-                Spacer(Modifier.weight(1f))
                 OutlinedButton(onClick = onStop) { Text(stringResource(R.string.trip_stop)) }
             }
         }
