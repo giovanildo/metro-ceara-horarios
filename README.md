@@ -12,8 +12,9 @@ caso, com a grade que vem no APK.
 — explica o que o app faz e como instalar, para quem não é programador, e gera
 uma prévia bonita ao colar o link no WhatsApp.
 
-**Na Play Store, em fase de testes:** para ser testador beta, mande um e-mail
-para giovanildos@gmail.com. A página do app oferece só esse caminho (e a
+**Na Play Store, em fase de testes:** para ser testador beta, mande o Gmail
+da sua conta da Play Store pelo WhatsApp (85 99761-9295) ou por e-mail para
+giovanildos@gmail.com. A página do app oferece só esse caminho (e a
 versão lite); o APK abaixo fica para quem chega pelo GitHub.
 
 **[⬇ Baixar a última versão (APK)](https://github.com/giovanildo/metro-ceara-horarios/releases/latest)**
@@ -893,8 +894,10 @@ nenhum. Por isso o botão principal da página é **"Abrir agora no navegador"**
 (`app/`), e o secundário, **"App completo para Android"**, desce até o bloco
 `#baixar`. A página não oferece mais instalar o APK direto (desde 27/10):
 o bloco `#baixar` da seção "Como instalar o app completo" diz que o app está em
-fase de testes na Play Store e convida a mandar um e-mail para virar testador
-beta, com o botão "Ver na Play Store" (que só abre para quem já é testador).
+fase de testes na Play Store e convida a virar testador beta: o botão **"Quero
+ser testador beta"** abre o WhatsApp (`wa.me/5585997619295`) com a mensagem
+pronta pedindo o Gmail da Play Store (é ele que entra na lista de testadores do
+Console), e o e-mail fica como alternativa.
 O vídeo de instalação do Android saiu da página; o do iPhone ficou. O QR e o "Divulgar o app" do app Android também levam à
 versão lite. Dentro dela, no Android, quem volta a usar (a partir da 3ª
 abertura) vê um convite discreto para o app completo, com "Agora não" (some
