@@ -1,0 +1,2 @@
+• Avisos da viagem mais fáceis de ler no relógio: a estação vem primeiro ("Benfica: prepare-se para descer") e a chegada aparece no título da notificação.
+• "Simulação" e "pela tabela de horários" foram para o fim dos avisos.
