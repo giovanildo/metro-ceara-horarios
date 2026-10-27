@@ -263,10 +263,11 @@ o Android só usa a forma, e o ícone do app, de fundo cheio, virava um quadrado
   min** — Posição estimada pela tabela de horários. Confira o nome das
   estações pela janela." A notificação fixa ganha
   "sem GPS há N min", e todo aviso baseado na tabela diz isso: a estação vira
-  "Provavelmente Parangaba" e o aviso de descida começa com "Pela tabela de
-  horários". A tabela é a "média" da viagem: os horários programados do
+  "Provavelmente Parangaba" e o aviso de descida termina com "(pela tabela de
+  horários)". A tabela é a "média" da viagem: os horários programados do
   Metrofor, deslocados pelo atraso que o GPS mediu na última estação vista.
-- **Aviso duas estações antes do destino**, com notificação e vibração. O
+- **Aviso duas estações antes do destino**, com notificação e vibração:
+  "**Benfica: prepare-se para descer** · Faltam 2 estações." O
   botão de alto-falante no cartão da viagem liga ou desliga o **som**; com som,
   o aviso usa o áudio de alarme, que toca mesmo com o celular no vibrar.
 - **Avisar cada estação (voz)**, opcional e desligado por padrão: a cada
@@ -277,14 +278,21 @@ o Android só usa a forma, e o ícone do app, de fundo cheio, virava um quadrado
   o aviso de descida. Com o som ligado, o aviso de duas estações antes
   também é falado. A voz sai pelo canal de navegação: toca no fone e abaixa a
   música. Sem voz pt-BR instalada no aparelho, fica só a notificação.
+- **Notificações para ler no relógio.** Os relógios que espelham as
+  notificações do celular (Coros, Xiaomi, Amazfit, Galaxy Watch…) mostram só o
+  começo do texto, então o essencial vem primeiro: a estação no título do aviso
+  ("Benfica: prepare-se para descer", "Parangaba: prepare-se para a
+  integração"), a chegada no título da notificação fixa ("Até Parangaba ·
+  chegada ~08:01"), e "(simulação)" e "(pela tabela de horários)" no fim. A voz
+  continua com a frase completa.
 - **Distância até a partida.** Se a pessoa está a mais de **1 km** da estação de
   partida (ajustável), o app pergunta antes de iniciar: **Simular a viagem**,
   **Esperar o GPS** ou Cancelar.
   - **Simulação:** segue só a tabela de horários e ignora o GPS, com estações,
     aviso de descida, voz, integração e próximo trecho, para testar ou mostrar o
     app de casa. Tudo vem marcado: "Simulação · Linha Sul" no cartão,
-    "Simulação: Viagem até Parangaba" e "Simulação: Prepare-se para descer" nas
-    notificações, e "Simulação." na voz. O registro de testes marca
+    "Até Parangaba · chegada ~08:01 (simulação)" e "Parangaba: prepare-se para
+    descer (simulação)" nas notificações, e "Simulação." na voz. O registro de testes marca
     `"simulated": true` no `trip_start`. O trecho seguinte de um roteiro simulado
     também é simulado.
   - **Esperar o GPS:** a viagem de verdade, para quem ainda vai até a estação.
