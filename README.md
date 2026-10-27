@@ -890,8 +890,8 @@ houver QR codes ou links antigos por aí.
 **A versão lite é a porta de entrada.** A instalação de um APK de fora da loja
 mostra avisos que espantam o usuário comum; a versão lite abre na hora, sem
 nenhum. Por isso o botão principal da página é **"Abrir agora no navegador"**
-(`app/`), e o secundário, **"App completo para Android"**, leva à página do app
-na Play Store. A página não oferece mais instalar o APK direto (desde 27/10):
+(`app/`), e o secundário, **"App completo para Android"**, desce até o bloco
+`#baixar`. A página não oferece mais instalar o APK direto (desde 27/10):
 o bloco `#baixar` da seção "Como instalar o app completo" diz que o app está em
 fase de testes na Play Store e convida a mandar um e-mail para virar testador
 beta, com o botão "Ver na Play Store" (que só abre para quem já é testador).
