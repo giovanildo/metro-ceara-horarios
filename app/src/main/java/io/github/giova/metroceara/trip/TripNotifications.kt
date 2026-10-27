@@ -191,9 +191,12 @@ internal object TripNotifications {
         return text
     }
 
-    /** Na simulação, "Simulação: " na frente, para ninguém confundir com uma viagem de verdade. */
+    /**
+     * Na simulação, "(simulação)" no fim, para ninguém confundir com uma viagem de
+     * verdade. No fim e não na frente: o relógio só mostra o começo do texto.
+     */
     fun simulated(context: Context, plan: TripPlan, text: String): String =
-        if (plan.simulated) context.getString(R.string.trip_sim) + ": " + text else text
+        if (plan.simulated) text + " (" + context.getString(R.string.trip_sim).lowercase() + ")" else text
 
     /** "Desça em Parangaba e vá para a Linha Nordeste, 2 min a pé. VLT às 08:10, sentido Iate. Passagem grátis." */
     fun transferArrived(context: Context, station: String, t: TripTransfer): String =
@@ -291,7 +294,7 @@ internal object TripNotifications {
                 formatTime((if (plan.transfer == null) progress.arrivalMinutes.roundToInt() else journey.arrival)),
             )
             plan.transfer != null -> context.getString(R.string.trip_notification_title_transfer, plan.transfer.finalDestination, plan.destination.name)
-            else -> context.getString(R.string.trip_notification_title, plan.destination.name)
+            else -> context.getString(R.string.trip_notification_title, plan.destination.name, formatTime(progress.arrivalMinutes.roundToInt()))
         })
         val text = journey?.let { journeyLine(context, trip, it) } ?: when {
             trip.arrived -> context.getString(R.string.trip_arrived, plan.destination.name)
@@ -328,28 +331,31 @@ internal object TripNotifications {
             .build()
     }
 
-    /** O aviso de que o destino está chegando. */
+    /**
+     * O aviso de que o destino está chegando: "Benfica: prepare-se para descer" /
+     * "Faltam 2 estações.". A estação vem primeiro e "simulação" e "pela tabela"
+     * vão para o fim, porque o relógio mostra só o começo.
+     */
     fun alert(context: Context, trip: ActiveTrip, sound: Boolean) {
-        val left = trip.progress.stationsLeft(trip.plan)
-        val transfer = trip.plan.transfer
-        val text = (if (transfer != null) transferAlert(context, trip) else context.getString(
-            R.string.trip_alert_text,
-            context.resources.getQuantityString(R.plurals.trip_left, left, left),
-            trip.plan.destination.name,
-        )).let { if (trip.progress.presumed) context.getString(R.string.trip_presumed_prefix) + ": " + it else it }
-            .let {
-                if (SettingsStore.get(context).remindBelongings && transfer == null) {
-                    it + " " + context.getString(R.string.trip_belongings)
-                } else {
-                    it
-                }
-            }
+        val plan = trip.plan
+        val left = context.resources.getQuantityString(R.plurals.trip_left, trip.progress.stationsLeft(plan), trip.progress.stationsLeft(plan))
+        val transfer = plan.transfer
+        val text = listOfNotNull(
+            if (transfer != null) {
+                context.getString(R.string.trip_transfer_alert_notification_text, left, transfer.nextRoute, formatTime(transfer.nextDeparture))
+            } else {
+                "$left."
+            },
+            context.getString(R.string.trip_presumed_suffix).takeIf { trip.progress.presumed },
+            context.getString(R.string.trip_belongings).takeIf { SettingsStore.get(context).remindBelongings && transfer == null },
+        ).joinToString(" ")
+        val title = simulated(context, plan, context.getString(
+            if (transfer != null) R.string.trip_transfer_alert_notification_title else R.string.trip_alert_notification_title,
+            plan.destination.name,
+        ))
         val notification = NotificationCompat.Builder(context, if (sound) CHANNEL_ALERT_SOUND else CHANNEL_ALERT_SILENT)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(
-                simulated(context, trip.plan, transfer?.let { context.getString(R.string.trip_transfer_alert_title, trip.plan.destination.name) }
-                    ?: context.getString(R.string.trip_alert_title)),
-            )
+            .setContentTitle(title)
             .setContentText(text)
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setPriority(NotificationCompat.PRIORITY_HIGH)

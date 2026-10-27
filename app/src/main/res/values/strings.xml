@@ -77,7 +77,8 @@
     <string name="trip_channel_ongoing">Viagem em andamento</string>
     <string name="trip_channel_alert_sound">Aviso de chegada (com som)</string>
     <string name="trip_channel_alert_silent">Aviso de chegada (sem som)</string>
-    <string name="trip_notification_title">Viagem até %1$s</string>
+    <!-- Notificações: o essencial no começo, porque o relógio corta o resto. -->
+    <string name="trip_notification_title">Até %1$s · chegada ~%2$s</string>
     <string name="trip_waiting">Aguardando o %3$s em %1$s, previsto às %2$s.</string>
     <string name="trip_progress_line">Em %1$s · destino em %2$s · chegada ~%3$s (%4$s)</string>
     <string name="trip_fix_gps">pelo GPS</string>
@@ -129,6 +130,10 @@
     <string name="trip_transfer_paid">Passagem paga.</string>
     <string name="trip_notification_title_transfer">Viagem até %1$s · integração em %2$s</string>
     <string name="trip_alert_text">%1$s para %2$s.</string>
+    <string name="trip_alert_notification_title">%1$s: prepare-se para descer</string>
+    <string name="trip_transfer_alert_notification_title">%1$s: prepare-se para a integração</string>
+    <string name="trip_transfer_alert_notification_text">%1$s. Depois, %2$s às %3$s.</string>
+    <string name="trip_presumed_suffix">(pela tabela de horários)</string>
     <!-- "Falta 1 estação" / "Faltam 2 estações": o começo dos avisos de descida e de estação. -->
     <plurals name="trip_left">
         <item quantity="one">Falta %1$d estação</item>
