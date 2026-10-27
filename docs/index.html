@@ -30,7 +30,7 @@
   "applicationCategory": "TravelApplication",
   "description": "Horários do metrô e do VLT de Fortaleza, Sobral e Cariri. App não oficial, gratuito e de código aberto.",
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
-  "downloadUrl": "https://github.com/giovanildo/metro-ceara-horarios/releases/latest",
+  "downloadUrl": "https://play.google.com/store/apps/details?id=io.github.giova.metroceara",
   "license": "https://www.gnu.org/licenses/gpl-3.0.html"
 }
 </script>
@@ -66,6 +66,8 @@
   .small { font-size: .9rem; opacity: .9; margin-top: 12px; }
   .baixar { background: var(--card); border-radius: 16px; padding: 20px; margin: 16px 0; scroll-margin-top: 16px; }
   .baixar p { margin: 14px 0 0; }
+  .baixar > p:first-child { margin-top: 0; }
+  .baixar .btn { margin-top: 14px; }
   .btn-red { background: var(--red); color: #fff; }
   .tutorial { display: block; width: 100%; max-width: 300px; aspect-ratio: 9 / 16; margin: 16px 0; border-radius: 16px; background: #000; }
 
@@ -104,7 +106,7 @@
     </div>
     <div class="buttons">
       <a class="btn btn-main" href="app/">▶ Abrir agora no navegador</a>
-      <a class="btn btn-ghost" href="#baixar">App completo para Android</a>
+      <a class="btn btn-ghost" href="https://play.google.com/store/apps/details?id=io.github.giova.metroceara">App completo para Android</a>
     </div>
     <p class="small">Abre na hora, em qualquer celular (iPhone também), sem instalar nada. Grátis · sem anúncios · sem cadastro.</p>
     <p class="small">O app completo para Android tem o <strong>modo viagem</strong>: avisa antes da sua estação, mesmo com a tela desligada.</p>
@@ -158,24 +160,16 @@
       <li><strong>Sua localização fica no celular:</strong> é usada só para achar a estação mais perto e acompanhar a viagem. Nada é enviado para ninguém.</li>
       <li>A internet é usada só para baixar os horários publicados pelo Metrofor.</li>
     </ul>
-    <p class="muted">O Android mostra avisos ao instalar qualquer app que não venha da Play Store. Eles são normais para apps instalados por fora da loja — veja abaixo como seguir.</p>
   </section>
 
   <section id="instalar">
     <h2>Como instalar o app completo (Android)</h2>
     <p>Quem só quer ver os horários não precisa instalar nada: <a href="app/"><strong>abra no navegador</strong></a>. O app completo acrescenta o modo viagem, com aviso antes da sua estação mesmo com a tela desligada.</p>
     <div class="baixar" id="baixar">
-      <a class="btn btn-red" href="https://github.com/giovanildo/metro-ceara-horarios/releases/latest/download/metro-ceara.apk">⬇ Baixar o app completo (Android)</a>
-      <p>Como ele ainda não está na Play Store, o Android mostra alguns avisos na instalação. <strong>São normais</strong> para qualquer app instalado por fora da loja: siga os passos abaixo ou veja no vídeo cada aviso e o que tocar.</p>
+      <p><strong>Na Play Store, o app está em fase de testes.</strong> Para ser testador beta e instalar pela loja, é só mandar um e-mail para <a href="mailto:giovanildos@gmail.com?subject=Quero%20ser%20testador%20do%20Metr%C3%B4%20Cear%C3%A1"><strong>giovanildos@gmail.com</strong></a>. Você recebe o convite e instala pela própria Play Store.</p>
+      <a class="btn btn-red" href="https://play.google.com/store/apps/details?id=io.github.giova.metroceara">▶ Ver na Play Store</a>
+      <p class="muted">A página da loja abre só para quem já é testador.</p>
     </div>
-    <video class="tutorial" controls preload="none" playsinline poster="video/como-instalar-android.jpg" src="video/como-instalar-android.mp4"></video>
-    <ol>
-      <li>No celular Android, toque em <a href="https://github.com/giovanildo/metro-ceara-horarios/releases/latest/download/metro-ceara.apk"><strong>Baixar o app completo (Android)</strong></a>.</li>
-      <li>Abra o arquivo <strong>metro-ceara.apk</strong> quando o download terminar.</li>
-      <li>Se o Android pedir, permita <strong>instalar apps desta fonte</strong> (para o navegador ou o gerenciador de arquivos).</li>
-      <li>Se o Google Play Protect avisar "app não verificado", toque em <strong>Mais detalhes → Instalar mesmo assim</strong>.</li>
-      <li>Abra o app e toque em <strong>Usar minha localização</strong>.</li>
-    </ol>
     <h3>No iPhone (versão lite)</h3>
     <p>No iPhone não dá para instalar o app de Android. A <a href="app/"><strong>versão lite</strong></a> roda no navegador e fica com ícone na tela inicial:</p>
     <video class="tutorial" controls preload="none" playsinline poster="video/como-instalar-iphone.jpg" src="video/como-instalar-iphone.mp4"></video>
@@ -186,7 +180,6 @@
       <li>Abra pelo ícone e toque em <strong>Usar minha localização</strong>.</li>
     </ol>
     <p class="muted">A versão lite mostra a estação mais perto, os horários, a integração entre linhas, a regra de bike e o lembrete da hora de sair, e abre até sem internet. O modo viagem, com aviso de descida com a tela desligada, existe só no app de Android.</p>
-    <p class="muted">Para receber as novas versões sozinho, use o app <a href="https://github.com/ImranR98/Obtainium">Obtainium</a> com o endereço do projeto. Também dá para ver <a href="https://github.com/giovanildo/metro-ceara-horarios/releases">todas as versões e novidades</a>.</p>
   </section>
 
   <section>

@@ -6,7 +6,7 @@ import { PERFIS, Roteador } from "./roteiro.js";
 
 const PERTO_METROS = 3000; // outras linhas aparecem até esta distância (padrão do app)
 const LINK = "https://giovanildo.github.io/metro-ceara-horarios/app/";
-const PAGINA_INSTALAR = "../#baixar"; // direto no botão de baixar o APK, com os avisos explicados ao lado
+const PAGINA_INSTALAR = "../#baixar"; // direto no convite para testar pela Play Store
 const PIX = "giovanildos@gmail.com";
 const ANDROID = /Android/i.test(navigator.userAgent);
 const CONVITE_A_PARTIR_DA_VISITA = 3;
