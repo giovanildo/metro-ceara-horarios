@@ -10,7 +10,16 @@ import org.json.JSONObject
 data class BikeSpecialDay(val lines: Set<String>, val windows: List<BikeWindow>)
 
 /** Endereço de uma estação e, se o GTFS a põe no lugar errado, a posição certa. */
-data class StationInfo(val name: String, val address: String, val lat: Double?, val lon: Double?)
+data class StationInfo(
+    val name: String,
+    val address: String,
+    val lat: Double?,
+    val lon: Double?,
+    /** Debaixo da terra: o sinal do celular (e o GPS) costuma falhar. */
+    val underground: Boolean = false,
+    /** Aviso livre do regras.json, mostrado na tela da estação abaixo da passagem. */
+    val notice: String? = null,
+)
 
 /**
  * Um dia de operação especial anunciado numa notícia do Metrofor (feriado, ENEM,
@@ -168,6 +177,8 @@ class Regras(
                         address = s.getString("endereco"),
                         lat = position?.getDouble(0),
                         lon = position?.getDouble(1),
+                        underground = s.optBoolean("subterranea"),
+                        notice = s.optString("aviso").trim().takeIf { it.isNotEmpty() },
                     )
                 }
             }.orEmpty()

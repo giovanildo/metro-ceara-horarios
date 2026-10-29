@@ -253,11 +253,14 @@ function telaEstacao(linhaId, stopId, sentidoId) {
 
   let html = `<h2 style="font-size:1.4rem;margin-bottom:0">${esc(grade.nome(stopId))}</h2>
     <p class="dica" style="margin-top:2px"><span class="ponto" style="background:${cor(linha)}"></span> ${esc(linha.nome)}</p>`;
-  const endereco = infoEstacao(estado.dados.regras, stopId, grade.nome(stopId))?.endereco;
+  const info = infoEstacao(estado.dados.regras, stopId, grade.nome(stopId));
+  const endereco = info?.endereco;
   const tarifa = passagemDaLinha(estado.dados.regras, linha.nome);
   if (endereco || tarifa) {
     html += `<p class="dica">${[endereco && esc(endereco), tarifa && `Passagem: ${esc(tarifa)}`].filter(Boolean).join("<br>")}</p>`;
   }
+  // Aviso livre da estação (regras.json), como o de estação subterrânea.
+  if (info?.aviso) html += `<p class="aviso">${esc(info.aviso)}</p>`;
   if (sentidos.length > 1) {
     html += `<nav class="abas">${sentidos.map((s) =>
       `<a href="#/estacao/${linha.id}/${stopId}/${s.id}" class="${s === sentido ? "ativa" : ""}">→ ${esc(s.destino)}</a>`).join("")}</nav>`;

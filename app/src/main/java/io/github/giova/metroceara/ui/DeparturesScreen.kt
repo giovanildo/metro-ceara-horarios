@@ -204,9 +204,10 @@ fun DeparturesScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                val address = Regras.current.station(stop.id, stop.name)?.address
+                val info = Regras.current.station(stop.id, stop.name)
+                val address = info?.address
                 val fare = Regras.current.fare(route.name)
-                if (address != null || fare != null) {
+                if (address != null || fare != null || info?.notice != null) {
                     item {
                         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             listOfNotNull(address, fare?.let { stringResource(R.string.station_fare, it) }).forEach {
@@ -214,6 +215,17 @@ fun DeparturesScreen(
                                     text = it,
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            // Aviso da estação (regras.json), como o de estação subterrânea:
+                            // destacado, porque pede uma ação antes de chegar.
+                            info?.notice?.let {
+                                Text(
+                                    text = it,
+                                    modifier = Modifier.padding(top = 4.dp),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.primary,
                                 )
                             }
                         }
