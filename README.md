@@ -216,15 +216,27 @@ Dois widgets, escolhidos na lista de widgets do celular (segurar num espaço
 vazio da tela inicial → Widgets → Metrô Ceará):
 
 - **Estação: próximos horários** (4×2): a estação, a linha e os **dois
-  próximos** horários de cada sentido, mais o aviso do dia.
+  próximos** horários de cada sentido ("18:16 depois 18:34"), mais o aviso do dia.
 - **Estação: próximo horário** (2×2): o próximo de cada sentido, em número
   grande.
 
 A estação é a **fixada com a estrela**; sem ela, **a última aberta** no app;
 sem nenhuma, **a mais perto de você** na última vez que o app achou a
 localização (a do topo da tela inicial). Sem nenhuma das três, o widget pede
-para abrir o app com a localização ligada ou fixar a estação. Não usa GPS nem
-internet: os horários saem da grade já baixada e o aviso, do `regras.json`.
+para abrir o app com a localização ligada ou fixar a estação. Os horários saem
+da grade já baixada e o aviso, do `regras.json`, sem internet.
+
+O **↻** no canto (sempre visível) procura a **estação mais perto pelo GPS**: o
+widget mostra "Procurando a estação mais perto…" e, em poucos segundos, troca de
+estação. Ela passa na frente da fixada e da última aberta até a pessoa fixar
+uma estação com a estrela. O GPS só é ligado quando a pessoa toca no ↻: um
+serviço em primeiro plano de poucos segundos
+([`widget/WidgetLocateService.kt`](app/src/main/java/io/github/giova/metroceara/widget/WidgetLocateService.kt),
+com notificação enquanto procura), que o Android permite porque o toque foi da
+pessoa, sem a permissão de localização "o tempo todo". A posição é sempre nova
+(sem aproveitar posição guardada: no trem, a de 1 min atrás já está quase 1 km
+para trás). Sem localização, fica a estação de antes ("Não achei sua
+localização agora."); sem permissão, o ↻ abre o app, que pede.
 Depois do último horário do dia, mostra o primeiro de amanhã ("05:47
 amanhã") ou de segunda. O aviso do dia é a notícia da operação especial, "O
 Metrofor avisou que esta linha não circula hoje." ou, num domingo sem
@@ -287,9 +299,11 @@ o Android só usa a forma, e o ícone do app, de fundo cheio, virava um quadrado
   notificações do celular (Coros, Xiaomi, Amazfit, Galaxy Watch…) mostram só o
   começo do texto, então o essencial vem primeiro: a estação no título do aviso
   ("Benfica: prepare-se para descer", "Parangaba: prepare-se para a
-  integração"), a chegada no título da notificação fixa ("Até Parangaba ·
-  chegada ~08:01"), e "(simulação)" e "(pela tabela de horários)" no fim. A voz
-  continua com a frase completa.
+  integração"); na notificação fixa, no trem, a estação atual no título ("Em
+  Benfica") e o destino no texto ("Até Parangaba em 5 estações · chegada ~07:43
+  (pelo GPS)"); antes de embarcar, o destino e a chegada no título ("Até
+  Parangaba · chegada ~08:01"); e "(simulação)" e "(pela tabela de horários)"
+  no fim. A voz continua com a frase completa.
 - **Distância até a partida.** Se a pessoa está a mais de **1 km** da estação de
   partida (ajustável), o app pergunta antes de iniciar: **Simular a viagem**,
   **Esperar o GPS** ou Cancelar.
@@ -406,6 +420,17 @@ A tela da estação (no app e na lite) mostra, logo abaixo dos sentidos, o
 R$ 1,80) · dinheiro ou Pix"). Os dois vêm das páginas das linhas no site do
 Metrofor e ficam no `regras.json`: `estacoes` (por `stop_id` do GTFS) e
 `passagem` (por linha). O VLT Aeroporto não tem página e fica sem.
+
+Cada estação pode ter também um **`aviso`**, texto livre que aparece logo
+abaixo da passagem, destacado, no app e na lite; como o `regras.json` é baixado
+do espelho, mudar, tirar ou pôr um aviso chega a todos **sem versão nova**. O
+primeiro é o das quatro estações **subterrâneas** da Linha Sul (Benfica, São
+Benedito, José de Alencar e Chico da Silva, marcadas com `"subterranea": true`),
+onde o sinal do celular falha e o Pix fica difícil: "Estação subterrânea: o
+sinal do celular costuma falhar. Leve dinheiro ou deixe o Pix aberto antes de
+descer." Nesse trecho o GPS também some: nos registros de 14 a 21/10, as
+posições lá embaixo vieram da rede (25–100 m de precisão), o que bastou para
+marcar as estações; num caso, 2 min sem posição, e o app seguiu pela tabela.
 
 Na mesma seção `estacoes`, `posicao` corrige as estações que o **GTFS põe no
 lugar errado**. Conferindo as cinco linhas com mapas do Google My Maps e com o
@@ -760,6 +785,36 @@ em 36 de propósito: subir o `targetSdk` muda comportamento em tempo de
 execução, e o app ainda não foi testado em aparelho. É a origem do único aviso
 de lint que sobrou.
 
+## Registro das viagens (enviado por e-mail, se a pessoa quiser)
+
+Para receber registros de outras pessoas sem que nada saia do celular sozinho
+([`data/TripLog.kt`](app/src/main/java/io/github/giova/metroceara/data/TripLog.kt)).
+Vem **ligado**: guarda cada viagem do modo viagem em `files/viagens/`, um
+arquivo por viagem, com as mesmas linhas do registro de testes (os eventos
+`trip_*`), **do embarque até o fim**. As posições de antes do embarque (a
+caminhada até a estação, que pode mostrar onde a pessoa mora) e as da tela
+inicial ficam de fora. Os arquivos somem depois de **7 dias**.
+
+Em **Configurações › Registro das viagens**: desligar, ver quantas viagens há,
+**Enviar por e-mail** e Apagar. O envio abre a tela de compartilhar com o
+e-mail montado: para giovanildos@gmail.com, assunto "Registro de viagem · v1.56
+· 29/10 · Benfica → Carlito Benevides" (ou "… · 5 viagens"), um **resumo** de
+cada viagem no corpo (hora, linha, trecho, como terminou, erro da chegada,
+minutos sem GPS, versão do app e do Android, aparelho) e as viagens num `.zip`
+anexo. A pessoa vê tudo antes de mandar pelo app de e-mail dela, então para a
+Play Store não é coleta pelo app.
+
+**Convite só em viagem com problema**
+([`trip/TripReview.kt`](app/src/main/java/io/github/giova/metroceara/trip/TripReview.kt)):
+3 min ou mais sem GPS, chegada mais de 3 min diferente da prevista na hora do
+aviso de descida, viagem encerrada pela pessoa depois de embarcar e antes do
+destino, ou o app desistiu de esperar. Uma notificação **sem som** ("Essa
+viagem teve algum problema?") abre o e-mail daquela viagem. No máximo **um
+convite por semana**; depois de **dois convites seguidos sem resposta**, o app
+para de perguntar; mandar o registro (pelo convite ou pelas Configurações)
+zera a conta. Viagem simulada não convida. Cada fim de viagem grava
+`trip_review` (problemas, erro da chegada, maior tempo sem GPS).
+
 ## Registro de testes de campo (só para desenvolvimento)
 
 Escondido de quem usa o app: na tela **Sobre**, toque 7 vezes na linha da
@@ -799,8 +854,11 @@ horários; o `sync_ok` resume viagens e horários por linha), `loc_request`/
 posição durante a viagem), `trip_progress` (mudança de estação, se veio do GPS
 ou da tabela, atraso, GPS sem sinal), `trip_alert`, `trip_station`,
 `trip_turnaround`, `trip_option` (som do aviso ou "Avisar cada estação" ligado
-ou desligado durante a viagem), `trip_end` (motivo), `crash` (erro que derrubou
-o app) e `log_on`/`log_off` (o `log_on` leva os mesmos dados do `app_start`).
+ou desligado durante a viagem), `trip_review` (desde a 1.56: problemas da
+viagem, erro da chegada, maior tempo sem GPS), `trip_end` (motivo),
+`widget_locate` (desde a 1.56: o ↻ do widget, estação achada ou `no_fix`),
+`crash` (erro que derrubou o app) e `log_on`/`log_off` (o `log_on` leva os
+mesmos dados do `app_start`).
 
 ## Versão lite (web)
 
