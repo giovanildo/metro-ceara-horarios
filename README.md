@@ -216,7 +216,7 @@ Dois widgets, escolhidos na lista de widgets do celular (segurar num espaço
 vazio da tela inicial → Widgets → Metrô Ceará):
 
 - **Estação: próximos horários** (4×2): a estação, a linha e os **dois
-  próximos** horários de cada sentido ("18:16 depois 18:34"), mais o aviso do dia.
+  próximos** horários de cada sentido ("18:16  18:34"), mais o aviso do dia.
 - **Estação: próximo horário** (2×2): o próximo de cada sentido, em número
   grande.
 

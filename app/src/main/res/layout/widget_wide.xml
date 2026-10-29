@@ -107,7 +107,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
-                android:text="depois 07:53"
+                android:text="07:53"
                 android:textColor="@color/widget_muted"
                 android:textSize="14sp" />
         </LinearLayout>
@@ -151,7 +151,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
-                android:text="depois 07:52"
+                android:text="07:52"
                 android:textColor="@color/widget_muted"
                 android:textSize="14sp" />
         </LinearLayout>
@@ -167,7 +167,7 @@
         android:paddingHorizontal="10dp"
         android:paddingVertical="5dp"
         android:textColor="@color/widget_text"
-        android:textSize="12sp"
+        android:textSize="14sp"
         android:visibility="gone" />
     <TextView
         android:id="@+id/widget_warning"
@@ -180,6 +180,6 @@
         android:paddingHorizontal="10dp"
         android:paddingVertical="5dp"
         android:textColor="@color/widget_warning_text"
-        android:textSize="12sp"
+        android:textSize="14sp"
         android:visibility="gone" />
 </LinearLayout>

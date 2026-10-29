@@ -162,7 +162,7 @@ object StationWidget {
             val more = when {
                 row.nextDayLabel != null && row.times.isNotEmpty() -> row.nextDayLabel
                 row.times.isEmpty() -> context.getString(R.string.widget_no_more)
-                wide -> row.times.getOrNull(1)?.let { context.getString(R.string.widget_after, formatTime(it)) }.orEmpty()
+                wide -> row.times.getOrNull(1)?.let(::formatTime).orEmpty()
                 else -> ""
             }
             views.setTextViewText(moreId, more)
