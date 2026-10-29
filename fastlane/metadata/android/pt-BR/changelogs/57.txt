@@ -1,0 +1,4 @@
+• Widget: botão ↻ que acha a estação mais perto pelo GPS, e "depois" antes do segundo horário.
+• Estações subterrâneas da Linha Sul: aviso para levar dinheiro, porque o sinal falha e o Pix fica difícil.
+• Modo viagem: a notificação mostra primeiro a estação em que você está, melhor no relógio.
+• Registro das viagens: fica só no celular por 7 dias; você pode mandar por e-mail para ajudar a melhorar o app (Configurações).
