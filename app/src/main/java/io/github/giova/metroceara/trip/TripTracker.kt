@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
+import io.github.giova.metroceara.data.DevLog
 import io.github.giova.metroceara.data.TripPlan
 import io.github.giova.metroceara.data.TripProgress
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -56,6 +57,7 @@ object TripTracker {
     fun setSoundEnabled(context: Context, enabled: Boolean) {
         prefs(context).edit { putBoolean(KEY_SOUND, enabled) }
         _soundEnabled.value = enabled
+        DevLog.log("trip_option", "option" to "sound", "on" to enabled)
     }
 
     /** Se cada estação alcançada gera um aviso curto com som (desligado por padrão). */
@@ -69,6 +71,7 @@ object TripTracker {
     fun setStationAlerts(context: Context, enabled: Boolean) {
         prefs(context).edit { putBoolean(KEY_STATION_ALERTS, enabled) }
         _stationAlerts.value = enabled
+        DevLog.log("trip_option", "option" to "station_alerts", "on" to enabled)
     }
 
     private fun prefs(context: Context) =

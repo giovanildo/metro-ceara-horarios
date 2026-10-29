@@ -35,6 +35,8 @@ object DevLog {
 
     @Volatile private var dir: File? = null
     @Volatile private var appContext: Context? = null
+    /** A versão do app, em toda linha: um log ligado no meio do dia não tem o `app_start`. */
+    @Volatile private var version: String? = null
 
     /** Eventos que levam a cópia na pasta da nuvem na hora, sem esperar o intervalo. */
     private val CLOUD_NOW = setOf("app_start", "log_on", "trip_end", "sync_ok")
@@ -53,6 +55,7 @@ object DevLog {
     fun init(context: Context) {
         val app = context.applicationContext
         appContext = app
+        version = appVersion(app)
         dir = File(app.filesDir, "devlog")
         DevLogCloud.init(app)
         val prefs = prefs(app)
@@ -69,7 +72,7 @@ object DevLog {
     fun setEnabled(context: Context, on: Boolean) {
         if (on && !enabled) {
             enabled = true
-            log("log_on")
+            log("log_on", *deviceInfo(context))
         } else if (!on && enabled) {
             log("log_off")
             enabled = false
@@ -86,6 +89,7 @@ object DevLog {
         val line = JSONObject().apply {
             put("t", timestamp(now))
             put("ev", event)
+            put("v", version ?: JSONObject.NULL)
             fields.forEach { (k, v) -> put(k, v ?: JSONObject.NULL) }
         }.toString()
         writer.execute {
@@ -113,6 +117,7 @@ object DevLog {
         val line = JSONObject()
             .put("t", timestamp(now))
             .put("ev", "crash")
+            .put("v", version ?: JSONObject.NULL)
             .put("error", error.stackTraceToString())
             .toString()
         runCatching {
@@ -142,13 +147,14 @@ object DevLog {
         writer.execute { dir?.listFiles()?.forEach { it.delete() } }
     }
 
+    private fun appVersion(context: Context): String? = runCatching {
+        context.packageManager.getPackageInfo(context.packageName, 0).versionName
+    }.getOrNull()
+
     /** Dados do aparelho e do app, para abrir cada sessão do registro. */
     fun deviceInfo(context: Context): Array<Pair<String, Any?>> {
-        val version = runCatching {
-            context.packageManager.getPackageInfo(context.packageName, 0).versionName
-        }.getOrNull()
         return arrayOf(
-            "app" to version,
+            "app" to appVersion(context),
             "android" to Build.VERSION.RELEASE,
             "sdk" to Build.VERSION.SDK_INT,
             "device" to "${Build.MANUFACTURER} ${Build.MODEL}",
