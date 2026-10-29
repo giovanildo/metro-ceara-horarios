@@ -86,6 +86,9 @@
     <string name="trip_notification_title">Até %1$s · chegada ~%2$s</string>
     <string name="trip_waiting">Aguardando o %3$s em %1$s, previsto às %2$s.</string>
     <string name="trip_progress_line">Em %1$s · destino em %2$s · chegada ~%3$s (%4$s)</string>
+    <!-- Notificação fixa no trem: a estação atual no título (o relógio mostra o começo). -->
+    <string name="trip_now_title">Em %1$s</string>
+    <string name="trip_progress_line_to">Até %1$s em %2$s · chegada ~%3$s (%4$s)</string>
     <string name="trip_fix_gps">pelo GPS</string>
     <string name="trip_fix_schedule">presumida pela tabela de horários</string>
     <string name="trip_arrived">Você chegou a %1$s.</string>

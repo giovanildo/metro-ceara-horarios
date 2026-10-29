@@ -269,11 +269,13 @@ internal object TripNotifications {
             )
         }
         val now = context.getString(R.string.trip_journey_now, plan.routeName, plan.stops[progress.index].name)
-        val then = plan.transfer?.let {
-            context.getString(R.string.trip_journey_then, plan.destination.name, formatTime(plan.destination.scheduled),
-                it.nextRoute, formatTime(it.nextDeparture))
-        }
-        return listOfNotNull(now, then).joinToString(" · ")
+        return listOfNotNull(now, journeyThen(context, plan)).joinToString(" · ")
+    }
+
+    /** A integração que vem depois deste trecho, ou `null` no último. */
+    private fun journeyThen(context: Context, plan: TripPlan): String? = plan.transfer?.let {
+        context.getString(R.string.trip_journey_then, plan.destination.name, formatTime(plan.destination.scheduled),
+            it.nextRoute, formatTime(it.nextDeparture))
     }
 
     /** Minutos desde a meia-noite, no fuso de Fortaleza. */
@@ -288,29 +290,41 @@ internal object TripNotifications {
         val progress = trip.progress
         val left = progress.stationsLeft(plan)
         val journey = plan.journey
-        val title = simulated(context, plan, when {
+        val route = when {
             journey != null -> context.getString(
                 R.string.trip_journey_title, journey.originName, journey.finalName,
                 formatTime((if (plan.transfer == null) progress.arrivalMinutes.roundToInt() else journey.arrival)),
             )
             plan.transfer != null -> context.getString(R.string.trip_notification_title_transfer, plan.transfer.finalDestination, plan.destination.name)
             else -> context.getString(R.string.trip_notification_title, plan.destination.name, formatTime(progress.arrivalMinutes.roundToInt()))
-        })
-        val text = journey?.let { journeyLine(context, trip, it) } ?: when {
-            trip.arrived -> context.getString(R.string.trip_arrived, plan.destination.name)
-            progress.index < 0 -> context.getString(
+        }
+        // No trem: a estação atual no título, porque o relógio mostra o título
+        // primeiro e corta o resto; o destino e a chegada vêm no texto.
+        val here = plan.stops.getOrNull(progress.index)?.takeIf { !trip.arrived }
+        if (here != null) {
+            val text = if (journey != null) {
+                listOfNotNull(route, journeyThen(context, plan)).joinToString(" · ")
+            } else {
+                context.getString(
+                    R.string.trip_progress_line_to,
+                    plan.destination.name,
+                    context.resources.getQuantityString(R.plurals.trip_stations_left, left, left),
+                    formatTime(progress.arrivalMinutes.roundToInt()),
+                    context.getString(io.github.giova.metroceara.ui.fixLabel(progress.fix)),
+                ) + (progress.gpsSilentMinutes?.let {
+                    " · " + context.getString(R.string.trip_gps_lost_short, it.toInt().coerceAtLeast(1))
+                } ?: "")
+            }
+            return ongoingNotification(context, trip, simulated(context, plan, context.getString(R.string.trip_now_title, here.name)), text)
+        }
+        // Antes de embarcar, ou já chegou: o destino no título.
+        val text = journey?.let { journeyLine(context, trip, it) } ?: if (trip.arrived) {
+            context.getString(R.string.trip_arrived, plan.destination.name)
+        } else {
+            context.getString(
                 R.string.trip_waiting, plan.origin.name, formatTime((plan.origin.scheduled + progress.delayMinutes).roundToInt()),
                 vehicleName(plan.routeName),
             )
-            else -> context.getString(
-                R.string.trip_progress_line,
-                plan.stops[progress.index].name,
-                context.resources.getQuantityString(R.plurals.trip_stations_left, left, left),
-                formatTime(progress.arrivalMinutes.roundToInt()),
-                context.getString(io.github.giova.metroceara.ui.fixLabel(progress.fix)),
-            ) + (progress.gpsSilentMinutes?.let {
-                " · " + context.getString(R.string.trip_gps_lost_short, it.toInt().coerceAtLeast(1))
-            } ?: "")
         }
         return NotificationCompat.Builder(context, CHANNEL_ONGOING)
             .setSmallIcon(R.drawable.ic_notification)
@@ -322,6 +336,11 @@ internal object TripNotifications {
             .setContentIntent(openApp(context))
             .addAction(0, context.getString(R.string.trip_stop), stopIntent(context))
             .apply {
+        return ongoingNotification(context, trip, simulated(context, plan, route), text)
+    }
+
+    private fun ongoingNotification(context: Context, trip: ActiveTrip, title: String, text: String?): android.app.Notification {
+        val journey = trip.plan.journey
                 journey?.let { j ->
                     val total = (j.arrival - j.legs.first().departure).coerceAtLeast(1)
                     val done = (nowOfDay() - j.legs.first().departure).roundToInt().coerceIn(0, total)
