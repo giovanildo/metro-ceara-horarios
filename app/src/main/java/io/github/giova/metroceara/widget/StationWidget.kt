@@ -8,10 +8,12 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.os.Build
 import android.view.View
 import android.widget.RemoteViews
 import io.github.giova.metroceara.MainActivity
 import io.github.giova.metroceara.R
+import io.github.giova.metroceara.data.LocationSource
 import io.github.giova.metroceara.data.PinnedStation
 import io.github.giova.metroceara.data.Regras
 import io.github.giova.metroceara.data.ScheduleRepository
@@ -41,12 +43,19 @@ open class StationWidgetProvider : AppWidgetProvider() {
 /**
  * O widget da estação: a fixada com a estrela; sem ela, a última aberta; sem
  * nenhuma, a mais perto da pessoa na última vez que o app achou a localização.
+ * Depois do ↻, a mais perto passa na frente ([PinnedStation.widgetNearby]).
  * Os horários saem da grade já baixada (sem internet nem GPS). Ele se
  * atualiza logo depois de cada partida mostrada (um alarme sem hora exata,
  * que quase não gasta bateria), quando o app baixa a grade ou as regras, e
- * quando a estação muda.
+ * quando a estação muda. O ↻ procura a mais perto pelo GPS
+ * ([WidgetLocateService]), mesmo com uma estação fixada.
  */
 object StationWidget {
+
+    /** A busca do ↻: em andamento, ou não achou a localização (até o próximo redesenho). */
+    enum class Status { LOCATING, FAILED }
+
+    @Volatile var status: Status? = null
 
     const val ACTION_TICK = "io.github.giova.metroceara.widget.TICK"
     const val EXTRA_STOP = "widget_stop"
@@ -76,15 +85,19 @@ object StationWidget {
         if (small.isEmpty() && wide.isEmpty()) return
         thread(name = "station-widget") {
             val content = runCatching { load(app) }.getOrNull()
-            small.forEach { manager.updateAppWidget(it, render(app, content, wide = false)) }
-            wide.forEach { manager.updateAppWidget(it, render(app, content, wide = true)) }
+            val shownStatus = status
+            // "Não achei" aparece num redesenho só; o seguinte volta ao normal.
+            if (shownStatus == Status.FAILED) status = null
+            small.forEach { manager.updateAppWidget(it, render(app, content, shownStatus, wide = false)) }
+            wide.forEach { manager.updateAppWidget(it, render(app, content, shownStatus, wide = true)) }
             scheduleTick(app, content?.nextTick)
         }
     }
 
     private fun load(context: Context): Content? {
         val pinned = PinnedStation(context)
-        val (stopId, routeId) = pinned.get() ?: pinned.lastOpened() ?: pinned.lastNearby() ?: return null
+        val (stopId, routeId) = pinned.lastNearby()?.takeIf { pinned.widgetNearby }
+            ?: pinned.get() ?: pinned.lastOpened() ?: pinned.lastNearby() ?: return null
         // Os bancos ficam abertos: MetroforDatabase reaproveita a mesma conexão
         // que o app usa (fechar aqui derrubava o app aberto).
         val repo = ScheduleRepository(context)
@@ -117,15 +130,16 @@ object StationWidget {
         }
     }
 
-    private fun render(context: Context, content: Content?, wide: Boolean): RemoteViews {
+    private fun render(context: Context, content: Content?, status: Status?, wide: Boolean): RemoteViews {
         val views = RemoteViews(context.packageName, if (wide) R.layout.widget_wide else R.layout.widget_small)
+        views.setOnClickPendingIntent(R.id.widget_refresh, refreshIntent(context, content))
         if (content == null) {
             views.setTextViewText(R.id.widget_station, context.getString(R.string.app_name))
             views.setViewVisibility(R.id.widget_line, View.GONE)
             views.setViewVisibility(R.id.widget_dot, View.GONE)
             views.setViewVisibility(R.id.widget_row1, View.GONE)
             views.setViewVisibility(R.id.widget_row2, View.GONE)
-            views.setTextViewText(R.id.widget_note, context.getString(R.string.widget_no_station))
+            views.setTextViewText(R.id.widget_note, statusText(context, status) ?: context.getString(R.string.widget_no_station))
             views.setViewVisibility(R.id.widget_note, View.VISIBLE)
             views.setViewVisibility(R.id.widget_warning, View.GONE)
             views.setOnClickPendingIntent(R.id.widget_root, openApp(context, null))
@@ -148,7 +162,7 @@ object StationWidget {
             val more = when {
                 row.nextDayLabel != null && row.times.isNotEmpty() -> row.nextDayLabel
                 row.times.isEmpty() -> context.getString(R.string.widget_no_more)
-                wide -> row.times.getOrNull(1)?.let(::formatTime).orEmpty()
+                wide -> row.times.getOrNull(1)?.let { context.getString(R.string.widget_after, formatTime(it)) }.orEmpty()
                 else -> ""
             }
             views.setTextViewText(moreId, more)
@@ -156,10 +170,13 @@ object StationWidget {
         }
         // Dois avisos prontos no layout (normal e alerta), com as cores do tema:
         // uma cor posta aqui não acompanharia a troca para o tema escuro.
-        val shown = if (content.warning) R.id.widget_warning else R.id.widget_note
-        val hidden = if (content.warning) R.id.widget_note else R.id.widget_warning
-        views.setTextViewText(shown, content.note.orEmpty())
-        views.setViewVisibility(shown, if (content.note == null) View.GONE else View.VISIBLE)
+        // A busca do ↻ passa na frente do aviso do dia enquanto acontece.
+        val note = statusText(context, status) ?: content.note
+        val warning = content.warning && status == null
+        val shown = if (warning) R.id.widget_warning else R.id.widget_note
+        val hidden = if (warning) R.id.widget_note else R.id.widget_warning
+        views.setTextViewText(shown, note.orEmpty())
+        views.setViewVisibility(shown, if (note == null) View.GONE else View.VISIBLE)
         views.setViewVisibility(hidden, View.GONE)
         views.setOnClickPendingIntent(R.id.widget_root, openApp(context, content))
         return views
@@ -175,6 +192,27 @@ object StationWidget {
             }
         }
         return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+    }
+
+    private fun statusText(context: Context, status: Status?): String? = when (status) {
+        Status.LOCATING -> context.getString(R.string.widget_locating)
+        Status.FAILED -> context.getString(R.string.widget_locate_failed)
+        null -> null
+    }
+
+    /**
+     * O ↻: procura a estação mais perto. Sem permissão de localização, abre o
+     * app, que pede a permissão (o widget não pode pedir).
+     */
+    private fun refreshIntent(context: Context, content: Content?): PendingIntent {
+        if (!LocationSource(context).hasPermission()) return openApp(context, content)
+        val intent = Intent(context, WidgetLocateService::class.java)
+        val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            PendingIntent.getForegroundService(context, 1, intent, flags)
+        } else {
+            PendingIntent.getService(context, 1, intent, flags)
+        }
     }
 
     private fun tickIntent(context: Context): PendingIntent = PendingIntent.getBroadcast(

@@ -24,6 +24,7 @@ class PinnedStation(context: Context) {
     fun set(stopId: String, routeId: String) = prefs.edit {
         putString(KEY_STOP, stopId)
         putString(KEY_ROUTE, routeId)
+        remove(KEY_WIDGET_NEARBY)
     }
 
     fun clear() = prefs.edit {
@@ -42,6 +43,15 @@ class PinnedStation(context: Context) {
         putString(KEY_LAST_STOP, stopId)
         putString(KEY_LAST_ROUTE, routeId)
     }
+
+    /**
+     * Depois do ↻ do widget, ele mostra a estação mais perto (a do ↻ ou a que o
+     * app achar pelo GPS depois), mesmo com uma fixada; fixar uma estação com a
+     * estrela volta à ordem normal.
+     */
+    var widgetNearby: Boolean
+        get() = prefs.getBoolean(KEY_WIDGET_NEARBY, false)
+        set(value) = prefs.edit { putBoolean(KEY_WIDGET_NEARBY, value) }
 
     /** A estação mais perto da pessoa na última vez que o app achou a localização. */
     fun lastNearby(): Pair<String, String>? {
@@ -62,5 +72,6 @@ class PinnedStation(context: Context) {
         const val KEY_ROUTE = "pinned_route_id"
         const val KEY_LAST_STOP = "last_stop_id"
         const val KEY_LAST_ROUTE = "last_route_id"
+        const val KEY_WIDGET_NEARBY = "widget_nearby"
     }
 }

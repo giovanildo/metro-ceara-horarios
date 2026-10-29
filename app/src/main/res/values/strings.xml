@@ -40,6 +40,11 @@
     <string name="widget_tomorrow">amanhã</string>
     <string name="widget_monday">segunda</string>
     <string name="widget_no_more">sem mais hoje</string>
+    <string name="widget_after">depois %1$s</string>
+    <string name="widget_refresh">Procurar a estação mais perto</string>
+    <string name="widget_locating">Procurando a estação mais perto…</string>
+    <string name="widget_locate_failed">Não achei sua localização agora. Continua a estação de antes.</string>
+    <string name="widget_locate_channel">Estação mais perto (widget)</string>
     <string name="widget_operation">Hoje: %1$s ›</string>
     <string name="widget_sunday">Domingo: metrô e VLT normalmente não circulam.</string>
     <string name="line_stopped_today">O Metrofor avisou que esta linha não circula hoje.</string>

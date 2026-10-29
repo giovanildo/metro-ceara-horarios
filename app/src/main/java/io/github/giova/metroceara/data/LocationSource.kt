@@ -50,9 +50,10 @@ class LocationSource(private val context: Context) {
      * boa. Pedir só ao GPS fazia o botão falhar em quem acabou de instalar: sem
      * posição guardada, o GPS frio não acha satélites em poucos segundos dentro
      * de casa ou do trem, e só abrir o Maps (que usa o "fused") destravava.
+     * Uma posição guardada de até [maxAgeMillis] serve sem esperar.
      */
     @SuppressLint("MissingPermission") // hasPermission() barra o caminho antes
-    suspend fun current(timeoutMillis: Long = 30_000): Location? {
+    suspend fun current(timeoutMillis: Long = 30_000, maxAgeMillis: Long = MAX_AGE_MILLIS): Location? {
         if (!hasPermission()) return null
         val manager = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager
             ?: return null
@@ -61,7 +62,7 @@ class LocationSource(private val context: Context) {
         // Uma posição recente já serve e é instantânea.
         val cached = providers.mapNotNull { runCatching { manager.getLastKnownLocation(it) }.getOrNull() }
         val now = System.currentTimeMillis()
-        cached.filter { it.time >= now - MAX_AGE_MILLIS }
+        cached.filter { it.time >= now - maxAgeMillis }
             .minByOrNull { it.accuracy }
             ?.let { return it }
 

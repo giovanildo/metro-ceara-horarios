@@ -74,6 +74,12 @@
                 android:resource="@xml/widget_small_info" />
         </receiver>
 
+        <!-- O ↻ do widget: uma localização, por poucos segundos. -->
+        <service
+            android:name=".widget.WidgetLocateService"
+            android:exported="false"
+            android:foregroundServiceType="location" />
+
         <service
             android:name=".trip.TripService"
             android:exported="false"

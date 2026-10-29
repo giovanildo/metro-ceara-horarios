@@ -15,37 +15,58 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/widget_dot"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="6dp"
-            android:text="●"
-            android:textColor="#ED1C24"
-            android:textSize="13sp" />
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/widget_station"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:text="Benfica"
-            android:textColor="@color/widget_text"
-            android:textSize="15sp"
-            android:textStyle="bold" />
+            <TextView
+                android:id="@+id/widget_dot"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:text="●"
+                android:textColor="#ED1C24"
+                android:textSize="13sp" />
 
+            <TextView
+                android:id="@+id/widget_station"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="Benfica"
+                android:textColor="@color/widget_text"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_line"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="Linha Sul"
+                android:textColor="@color/widget_muted"
+                android:textSize="13sp"
+                android:visibility="visible" />
+        </LinearLayout>
+
+        <!-- Procura a estação mais perto pelo GPS (StationWidget.refreshIntent). -->
         <TextView
-            android:id="@+id/widget_line"
+            android:id="@+id/widget_refresh"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:text="Linha Sul"
+            android:layout_marginVertical="-8dp"
+            android:contentDescription="@string/widget_refresh"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="8dp"
+            android:text="↻"
             android:textColor="@color/widget_muted"
-            android:textSize="13sp"
-            android:visibility="visible" />
+            android:textSize="20sp" />
     </LinearLayout>
     <LinearLayout
         android:id="@+id/widget_row1"
@@ -86,7 +107,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
-                android:text="07:53"
+                android:text="depois 07:53"
                 android:textColor="@color/widget_muted"
                 android:textSize="14sp" />
         </LinearLayout>
@@ -130,7 +151,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
-                android:text="07:52"
+                android:text="depois 07:52"
                 android:textColor="@color/widget_muted"
                 android:textSize="14sp" />
         </LinearLayout>
