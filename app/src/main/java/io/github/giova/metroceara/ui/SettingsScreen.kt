@@ -7,6 +7,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.FilterChip
 import android.os.Build
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,6 +27,13 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -34,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import io.github.giova.metroceara.R
 import io.github.giova.metroceara.data.AppSettings
 import io.github.giova.metroceara.data.Mobility
+import io.github.giova.metroceara.data.TripLog
 import kotlin.math.roundToInt
 
 /** Distâncias e tempos ajustáveis, em linguagem de passageiro. */
@@ -220,10 +229,53 @@ fun SettingsScreen(
                 value = settings.homeGpsSeconds, range = 5..60, step = 5, format = ::formatSeconds,
             ) { onChange(settings.copy(homeGpsSeconds = it)) }
 
+            TripLogSection()
+
             OutlinedButton(onClick = onReset, modifier = Modifier.padding(top = 16.dp)) {
                 Text(stringResource(R.string.settings_reset))
             }
         }
+    }
+}
+
+/**
+ * O registro das viagens ([TripLog]): ligar e desligar, mandar por e-mail (a
+ * pessoa vê o e-mail inteiro antes de enviar) e apagar.
+ */
+@Composable
+private fun TripLogSection() {
+    val context = LocalContext.current
+    val on by TripLog.enabled.collectAsState()
+    var refresh by remember { mutableIntStateOf(0) }
+    val count = remember(refresh, on) { TripLog.trips().size }
+    SectionTitle(R.string.settings_section_trip_log)
+    SettingSwitch(
+        title = R.string.settings_trip_log,
+        description = R.string.settings_trip_log_desc,
+        checked = on,
+    ) { TripLog.setEnabled(context, it) }
+    Text(
+        // Em português o plural trata 0 como singular ("0 viagem"): o zero tem texto próprio.
+        text = if (count == 0) {
+            stringResource(R.string.settings_trip_log_none)
+        } else {
+            pluralStringResource(R.plurals.settings_trip_log_count, count, count)
+        },
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        OutlinedButton(
+            enabled = count > 0,
+            onClick = { TripLog.emailIntent(context)?.let { runCatching { context.startActivity(it) } } },
+        ) { Text(stringResource(R.string.settings_trip_log_send)) }
+        OutlinedButton(
+            enabled = count > 0,
+            onClick = {
+                TripLog.clear()
+                refresh++
+            },
+        ) { Text(stringResource(R.string.settings_trip_log_clear)) }
     }
 }
 

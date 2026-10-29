@@ -15,6 +15,7 @@ import io.github.giova.metroceara.data.formatTime
 import io.github.giova.metroceara.data.distanceMeters
 import io.github.giova.metroceara.data.TripFix
 import io.github.giova.metroceara.data.DevLog
+import io.github.giova.metroceara.data.TripLog
 import io.github.giova.metroceara.data.SettingsStore
 import io.github.giova.metroceara.data.TripEstimator
 import io.github.giova.metroceara.data.TripPlan
@@ -41,12 +42,15 @@ class TripService : Service() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var job: Job? = null
     private var voice: TripVoice? = null
+    /** Se a viagem teve problema, para o convite de mandar o registro ([endTrip]). */
+    private var review: TripReview? = null
+    private var lastTrip: ActiveTrip? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == ACTION_STOP) {
-            DevLog.log("trip_end", "reason" to "user")
+            endTrip("user")
             finish()
             return START_NOT_STICKY
         }
@@ -60,6 +64,8 @@ class TripService : Service() {
         TripNotifications.createChannels(this)
         val settings = SettingsStore.get(this)
         var estimator = TripEstimator(plan, gpsLostMinutes = settings.gpsLostSeconds / 60.0)
+        TripLog.begin()
+        review = TripReview()
         DevLog.log(
             "trip_start", "line" to plan.routeName, "headsign" to plan.headsign,
             "from" to plan.origin.name, "to" to plan.destination.name,
@@ -102,6 +108,7 @@ class TripService : Service() {
                 estimator = TripEstimator(next, gpsLostMinutes = settings.gpsLostSeconds / 60.0)
                 announced = 0
                 trip = ActiveTrip(next, estimator.progress(nowMinutes()), alerted = false, arrived = false)
+                review?.onLeg()
                 DevLog.log(
                     "trip_leg", "reason" to reason, "line" to next.routeName, "from" to next.origin.name,
                     "to" to next.destination.name, "dep" to formatTime(next.origin.scheduled),
@@ -189,7 +196,10 @@ class TripService : Service() {
                         "eta" to formatTime(progress.arrivalMinutes.roundToInt()),
                     )
                 }
+                if (arrived && !trip.arrived) review?.onArrived(nowMinutes())
                 trip = trip.copy(progress = progress, alerted = alerted, arrived = arrived)
+                review?.onUpdate(trip)
+                lastTrip = trip
                 // Chegou à integração: segue no próximo trecho, sem a pessoa tocar em nada.
                 if (arrived && plan.transfer != null && plan.journey != null) {
                     val done = (plan.journey?.current ?: 0) + 1
@@ -205,7 +215,7 @@ class TripService : Service() {
 
             launch {
                 LocationSource(this@TripService).updates(GPS_INTERVAL_MILLIS, 0f).collect { location ->
-                    if (DevLog.isEnabled) {
+                    if (DevLog.isEnabled || TripLog.recording) {
                         val nearest = plan.stops.minBy {
                             distanceMeters(location.latitude, location.longitude, it.lat, it.lon)
                         }
@@ -227,14 +237,14 @@ class TripService : Service() {
             while (true) {
                 update()
                 if (trip.arrived) {
-                    DevLog.log("trip_end", "reason" to "arrived", "delay_min" to "%.1f".format(java.util.Locale.US, trip.progress.delayMinutes))
+                    endTrip("arrived", "delay_min" to "%.1f".format(java.util.Locale.US, trip.progress.delayMinutes))
                     // Encerra sozinho: só espera a voz terminar de falar a chegada.
                     delay(ARRIVED_LINGER_MILLIS)
                     finish()
                     break
                 }
                 if (nowMinutes() > plan.destination.scheduled + trip.progress.delayMinutes + settings.tripGiveUpMinutes) {
-                    DevLog.log("trip_end", "reason" to "give_up")
+                    endTrip("give_up")
                     finish()
                     break
                 }
@@ -274,6 +284,27 @@ class TripService : Service() {
             trip.plan.destination.name,
         ).replaceFirstChar { if (prefix.isNotEmpty()) it.lowercaseChar() else it }.let {
             if (SettingsStore.get(this).remindBelongings) it + " " + getString(R.string.trip_belongings) else it
+        }
+    }
+
+    /**
+     * Fecha o registro da viagem e, se ela teve problema (e não era simulação),
+     * convida a pessoa a mandar o registro por e-mail — no máximo uma vez por
+     * semana ([TripLog.shouldInvite]).
+     */
+    private fun endTrip(reason: String, vararg extra: Pair<String, Any?>) {
+        val review = review ?: TripReview()
+        val problems = review.problems(reason)
+        DevLog.log(
+            "trip_review", "problems" to problems.joinToString(","),
+            "arrival_error_min" to review.arrivalErrorMinutes?.let { "%.1f".format(java.util.Locale.US, it) },
+            "max_gps_silent_min" to "%.1f".format(java.util.Locale.US, review.maxGpsSilentMinutes),
+        )
+        DevLog.log("trip_end", "reason" to reason, *extra)
+        val file = TripLog.end()
+        this.review = null
+        if (problems.isNotEmpty() && file != null && lastTrip?.plan?.simulated != true && TripLog.shouldInvite(this)) {
+            TripNotifications.review(this, file.name)
         }
     }
 

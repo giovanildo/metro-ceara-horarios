@@ -74,6 +74,17 @@
                 android:resource="@xml/widget_small_info" />
         </receiver>
 
+        <!-- O registro das viagens, anexado ao e-mail que a pessoa manda (TripLog). -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.arquivos"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/arquivos" />
+        </provider>
+
         <!-- O ↻ do widget: uma localização, por poucos segundos. -->
         <service
             android:name=".widget.WidgetLocateService"

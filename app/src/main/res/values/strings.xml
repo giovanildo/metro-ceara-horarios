@@ -162,6 +162,21 @@
     <string name="trip_start_button">Iniciar</string>
     <string name="trip_station_alerts">Avisar cada estação (voz)</string>
     <string name="trip_channel_station">Aviso a cada estação</string>
+    <string name="trip_channel_review">Convite para mandar o registro de uma viagem</string>
+    <string name="trip_review_title">Essa viagem teve algum problema?</string>
+    <string name="trip_review_text">Mandar o registro dela por e-mail ajuda a corrigir o app. Você vê tudo antes de enviar.</string>
+    <string name="trip_review_send">Enviar por e-mail</string>
+    <!-- Registro das viagens (TripLog) e o e-mail para o desenvolvedor. -->
+    <string name="trip_log_send">Enviar o registro das viagens</string>
+    <string name="trip_log_subject_one">Registro de viagem · v%1$s · %2$s · %3$s → %4$s</string>
+    <string name="trip_log_subject_many">Registro de viagens · v%1$s · %2$d viagens</string>
+    <string name="trip_log_body_intro">Registro de viagens do app Metrô Ceará, gerado pelo próprio app. Vai em anexo: as estações, os horários e as posições do GPS de cada viagem, do embarque até o fim. Não vai nada de antes do embarque.</string>
+    <string name="trip_log_end_arrived">chegou</string>
+    <string name="trip_log_end_user">encerrada pela pessoa</string>
+    <string name="trip_log_end_give_up">o app desistiu de esperar</string>
+    <string name="trip_log_end_unknown">sem fim registrado</string>
+    <string name="trip_log_arrival_error">chegada %1$s min diferente da prevista</string>
+    <string name="trip_log_gps_silent">até %1$s min sem GPS</string>
     <string name="trip_station_text">%1$s para %2$s.</string>
     <string name="trip_far_title">Longe da estação de partida</string>
     <string name="trip_far_warning">Você está a %1$s de %2$s. Quer só simular a viagem, seguindo a tabela de horários, ou esperar o GPS te encontrar na linha?</string>
@@ -222,6 +237,16 @@
     <string name="settings_home_gps">Atualizar sua posição a cada</string>
     <string name="settings_home_gps_desc">Com a tela inicial aberta, de quanto em quanto tempo o app confere onde você está. Menos tempo gasta um pouco mais de bateria.</string>
     <string name="settings_reset">Restaurar padrões</string>
+    <string name="settings_section_trip_log">Registro das viagens</string>
+    <string name="settings_trip_log">Guardar como foram minhas viagens</string>
+    <string name="settings_trip_log_desc">Fica só no seu celular, por 7 dias: as estações, os horários e o GPS de cada viagem, do embarque até o fim. Nada é enviado sem você mandar. Se quiser ajudar a melhorar o app, mande por e-mail: você vê tudo antes de enviar.</string>
+    <plurals name="settings_trip_log_count">
+        <item quantity="one">%1$d viagem guardada.</item>
+        <item quantity="other">%1$d viagens guardadas.</item>
+    </plurals>
+    <string name="settings_trip_log_none">Nenhuma viagem guardada.</string>
+    <string name="settings_trip_log_send">Enviar por e-mail</string>
+    <string name="settings_trip_log_clear">Apagar</string>
     <string name="transfer_title">Integração com</string>
     <string name="transfer_walk">%1$s · %2$d min a pé</string>
     <string name="transfer_open">Toque para ver todos os horários de lá</string>

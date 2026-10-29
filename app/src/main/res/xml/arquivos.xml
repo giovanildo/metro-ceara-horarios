@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- O que o app pode entregar a outro app (o de e-mail): só o .zip do registro das viagens. -->
+<paths>
+    <cache-path name="registro" path="registro-viagens/" />
+</paths>

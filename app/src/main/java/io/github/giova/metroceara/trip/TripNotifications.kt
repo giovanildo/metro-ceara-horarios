@@ -37,11 +37,13 @@ internal object TripNotifications {
     private const val ALERT_ID = 1002
     private const val STATION_ID = 1003
     private const val MISSED_ID = 1004
+    private const val REVIEW_ID = 1005
 
     private const val CHANNEL_ONGOING = "trip_ongoing"
     private const val CHANNEL_ALERT_SOUND = "trip_alert_sound"
     private const val CHANNEL_ALERT_SILENT = "trip_alert_silent"
     private const val CHANNEL_STATION = "trip_station"
+    private const val CHANNEL_REVIEW = "trip_review"
 
     private val VIBRATION = longArrayOf(0, 600, 300, 600, 300, 600)
     private const val STATION_TIMEOUT_MILLIS = 60_000L
@@ -79,6 +81,14 @@ internal object TripNotifications {
                 CHANNEL_STATION,
                 context.getString(R.string.trip_channel_station),
                 NotificationManager.IMPORTANCE_HIGH,
+            ),
+        )
+        // Convite para mandar o registro de uma viagem com problema: sem som nem vibração.
+        manager.createNotificationChannel(
+            NotificationChannel(
+                CHANNEL_REVIEW,
+                context.getString(R.string.trip_channel_review),
+                NotificationManager.IMPORTANCE_LOW,
             ),
         )
         manager.createNotificationChannel(
@@ -326,6 +336,11 @@ internal object TripNotifications {
                 vehicleName(plan.routeName),
             )
         }
+        return ongoingNotification(context, trip, simulated(context, plan, route), text)
+    }
+
+    private fun ongoingNotification(context: Context, trip: ActiveTrip, title: String, text: String?): android.app.Notification {
+        val journey = trip.plan.journey
         return NotificationCompat.Builder(context, CHANNEL_ONGOING)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(title)
@@ -336,11 +351,6 @@ internal object TripNotifications {
             .setContentIntent(openApp(context))
             .addAction(0, context.getString(R.string.trip_stop), stopIntent(context))
             .apply {
-        return ongoingNotification(context, trip, simulated(context, plan, route), text)
-    }
-
-    private fun ongoingNotification(context: Context, trip: ActiveTrip, title: String, text: String?): android.app.Notification {
-        val journey = trip.plan.journey
                 journey?.let { j ->
                     val total = (j.arrival - j.legs.first().departure).coerceAtLeast(1)
                     val done = (nowOfDay() - j.legs.first().departure).roundToInt().coerceIn(0, total)
@@ -392,6 +402,33 @@ internal object TripNotifications {
 
     private fun alarmUri() = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
         ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+
+    /**
+     * Depois de uma viagem com problema: o convite para mandar o registro dela.
+     * Tocar abre o app, que monta o e-mail ([MainActivity]); arrastar dispensa.
+     */
+    fun review(context: Context, tripFile: String) {
+        val open = PendingIntent.getActivity(
+            context,
+            2,
+            Intent(context, MainActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                .putExtra(MainActivity.EXTRA_SEND_TRIP, tripFile),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val notification = NotificationCompat.Builder(context, CHANNEL_REVIEW)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(context.getString(R.string.trip_review_title))
+            .setContentText(context.getString(R.string.trip_review_text))
+            .setStyle(NotificationCompat.BigTextStyle().bigText(context.getString(R.string.trip_review_text)))
+            .setAutoCancel(true)
+            .setContentIntent(open)
+            .addAction(0, context.getString(R.string.trip_review_send), open)
+            .build()
+        runCatching {
+            context.getSystemService(NotificationManager::class.java).notify(REVIEW_ID, notification)
+        }
+    }
 
     private fun openApp(context: Context): PendingIntent = PendingIntent.getActivity(
         context,

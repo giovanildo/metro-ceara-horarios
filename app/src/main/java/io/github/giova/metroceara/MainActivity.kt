@@ -14,6 +14,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import io.github.giova.metroceara.data.AppSettings
+import io.github.giova.metroceara.data.TripLog
 import io.github.giova.metroceara.data.SettingsStore
 import io.github.giova.metroceara.ui.AppRoot
 import io.github.giova.metroceara.ui.theme.MetroCearaTheme
@@ -23,6 +24,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         openFromWidget(intent)
+        sendTripLog(intent)
         setContent {
             val settings by SettingsStore.flow(this).collectAsState()
             val current = settings ?: AppSettings()
@@ -48,6 +50,19 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         openFromWidget(intent)
+        sendTripLog(intent)
+    }
+
+    /** Toque no convite depois de uma viagem com problema: o e-mail com o registro dela. */
+    private fun sendTripLog(intent: Intent?) {
+        val name = intent?.getStringExtra(EXTRA_SEND_TRIP) ?: return
+        intent.removeExtra(EXTRA_SEND_TRIP)
+        val file = TripLog.trip(name) ?: return
+        TripLog.emailIntent(this, listOf(file))?.let { runCatching { startActivity(it) } }
+    }
+
+    companion object {
+        const val EXTRA_SEND_TRIP = "send_trip_log"
     }
 
     /** Toque no widget: abre a tela da estação dele. */

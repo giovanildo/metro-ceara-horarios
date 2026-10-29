@@ -81,9 +81,14 @@ object DevLog {
         _enabledFlow.value = on
     }
 
-    /** Grava um evento, se o registro estiver ligado. Barato quando desligado. */
+    /**
+     * Grava um evento, se o registro estiver ligado. Barato quando desligado.
+     * Os eventos de viagem vão também para o [TripLog], que vem ligado.
+     */
     fun log(event: String, vararg fields: Pair<String, Any?>) {
-        if (!enabled) return
+        val trip = TripLog.target(event, fields)
+        val toDevLog = enabled
+        if (!toDevLog && trip == null) return
         val target = dir ?: return
         val now = System.currentTimeMillis()
         val line = JSONObject().apply {
@@ -93,6 +98,8 @@ object DevLog {
             fields.forEach { (k, v) -> put(k, v ?: JSONObject.NULL) }
         }.toString()
         writer.execute {
+            trip?.let { TripLog.write(it, line) }
+            if (!toDevLog) return@execute
             runCatching {
                 target.mkdirs()
                 File(target, day(now) + ".jsonl").appendText(line + "\n")
