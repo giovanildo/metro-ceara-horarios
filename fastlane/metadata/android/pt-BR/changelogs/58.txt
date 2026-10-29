@@ -1,0 +1,1 @@
+• Widget: volta a mostrar só os horários, sem o "depois", e as mensagens ficam em letra maior.
