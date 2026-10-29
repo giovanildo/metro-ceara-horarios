@@ -1,0 +1,1 @@
+• Registro de testes: cada linha traz a versão do app, e ligar ou desligar o som do aviso ou "Avisar cada estação" durante a viagem fica anotado.
