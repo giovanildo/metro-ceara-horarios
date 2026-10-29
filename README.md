@@ -786,7 +786,11 @@ do dia, cria o mesmo nome com `-2`** (depois `-3`…) e passa a usar esse. A tel
 mostra a pasta, a última cópia e o erro, se houver. Se o Drive não aparecer no
 seletor de pasta, qualquer pasta do celular funciona igual.
 
-Eventos (`"ev"`): `app_start` (versão, Android, aparelho), `schedule_source`
+Toda linha leva a versão do app em `"v"` (um registro ligado no meio do dia
+não tem o `app_start`); é por ela que se sabe o que cada evento grava. Até a
+1.54 as linhas não têm `"v"`, o `log_on` não tem os dados do aparelho e não há
+`trip_option`. Eventos (`"ev"`): `app_start` (versão, Android,
+aparelho), `schedule_source`
 (de onde veio a grade em uso), `sync_start`/`sync_ok`/`sync_fail` (download dos
 horários; o `sync_ok` resume viagens e horários por linha), `loc_request`/
 `loc_ok`/`loc_fail` (pedido de localização, provedor, tempo, precisão),
@@ -794,8 +798,9 @@ horários; o `sync_ok` resume viagens e horários por linha), `loc_request`/
 `trip_start` (linha, paradas e horários previstos, aviso), `trip_gps` (cada
 posição durante a viagem), `trip_progress` (mudança de estação, se veio do GPS
 ou da tabela, atraso, GPS sem sinal), `trip_alert`, `trip_station`,
-`trip_turnaround`, `trip_end` (motivo), `crash` (erro que derrubou o app) e
-`log_on`/`log_off`.
+`trip_turnaround`, `trip_option` (som do aviso ou "Avisar cada estação" ligado
+ou desligado durante a viagem), `trip_end` (motivo), `crash` (erro que derrubou
+o app) e `log_on`/`log_off` (o `log_on` leva os mesmos dados do `app_start`).
 
 ## Versão lite (web)
 
