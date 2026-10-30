@@ -60,13 +60,15 @@
             android:id="@+id/widget_refresh"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginVertical="-8dp"
+            android:layout_marginVertical="-12dp"
             android:contentDescription="@string/widget_refresh"
-            android:paddingHorizontal="8dp"
+            android:layout_marginEnd="-6dp"
+            android:paddingStart="4dp"
+            android:paddingEnd="6dp"
             android:paddingVertical="8dp"
             android:text="↻"
             android:textColor="@color/widget_muted"
-            android:textSize="20sp" />
+            android:textSize="28sp" />
     </LinearLayout>
     <LinearLayout
         android:id="@+id/widget_row1"
