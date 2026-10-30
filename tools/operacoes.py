@@ -60,6 +60,9 @@ NORMAL = re.compile(r"\bnormal\b|normalmente|sem (qualquer )?altera|n[ãa]o alte
                     r"|regulares|mesmos realizados diariamente|sem mudan", re.I)
 # "Não haverá operação especial de São João", "não será realizado o esquema especial": nada muda.
 SEM_ESPECIAL = re.compile(r"n[ãa]o (haver[áa]|ter[áa]|ser[áa] realizad\w*)[^.]{0,30}(especial|esquema)", re.I)
+# Abertura que anuncia a operacao do dia ("Metro e VLTs ... terao operacao especial no dia 2 de novembro").
+ABERTURA = re.compile(r"(ter[ãa]o|ter[áa]|funcionar[ãa]o|funcionar[áa]|operar[ãa]o|operar[áa])\s+(opera[çc][ãa]o|hor[áa]rios?|funcionamento)"
+                      r"\s+(especia|excepcion|alterad|diferenciad|gratuit)", re.I)
 GERAL = re.compile(r"aos domingos|\btrecho\b|bicicl|\bbikes?\b|n[ãa]o ser[áa] necess", re.I)
 
 DATA_BARRA = re.compile(r"\b(\d{1,2})[º°]?\s*/\s*/?\s*(\d{1,2})(?:\s*/\s*(\d{2,4}))?\b")
@@ -148,9 +151,16 @@ def _cabecalho(linha):
 
 def extrair(titulo, conteudo, publicada, link=""):
     """{"AAAA-MM-DD": {"titulo", "link", "publicada", "normal", "paradas"}} de uma noticia de operacao."""
-    if not TITULO.search(titulo) or NAO_E.search(titulo):
+    if NAO_E.search(titulo):
+        return {}
+    pedacos = list(_pedacos(conteudo))
+    abertura = " ".join(pedacos[0][:2]) if pedacos else ""
+    # Titulo de outro assunto ("Cemiterios ... podem ser acessados por metro e VLT no Dia de
+    # Finados") com a operacao especial anunciada logo na abertura, com a data: tambem vale.
+    if not TITULO.search(titulo) and not (ABERTURA.search(abertura) and datas(abertura, publicada)):
         return {}
     especial, normal, paradas, citadas = set(), set(), {}, set()
+    frase_de = {}
     contexto, linhas_contexto, geral = [], [], False
 
     def nota(frase, explicitas):
@@ -185,10 +195,9 @@ def extrair(titulo, conteudo, publicada, link=""):
             normal.update(explicitas)
         return explicitas
 
-    pedacos = list(_pedacos(conteudo))
     # A data de que a noticia trata (titulo ou abertura); as outras sao de passagem
     # ("a vespera do Enem fecha mais cedo") e perdem para a noticia principal do dia.
-    principais = set(datas(titulo, publicada)) or set(datas(" ".join(pedacos[0][:2]) if pedacos else "", publicada))
+    principais = set(datas(titulo, publicada)) or set(datas(abertura, publicada))
     for frases in [[titulo]] + pedacos:
         linha = " ".join(frases)
         # Cabecalho de tabela ("SOBRAL E REGIÃO DO CARIRI"): as linhas seguintes falam dessas
@@ -198,6 +207,8 @@ def extrair(titulo, conteudo, publicada, link=""):
         elif linha.endswith(":") and datas(linha, publicada):
             linhas_contexto = []
         for frase in frases:
+            for d in datas(frase, publicada):
+                frase_de.setdefault(d, frase)
             explicitas = nota(frase, datas(frase, publicada))
             if explicitas:
                 contexto = explicitas
@@ -211,9 +222,19 @@ def extrair(titulo, conteudo, publicada, link=""):
     # inteira e de funcionamento normal (feriado sem mudanca), o aviso diz isso.
     dias = sorted(especial) or sorted(normal)
     fonte = {"titulo": titulo, "link": link, "publicada": publicada.isoformat()}
+    # Manchete de outro assunto ("Cemiterios ... no Dia de Finados"): o aviso usa a abertura.
+    if not TITULO.search(titulo) and pedacos and len(pedacos[0][0]) <= 160:
+        fonte["titulo"] = pedacos[0][0].strip()
     out = {}
     for d in dias:
         e = dict(fonte, normal=d not in especial, principal=d in principais)
+        # Data de passagem ("No proximo sabado, dia 31 de outubro, a operacao sera encerrada
+        # mais cedo"): o aviso mostra a frase que fala dela, nao a manchete de outro dia.
+        # So quando a noticia trata de outro dia e a frase diz como fica a operacao.
+        frase = frase_de.get(d, "").strip()
+        if (principais and not e["principal"] and frase.endswith(".") and 30 <= len(frase) <= 160
+                and (FECHADA.search(frase) or ESPECIAL.search(frase) or NORMAL.search(frase))):
+            e["titulo"] = frase
         if d in paradas:
             e["paradas"] = [n for n in TODAS if n in paradas[d]]
         out[d.isoformat()] = e
