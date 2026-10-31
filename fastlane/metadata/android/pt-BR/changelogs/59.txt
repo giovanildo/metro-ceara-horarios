@@ -1,0 +1,2 @@
+• Cada linha com a cor do mapa das estações: Sul vermelha, Oeste verde, Nordeste azul, Aeroporto laranja; em Sobral, Norte laranja e Sul vermelha; Cariri vermelho. No tema escuro, tons mais claros para ler melhor.
+• Widget: botão ↻ maior, mais fácil de tocar.
