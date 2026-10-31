@@ -11,8 +11,6 @@ const PAGINA_INSTALAR = "../#baixar"; // direto no convite para testar pela Play
 const WHATSAPP_TESTADOR = "https://wa.me/5585997619295?text=Ol%C3%A1%21%20Quero%20ser%20testador%20beta%20do%20app%20Metr%C3%B4%20Cear%C3%A1.%20Meu%20Gmail%20da%20Play%20Store%20%C3%A9%3A%20";
 const PIX = "giovanildos@gmail.com";
 const ANDROID = /Android/i.test(navigator.userAgent);
-const CONVITE_A_PARTIR_DA_VISITA = 1;
-const CONVITE_PAUSA_DIAS = 30;
 const IPHONE = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 // Aberta pelo ícone da tela inicial: não há o que instalar.
 const INSTALADA = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
@@ -151,7 +149,7 @@ function textoPartida(p, minutos, sentido) {
 function telaInicio() {
   const { grade } = estado.dados;
   const t = agora();
-  let html = avisoDomingo(t) + avisosMetrofor() + convite();
+  let html = convite() + avisoDomingo(t) + avisosMetrofor();
 
   if (!estado.pos) {
     html += `<div class="cartao">
@@ -200,24 +198,16 @@ function telaInicio() {
   tela.innerHTML = html;
   document.getElementById("localizar")?.addEventListener("click", localizar);
   document.getElementById("instalar")?.addEventListener("click", instalar);
-  document.getElementById("agora-nao")?.addEventListener("click", () => {
-    try { localStorage.setItem("convitePausadoAte", String(Date.now() + CONVITE_PAUSA_DIAS * 864e5)); } catch { /* segue */ }
-    render();
-  });
 }
 
 /**
- * A versão lite é a porta de entrada: quem volta a usar no Android é
- * convidado, sem insistência, a conhecer o app completo (modo viagem).
+ * A versão lite é a porta de entrada: uma linha fixa no topo convida a ser
+ * testador do app completo, com o WhatsApp e a mensagem pronta. Fora do
+ * Android, pergunta antes se a pessoa tem Android.
  */
 function convite() {
-  if (!ANDROID || lerNumero("visitas") < CONVITE_A_PARTIR_DA_VISITA || Date.now() < lerNumero("convitePausadoAte")) return "";
-  return `<div class="cartao rosa convite">
-    <strong>Seja testador do app completo</strong>
-    <span>Ele te avisa antes da sua estação, mesmo com a tela desligada. Grátis, pela Play Store: mande seu Gmail pelo WhatsApp e receba o convite.</span>
-    <div class="acoes"><a class="botao" href="${WHATSAPP_TESTADOR}" target="_blank" rel="noopener">Quero ser testador</a>
-      <button class="botao secundario" id="agora-nao">Agora não</button></div>
-  </div>`;
+  const texto = ANDROID ? "Seja testador do app completo" : "Tem Android? Seja testador do app completo";
+  return `<a class="convite" href="${WHATSAPP_TESTADOR}" target="_blank" rel="noopener">📲 ${texto} ›</a>`;
 }
 
 async function instalar() {
