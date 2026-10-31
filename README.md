@@ -633,7 +633,13 @@ Detalhes que valem saber:
 
 O Metrofor publica um feed [GTFS](https://gtfs.org) em
 `https://info.metrofor.ce.gov.br/gtfs_file` (linkado na
-[página oficial de GTFS](https://www.ce.gov.br/metrofor/gtfs/)).
+[página oficial de GTFS](https://www.ce.gov.br/metrofor/gtfs/)), gerado a partir
+do sistema INFO-Metrofor e sob licença Creative Commons Attribution.
+
+Os números do Metrofor que explicam as escolhas do app (demanda por estação e
+por hora, pesquisa origem-destino, pontualidade por linha, cores do mapa
+oficial, bilhetagem) estão em [DADOS-DO-METROFOR.md](DADOS-DO-METROFOR.md),
+com a fonte de cada um.
 
 `tools/build_db.py` baixa esse feed e o converte num SQLite achatado para a
 consulta que o app faz o tempo todo — *"quais as próximas partidas nesta
@@ -779,7 +785,8 @@ tools/datas_especiais.py             regra de bike de dias especiais, das notíc
 tools/operacoes.py                   dias de operação especial e linhas paradas, das notícias
 app/src/main/assets/metrofor.db      banco gerado (não editar à mão)
 app/src/main/assets/regras.json      regras fora do GTFS: bike, integrações, passagem,
-                                     endereços, operações especiais
+                                     endereços, cores, operações especiais
+DADOS-DO-METROFOR.md                 números e fontes do Metrofor por trás das decisões
 app/src/main/java/.../data/          modelos, abertura do banco, consultas, relógio
 app/src/main/java/.../ui/            telas Compose: linhas -> estações -> partidas
 app/src/main/java/.../widget/        widget da tela inicial (RemoteViews)
@@ -1087,7 +1094,9 @@ próprios termos:
 
 - **Horários e estações do metrô** — feed GTFS publicado pelo
   [Metrofor](https://www.ce.gov.br/metrofor/gtfs/), empresa do Governo do
-  Estado do Ceará.
+  Estado do Ceará, sob licença Creative Commons Attribution.
+- **Cores das linhas** — mapas oficiais da rede afixados nas estações
+  ([site do Metrofor](https://www.ce.gov.br/metrofor/mapas/)).
 - **Endereços e passagens** — páginas das linhas no
   [site do Metrofor](https://www.ce.gov.br/metrofor/linhas/).
 - **Posição de algumas estações de Sobral e do Cariri** — © colaboradores do
