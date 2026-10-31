@@ -421,6 +421,16 @@ R$ 1,80) · dinheiro ou Pix"). Os dois vêm das páginas das linhas no site do
 Metrofor e ficam no `regras.json`: `estacoes` (por `stop_id` do GTFS) e
 `passagem` (por linha). O VLT Aeroporto não tem página e fica sem.
 
+**Cores das linhas.** O GTFS pinta a Nordeste e o VLT Aeroporto do mesmo roxo,
+a Linha Norte de Sobral de azul e o Cariri de verde, mas o mapa oficial
+afixado nas estações numera e colore as linhas de outro jeito: em Fortaleza,
+Linha 1 Vermelha (Sul), 2 Verde (Oeste), 3 Azul (Nordeste) e 5 Laranja (Ramal
+Aeroporto); em Sobral, 1 Laranja (Norte) e 2 Vermelha (Sul); no Cariri, 1
+Vermelha. A seção `cores` do `regras.json` traz a cor do mapa por linha, com
+um tom `escuro` para o tema escuro (o azul e o verde do mapa ficam apagados
+nele), e vale no lugar da do GTFS em todo o app (lista de linhas, estação,
+integração, viagem, widget) e na lite. Linha fora da lista fica com a do GTFS.
+
 Cada estação pode ter também um **`aviso`**, texto livre que aparece logo
 abaixo da passagem, destacado, no app e na lite; como o `regras.json` é baixado
 do espelho, mudar, tirar ou pôr um aviso chega a todos **sem versão nova**. O

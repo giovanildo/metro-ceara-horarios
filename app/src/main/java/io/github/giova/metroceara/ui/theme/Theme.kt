@@ -8,11 +8,17 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.graphics.toColorInt
+import io.github.giova.metroceara.data.Regras
 
 private val MetroRed = Color(0xFFED1C24)
+
+/** O app está no tema escuro (o do celular ou o escolhido nas configurações)? */
+private val LocalDarkTheme = staticCompositionLocalOf { false }
 
 private val LightColors = lightColorScheme(
     primary = MetroRed,
@@ -42,10 +48,17 @@ fun MetroCearaTheme(
         darkTheme -> DarkColors
         else -> LightColors
     }
-    MaterialTheme(colorScheme = colors, content = content)
+    CompositionLocalProvider(LocalDarkTheme provides darkTheme) {
+        MaterialTheme(colorScheme = colors, content = content)
+    }
 }
 
-/** Converte a cor da linha vinda do GTFS (`"ed1c24"`) em uma [Color]. */
-fun routeColor(hex: String): Color = runCatching {
-    Color("#$hex".toColorInt())
-}.getOrDefault(MetroRed)
+/**
+ * Converte a cor da linha (`"ce0f2e"`) em uma [Color]. No tema escuro, o azul e o
+ * verde do mapa oficial ficam apagados e trocam pelo tom de regras.json.
+ */
+@Composable
+fun routeColor(hex: String): Color {
+    val shown = if (LocalDarkTheme.current) Regras.current.darkColor(hex) else hex
+    return runCatching { Color("#$shown".toColorInt()) }.getOrDefault(MetroRed)
+}

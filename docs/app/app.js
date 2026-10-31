@@ -55,7 +55,14 @@ function salvarConfig() {
   try { localStorage.setItem("config", JSON.stringify(estado.config)); } catch { /* segue */ }
 }
 
-function cor(linha) { return "#" + linha.cor; }
+// A cor do mapa oficial (regras.json "cores"); sem ela, a do GTFS. No tema escuro,
+// o azul e o verde do mapa ficam apagados e usam o tom "escuro".
+function cor(linha) {
+  const nome = linha.nome.trim().toLowerCase();
+  const c = Object.entries(estado.dados?.regras?.cores || {}).find(([n]) => n.trim().toLowerCase() === nome)?.[1];
+  const escuro = matchMedia("(prefers-color-scheme: dark)").matches;
+  return "#" + ((c && (escuro ? c.escuro || c.claro : c.claro)) || linha.cor);
+}
 
 /** A pessoa está escolhendo algo (janela aberta ou campo em uso): não redesenhar agora. */
 function ocupado() {

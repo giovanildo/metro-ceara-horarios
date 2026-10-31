@@ -152,6 +152,17 @@
     "51": {"nome": "Juazeiro do Norte", "endereco": "Av. Carlos Cruz, 1493 – Franciscano – Juazeiro do Norte"},
     "52": {"nome": "Fátima", "endereco": "Av. Carlos Cruz, 01 – Fátima – Juazeiro do Norte"}
   },
+  "cores": {
+    "_sobre": "Cor de cada linha como no mapa oficial das estações, no lugar da cor do GTFS (que pinta a Nordeste e o Aeroporto de roxo, Sobral Norte de azul e o Cariri de verde). \"claro\" e \"escuro\": a cor no tema claro e no tema escuro do celular (no escuro, o azul e o verde do mapa ficam apagados e ganham um tom mais claro). Linha que não aparece aqui fica com a cor do GTFS.",
+    "_fonte": "Mapas oficiais do Metrofor (2025), afixados nas estações: Fortaleza — Linha 1 Vermelha (Sul), 2 Verde (Oeste), 3 Azul (Nordeste), 5 Laranja (Ramal Aeroporto); Sobral — 1 Laranja (Norte), 2 Vermelha (Sul); Cariri — 1 Vermelha.",
+    "Linha Sul": {"claro": "CE0F2E", "escuro": "CE0F2E"},
+    "Linha Oeste": {"claro": "01823F", "escuro": "2FA866"},
+    "Linha Nordeste": {"claro": "014687", "escuro": "3D7FD1"},
+    "VLT Aeroporto": {"claro": "FF8402", "escuro": "FF8402"},
+    "VLT Sobral - Linha Norte": {"claro": "FF8402", "escuro": "FF8402"},
+    "VLT Sobral - Linha Sul": {"claro": "CE0F2E", "escuro": "CE0F2E"},
+    "VLT Cariri": {"claro": "CE0F2E", "escuro": "CE0F2E"}
+  },
   "passagem": {
     "_sobre": "Passagem de cada linha, como o app mostra na tela da estação. Linha que não aparece aqui (VLT Aeroporto) fica sem.",
     "_fonte": "Páginas das linhas em ce.gov.br/metrofor (out/2026).",

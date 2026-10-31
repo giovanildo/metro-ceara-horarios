@@ -28,6 +28,9 @@ data class StationInfo(
  */
 data class SpecialOperation(val title: String, val link: String?, val normal: Boolean, val stopped: Set<String>)
 
+/** Cor de uma linha ("ce0f2e") no tema claro e no tema escuro. */
+data class LineColor(val light: String, val dark: String)
+
 /** Uma integração entre duas estações, com a passagem em cada sentido. */
 data class IntegracaoRegra(
     val a: String,
@@ -66,6 +69,8 @@ class Regras(
     val peakMaxTransferMinutes: Int = 0,
     /** Quantas vezes o tempo a pé, por jeito de se deslocar ([Mobility.key]). */
     val mobilityFactors: Map<String, Double> = emptyMap(),
+    /** Cor do mapa oficial por linha (nome em minúsculas), no lugar da do GTFS. */
+    val lineColors: Map<String, LineColor> = emptyMap(),
 ) {
     /** A partida cai num horário de pico (metrô costuma ir cheio)? */
     fun isPeak(minutes: Int): Boolean = peak.any { minutes in it }
@@ -78,6 +83,14 @@ class Regras(
         stations[stopId]?.takeIf { plain(it.name) == plain(name) }
 
     fun fare(routeName: String): String? = fares[routeName.trim().lowercase()]
+
+    /** A cor da linha no mapa oficial; sem ela, [gtfsColor]. */
+    fun lineColor(routeName: String, gtfsColor: String): String =
+        lineColors[routeName.trim().lowercase()]?.light ?: gtfsColor
+
+    /** O tom de [color] no tema escuro, quando o mapa oficial ficaria apagado nele. */
+    fun darkColor(color: String): String =
+        lineColors.values.firstOrNull { it.light.equals(color, ignoreCase = true) }?.dark ?: color
 
     /** Minutos a mais numa integração alcançada às [minutes]: estação cheia demora mais. */
     fun peakTransferExtra(minutes: Int): Int = when {
@@ -197,6 +210,13 @@ class Regras(
                     )
                 }
             }.orEmpty()
+            val colors = root.optJSONObject("cores")?.let { o ->
+                o.keys().asSequence().filterNot { it.startsWith("_") }.associate { name ->
+                    val c = o.getJSONObject(name)
+                    val light = c.getString("claro").trim().removePrefix("#").lowercase()
+                    name.trim().lowercase() to LineColor(light, c.optString("escuro", light).trim().removePrefix("#").lowercase())
+                }
+            }.orEmpty()
             return Regras(
                 byName(bike.getJSONObject("linhas")), byName(bike.getJSONObject("estacoes")), integracoes, peak, specialDays,
                 stations, fares, operations,
@@ -204,6 +224,7 @@ class Regras(
                 peakTransferMinutes = pico?.optInt("integracao_min") ?: 0,
                 peakMaxTransferMinutes = pico?.optInt("integracao_maximo_min") ?: 0,
                 mobilityFactors = mobility,
+                lineColors = colors,
             )
         }
 

@@ -7,6 +7,7 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Build
 import android.view.View
@@ -149,7 +150,10 @@ object StationWidget {
         views.setTextViewText(R.id.widget_line, content.routeName)
         views.setViewVisibility(R.id.widget_line, View.VISIBLE)
         views.setViewVisibility(R.id.widget_dot, View.VISIBLE)
-        runCatching { views.setTextColor(R.id.widget_dot, Color.parseColor("#" + content.colorHex.removePrefix("#"))) }
+        // O fundo do widget segue o tema do celular (values-night): no escuro, o tom mais claro da linha.
+        val night = context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
+        val hex = content.colorHex.removePrefix("#").let { if (night) Regras.current.darkColor(it) else it }
+        runCatching { views.setTextColor(R.id.widget_dot, Color.parseColor("#$hex")) }
         listOf(
             Triple(R.id.widget_row1, R.id.widget_dir1, R.id.widget_time1) to R.id.widget_more1,
             Triple(R.id.widget_row2, R.id.widget_dir2, R.id.widget_time2) to R.id.widget_more2,

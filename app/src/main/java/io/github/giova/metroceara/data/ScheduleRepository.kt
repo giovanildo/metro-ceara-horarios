@@ -29,13 +29,16 @@ class ScheduleRepository(context: Context) {
         ORDER BY sort_order
         """.trimIndent(),
         null,
-    ).map { Route(it.getString(0), it.getString(1), it.getString(2), it.getString(3)) }
+    ).map(::routeOf)
 
     fun route(id: String): Route? = db.rawQuery(
         "SELECT route_id, name, description, color FROM route WHERE route_id = ?",
         arrayOf(id),
-    ).map { Route(it.getString(0), it.getString(1), it.getString(2), it.getString(3)) }
-        .firstOrNull()
+    ).map(::routeOf).firstOrNull()
+
+    /** A cor vem do mapa oficial (regras.json "cores") quando há; senão, do GTFS. */
+    private fun routeOf(c: Cursor) =
+        Route(c.getString(0), c.getString(1), c.getString(2), Regras.current.lineColor(c.getString(1), c.getString(3)))
 
     fun stop(id: String): Stop? = db.rawQuery(
         "SELECT stop_id, name FROM stop WHERE stop_id = ?",
@@ -226,7 +229,7 @@ class ScheduleRepository(context: Context) {
             walkMinutes = it.getInt(2),
             routeId = it.getString(3),
             routeName = it.getString(4),
-            routeColor = it.getString(5),
+            routeColor = Regras.current.lineColor(it.getString(4), it.getString(5)),
             direction = Direction(it.getInt(6), it.getString(7)),
             fare = transferRule(it.getString(8), it.getString(1)),
         )
@@ -268,7 +271,7 @@ class ScheduleRepository(context: Context) {
             lon = fix?.lon ?: it.getDouble(3),
             routeId = it.getString(4),
             routeName = it.getString(5),
-            routeColor = it.getString(6),
+            routeColor = Regras.current.lineColor(it.getString(5), it.getString(6)),
         )
     }
 
