@@ -148,7 +148,8 @@ object StationWidget {
         }
         views.setTextViewText(R.id.widget_station, content.stopName)
         views.setTextViewText(R.id.widget_line, content.routeName)
-        views.setViewVisibility(R.id.widget_line, View.VISIBLE)
+        // No 2×2 o nome da linha não cabe ao lado da estação e do ↻: virava só "…".
+        views.setViewVisibility(R.id.widget_line, if (wide) View.VISIBLE else View.GONE)
         views.setViewVisibility(R.id.widget_dot, View.VISIBLE)
         // O fundo do widget segue o tema do celular (values-night): no escuro, o tom mais claro da linha.
         val night = context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
