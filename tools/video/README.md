@@ -54,6 +54,20 @@ As telas vêm do emulador Android, com o sistema em pt-BR
   `http://localhost:8000/app/`, que conta como site seguro para a localização) e salvar `adb exec-out screencap -p` em
   `$VIDEO_WORK/ios/raw_inicio.png` (antes da localização) e
   `raw_estacoes.png` (depois, com `adb emu geo fix -38.5363 -3.7330`).
+- **Capturas da loja** (`tools/play/imagens/tela-*.png`, refeitas na 1.58):
+  emulador sem internet (`svc wifi disable; svc data disable`), relógio manual
+  em quinta 29/10 às 07:25 (`settings put global auto_time 0; date 102907252026.00`),
+  com a grade de dia útil desse dia já baixada e `synced_at_weekday` trocado
+  para as 05:10 em `shared_prefs/metrofor_schedules.xml` (copiar como root com
+  `cat >`, para manter o dono do arquivo), sem estação fixada, posição a ~200 m
+  da São Benedito por um provedor de teste
+  (`cmd location providers add-test-provider fused` +
+  `set-test-provider-location fused --location -3.7330,-38.5363`) e a barra de
+  status no modo demo (`clock -e hhmm 0725`). A de Parangaba é às 10:00. O aviso
+  de descida sai de uma viagem real São Benedito → Parangaba avançando relógio
+  e posição estação por estação até Couto Fernandes; o cartão expandido da
+  notificação é recortado da barra de notificações e colado no topo. Todas são
+  cortadas de 1080×2400 para 1080×1920.
 - **App Android (gravação):** `adb shell screenrecord`, o modo demo do
   SystemUI para a barra de status, e a viagem simulada com `date` +
   `emu geo fix` a cada estação: é o que `gravar_viagem.sh` faz.

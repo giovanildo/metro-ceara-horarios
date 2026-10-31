@@ -1030,8 +1030,8 @@ O material para o Play Console fica em [`tools/play/`](tools/play/):
   1024×500 e 7 capturas 1080×1920 (a loja exige proporção 16:9 ou 9:16; as telas
   de 1080×2400 são cortadas embaixo): tela inicial, estação com integração,
   aviso de descida, widget, lembrete na agenda, viagem com integração e
-  "sentado, pelo terminal"; o site usa as 3 primeiras. Na do widget, os ícones
-  de outros apps foram tirados da tela inicial do emulador antes da captura. A tela do aviso de descida é a tela real da
+  "sentado, pelo terminal"; o site usa as 7, com o widget em 2º lugar. Na do widget, a ponta dos ícones de
+  outros apps, que sobra no corte de 1920, foi coberta com o fundo logo acima. A tela do aviso de descida é a tela real da
   viagem com o cartão real da notificação, recortado da barra de notificações,
   colado no topo como o balão que aparece no aparelho.
 - `video-modo-viagem.mp4` — o modo viagem em uso (iniciar, notificação fixa,

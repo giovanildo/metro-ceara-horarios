@@ -81,8 +81,13 @@
   .feature { background: var(--card); border-radius: 16px; padding: 18px; }
   .feature h3 { margin: 0 0 6px; font-size: 1.1rem; }
   .feature p { margin: 0; color: var(--muted); }
-  .shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 20px; }
+  .shots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 20px; }
   .shots figure { margin: 0; text-align: center; }
+  /* No celular, as capturas viram uma faixa que rola para o lado. */
+  @media (max-width: 700px) {
+    .shots { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 14px; padding-bottom: 10px; }
+    .shots figure { flex: 0 0 62%; scroll-snap-align: center; }
+  }
   .shots img {
     width: 100%; max-width: 260px; border-radius: 22px; border: 6px solid #1d1b1e;
     box-shadow: 0 8px 24px rgba(0,0,0,.18);
@@ -147,8 +152,12 @@
 
     <div class="shots">
       <figure><img src="img/tela-1.jpg" alt="Tela inicial com as estações mais próximas" loading="lazy"><figcaption>Estações perto de você</figcaption></figure>
-      <figure><img src="img/tela-2.jpg" alt="Horários de uma estação" loading="lazy"><figcaption>Todos os horários</figcaption></figure>
-      <figure><img src="img/tela-3.jpg" alt="Modo viagem com o aviso de descida" loading="lazy"><figcaption>Modo viagem</figcaption></figure>
+      <figure><img src="img/tela-4.jpg" alt="Widgets na tela inicial com os próximos horários da estação" loading="lazy"><figcaption>Widget na tela inicial</figcaption></figure>
+      <figure><img src="img/tela-2.jpg" alt="Horários de uma estação, com a integração com a Linha Nordeste" loading="lazy"><figcaption>Todos os horários</figcaption></figure>
+      <figure><img src="img/tela-3.jpg" alt="Modo viagem com o aviso de descida" loading="lazy"><figcaption>Aviso para descer</figcaption></figure>
+      <figure><img src="img/tela-6.jpg" alt="Roteiro com integração entre a Linha Sul e a Linha Nordeste" loading="lazy"><figcaption>Integração entre linhas</figcaption></figure>
+      <figure><img src="img/tela-5.jpg" alt="Lembrete na agenda para a hora do metrô" loading="lazy"><figcaption>Lembrete de saída</figcaption></figure>
+      <figure><img src="img/tela-7.jpg" alt="Escolha entre ir direto ou sentado pelo terminal" loading="lazy"><figcaption>Ir sentado</figcaption></figure>
     </div>
   </section>
 
