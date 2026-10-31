@@ -7,9 +7,11 @@ import { PERFIS, Roteador } from "./roteiro.js";
 const PERTO_METROS = 3000; // outras linhas aparecem até esta distância (padrão do app)
 const LINK = "https://giovanildo.github.io/metro-ceara-horarios/app/";
 const PAGINA_INSTALAR = "../#baixar"; // direto no convite para testar pela Play Store
+// O convite da lite abre o WhatsApp com a mensagem pronta (o mesmo botão da página, em #baixar).
+const WHATSAPP_TESTADOR = "https://wa.me/5585997619295?text=Ol%C3%A1%21%20Quero%20ser%20testador%20beta%20do%20app%20Metr%C3%B4%20Cear%C3%A1.%20Meu%20Gmail%20da%20Play%20Store%20%C3%A9%3A%20";
 const PIX = "giovanildos@gmail.com";
 const ANDROID = /Android/i.test(navigator.userAgent);
-const CONVITE_A_PARTIR_DA_VISITA = 3;
+const CONVITE_A_PARTIR_DA_VISITA = 1;
 const CONVITE_PAUSA_DIAS = 30;
 const IPHONE = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 // Aberta pelo ícone da tela inicial: não há o que instalar.
@@ -211,9 +213,9 @@ function telaInicio() {
 function convite() {
   if (!ANDROID || lerNumero("visitas") < CONVITE_A_PARTIR_DA_VISITA || Date.now() < lerNumero("convitePausadoAte")) return "";
   return `<div class="cartao rosa convite">
-    <strong>Quer ser avisado antes da sua estação, mesmo com a tela desligada?</strong>
-    <span>O app completo para Android tem o modo viagem. Grátis, como esta versão.</span>
-    <div class="acoes"><a class="botao" href="${PAGINA_INSTALAR}">Conhecer o app completo</a>
+    <strong>Seja testador do app completo</strong>
+    <span>Ele te avisa antes da sua estação, mesmo com a tela desligada. Grátis, pela Play Store: mande seu Gmail pelo WhatsApp e receba o convite.</span>
+    <div class="acoes"><a class="botao" href="${WHATSAPP_TESTADOR}" target="_blank" rel="noopener">Quero ser testador</a>
       <button class="botao secundario" id="agora-nao">Agora não</button></div>
   </div>`;
 }
