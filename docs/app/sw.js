@@ -1,12 +1,15 @@
 // Guarda o app no celular para abrir sem internet. O app (HTML, CSS, JS,
 // ícones) vem do cache na hora e é atualizado por trás; os horários tentam a
 // internet primeiro e, sem ela, usam a última cópia.
-const CACHE = "metro-ceara-v22";
+const CACHE = "metro-ceara-v23";
 const APP = ["./", "index.html", "app.css", "app.js", "dados.js", "roteiro.js", "manifest.webmanifest",
   "icon-180.png", "icon-192.png", "icon-512.png", "qr.png"];
 
+// O GitHub Pages deixa o navegador guardar cada arquivo por 10 min: sem "reload", a
+// versão nova podia ser montada com o app.js velho dessa cópia do navegador.
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(APP)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(APP.map((u) => new Request(u, { cache: "reload" }))))
+    .then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", (e) => {
@@ -31,7 +34,7 @@ self.addEventListener("fetch", (e) => {
   // App: do cache na hora; a versão nova chega por trás e vale na próxima abertura.
   e.respondWith(caches.open(CACHE).then(async (c) => {
     const guardado = await c.match(req, { ignoreSearch: true });
-    const rede = fetch(req).then((r) => { if (r.ok) c.put(req, r.clone()); return r; }).catch(() => guardado);
+    const rede = fetch(req, { cache: "no-cache" }).then((r) => { if (r.ok) c.put(req, r.clone()); return r; }).catch(() => guardado);
     return guardado || rede;
   }));
 });
