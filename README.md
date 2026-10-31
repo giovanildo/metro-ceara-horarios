@@ -1113,9 +1113,16 @@ de Fortaleza ou o Governo do Ceará.
 cita o nome **só para dizer de onde vêm os dados** (uso nominativo): ele se
 chama "Metrô Ceará", não usa "Metrofor" no nome nem no ícone, não reproduz
 o logotipo, e traz o aviso de não oficial na tela inicial e na tela Sobre. As
-cores das linhas vêm do próprio GTFS e servem só para identificá-las. Quem for
-publicar o app em loja deve manter esses cuidados — nome, ícone e descrição sem
-sugerir vínculo oficial.
+cores das linhas são as do mapa afixado nas estações e servem só para
+identificá-las. Quem for publicar o app em loja deve manter esses cuidados —
+nome, ícone e descrição sem sugerir vínculo oficial.
+
+Pelo mesmo motivo, o app **não segue o manual de identidade visual do Governo
+do Ceará** (2023–2026: brasão, assinatura "CEARÁ – Governo do Estado", fontes
+Kanit e Maitree, grafismo verde e laranja). Avaliado em out/2026, ele faria o
+app parecer oficial — o que a Play Store não aceita sem comprovação — e vale
+só até o fim da gestão. A identidade do app é própria: o ícone de renda com a
+jandaia e o vermelho do app.
 
 Onde há espaço, o nome vem acompanhado da linha "Fortaleza · Cariri ·
 Sobral", e as descrições citam as três cidades, para a busca.
