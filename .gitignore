@@ -28,3 +28,6 @@ tools/play/*.zip
 
 # Material de consulta do Metrofor (PDFs, textos): não é nosso para republicar.
 referencias/
+
+# Base de conhecimento para o Claude Projetos: tem notas internas, fica só local.
+kb-claude-projetos/
