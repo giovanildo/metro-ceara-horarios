@@ -146,3 +146,24 @@ select, input[type=number] {
 .selo { font-size: .8rem; font-weight: 600; border: 1px solid currentColor; border-radius: 999px; padding: 1px 9px; color: var(--cartao-texto); }
 .selo.justa { color: #8a5a00; }
 .chegada { font-size: 1.25rem; font-weight: 600; margin: 0; }
+
+/* "Para onde você vai?": a barra da tela inicial e a tela Sua viagem */
+.lupa { width: 22px; height: 22px; fill: currentColor; flex: none; vertical-align: middle; }
+.para-onde { display: flex; align-items: center; gap: 12px; margin: 12px 0; padding: 14px 18px; border-radius: 999px;
+  background: var(--neutro); color: var(--texto-2); text-decoration: none; font-size: 1.1rem; }
+.botao.largo .lupa { margin-right: 6px; }
+.viagem-campos { background: var(--neutro); border-radius: 16px; padding: 4px 14px; }
+.campo input { font: inherit; font-size: 1rem; color: var(--texto); background: var(--fundo); border: 1px solid var(--borda);
+  border-radius: 10px; padding: 10px; }
+.grupo { display: flex; align-items: center; gap: 6px; margin: 16px 0 2px; font-size: .88rem; font-weight: 600; color: var(--texto-2); }
+.destino { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; width: 100%; padding: 12px 4px;
+  font: inherit; color: var(--texto); background: none; border: 0; border-bottom: 1px solid var(--borda); text-align: left; cursor: pointer; }
+.destino small { color: var(--texto-2); white-space: nowrap; }
+.destino:disabled { color: var(--passado); cursor: default; }
+.chips { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 12px 0; }
+.chip { font: inherit; font-size: .92rem; color: var(--texto); background: none; border: 1px solid var(--borda); border-radius: 10px;
+  padding: 7px 12px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.chip.sel { background: var(--destaque); border-color: var(--destaque); font-weight: 600; }
+.chip input[type="time"] { font: inherit; color: inherit; background: none; border: 0; padding: 0; }
+.viagem-campos label.campo { display: flex; flex-direction: column; gap: 4px; margin: 10px 0; }
+.viagem-campos select, .viagem-campos input { width: 100%; }

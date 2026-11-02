@@ -166,6 +166,7 @@ function telaInicio() {
   const { grade } = estado.dados;
   const t = agora();
   let html = convite() + avisoDomingo(t) + avisosMetrofor();
+  html += `<a class="para-onde" href="#/viagem">${LUPA} Para onde você vai?</a>`;
 
   if (!estado.pos) {
     html += `<div class="cartao">
@@ -295,7 +296,7 @@ function telaEstacao(linhaId, stopId, sentidoId) {
     : `<p class="dica">Toque em qualquer horário de hoje (aqui ou em "Todos os horários", mais abaixo) para criar um lembrete na agenda.</p>`;
   html += avisoBike(linha, stopId, t);
   html += blocoIntegracao(stopId, t);
-  html += blocoIrPara(linha, stopId, t);
+  html += `<a class="botao secundario largo" href="#/viagem/${linha.id}/${stopId}">${LUPA} Ir daqui para outra estação</a>`;
   if (domingo) {
     // Domingo comum: a grade de segunda, toda futura (o lembrete vai para amanhã).
     html += amanha?.length ? `<h2>Horários de segunda</h2><div class="todos">${amanha.map((m) =>
@@ -310,16 +311,6 @@ function telaEstacao(linhaId, stopId, sentidoId) {
 
   tela.querySelectorAll("button[data-m]:not([disabled])").forEach((b) => b.addEventListener("click", () =>
     lembrete(linha, sentido, stopId, +b.dataset.m, b.dataset.amanha === "true")));
-  const irPara = document.getElementById("ir-para");
-  const perfil = document.getElementById("perfil");
-  const mostrar = () => {
-    estado.irPara = irPara.value;
-    try { localStorage.setItem("perfil", perfil.value); } catch { /* segue */ }
-    document.getElementById("roteiro").innerHTML = roteiroHtml(linha, stopId, irPara.value, perfil.value, agora());
-  };
-  irPara?.addEventListener("change", mostrar);
-  perfil?.addEventListener("change", mostrar);
-  if (irPara?.value) mostrar();
 }
 
 // ---------- roteiro com integração (a mesma regra do app: roteiro.js)
@@ -330,54 +321,198 @@ function perfilGuardado() {
   try { return localStorage.getItem("perfil") || "andando"; } catch { return "andando"; }
 }
 
-/** "Ir para…": as estações das linhas que se alcançam com integração, e o jeito de se deslocar. */
-function blocoIrPara(linha, stopId, t) {
-  const { grade, regras } = estado.dados;
-  const r = new Roteador(grade, regras, perfilGuardado());
-  const grupos = [...r.alcancaveis(linha.id)].filter(([id]) => id !== linha.id).map(([id, caminho]) => {
-    const l = grade.linha(id);
-    const chegada = caminho[caminho.length - 1].paraEst; // ali a pessoa ainda nem embarcou
-    const parada = linhaParada(regras, t.data, l.nome);
-    const via = caminho.length === 1 ? `integração em ${semSufixo(grade.nome(caminho[0].deEst))}` : `${caminho.length} integrações`;
-    const opcoes = grade.estacoesDaLinha(l).filter((e) => e !== chegada).map((e) =>
-      `<option value="${l.id}|${e}" ${parada ? "disabled" : ""} ${estado.irPara === `${l.id}|${e}` ? "selected" : ""}>${esc(semSufixo(grade.nome(e)))}</option>`).join("");
-    return `<optgroup label="${esc(l.nome)} · ${parada ? "não circula hoje" : via}">${opcoes}</optgroup>`;
-  });
-  if (!grupos.length) return "";
-  const perfil = perfilGuardado();
-  return `<h2>Ir para outra linha</h2>
-    <label class="campo">Destino<select id="ir-para"><option value="">Escolha a estação</option>${grupos.join("")}</select></label>
-    <label class="campo">Como você se desloca<select id="perfil">${PERFIS.map((p) =>
-      `<option value="${p.chave}" ${p.chave === perfil ? "selected" : ""}>${esc(p.nome)}</option>`).join("")}</select></label>
-    <div id="roteiro"></div>`;
+const LUPA = `<svg class="lupa" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>`;
+
+/** "Benfica" acha "Benfica", "anto" acha "Antônio Sales": sem acento nem maiúscula. */
+const semAcento = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+
+/** A estação de onde a pessoa sai: a mais perto (com localização) ou a última usada. */
+function origemPadrao() {
+  const { grade } = estado.dados;
+  if (estado.pos) {
+    let melhor = null;
+    for (const l of grade.linhas) {
+      for (const id of grade.estacoesDaLinha(l)) {
+        const e = grade.estacoes[id];
+        const d = distancia(estado.pos.lat, estado.pos.lon, e.lat, e.lon);
+        if (!melhor || d < melhor.d) melhor = { v: `${l.id}|${id}`, d };
+      }
+    }
+    if (melhor) return melhor.v;
+  }
+  try {
+    const o = localStorage.getItem("origem") || "";
+    const [l, e] = o.split("|");
+    if (grade.linha(l) && grade.estacoes[e]) return o;
+  } catch { /* segue */ }
+  return "";
 }
 
-/** O roteiro até o destino escolhido: trechos, integrações, chegada e os próximos horários. */
-function roteiroHtml(linha, stopId, destino, perfil, t) {
-  if (!destino) return "";
-  const { regras } = estado.dados;
-  // Domingo comum: sem metrô hoje, o roteiro é o de segunda, desde o primeiro horário.
+/**
+ * O dia do roteiro: hoje, ou a segunda num domingo sem operação anunciada (grade
+ * de segunda, sem linhas paradas amanhã). null enquanto a grade de segunda não chega.
+ */
+function diaDaViagem(t) {
   const domingo = domingoSemOperacao(t);
   const grade = domingo ? estado.proximo : estado.dados.grade;
-  if (!grade) return `<p class="vazio">Carregando os horários de segunda…</p>`;
-  const dia = domingo ? { data: somarDias(t.data, 1), diaSemana: 1 } : t;
-  const [linhaDestino, estDestino] = destino.split("|");
-  const evitar = new Set(grade.linhas.filter((l) => linhaParada(regras, dia.data, l.nome)).map((l) => l.id));
+  if (!grade) return null;
+  const data = domingo ? somarDias(t.data, 1) : t.data;
+  const evitar = new Set(grade.linhas.filter((l) => linhaParada(estado.dados.regras, data, l.nome)).map((l) => l.id));
+  return { domingo, grade, data, diaSemana: domingo ? 1 : t.diaSemana, evitar };
+}
+
+/**
+ * "Para onde você vai?": de onde (a estação mais perto, já escolhida), para onde
+ * (busca sem acento, as estações por linha) e o roteiro, na mesma linha ou com
+ * integração, saindo agora ou no horário escolhido. No lugar do modo viagem, que
+ * só o app completo tem, o lembrete na agenda.
+ */
+function telaViagem(linhaId, estId) {
+  const { grade, regras } = estado.dados;
+  const t = agora();
+  const v = estado.viagem ||= { destino: "", busca: "", hora: null, escolhido: 0 };
+  const origem = linhaId && grade.linha(linhaId) && grade.estacoes[estId] ? `${linhaId}|${estId}` : origemPadrao();
+  if (origem) try { localStorage.setItem("origem", origem); } catch { /* segue */ }
+  const [lo, eo] = origem.split("|");
+  const nome = (id) => semSufixo(grade.nome(id));
+
+  const opcoesOrigem = grade.linhas.filter((l) => grade.estacoesDaLinha(l).length).map((l) =>
+    `<optgroup label="${esc(l.nome)}">${grade.estacoesDaLinha(l).map((id) =>
+      `<option value="${l.id}|${id}" ${origem === `${l.id}|${id}` ? "selected" : ""}>${esc(nome(id))}</option>`).join("")}</optgroup>`).join("");
+  const destino = v.destino && v.destino.split("|");
+  tela.innerHTML = `<h2 style="font-size:1.4rem">Sua viagem</h2>
+    <div class="viagem-campos">
+      <label class="campo">De<select id="v-origem">${origem ? "" : `<option value="">Escolha a estação</option>`}${opcoesOrigem}</select></label>
+      <label class="campo">Para<input id="v-busca" type="search" autocomplete="off" placeholder="Digite o nome da estação"
+        value="${esc(destino ? nome(destino[1]) : v.busca)}"></label>
+    </div>
+    <div id="v-lista"></div><div id="v-resultado"></div>`;
+
+  const lista = document.getElementById("v-lista");
+  const resultado = document.getElementById("v-resultado");
+  const mostrarLista = () => {
+    resultado.innerHTML = "";
+    lista.innerHTML = listaDestinos(lo, eo, v.busca, t);
+    lista.querySelectorAll("button[data-dest]").forEach((b) => b.addEventListener("click", () => {
+      v.destino = b.dataset.dest;
+      v.busca = "";
+      v.escolhido = 0;
+      render();
+    }));
+  };
+  const mostrarResultado = () => {
+    lista.innerHTML = "";
+    resultado.innerHTML = resultadoViagem(lo, eo, v, t);
+    resultado.querySelectorAll("button[data-i]").forEach((b) => b.addEventListener("click", () => {
+      v.escolhido = +b.dataset.i;
+      mostrarResultado();
+    }));
+    resultado.querySelector("#v-agora")?.addEventListener("click", () => { v.hora = null; v.escolhido = 0; mostrarResultado(); });
+    resultado.querySelector("#v-hora")?.addEventListener("change", (e) => {
+      const [h, m] = e.target.value.split(":").map(Number);
+      v.hora = Number.isFinite(h) ? h * 60 + m : null;
+      v.escolhido = 0;
+      mostrarResultado();
+    });
+    resultado.querySelector("#perfil")?.addEventListener("change", (e) => {
+      try { localStorage.setItem("perfil", e.target.value); } catch { /* segue */ }
+      mostrarResultado();
+    });
+    resultado.querySelector("#v-lembrete")?.addEventListener("click", (e) => {
+      const { linha, sentido, est, m, amanha } = JSON.parse(e.currentTarget.dataset.p);
+      const g = diaDaViagem(agora())?.grade || grade;
+      lembrete(g.linha(linha), g.linha(linha).sentidos.find((x) => x.id === sentido), est, m, amanha);
+    });
+  };
+
+  document.getElementById("v-origem").addEventListener("change", (e) => {
+    const [l, id] = e.target.value.split("|");
+    location.replace(`#/viagem/${l}/${id}`);
+  });
+  const busca = document.getElementById("v-busca");
+  busca.addEventListener("focus", () => { if (v.destino) { v.destino = ""; busca.value = ""; mostrarLista(); } });
+  busca.addEventListener("input", () => { v.busca = busca.value; v.destino = ""; mostrarLista(); });
+  if (v.destino && origem) mostrarResultado(); else mostrarLista();
+}
+
+/** As estações para onde dá para ir, por linha; com origem, o caminho e a hora de chegada saindo agora. */
+function listaDestinos(lo, eo, busca, t) {
+  const { grade, regras } = estado.dados;
+  const agulha = semAcento(busca.trim());
+  const r = lo ? new Roteador(grade, regras, perfilGuardado()) : null;
+  const alcance = r ? r.alcancaveis(lo) : null;
+  const dia = diaDaViagem(t);
+  // Hora de chegada só para quem sai hoje: num domingo sem metrô, não há "agora".
+  const rotas = dia && !dia.domingo && r ? r : null;
+  const grupos = grade.linhas.filter((l) => !alcance || alcance.has(l.id)).map((l) => {
+    const caminho = alcance?.get(l.id) || [];
+    const chegaA = caminho.length ? caminho[caminho.length - 1].paraEst : null; // ali ainda nem embarcou
+    const parada = linhaParada(regras, dia?.data ?? t.data, l.nome);
+    const via = !lo ? "" : !caminho.length ? " · mesma linha"
+      : caminho.length === 1 ? ` · integração em ${semSufixo(grade.nome(caminho[0].deEst))}` : ` · ${caminho.length} integrações`;
+    const ests = grade.estacoesDaLinha(l).filter((id) => id !== chegaA && !(l.id === lo && id === eo))
+      .filter((id) => !agulha || semAcento(semSufixo(grade.nome(id))).includes(agulha));
+    if (!ests.length) return "";
+    return `<p class="grupo"><span class="ponto" style="background:${cor(l)}"></span>${esc(l.nome)}${parada ? " · não circula" : via}</p>
+      ${ests.map((id) => {
+        const o = !parada && rotas?.planejar({ linha: lo, est: eo }, { linha: l.id, est: id }, t.minutos - 2, 1, dia.evitar)[0];
+        return `<button class="destino" data-dest="${l.id}|${id}" ${parada ? "disabled" : ""}>
+          <span>${esc(semSufixo(grade.nome(id)))}</span>${o ? `<small>chega ${hora(o.chega)}</small>` : ""}</button>`;
+      }).join("")}`;
+  }).join("");
+  return grupos || `<p class="vazio">Nenhuma estação com esse nome.</p>`;
+}
+
+/** O roteiro escolhido: horário (agora ou escolhido), o cartão, os outros horários e o lembrete. */
+function resultadoViagem(lo, eo, v, t) {
+  const { regras } = estado.dados;
+  const dia = diaDaViagem(t);
+  if (!dia) return `<p class="vazio">Carregando os horários de segunda…</p>`;
+  const { grade } = dia;
+  const [ld, ed] = v.destino.split("|");
+  const perfil = perfilGuardado();
   const r = new Roteador(grade, regras, perfil);
-  const origem = { linha: linha.id, est: stopId };
-  const alvo = { linha: linhaDestino, est: estDestino };
-  const opcoes = r.planejar(origem, alvo, domingo ? 0 : t.minutos - 2, 3, evitar);
-  const nomeDestino = semSufixo(grade.nome(estDestino));
+  const apos = v.hora ?? (dia.domingo ? 0 : t.minutos - 2);
+  const opcoes = r.planejar({ linha: lo, est: eo }, { linha: ld, est: ed }, apos, 4, dia.evitar);
+  const nomeDestino = semSufixo(grade.nome(ed));
+  const horaValor = v.hora != null ? hora(v.hora) : "";
+  let html = dia.domingo ? `<p class="aviso"><strong>Hoje é domingo, sem metrô e VLT.</strong> Este é o roteiro de segunda.</p>` : "";
+  html += `<div class="chips">
+    <button class="chip ${v.hora == null ? "sel" : ""}" id="v-agora">${dia.domingo ? "Primeiro horário" : "Sair agora"}</button>
+    <label class="chip ${v.hora != null ? "sel" : ""}">${v.hora != null ? "Sair às" : "Escolher horário"}
+      <input type="time" id="v-hora" value="${horaValor}"></label></div>`;
   if (!opcoes.length) {
-    if (domingo) return `<p class="vazio">Na segunda não há como chegar a ${esc(nomeDestino)} com integração saindo daqui.</p>`;
-    const ultimo = r.planejar(origem, alvo, 0, 99, evitar).map((o) => o.sai).sort((a, b) => b - a)[0];
-    return `<p class="vazio">${ultimo != null ? `Sem integração para ${esc(nomeDestino)} hoje depois das ${hora(ultimo)}.`
-      : `Hoje não há como chegar a ${esc(nomeDestino)} com integração saindo daqui.`}</p>`;
+    const ultimo = r.planejar({ linha: lo, est: eo }, { linha: ld, est: ed }, 0, 99, dia.evitar).map((o) => o.sai).sort((a, b) => b - a)[0];
+    const quando = dia.domingo ? "na segunda" : "hoje";
+    html += `<p class="vazio">${ultimo == null ? `Não há como chegar a ${esc(nomeDestino)} ${quando} saindo daqui.`
+      : `Sem metrô ou VLT para ${esc(nomeDestino)} ${quando} depois das ${hora(ultimo)}.`}</p>`;
+    return html;
   }
-  const [o, ...outras] = opcoes;
+  const i = Math.min(v.escolhido, opcoes.length - 1);
+  const o = opcoes[i];
+  html += cartaoRoteiro(o, grade, dia, perfil);
+  if (opcoes.length > 1) {
+    html += `<div class="chips"><span class="dica">Outros horários:</span>${opcoes.map((x, k) =>
+      `<button class="chip ${k === i ? "sel" : ""}" data-i="${k}">${hora(x.sai)} → ${hora(x.chega)}</button>`).join("")}</div>`;
+  }
+  // No lugar do modo viagem: o lembrete da partida, para quem ainda não saiu.
+  if (dia.domingo || o.sai >= t.minutos) {
+    const p = o.pernas[0];
+    const dados = esc(JSON.stringify({ linha: p.linha, sentido: p.sentido.id, est: p.de, m: o.sai, amanha: dia.domingo }));
+    html += `<button class="botao secundario largo" id="v-lembrete" data-p="${dados}">⏰ Lembrete na agenda${dia.domingo ? `, segunda ${hora(o.sai)}` : ""}</button>`;
+  }
+  html += `<label class="campo">Como você se desloca<select id="perfil">${PERFIS.map((x) =>
+    `<option value="${x.chave}" ${x.chave === perfil ? "selected" : ""}>${esc(x.nome)}</option>`).join("")}</select></label>`;
+  html += `<p class="dica">${ANDROID ? "No" : "Tem Android? No"} app completo, o <strong>modo viagem</strong> avisa antes da sua estação,
+    com a tela desligada. <a href="${WHATSAPP_TESTADOR}" target="_blank" rel="noopener">Seja testador ›</a></p>`;
+  return html;
+}
+
+/** O cartão do roteiro: cada trecho na cor da linha, a integração com tempo e passagem, a chegada. */
+function cartaoRoteiro(o, grade, dia, perfil) {
+  const { regras } = estado.dados;
   const rotulo = (l) => l.nome.startsWith("Linha") ? `${veiculo(l.nome).replace(/^./, (c) => c.toUpperCase())} da ${l.nome}` : l.nome;
-  let html = domingo ? `<p class="dica">Hoje é domingo, sem metrô e VLT. Na segunda:</p>` : "";
-  html += `<div class="cartao neutro roteiro">`;
+  let html = `<div class="cartao neutro roteiro">`;
   o.pernas.forEach((p, i) => {
     const l = grade.linha(p.linha);
     html += `<div class="perna" style="--cor:${cor(l)}"><strong>${hora(p.sai)} ${esc(semSufixo(grade.nome(p.de)))}</strong>
@@ -394,7 +529,7 @@ function roteiroHtml(linha, stopId, destino, perfil, t) {
   });
   html += `<p class="chegada">Chega às ${hora(o.chega)}</p>`;
   if (o.antes != null) {
-    html += `<p class="dica">O ${veiculo(linha.nome)} das ${hora(o.antes)} chega no mesmo horário, mas espera mais na integração.</p>`;
+    html += `<p class="dica">O ${veiculo(grade.linha(o.pernas[0].linha).nome)} das ${hora(o.antes)} chega no mesmo horário, mas espera mais na integração.</p>`;
   }
   if (perfil === "bicicleta") {
     for (const p of o.pernas) {
@@ -404,11 +539,7 @@ function roteiroHtml(linha, stopId, destino, perfil, t) {
       else if (!bikeAgora(j, p.sai).pode) html += `<p class="aviso">Com bicicleta: a ${esc(l.nome)} não aceita bike às ${hora(p.sai)}.</p>`;
     }
   }
-  html += `</div>`;
-  if (outras.length) {
-    html += `<p class="dica">Outros horários: ${outras.map((x) => `${hora(x.sai)} → ${hora(x.chega)}`).join(" · ")}</p>`;
-  }
-  return html;
+  return html + `</div>`;
 }
 
 /** "Pode embarcar com bike no metrô agora, até as 15:00" — mesmas regras e frases do app. */
@@ -616,6 +747,7 @@ function render() {
   if (partes[0] === "linha") telaLinha(partes[1]);
   else if (partes[0] === "estacao") telaEstacao(partes[1], partes[2], partes[3]);
   else if (partes[0] === "sobre") telaSobre();
+  else if (partes[0] === "viagem") telaViagem(partes[1], partes[2]);
   else telaInicio();
   status();
 }

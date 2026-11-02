@@ -30,10 +30,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.material.icons.filled.Navigation
-import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Button
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -80,11 +78,7 @@ fun DeparturesScreen(
     departuresFor: (Direction) -> List<Int>,
     tomorrowFor: (Direction) -> List<Int>?,
     dayEndFor: (Direction) -> DayEnd,
-    destinationsFor: (Direction) -> List<Stop>,
-    onStartTrip: (Direction, Stop) -> Unit,
-    otherLines: List<OtherLineGroup>,
-    onPickOtherLine: (OtherLineGroup, Stop) -> Unit,
-    tripAllowed: Boolean,
+    onPlanJourney: () -> Unit,
     transfers: List<TransferTarget>,
     transferDepartures: (TransferTarget, Int) -> Departure?,
     onOpenTransfer: (TransferTarget) -> Unit,
@@ -116,43 +110,11 @@ fun DeparturesScreen(
     val sunday = remember(now) { isSundayToday() }
     // Domingo comum: a lista é a de segunda ("Horários de segunda", lembrete para amanhã).
     val sundayOff = remember(now) { isSundayWithoutService() }
-    // Destinos nos dois sentidos — o da aba aberta primeiro. Só o sentido da
-    // aba escondia, por exemplo, Carlito Benevides de quem estava na aba
-    // "→ Chico da Silva".
-    val destinationGroups = remember(direction, directions) {
-        directions.sortedByDescending { it == direction }
-            .map { DestinationGroup("→ ${it.headsign}", route.id, stop, it, destinationsFor(it)) }
-    }
-    val destinations = destinationGroups.flatMap { it.stops }
-    var pickingDestination by remember { mutableStateOf(false) }
-    var pickingOtherLine by remember { mutableStateOf(false) }
-    if (pickingOtherLine) {
-        DestinationDialog(
-            groups = emptyList(),
-            onPick = { _, _ -> },
-            onDismiss = { pickingOtherLine = false },
-            others = otherLines,
-            onPickOther = { group, destination ->
-                pickingOtherLine = false
-                onPickOtherLine(group, destination)
-            },
-        )
-    }
     var reminder by remember { mutableStateOf<Departure?>(null) }
     reminder?.let { departure ->
         LeaveReminderDialog(
             reminder = LeaveReminder(departure, stop.name, route.name, direction?.headsign.orEmpty(), vehicleName(route.name)),
             onDismiss = { reminder = null },
-        )
-    }
-    if (pickingDestination && direction != null) {
-        DestinationDialog(
-            groups = destinationGroups,
-            onPick = { group, destination ->
-                pickingDestination = false
-                onStartTrip(group.direction, destination)
-            },
-            onDismiss = { pickingDestination = false },
         )
     }
     // No domingo há só operação especial: com ela anunciada mas sem regra de bike,
@@ -328,15 +290,11 @@ fun DeparturesScreen(
                     }
                 }
 
-                if (tripAllowed && destinations.isNotEmpty()) {
-                    item {
-                        Button(
-                            onClick = { pickingDestination = true },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Icon(Icons.Filled.Navigation, contentDescription = null)
-                            Text(stringResource(R.string.trip_start), modifier = Modifier.padding(start = 8.dp))
-                        }
+                // Daqui para qualquer estação, na mesma linha ou com integração (e daí o modo viagem).
+                item {
+                    OutlinedButton(onClick = onPlanJourney, modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Filled.Search, contentDescription = null)
+                        Text(stringResource(R.string.journey_from_here), modifier = Modifier.padding(start = 8.dp))
                     }
                 }
 
@@ -354,19 +312,6 @@ fun DeparturesScreen(
                                 now = now,
                                 onOpen = onOpenTransfer,
                             )
-                        }
-                    }
-                }
-
-                // O roteiro até uma estação de outra linha, sem precisar começar o modo viagem.
-                if (otherLines.isNotEmpty()) {
-                    item {
-                        OutlinedButton(
-                            onClick = { pickingOtherLine = true },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Icon(Icons.Filled.SwapHoriz, contentDescription = null)
-                            Text(stringResource(R.string.other_line_button), modifier = Modifier.padding(start = 8.dp))
                         }
                     }
                 }

@@ -2,7 +2,6 @@ package io.github.giova.metroceara.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -14,20 +13,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
+import androidx.compose.material3.Surface
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -72,92 +62,35 @@ data class RouteView(
 }
 
 /**
- * O roteiro com integração: cada trecho na cor da linha, a troca a pé com o
- * tempo da pessoa e a passagem, a chegada e a dica de horário. "Outros
- * horários" troca para os próximos roteiros. Sem [onStart], é só consulta
- * (o roteiro de segunda, num domingo sem metrô), e [note] diz para quando é.
+ * O cartão do roteiro: cada trecho na cor da linha, a troca a pé com o tempo da
+ * pessoa e a passagem, a chegada, a dica de horário e os avisos (bike).
  */
 @Composable
-fun RouteDialog(
-    options: List<RouteView>,
-    onStart: ((RouteView) -> Unit)?,
-    onDismiss: () -> Unit,
-    note: String? = null,
-) {
-    var selected by remember { mutableIntStateOf(0) }
-    var choosing by remember { mutableStateOf(false) }
-    val view = options[selected.coerceIn(options.indices)]
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.route_title, view.originName, view.destinationName)) },
-        text = {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState()),
-            ) {
-                if (choosing) {
-                    options.forEachIndexed { i, option ->
-                        val wait = option.itinerary.legs.zipWithNext { a, b -> b.departure - a.arrival }.sum()
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .border(
-                                    width = if (i == selected) 2.dp else 1.dp,
-                                    color = if (i == selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
-                                    shape = RoundedCornerShape(12.dp),
-                                )
-                                .clickable {
-                                    selected = i
-                                    choosing = false
-                                }
-                                .padding(12.dp),
-                        ) {
-                            Text(
-                                text = "${formatTime(option.itinerary.departure)} → ${formatTime(option.itinerary.arrival)}",
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                            Text(
-                                text = stringResource(R.string.route_option_wait, wait),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-                } else {
-                    note?.let {
-                        Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    view.legs.forEachIndexed { i, leg ->
-                        LegRow(leg)
-                        view.transfers.getOrNull(i)?.let { TransferRow(it, view.legs[i + 1]) }
-                    }
-                    Text(
-                        text = stringResource(R.string.route_arrival, formatTime(view.itinerary.arrival)),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    view.itinerary.sameArrivalFrom?.let { earlier ->
-                        Tip(stringResource(R.string.route_tip_same_arrival, vehicleName(view.legs.first().routeName), formatTime(earlier)))
-                    }
-                    view.warnings.forEach { Tip(it, warning = true) }
-                }
+fun RouteCard(view: RouteView, modifier: Modifier = Modifier) {
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        shape = RoundedCornerShape(18.dp),
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.padding(14.dp),
+        ) {
+            view.legs.forEachIndexed { i, leg ->
+                LegRow(leg)
+                view.transfers.getOrNull(i)?.let { TransferRow(it, view.legs[i + 1]) }
             }
-        },
-        confirmButton = {
-            if (onStart != null) {
-                Button(onClick = { onStart(view) }) { Text(stringResource(R.string.route_start)) }
-            } else {
-                TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) }
+            Text(
+                text = stringResource(R.string.route_arrival, formatTime(view.itinerary.arrival)),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+            )
+            view.itinerary.sameArrivalFrom?.let { earlier ->
+                Tip(stringResource(R.string.route_tip_same_arrival, vehicleName(view.legs.first().routeName), formatTime(earlier)))
             }
-        },
-        dismissButton = {
-            if (options.size > 1 && !choosing) {
-                TextButton(onClick = { choosing = true }) { Text(stringResource(R.string.route_other_times)) }
-            } else if (onStart != null) {
-                TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
-            }
-        },
-    )
+            view.warnings.forEach { Tip(it, warning = true) }
+        }
+    }
 }
 
 /** "Metrô da Linha Sul", "VLT da Linha Nordeste", "VLT Aeroporto". */
