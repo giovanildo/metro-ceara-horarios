@@ -8,7 +8,7 @@
 <li><b>Estação mais próxima:</b> pelo GPS, mostrando todas as linhas que passam a até 3 km de você. Ou fixe a sua estação pela estrela.</li>
 <li><b>Para onde você vai?:</b> escolha o destino e veja o roteiro, na mesma linha ou com integração, saindo agora ou no horário que você escolher. Num domingo sem operação, mostra o roteiro de segunda.</li>
 <li><b>Modo viagem:</b> escolha o destino e o app acompanha a viagem com a tela desligada, pelo GPS e, sem sinal, pela tabela de horários (avisando quando a posição é presumida). Avisa duas estações antes do destino, com som opcional e voz dizendo o nome de cada estação.</li>
-<li><b>Hora de sair:</b> toque num horário e o app avisa na hora certa, mesmo com a tela bloqueada, mostrando quanto falta para a partida. Ou crie um alarme no relógio, ou ponha na agenda.</li>
+<li><b>Hora de sair:</b> toque num horário e o app avisa na hora certa, mesmo com a tela bloqueada, mostrando quanto falta para a partida.</li>
 <li><b>Rotinas:</b> salve o trajeto do dia a dia e o app avisa sozinho nos dias marcados, com os horários do dia.</li>
 <li><b>Integração entre linhas:</b> o próximo metrô ou VLT da outra linha que ainda dá para pegar, e se a integração é paga.</li>
 <li><b>Bicicletar:</b> a estação mais próxima de você ou da estação de metrô.</li>

@@ -36,7 +36,7 @@ Que horas passa o próximo metrô? Abra o app e veja a estação mais perto de v
 • Próxima partida da estação mais perto, pelo GPS, com as outras linhas que passam a até 3 km.
 • Para onde você vai?: escolha o destino e veja o roteiro, na mesma linha ou com integração, saindo agora ou no horário que você escolher, com os outros horários e a hora de chegada.
 • Modo viagem: escolha o destino e guarde o celular. O app acompanha a viagem estação por estação, mesmo com a tela desligada, e avisa antes de você descer — com notificação, vibração e, se quiser, voz.
-• Hora de sair: toque num horário e o app avisa na hora certa, mesmo com a tela bloqueada, mostrando quanto falta para a partida. Ou crie um alarme no relógio, ou ponha na agenda.
+• Hora de sair: toque num horário e o app avisa na hora certa, mesmo com a tela bloqueada, mostrando quanto falta para a partida.
 • Rotinas: salve o trajeto do dia a dia e o app avisa sozinho nos dias marcados, com os horários do dia (no domingo sem metrô, não avisa).
 • Integração entre linhas: em Parangaba, Chico da Silva e Expedicionários, o próximo metrô ou VLT da outra linha que ainda dá para pegar, e se a integração é paga ou gratuita.
 • Bike no metrô: se dá para embarcar com bicicleta agora, pelas regras do Metrofor, e a estação do Bicicletar mais perto.

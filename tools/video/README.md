@@ -74,7 +74,8 @@ As telas vêm do emulador Android, com o sistema em pt-BR
   caber inteira (depois, `wm size reset`). O ícone de GPS da barra de status e a
   barra de gestos foram cobertos com a cor do fundo, com Pillow.
   **Na 1.61** a 5 (janela "Avisar a hora de sair", partida das 07:50 em São
-  Benedito, 15 min) foi refeita do mesmo jeito. Como o emulador já tinha a grade
+  Benedito, 15 min) foi refeita do mesmo jeito, e **na 1.63** de novo (o toque no
+  07:50 já marcando o aviso, com o sininho e a confirmação embaixo). Como o emulador já tinha a grade
   de Finados (02/11) como a de dia útil, `no_backup/schedules/weekday.db` foi
   trocado pelo `no_backup/metrofor.db` (a grade de dia útil do APK, com os mesmos
   horários de 29/10) e `date_weekday`/`synced_at_weekday` de
