@@ -1,0 +1,2 @@
+• "Para onde você vai?": uma busca no topo da tela inicial (e "Ir daqui para outra estação" em cada estação) mostra o roteiro, na mesma linha ou com integração, saindo agora ou no horário escolhido. Daí, o modo viagem ou o lembrete na agenda.
+• Domingo sem operação: os horários mostrados são os de segunda, e o modo viagem não aparece.
