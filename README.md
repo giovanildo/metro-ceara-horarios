@@ -244,6 +244,13 @@ agora / Escolher horário, roteiro, outros horários), calculado por
 [`docs/app/roteiro.js`](docs/app/roteiro.js) com a mesma regra. "Como você se
 desloca" fica nessa tela e o navegador lembra. Na lite não há modo viagem: no
 lugar do botão, o **lembrete na agenda** e o convite para o app completo.
+**Casa e Trabalho** também estão na lite, guardados no navegador
+(`localStorage` "lugares"): os atalhos debaixo da barra levam ao roteiro
+(`#/ir/casa`), a escolha da estação é uma tela própria (`#/lugar/casa`, com
+"Nenhuma") e o link **Trocar** faz o papel de tocar e segurar. Sem a
+localização, a tela inicial não sabe de onde a pessoa sai e os atalhos mostram
+só a estação; com ela, a chegada ou "você está aqui". Na lista do **Para**,
+"Seus lugares" no topo, como no app.
 
 ### Widget na tela inicial
 
@@ -1054,7 +1061,8 @@ GitHub Pages da página do app, em `giovanildo.github.io/metro-ceara-horarios/ap
   botão), linhas, estação (abas por sentido, sem o sentido que termina nela;
   endereço e passagem, com o link para o guia da passagem em `#/passagem`;
   próximas partidas e todos os horários), **Sua viagem**
-  (`#/viagem`, a busca "Para onde você vai?") e configurações.
+  (`#/viagem`, a busca "Para onde você vai?", com os atalhos Casa e Trabalho
+  em `#/lugar/…` e `#/ir/…`) e configurações.
 - **Integração** e **bike**, com as mesmas regras e frases do app (lidas do
   `regras.json` publicado no ramo `dados`): na tela da estação, o próximo
   metrô/VLT da outra linha que ainda dá para pegar a pé, com a passagem, e se

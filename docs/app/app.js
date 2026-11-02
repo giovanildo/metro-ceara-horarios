@@ -167,6 +167,7 @@ function telaInicio() {
   const t = agora();
   let html = convite() + avisoDomingo(t) + avisosMetrofor();
   html += `<a class="para-onde" href="#/viagem">${LUPA} Para onde você vai?</a>`;
+  html += atalhosLugares(t);
 
   if (!estado.pos) {
     html += `<div class="cartao">
@@ -215,6 +216,102 @@ function telaInicio() {
   tela.innerHTML = html;
   document.getElementById("localizar")?.addEventListener("click", localizar);
   document.getElementById("instalar")?.addEventListener("click", instalar);
+}
+
+// ---------- Casa e Trabalho (a mesma ideia do app)
+
+const LUGARES = [
+  { chave: "casa", nome: "Casa", emoji: "🏠", pergunta: "Qual estação fica perto da sua casa?" },
+  { chave: "trabalho", nome: "Trabalho", emoji: "💼", pergunta: "Qual estação fica perto do seu trabalho?" },
+];
+
+/** { casa: "linha|estação", trabalho: … }: só a estação, guardada neste navegador. */
+function lerLugares() {
+  try { return JSON.parse(localStorage.getItem("lugares") || "{}"); } catch { return {}; }
+}
+
+function salvarLugar(chave, valor) {
+  const l = lerLugares();
+  if (valor) l[chave] = valor; else delete l[chave];
+  try { localStorage.setItem("lugares", JSON.stringify(l)); } catch { /* segue */ }
+}
+
+/**
+ * Cada lugar com a estação de hoje: o nome, a chegada de quem sai agora da
+ * estação de origem, ou "aqui" (já é a estação de onde se sai).
+ */
+function infoLugares(t, origem = origemPadrao()) {
+  const { grade, regras } = estado.dados;
+  const salvos = lerLugares();
+  const [lo, eo] = origem ? origem.split("|") : [];
+  const dia = diaDaViagem(t);
+  const r = lo && dia && !dia.domingo ? new Roteador(grade, regras, perfilGuardado()) : null;
+  return LUGARES.map((lugar) => {
+    const [ld, ed] = (salvos[lugar.chave] || "").split("|");
+    if (!grade.linha(ld) || !grade.estacoes[ed]) return { ...lugar, valor: null };
+    const nome = semSufixo(grade.nome(ed));
+    const aqui = Boolean(eo) && semSufixo(grade.nome(eo)) === nome;
+    const o = !aqui && r && !linhaParada(regras, dia.data, grade.linha(ld).nome)
+      ? r.planejar({ linha: lo, est: eo }, { linha: ld, est: ed }, t.minutos - 2, 1, dia.evitar)[0] : null;
+    return { ...lugar, valor: `${ld}|${ed}`, estacao: nome, aqui, chega: o ? o.chega : null };
+  });
+}
+
+/** Os atalhos debaixo de "Para onde você vai?"; o lugar onde a pessoa está vai para o fim. */
+function atalhosLugares(t) {
+  // Sem localização não se sabe de onde a pessoa sai: só o nome da estação.
+  const lugares = infoLugares(t, estado.pos ? origemPadrao() : "").sort((a, b) => Boolean(a.aqui) - Boolean(b.aqui));
+  const algum = lugares.some((l) => l.valor);
+  return `<div class="lugares">${lugares.map((l) => !l.valor
+    ? `<a class="lugar vazio" href="#/lugar/${l.chave}"><span class="emoji">${l.emoji}</span>Definir ${l.nome}</a>`
+    : `<a class="lugar ${l.aqui ? "" : "cheio"}" href="#/ir/${l.chave}"><span class="emoji">${l.emoji}</span>
+        <span><strong>${l.nome}</strong><small>${[l.aqui ? "" : esc(l.estacao),
+          l.aqui ? "você está aqui" : l.chega != null ? `chega ${hora(l.chega)}` : ""].filter(Boolean).join(" · ")}</small></span></a>`,
+  ).join("")}${algum ? `<a class="trocar-lugar" href="#/lugar/${lugares.find((l) => l.valor).chave}">Trocar</a>` : ""}</div>`;
+}
+
+/** Um toque no atalho: o roteiro até lá, saindo da estação mais perto (já nela, a lista). */
+function irParaLugar(chave) {
+  const l = infoLugares(agora()).find((x) => x.chave === chave);
+  if (!l?.valor) { location.replace(`#/lugar/${chave}`); return; }
+  estado.viagem = { destino: l.aqui ? "" : l.valor, busca: "", hora: null, escolhido: 0 };
+  location.replace("#/viagem");
+}
+
+/** Escolher (ou apagar) a estação de Casa ou de Trabalho. */
+function telaLugar(chave) {
+  const { grade } = estado.dados;
+  const lugar = LUGARES.find((l) => l.chave === chave) || LUGARES[0];
+  const atual = lerLugares()[lugar.chave];
+  const outro = LUGARES.find((l) => l.chave !== lugar.chave);
+  tela.innerHTML = `<h2 style="font-size:1.4rem">${lugar.emoji} ${lugar.pergunta}</h2>
+    <p class="dica">O app guarda só a estação, não o seu endereço. Fica só neste navegador.</p>
+    <div class="chips">${atual ? `<button class="chip" id="l-nenhuma">Nenhuma</button>` : ""}
+      <a class="chip" href="#/lugar/${outro.chave}">${outro.emoji} Trocar ${outro.nome}</a>
+      <a class="chip" href="#/">Voltar</a></div>
+    <label class="campo"><input id="l-busca" type="search" autocomplete="off" placeholder="Digite o nome da estação" style="width:100%"></label>
+    <div id="l-lista"></div>`;
+  const lista = document.getElementById("l-lista");
+  const mostrar = (busca) => {
+    const agulha = semAcento(busca.trim());
+    lista.innerHTML = grade.linhas.map((l) => {
+      const ests = grade.estacoesDaLinha(l).filter((id) => !agulha || semAcento(semSufixo(grade.nome(id))).includes(agulha));
+      return ests.length ? `<p class="grupo"><span class="ponto" style="background:${cor(l)}"></span>${esc(l.nome)}</p>
+        ${ests.map((id) => `<button class="destino" data-v="${l.id}|${id}"><span>${esc(semSufixo(grade.nome(id)))}</span>
+          ${atual === `${l.id}|${id}` ? "<small>escolhida</small>" : ""}</button>`).join("")}` : "";
+    }).join("") || `<p class="vazio">Nenhuma estação com esse nome.</p>`;
+    lista.querySelectorAll("button[data-v]").forEach((b) => b.addEventListener("click", () => {
+      salvarLugar(lugar.chave, b.dataset.v);
+      location.replace("#/");
+    }));
+  };
+  const busca = document.getElementById("l-busca");
+  busca.addEventListener("input", () => mostrar(busca.value));
+  document.getElementById("l-nenhuma")?.addEventListener("click", () => {
+    salvarLugar(lugar.chave, null);
+    location.replace("#/");
+  });
+  mostrar("");
 }
 
 /**
@@ -464,7 +561,12 @@ function listaDestinos(lo, eo, busca, t) {
           <span>${esc(semSufixo(grade.nome(id)))}</span>${o ? `<small>chega ${hora(o.chega)}</small>` : ""}</button>`;
       }).join("")}`;
   }).join("");
-  return grupos || `<p class="vazio">Nenhuma estação com esse nome.</p>`;
+  // Casa e Trabalho no topo, enquanto a busca está vazia.
+  const lugares = agulha || !lo ? [] : infoLugares(t, `${lo}|${eo}`).filter((l) => l.valor);
+  const topo = lugares.length ? `<p class="grupo">Seus lugares</p>${lugares.map((l) =>
+    `<button class="destino" ${l.aqui ? "disabled" : `data-dest="${l.valor}"`}><span>${l.emoji} ${l.nome} · ${esc(l.estacao)}</span>
+      <small>${l.aqui ? "você está aqui" : l.chega != null ? `chega ${hora(l.chega)}` : ""}</small></button>`).join("")}` : "";
+  return topo + (grupos || `<p class="vazio">Nenhuma estação com esse nome.</p>`);
 }
 
 /** O roteiro escolhido: horário (agora ou escolhido), o cartão, os outros horários e o lembrete. */
@@ -816,6 +918,8 @@ function render() {
   else if (partes[0] === "sobre") telaSobre();
   else if (partes[0] === "passagem") telaPassagem(partes[1]);
   else if (partes[0] === "viagem") telaViagem(partes[1], partes[2]);
+  else if (partes[0] === "lugar") telaLugar(partes[1]);
+  else if (partes[0] === "ir") irParaLugar(partes[1]);
   else telaInicio();
   status();
 }
