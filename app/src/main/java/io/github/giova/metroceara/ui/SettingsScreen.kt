@@ -134,6 +134,12 @@ fun SettingsScreen(
                 value = settings.bikeNearStationMeters, range = 200..1_500, step = 100, format = ::formatMeters,
             ) { onChange(settings.copy(bikeNearStationMeters = it)) }
 
+            SectionTitle(R.string.settings_section_leave)
+            SettingSlider(
+                title = R.string.settings_leave_before,
+                description = R.string.settings_leave_before_desc,
+                value = settings.leaveBeforeMinutes, range = 5..45, step = 5, format = { "$it min" },
+            ) { onChange(settings.copy(leaveBeforeMinutes = it)) }
             SectionTitle(R.string.settings_section_trip)
             SettingSwitch(
                 title = R.string.settings_belongings,

@@ -152,7 +152,7 @@ mesma tela saindo dali.
   - saindo agora: **Iniciar modo viagem** (perto da estação, até o limite das
     Configurações). Num trecho só, a viagem começa como sempre (com a oferta
     de ir sentado pelo terminal); com integração, o roteiro inteiro.
-  - no horário escolhido: **Avisar a hora de sair** (alarme ou agenda), para a
+  - no horário escolhido: **Avisar a hora de sair** (o aviso do app), para a
     partida do roteiro.
 - **Domingo sem operação anunciada:** sem modo viagem (não há metrô para
   acompanhar). O resultado avisa "Hoje é domingo, sem metrô e VLT. Este é o
@@ -510,28 +510,22 @@ próprias cores, em vermelho). Nas outras seções:
 | Oferecer ir sentado pelo terminal até | 3 estações | 0 (não oferecer) – 5 |
 | Atualizar sua posição (tela inicial) a cada | 10 s | 5 – 60 s |
 
-**Avisar a hora de sair:** em qualquer estação, tocar num horário de hoje que
-ainda não passou (nas próximas partidas ou em "Todos os horários", onde esses
-ficam em destaque e os que já passaram, apagados) abre a janela "Avisar a hora
-de sair" (`ui/LeaveReminder.kt`). O resultado de **"Para onde você vai?"** usa a
-mesma janela para a partida do roteiro. A pessoa escolhe quanto tempo antes (5,
-10, 15, 20, 30 ou 45 min; o app lembra a última escolha em `AppSettings`, e as
-que já passaram somem). O padrão é o aviso do app (botão grande); o alarme do
-relógio e a agenda ficam discretos embaixo ("Prefere de outro jeito? Alarme do
-relógio · Agenda").
+**Avisar a hora de sair:** em qualquer estação, **tocar num horário** que ainda
+não passou (nas próximas partidas ou em "Todos os horários") marca o aviso do
+próprio app, sem janela nem botão (`LeaveToggle`, em `ui/LeaveReminder.kt`). Uma
+confirmação curta aparece embaixo: "Aviso às 13:59 (15 min antes) para o metrô das
+14:14." O horário ganha o sininho ("🔔 13:59" nas próximas partidas; o botão
+destacado em "Todos os horários"), e **tocar de novo tira** o aviso ("Aviso das
+13:59 tirado."). A antecedência fica nas **Configurações → Hora de sair** (5 a 45
+min, padrão 15, `AppSettings.leaveBeforeMinutes`). No primeiro toque, o Android
+pede a permissão de notificação, e o app explica uma vez só "Alarmes e lembretes".
+Se a antecedência já passou para aquela partida, o app avisa que não dá ("Faltam
+só 8 min para a partida"). No resultado de **"Para onde você vai?"**, o botão
+**Avisar a hora de sair** funciona igual: marca, e vira "🔔 Aviso às 13:59 (toque
+para tirar)". Até a 1.62 havia também uma janela, o alarme do relógio e a agenda,
+que saíram para simplificar.
 
-**Um toque só, depois da primeira vez.** Marcado o primeiro aviso pela janela (que
-explica e pede as permissões), tocar num horário já marca o aviso do app com a
-última antecedência, e uma faixa confirma: "Aviso às 13:59 (15 min antes) para o
-metrô das 14:14", com **Desfazer** e **Mais opções** (a janela, para mudar a
-antecedência, trocar por alarme/agenda ou tirar o aviso). Os horários com aviso
-ganham o sininho ("🔔 13:59" nas próximas partidas; o botão destacado em "Todos os
-horários"), e tocar num horário marcado abre "Aviso das 13:59" com **Salvar
-aviso** e **Tirar o aviso**. A janela volta sozinha quando precisa dela: sem a
-permissão de notificação ou se a antecedência de sempre já passou para aquela
-partida. Os três jeitos:
-
-- **Avisar pelo app** (o principal): o app agenda o aviso
+**Como o aviso funciona.** O app agenda o aviso
   ([`data/LeaveAlerts.kt`](app/src/main/java/io/github/giova/metroceara/data/LeaveAlerts.kt),
   `AlarmManager`). Na hora, [`trip/LeaveReceiver.kt`](app/src/main/java/io/github/giova/metroceara/trip/LeaveReceiver.kt)
   confere a grade do dia (domingo sem operação, linha que o Metrofor avisou que
@@ -547,17 +541,9 @@ partida. Os três jeitos:
   permissão de notificação, se faltar. Os avisos voltam a ser marcados depois de
   reiniciar o celular, de atualizar o app e de liberar o horário exato, e um
   aviso já dado não se repete ao abrir o app.
-- **Alarme do relógio**: o app manda o alarme pronto para o relógio do celular
-  (`AlarmClock.ACTION_SET_ALARM`, com a permissão `SET_ALARM`, que não pede
-  confirmação): "Sair para o metrô das 07:50 (São Benedito)", tocando na partida
-  menos a antecedência. Só para essa partida, sem repetir: um alarme do relógio
-  não sabe de domingo nem de feriado. Para a partida de amanhã, ele só sai se a
-  hora dele já passou hoje (senão tocaria ainda hoje).
-- **Pôr na agenda**: um evento no app de agenda (`ACTION_INSERT` do
-  `CalendarContract`), "Pegar o metrô das 07:50", com a estação como local; a
-  antecedência fica com a agenda.
 
-A lite não cria alarme nem aviso (o navegador não deixa): baixa o evento de agenda.
+A lite não consegue avisar sozinha (o navegador não deixa): ela baixa um evento de
+agenda (`.ics`).
 
 **Rotinas** (o trajeto do dia a dia): no resultado de "Para onde você vai?",
 **"Repetir este trajeto (rotina)"** abre a tela da rotina (`ui/RoutinesScreen.kt`)

@@ -29,7 +29,6 @@ import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.LaunchedEffect
@@ -72,6 +71,7 @@ import io.github.giova.metroceara.data.LeaveAlert
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 
 private const val NEXT_COUNT = 4
@@ -122,12 +122,19 @@ fun DeparturesScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbar = remember { SnackbarHostState() }
-    val leaveTap = remember { LeaveTap(snackbar) }
+    val leaveToggle = remember {
+        LeaveToggle { message ->
+            snackbar.currentSnackbarData?.dismiss()
+            snackbar.showSnackbar(message)
+        }
+    }
+    LeaveToggleHost(leaveToggle)
     fun reminderFor(departure: Departure) = LeaveReminder(
         departure, stop.name, route.name, direction?.headsign.orEmpty(), vehicleName(route.name),
         stopId = stop.id, routeId = route.id, directionId = direction?.id,
     )
-    fun onPick(departure: Departure) { scope.launch { leaveTap.tap(context, reminderFor(departure)) } }
+    // Tocar marca o aviso; tocar de novo num horário marcado tira.
+    fun onPick(departure: Departure) { scope.launch { leaveToggle.toggle(context, reminderFor(departure)) } }
     // Os horários com aviso marcado ganham o sininho (com a hora do aviso).
     val leaveAlerts by LeaveStore.alerts(context).collectAsState()
     val today = ScheduleStore.today()
@@ -135,7 +142,6 @@ fun DeparturesScreen(
         it.stopId == stop.id && it.routeId == route.id && it.directionId == direction?.id &&
             it.departure == departure.minutes && (it.date == today) != departure.tomorrow
     }
-    val quick = LeaveStore.quickEnabled(context)
     // No domingo há só operação especial: com ela anunciada mas sem regra de bike,
     // o aviso diz que não se sabe; sem operação anunciada, já há o aviso de domingo
     // (a grade de domingo comum vem igual à de dia útil, então ter a grade do dia não
@@ -154,7 +160,7 @@ fun DeparturesScreen(
     }
 
     Scaffold(
-        snackbarHost = { LeaveSnackbarHost(snackbar, leaveTap) },
+        snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
             TopAppBar(
                 title = {
@@ -304,11 +310,10 @@ fun DeparturesScreen(
                     }
                     item {
                         Text(
-                            text = when {
-                                sundayOff -> stringResource(R.string.leave_hint_monday)
-                                quick -> stringResource(R.string.leave_hint_quick, SettingsStore.get(context).leaveBeforeMinutes)
-                                else -> stringResource(R.string.leave_hint)
-                            },
+                            text = stringResource(
+                                if (sundayOff) R.string.leave_hint_monday else R.string.leave_hint,
+                                SettingsStore.get(context).leaveBeforeMinutes,
+                            ),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )

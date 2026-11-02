@@ -50,11 +50,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.launch
+import android.widget.Toast
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import io.github.giova.metroceara.data.LeaveStore
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -351,7 +354,12 @@ private fun JourneyResultSheet(
     var time by remember { mutableStateOf<Int?>(null) }
     var selected by remember { mutableStateOf(0) }
     var pickingTime by remember { mutableStateOf(false) }
-    var reminder by remember { mutableStateOf<LeaveReminder?>(null) }
+    // O aviso da hora de sair: um toque marca, outro tira (confirmação em Toast, por cima da folha).
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val leaveToggle = remember { LeaveToggle { Toast.makeText(context, it, Toast.LENGTH_LONG).show() } }
+    LeaveToggleHost(leaveToggle)
+    val leaveAlerts by LeaveStore.alerts(context).collectAsState()
     val result = remember(time) { plan(time) }
     val view = result.options.getOrNull(selected.coerceAtMost(result.options.lastIndex))
 
@@ -411,23 +419,26 @@ private fun JourneyResultSheet(
                 Text(stringResource(R.string.journey_trip_hint), style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else if (result.monday || first.departure >= nowMinutes()) {
+                val leg = view.itinerary.legs.first()
+                val leave = LeaveReminder(
+                    Departure(first.departure, tomorrow = result.monday), first.fromName,
+                    first.routeName, first.headsign, vehicleName(first.routeName),
+                    stopId = leg.fromStop, routeId = leg.routeId, directionId = leg.directionId,
+                    destStopId = destination.second.id, destRouteId = destination.first.routeId,
+                    destName = destinationName, arrival = view.itinerary.arrival,
+                )
+                val marked = leaveAlerts.orEmpty().firstOrNull { it.id == leaveAlertId(leave) }
                 OutlinedButton(
-                    onClick = {
-                        val leg = view.itinerary.legs.first()
-                        reminder = LeaveReminder(
-                            Departure(first.departure, tomorrow = result.monday), first.fromName,
-                            first.routeName, first.headsign, vehicleName(first.routeName),
-                            stopId = leg.fromStop, routeId = leg.routeId, directionId = leg.directionId,
-                            destStopId = destination.second.id, destRouteId = destination.first.routeId,
-                            destName = destinationName, arrival = view.itinerary.arrival,
-                        )
-                    },
+                    onClick = { scope.launch { leaveToggle.toggle(context, leave) } },
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Icon(Icons.Filled.Alarm, contentDescription = null)
                     Text(
-                        text = if (result.monday) stringResource(R.string.journey_reminder_monday, formatTime(first.departure))
-                        else stringResource(R.string.journey_reminder),
+                        text = when {
+                            marked != null -> stringResource(R.string.journey_reminder_marked, formatTime(marked.departure - marked.before))
+                            result.monday -> stringResource(R.string.journey_reminder_monday, formatTime(first.departure))
+                            else -> stringResource(R.string.journey_reminder)
+                        },
                         modifier = Modifier.padding(start = 8.dp),
                     )
                 }
@@ -456,12 +467,6 @@ private fun JourneyResultSheet(
             },
             dismissButton = { TextButton(onClick = { pickingTime = false }) { Text(stringResource(R.string.cancel)) } },
         )
-    }
-    val context = LocalContext.current
-    reminder?.let {
-        // Já marcado (pelo toque num horário ou antes): abre o aviso dele.
-        val existing = remember(it) { LeaveStore.alert(context, leaveAlertId(it)) }
-        LeaveReminderDialog(reminder = it, existing = existing, onDismiss = { reminder = null })
     }
 }
 
