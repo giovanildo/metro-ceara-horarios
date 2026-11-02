@@ -1,6 +1,16 @@
 package io.github.giova.metroceara.ui
 
 import android.content.ActivityNotFoundException
+import androidx.compose.material3.SnackbarDefaults
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.clickable
+import io.github.giova.metroceara.data.LeaveStore
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.Snackbar
 import android.Manifest
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -72,22 +82,60 @@ data class LeaveReminder(
 /** As antecedências oferecidas, em minutos. */
 private val BEFORE_OPTIONS = listOf(5, 10, 15, 20, 30, 45)
 
+/** O dia da partida (`yyyy-MM-dd`, Fortaleza): hoje ou amanhã. */
+private fun departureDate(departure: Departure): String =
+    dateOf(Calendar.getInstance(TimeZone.getTimeZone("America/Fortaleza")).apply { if (departure.tomorrow) add(Calendar.DAY_OF_MONTH, 1) })
+
+/** O id do aviso de uma partida: o mesmo horário da mesma estação é sempre o mesmo aviso. */
+fun leaveAlertId(reminder: LeaveReminder): String =
+    "p-${reminder.stopId}-${reminder.routeId}-${reminder.directionId}-${departureDate(reminder.departure)}-${reminder.departure.minutes}"
+
+/** O aviso do app para esta partida, com [before] minutos de antecedência; `null` sem estação/linha/sentido. */
+fun leaveAlertFor(reminder: LeaveReminder, before: Int): LeaveAlert? {
+    val stopId = reminder.stopId ?: return null
+    val routeId = reminder.routeId ?: return null
+    val directionId = reminder.directionId ?: return null
+    return LeaveAlert(
+        id = leaveAlertId(reminder),
+        date = departureDate(reminder.departure), departure = reminder.departure.minutes, before = before,
+        stopId = stopId, routeId = routeId, directionId = directionId,
+        stopName = reminder.stopName, routeName = reminder.routeName, headsign = reminder.headsign,
+        destStopId = reminder.destStopId, destRouteId = reminder.destRouteId, destName = reminder.destName,
+        arrival = reminder.arrival,
+    )
+}
+
 /**
- * Avisar a hora de sair, de três jeitos:
- * - **pelo app** (o principal): o app avisa na hora, mesmo com a tela bloqueada,
- *   confere a grade do dia e mostra a contagem até a partida ([LeaveScheduler]);
- * - **alarme do relógio**: o app manda o alarme pronto para o relógio do celular,
- *   que o salva (ali dá para mudar ou apagar). Só esta partida, sem repetir: um
- *   alarme do relógio não sabe de domingo nem de feriado;
- * - **agenda**, para quem prefere o aviso discreto.
+ * O toque único: depois que a pessoa marcou o primeiro aviso pela janela (e já
+ * liberou a notificação), tocar num horário marca o aviso do app direto, com a
+ * última antecedência. `null` quando é preciso a janela (primeira vez, sem
+ * permissão, ou a antecedência de sempre já passou para esta partida).
+ */
+fun quickLeaveAlert(context: Context, reminder: LeaveReminder): LeaveAlert? {
+    if (!LeaveStore.quickEnabled(context)) return null
+    val notificationsOk = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+    if (!notificationsOk) return null
+    val before = SettingsStore.get(context).leaveBeforeMinutes
+    if (before >= minutesUntil(reminder.departure, nowMinutes())) return null
+    return leaveAlertFor(reminder, before)
+}
+
+/**
+ * Avisar a hora de sair. O padrão é o **aviso do app**: na hora, mesmo com a tela
+ * bloqueada, ele confere a grade do dia e mostra a contagem até a partida
+ * ([LeaveScheduler]). Discretos, no rodapé: o **alarme do relógio** (só esta
+ * partida, sem repetir: não sabe de domingo nem de feriado) e a **agenda**.
+ * Com [existing], é a janela do aviso já marcado ("Mais opções" ou tocar de
+ * novo no horário): mudar a antecedência, trocar de jeito ou tirar o aviso.
  * A antecedência é lembrada da última vez (`AppSettings.leaveBeforeMinutes`).
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun LeaveReminderDialog(reminder: LeaveReminder, onDismiss: () -> Unit) {
+fun LeaveReminderDialog(reminder: LeaveReminder, onDismiss: () -> Unit, existing: LeaveAlert? = null) {
     val context = LocalContext.current
     val departureTime = formatTime(reminder.departure.minutes)
-    var before by remember { mutableIntStateOf(SettingsStore.get(context).leaveBeforeMinutes) }
+    var before by remember { mutableIntStateOf(existing?.before ?: SettingsStore.get(context).leaveBeforeMinutes) }
     var askExact by remember { mutableStateOf(false) }
     val now = nowMinutes()
     // Minutos até a partida; as antecedências que já passaram somem.
@@ -99,29 +147,23 @@ fun LeaveReminderDialog(reminder: LeaveReminder, onDismiss: () -> Unit) {
     // essa hora já passou hoje (num domingo de madrugada, o de segunda tocaria no domingo).
     val alarmOk = alarmMinutes != null && (!reminder.departure.tomorrow || alarmMinutes <= now)
     val appOk = chosen != null && reminder.stopId != null && reminder.routeId != null && reminder.directionId != null
+    val firstTime = !LeaveStore.quickEnabled(context)
 
     fun remember(minutes: Int) =
         SettingsStore.save(context, SettingsStore.get(context).copy(leaveBeforeMinutes = minutes))
 
     fun scheduleApp() {
         val minutes = chosen ?: return
+        val alert = leaveAlertFor(reminder, minutes) ?: return
         remember(minutes)
-        val date = dateOf(Calendar.getInstance(TimeZone.getTimeZone("America/Fortaleza"))
-            .apply { if (reminder.departure.tomorrow) add(Calendar.DAY_OF_MONTH, 1) })
-        LeaveScheduler.add(
-            context,
-            LeaveAlert(
-                id = "p-${reminder.stopId}-${reminder.routeId}-$date-${reminder.departure.minutes}",
-                date = date, departure = reminder.departure.minutes, before = minutes,
-                stopId = reminder.stopId!!, routeId = reminder.routeId!!, directionId = reminder.directionId!!,
-                stopName = reminder.stopName, routeName = reminder.routeName, headsign = reminder.headsign,
-                destStopId = reminder.destStopId, destRouteId = reminder.destRouteId, destName = reminder.destName,
-                arrival = reminder.arrival,
-            ),
-        )
+        LeaveScheduler.add(context, alert)
+        LeaveStore.setQuickEnabled(context, true)
         Toast.makeText(context, context.getString(R.string.leave_app_done, formatTime(alarmMinutes!!)), Toast.LENGTH_LONG).show()
         if (LeaveScheduler.canExact(context)) onDismiss() else askExact = true
     }
+
+    // Trocar o aviso do app por alarme ou agenda: o do app sai, para não avisar duas vezes.
+    fun dropExisting() = existing?.let { LeaveScheduler.cancel(context, it.id) }
 
     // Sem a permissão de notificação (Android 13+), o aviso não aparece: pede antes.
     val notificationLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { scheduleApp() }
@@ -150,7 +192,12 @@ fun LeaveReminderDialog(reminder: LeaveReminder, onDismiss: () -> Unit) {
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.leave_title)) },
+        title = {
+            Text(
+                existing?.let { stringResource(R.string.leave_existing_title, formatTime(it.departure - it.before)) }
+                    ?: stringResource(R.string.leave_title),
+            )
+        },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
@@ -178,7 +225,8 @@ fun LeaveReminderDialog(reminder: LeaveReminder, onDismiss: () -> Unit) {
                     val at = formatTime(alarmMinutes!!)
                     Text(
                         text = when {
-                            appOk -> stringResource(if (reminder.departure.tomorrow) R.string.leave_app_at_tomorrow else R.string.leave_app_at, at)
+                            appOk -> stringResource(if (reminder.departure.tomorrow) R.string.leave_app_at_tomorrow else R.string.leave_app_at, at) +
+                                if (firstTime) " " + stringResource(R.string.leave_quick_hint) else ""
                             alarmOk -> stringResource(if (reminder.departure.tomorrow) R.string.leave_alarm_at_tomorrow else R.string.leave_alarm_at, at)
                             else -> stringResource(R.string.leave_alarm_wrong_day)
                         },
@@ -191,7 +239,7 @@ fun LeaveReminderDialog(reminder: LeaveReminder, onDismiss: () -> Unit) {
         confirmButton = {
             Column(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
-                horizontalAlignment = Alignment.End,
+                horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 if (appOk) {
@@ -199,24 +247,120 @@ fun LeaveReminderDialog(reminder: LeaveReminder, onDismiss: () -> Unit) {
                         val needsPermission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
                         if (needsPermission) notificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) else scheduleApp()
-                    }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.leave_app_button)) }
+                    }, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(if (existing != null) R.string.leave_save else R.string.leave_app_button))
+                    }
                 }
-                if (alarmOk && chosen != null && alarmMinutes != null) {
-                    OutlinedButton(onClick = {
-                        remember(chosen)
-                        openAlarm(context, reminder, alarmMinutes)
-                        onDismiss()
-                    }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.leave_alarm_button_clock)) }
-                }
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
-                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
-                    TextButton(onClick = {
+                // Os outros jeitos, discretos: a pergunta e, embaixo, os dois links.
+                Text(
+                    stringResource(R.string.leave_other_ways),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 10.dp),
+                )
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally), modifier = Modifier.fillMaxWidth()) {
+                    if (alarmOk && chosen != null && alarmMinutes != null) {
+                        LinkText(stringResource(R.string.leave_alarm_button_clock)) {
+                            remember(chosen)
+                            dropExisting()
+                            openAlarm(context, reminder, alarmMinutes)
+                            onDismiss()
+                        }
+                        Text("·", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(vertical = 6.dp))
+                    }
+                    LinkText(stringResource(R.string.leave_calendar_link)) {
+                        dropExisting()
                         openCalendar(context, reminder)
                         onDismiss()
-                    }) { Text(stringResource(R.string.leave_add)) }
+                    }
+                }
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End), modifier = Modifier.fillMaxWidth()) {
+                    if (existing != null) {
+                        TextButton(onClick = {
+                            LeaveScheduler.cancel(context, existing.id)
+                            onDismiss()
+                        }) { Text(stringResource(R.string.leave_remove)) }
+                    }
+                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
                 }
             }
         },
+    )
+}
+
+/**
+ * O toque num horário: a janela na primeira vez (ou quando precisa dela); depois,
+ * o aviso do app marcado na hora, com a faixa "Desfazer · Mais opções". Tocar num
+ * horário já marcado abre a janela dele. [host] mostra a faixa.
+ */
+class LeaveTap(private val host: SnackbarHostState) {
+    var dialog by mutableStateOf<Pair<LeaveReminder, LeaveAlert?>?>(null)
+    var last by mutableStateOf<Pair<LeaveReminder, LeaveAlert>?>(null)
+
+    suspend fun tap(context: Context, reminder: LeaveReminder) {
+        val existing = LeaveStore.alert(context, leaveAlertId(reminder))
+        if (existing != null) {
+            dialog = reminder to existing
+            return
+        }
+        val alert = quickLeaveAlert(context, reminder)
+        if (alert == null) {
+            dialog = reminder to null
+            return
+        }
+        LeaveScheduler.add(context, alert)
+        last = reminder to alert
+        host.currentSnackbarData?.dismiss()
+        host.showSnackbar(
+            context.getString(R.string.leave_quick_done, formatTime(alert.departure - alert.before), alert.before,
+                reminder.vehicle, formatTime(alert.departure)),
+            duration = SnackbarDuration.Long,
+        )
+    }
+
+    fun undo(context: Context) {
+        last?.let { LeaveScheduler.cancel(context, it.second.id) }
+        last = null
+        host.currentSnackbarData?.dismiss()
+    }
+
+    fun more() {
+        last?.let { dialog = it.first to it.second }
+        host.currentSnackbarData?.dismiss()
+    }
+}
+
+/** A faixa do toque único: a mensagem, "Desfazer" e "Mais opções". */
+@Composable
+fun LeaveSnackbarHost(host: SnackbarHostState, tap: LeaveTap) {
+    val context = LocalContext.current
+    SnackbarHost(host) { data ->
+        Snackbar(
+            modifier = Modifier.padding(12.dp),
+            action = {
+                // A cor de ação própria da faixa (clara sobre o fundo escuro).
+                val actionColor = SnackbarDefaults.actionColor
+                Row {
+                    TextButton(onClick = { tap.undo(context) }) { Text(stringResource(R.string.leave_undo), color = actionColor) }
+                    TextButton(onClick = { tap.more() }) { Text(stringResource(R.string.leave_more), color = actionColor) }
+                }
+            },
+        ) { Text(data.visuals.message) }
+    }
+    tap.dialog?.let { (reminder, existing) ->
+        LeaveReminderDialog(reminder = reminder, existing = existing, onDismiss = { tap.dialog = null })
+    }
+}
+
+/** Um link de texto discreto, com área de toque folgada. */
+@Composable
+private fun LinkText(text: String, onClick: () -> Unit) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodySmall,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.clickable(onClick = onClick).padding(vertical = 6.dp, horizontal = 2.dp),
     )
 }
 

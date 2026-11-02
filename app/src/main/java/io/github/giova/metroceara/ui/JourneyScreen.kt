@@ -50,6 +50,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import io.github.giova.metroceara.data.LeaveStore
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -455,7 +457,12 @@ private fun JourneyResultSheet(
             dismissButton = { TextButton(onClick = { pickingTime = false }) { Text(stringResource(R.string.cancel)) } },
         )
     }
-    reminder?.let { LeaveReminderDialog(reminder = it, onDismiss = { reminder = null }) }
+    val context = LocalContext.current
+    reminder?.let {
+        // Já marcado (pelo toque num horário ou antes): abre o aviso dele.
+        val existing = remember(it) { LeaveStore.alert(context, leaveAlertId(it)) }
+        LeaveReminderDialog(reminder = it, existing = existing, onDismiss = { reminder = null })
+    }
 }
 
 /** A barra "Para onde você vai?" do topo da tela inicial. */

@@ -65,6 +65,14 @@ import io.github.giova.metroceara.data.minutesUntil
 import io.github.giova.metroceara.data.nextDepartures
 import io.github.giova.metroceara.data.nowMinutes
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import io.github.giova.metroceara.data.SettingsStore
+import io.github.giova.metroceara.data.LeaveStore
+import io.github.giova.metroceara.data.LeaveAlert
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.SnackbarHostState
 
 private const val NEXT_COUNT = 4
 private const val TICK_MILLIS = 15_000L
@@ -110,16 +118,24 @@ fun DeparturesScreen(
     val sunday = remember(now) { isSundayToday() }
     // Domingo comum: a lista é a de segunda ("Horários de segunda", lembrete para amanhã).
     val sundayOff = remember(now) { isSundayWithoutService() }
-    var reminder by remember { mutableStateOf<Departure?>(null) }
-    reminder?.let { departure ->
-        LeaveReminderDialog(
-            reminder = LeaveReminder(
-                departure, stop.name, route.name, direction?.headsign.orEmpty(), vehicleName(route.name),
-                stopId = stop.id, routeId = route.id, directionId = direction?.id,
-            ),
-            onDismiss = { reminder = null },
-        )
+    // Tocar num horário: o aviso do app, num toque só depois da primeira vez.
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val snackbar = remember { SnackbarHostState() }
+    val leaveTap = remember { LeaveTap(snackbar) }
+    fun reminderFor(departure: Departure) = LeaveReminder(
+        departure, stop.name, route.name, direction?.headsign.orEmpty(), vehicleName(route.name),
+        stopId = stop.id, routeId = route.id, directionId = direction?.id,
+    )
+    fun onPick(departure: Departure) { scope.launch { leaveTap.tap(context, reminderFor(departure)) } }
+    // Os horários com aviso marcado ganham o sininho (com a hora do aviso).
+    val leaveAlerts by LeaveStore.alerts(context).collectAsState()
+    val today = ScheduleStore.today()
+    fun alertAt(departure: Departure): LeaveAlert? = leaveAlerts.orEmpty().firstOrNull {
+        it.stopId == stop.id && it.routeId == route.id && it.directionId == direction?.id &&
+            it.departure == departure.minutes && (it.date == today) != departure.tomorrow
     }
+    val quick = LeaveStore.quickEnabled(context)
     // No domingo há só operação especial: com ela anunciada mas sem regra de bike,
     // o aviso diz que não se sabe; sem operação anunciada, já há o aviso de domingo
     // (a grade de domingo comum vem igual à de dia útil, então ter a grade do dia não
@@ -138,6 +154,7 @@ fun DeparturesScreen(
     }
 
     Scaffold(
+        snackbarHost = { LeaveSnackbarHost(snackbar, leaveTap) },
         topBar = {
             TopAppBar(
                 title = {
@@ -278,7 +295,8 @@ fun DeparturesScreen(
                                     if (index > 0) HorizontalDivider()
                                     DepartureRow(
                                         departure, now, highlighted = index == 0,
-                                        onClick = { reminder = departure },
+                                        alert = alertAt(departure),
+                                        onClick = { onPick(departure) },
                                     )
                                 }
                             }
@@ -286,7 +304,11 @@ fun DeparturesScreen(
                     }
                     item {
                         Text(
-                            text = stringResource(if (sundayOff) R.string.leave_hint_monday else R.string.leave_hint),
+                            text = when {
+                                sundayOff -> stringResource(R.string.leave_hint_monday)
+                                quick -> stringResource(R.string.leave_hint_quick, SettingsStore.get(context).leaveBeforeMinutes)
+                                else -> stringResource(R.string.leave_hint)
+                            },
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -346,9 +368,11 @@ fun DeparturesScreen(
                     item {
                         if (sundayOff) {
                             // Todos de amanhã, nenhum passou: o "agora" é a meia-noite.
-                            AllDepartures(monday, now = 0, onPick = { m: Int -> reminder = Departure(m, tomorrow = true) })
+                            AllDepartures(monday, now = 0, marked = { alertAt(Departure(it, tomorrow = true)) != null },
+                                onPick = { m: Int -> onPick(Departure(m, tomorrow = true)) })
                         } else {
-                            AllDepartures(all, now, onPick = { m: Int -> reminder = Departure(m, tomorrow = false) })
+                            AllDepartures(all, now, marked = { alertAt(Departure(it, tomorrow = false)) != null },
+                                onPick = { m: Int -> onPick(Departure(m, tomorrow = false)) })
                         }
                     }
                 }
@@ -367,7 +391,7 @@ fun DeparturesScreen(
 }
 
 @Composable
-private fun DepartureRow(departure: Departure, now: Int, highlighted: Boolean, onClick: (() -> Unit)?) {
+private fun DepartureRow(departure: Departure, now: Int, highlighted: Boolean, alert: LeaveAlert?, onClick: (() -> Unit)?) {
     val remaining = minutesUntil(departure, now)
     Row(
         modifier = Modifier
@@ -387,6 +411,7 @@ private fun DepartureRow(departure: Departure, now: Int, highlighted: Boolean, o
                 },
                 fontWeight = if (highlighted) FontWeight.Bold else FontWeight.Normal,
             )
+            alert?.let { LeaveBell(it) }
             if (departure.tomorrow) {
                 Text(
                     text = stringResource(R.string.tomorrow),
@@ -402,6 +427,17 @@ private fun DepartureRow(departure: Departure, now: Int, highlighted: Boolean, o
     }
 }
 
+/** "🔔 07:35": o aviso marcado para esta partida. */
+@Composable
+private fun LeaveBell(alert: LeaveAlert) {
+    Text(
+        text = "🔔 " + formatTime(alert.departure - alert.before),
+        style = MaterialTheme.typography.labelMedium,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.primary,
+    )
+}
+
 @Composable
 internal fun relativeLabel(remaining: Int): String = when {
     remaining <= 0 -> stringResource(R.string.now)
@@ -411,7 +447,7 @@ internal fun relativeLabel(remaining: Int): String = when {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun AllDepartures(all: List<Int>, now: Int, onPick: ((Int) -> Unit)?) {
+private fun AllDepartures(all: List<Int>, now: Int, marked: (Int) -> Boolean = { false }, onPick: ((Int) -> Unit)?) {
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -421,16 +457,23 @@ private fun AllDepartures(all: List<Int>, now: Int, onPick: ((Int) -> Unit)?) {
             // Os que ainda não passaram ficam em destaque (e abrem o lembrete
             // na agenda); os que passaram ficam apagados.
             val upcoming = minutes >= now
+            val bell = upcoming && marked(minutes)
             Surface(
-                color = if (upcoming) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                color = when {
+                    bell -> MaterialTheme.colorScheme.primary
+                    upcoming -> MaterialTheme.colorScheme.secondaryContainer
+                    else -> MaterialTheme.colorScheme.surfaceVariant
+                },
                 shape = MaterialTheme.shapes.small,
                 modifier = if (upcoming && onPick != null) Modifier.clickable { onPick(minutes) } else Modifier,
             ) {
                 Text(
-                    text = formatTime(minutes),
+                    text = if (bell) "🔔 ${formatTime(minutes)}" else formatTime(minutes),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = if (upcoming) FontWeight.Medium else FontWeight.Normal,
-                    color = if (upcoming) {
+                    color = if (bell) {
+                        MaterialTheme.colorScheme.onPrimary
+                    } else if (upcoming) {
                         MaterialTheme.colorScheme.onSecondaryContainer
                     } else {
                         MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)

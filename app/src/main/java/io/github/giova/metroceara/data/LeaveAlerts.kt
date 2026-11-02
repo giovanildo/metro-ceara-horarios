@@ -96,6 +96,10 @@ object LeaveStore {
         return routinesState.asStateFlow()
     }
 
+    /** O toque único está ligado: a pessoa já marcou um aviso pela janela. */
+    fun quickEnabled(context: Context): Boolean = prefs(context).getBoolean("quick", false)
+    fun setQuickEnabled(context: Context, on: Boolean) = prefs(context).edit().putBoolean("quick", on).apply()
+
     fun alert(context: Context, id: String): LeaveAlert? = alerts(context).value.orEmpty().firstOrNull { it.id == id }
     fun routine(context: Context, id: String): Routine? = routines(context).value.orEmpty().firstOrNull { it.id == id }
 

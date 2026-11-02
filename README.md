@@ -516,7 +516,20 @@ ficam em destaque e os que já passaram, apagados) abre a janela "Avisar a hora
 de sair" (`ui/LeaveReminder.kt`). O resultado de **"Para onde você vai?"** usa a
 mesma janela para a partida do roteiro. A pessoa escolhe quanto tempo antes (5,
 10, 15, 20, 30 ou 45 min; o app lembra a última escolha em `AppSettings`, e as
-que já passaram somem) e um dos três jeitos:
+que já passaram somem). O padrão é o aviso do app (botão grande); o alarme do
+relógio e a agenda ficam discretos embaixo ("Prefere de outro jeito? Alarme do
+relógio · Agenda").
+
+**Um toque só, depois da primeira vez.** Marcado o primeiro aviso pela janela (que
+explica e pede as permissões), tocar num horário já marca o aviso do app com a
+última antecedência, e uma faixa confirma: "Aviso às 13:59 (15 min antes) para o
+metrô das 14:14", com **Desfazer** e **Mais opções** (a janela, para mudar a
+antecedência, trocar por alarme/agenda ou tirar o aviso). Os horários com aviso
+ganham o sininho ("🔔 13:59" nas próximas partidas; o botão destacado em "Todos os
+horários"), e tocar num horário marcado abre "Aviso das 13:59" com **Salvar
+aviso** e **Tirar o aviso**. A janela volta sozinha quando precisa dela: sem a
+permissão de notificação ou se a antecedência de sempre já passou para aquela
+partida. Os três jeitos:
 
 - **Avisar pelo app** (o principal): o app agenda o aviso
   ([`data/LeaveAlerts.kt`](app/src/main/java/io/github/giova/metroceara/data/LeaveAlerts.kt),
