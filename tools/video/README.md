@@ -73,6 +73,13 @@ As telas vêm do emulador Android, com o sistema em pt-BR
   refeitas com `wm size 1080x1920` em vez do corte, para a folha do resultado
   caber inteira (depois, `wm size reset`). O ícone de GPS da barra de status e a
   barra de gestos foram cobertos com a cor do fundo, com Pillow.
+  **Na 1.61** a 5 (janela "Avisar a hora de sair", partida das 07:50 em São
+  Benedito, 15 min) foi refeita do mesmo jeito. Como o emulador já tinha a grade
+  de Finados (02/11) como a de dia útil, `no_backup/schedules/weekday.db` foi
+  trocado pelo `no_backup/metrofor.db` (a grade de dia útil do APK, com os mesmos
+  horários de 29/10) e `date_weekday`/`synced_at_weekday` de
+  `metrofor_schedules.xml` voltaram para 29/10 às 05:10; depois, a grade de hoje
+  foi devolvida.
 - **App Android (gravação):** `adb shell screenrecord`, o modo demo do
   SystemUI para a barra de status, e a viagem simulada com `date` +
   `emu geo fix` a cada estação: é o que `gravar_viagem.sh` faz.
