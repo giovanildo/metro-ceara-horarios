@@ -3,6 +3,7 @@ import {
   linhaParada, passagemDaLinha, proximas, somarDias, veiculo,
 } from "./dados.js";
 import { PERFIS, Roteador } from "./roteiro.js";
+import { aoLado, buscarLugares, caminhada, emojiLugar, longe, metrosAPe, minutosAPe, pertoDaEstacao, serve } from "./lugares.js";
 
 const PERTO_METROS = 3000; // outras linhas aparecem até esta distância (padrão do app)
 const LINK = "https://giovanildo.github.io/metro-ceara-horarios/app/";
@@ -398,6 +399,7 @@ function telaEstacao(linhaId, stopId, sentidoId) {
   html += avisoBike(linha, stopId, t);
   html += blocoIntegracao(stopId, t);
   html += `<a class="botao secundario largo" href="#/viagem/${linha.id}/${stopId}">${LUPA} Ir daqui para outra estação</a>`;
+  html += blocoPerto(stopId);
   if (domingo) {
     // Domingo comum: a grade de segunda, toda futura (o lembrete vai para amanhã).
     html += amanha?.length ? `<h2>Horários de segunda</h2><div class="todos">${amanha.map((m) =>
@@ -412,6 +414,24 @@ function telaEstacao(linhaId, stopId, sentidoId) {
 
   tela.querySelectorAll("button[data-m]:not([disabled])").forEach((b) => b.addEventListener("click", () =>
     lembrete(linha, sentido, stopId, +b.dataset.m, b.dataset.amanha === "true")));
+}
+
+/** "Perto desta estação": hospital, universidade, shopping a uma caminhada curta (regras.json). */
+function blocoPerto(stopId) {
+  const { grade, regras } = estado.dados;
+  const e = grade.estacoes[stopId];
+  const perto = e ? pertoDaEstacao(regras, grade.nome(stopId), e.lat, e.lon).slice(0, 8) : [];
+  if (!perto.length) return "";
+  const fator = fatorPerfil();
+  return `<h2>Perto desta estação</h2><div class="perto">${perto.map((l) =>
+    `<div class="destino"><span>${emojiLugar(l)} ${esc(l.nome)}</span><small>${caminhada(l, fator)}</small></div>`).join("")}</div>
+    <p class="dica">Lugares: OpenStreetMap (© colaboradores, ODbL). Distância a pé pelas ruas, aproximada.</p>`;
+}
+
+/** Quantas vezes o tempo a pé, pelo jeito de se deslocar escolhido (o mesmo do roteiro). */
+function fatorPerfil() {
+  const perfil = perfilGuardado();
+  return estado.dados.regras?.deslocamento?.[perfil] ?? PERFIS.find((p) => p.chave === perfil)?.fator ?? 1;
 }
 
 // ---------- roteiro com integração (a mesma regra do app: roteiro.js)
@@ -471,7 +491,7 @@ function diaDaViagem(t) {
 function telaViagem(linhaId, estId) {
   const { grade, regras } = estado.dados;
   const t = agora();
-  const v = estado.viagem ||= { destino: "", busca: "", hora: null, escolhido: 0 };
+  const v = estado.viagem ||= { destino: "", busca: "", hora: null, escolhido: 0, lugar: null, nota: null };
   const origem = linhaId && grade.linha(linhaId) && grade.estacoes[estId] ? `${linhaId}|${estId}` : origemPadrao();
   if (origem) try { localStorage.setItem("origem", origem); } catch { /* segue */ }
   const [lo, eo] = origem.split("|");
@@ -484,8 +504,8 @@ function telaViagem(linhaId, estId) {
   tela.innerHTML = `<h2 style="font-size:1.4rem">Sua viagem</h2>
     <div class="viagem-campos">
       <label class="campo">De<select id="v-origem">${origem ? "" : `<option value="">Escolha a estação</option>`}${opcoesOrigem}</select></label>
-      <label class="campo">Para<input id="v-busca" type="search" autocomplete="off" placeholder="Digite o nome da estação"
-        value="${esc(destino ? nome(destino[1]) : v.busca)}"></label>
+      <label class="campo">Para<input id="v-busca" type="search" autocomplete="off" placeholder="Estação ou lugar (ex.: Rodoviária)"
+        value="${esc(v.lugar || v.nota || (destino ? nome(destino[1]) : v.busca))}"></label>
     </div>
     <div id="v-lista"></div><div id="v-resultado"></div>`;
 
@@ -496,8 +516,18 @@ function telaViagem(linhaId, estId) {
     lista.innerHTML = listaDestinos(lo, eo, v.busca, t);
     lista.querySelectorAll("button[data-dest]").forEach((b) => b.addEventListener("click", () => {
       v.destino = b.dataset.dest;
+      v.lugar = b.dataset.lugar || null;
+      v.nota = null;
       v.busca = "";
       v.escolhido = 0;
+      render();
+    }));
+    // Lugar sem roteiro (longe dos trilhos, outra cidade, a pé daqui): só a explicação.
+    lista.querySelectorAll("button[data-nota]").forEach((b) => b.addEventListener("click", () => {
+      v.nota = b.dataset.nota;
+      v.destino = "";
+      v.lugar = null;
+      v.busca = "";
       render();
     }));
   };
@@ -531,9 +561,12 @@ function telaViagem(linhaId, estId) {
     location.replace(`#/viagem/${l}/${id}`);
   });
   const busca = document.getElementById("v-busca");
-  busca.addEventListener("focus", () => { if (v.destino) { v.destino = ""; busca.value = ""; mostrarLista(); } });
-  busca.addEventListener("input", () => { v.busca = busca.value; v.destino = ""; mostrarLista(); });
-  if (v.destino && origem) mostrarResultado(); else mostrarLista();
+  busca.addEventListener("focus", () => {
+    if (v.destino || v.nota) { v.destino = ""; v.lugar = null; v.nota = null; busca.value = ""; mostrarLista(); }
+  });
+  busca.addEventListener("input", () => { v.busca = busca.value; v.destino = ""; v.lugar = null; v.nota = null; mostrarLista(); });
+  if (v.nota) { lista.innerHTML = ""; resultado.innerHTML = notaLugar(v.nota, eo); }
+  else if (v.destino && origem) mostrarResultado(); else mostrarLista();
 }
 
 /** As estações para onde dá para ir, por linha; com origem, o caminho e a hora de chegada saindo agora. */
@@ -566,7 +599,64 @@ function listaDestinos(lo, eo, busca, t) {
   const topo = lugares.length ? `<p class="grupo">Seus lugares</p>${lugares.map((l) =>
     `<button class="destino" ${l.aqui ? "disabled" : `data-dest="${l.valor}"`}><span>${l.emoji} ${l.nome} · ${esc(l.estacao)}</span>
       <small>${l.aqui ? "você está aqui" : l.chega != null ? `chega ${hora(l.chega)}` : ""}</small></button>`).join("")}` : "";
-  return topo + (grupos || `<p class="vazio">Nenhuma estação com esse nome.</p>`);
+  const achados = lugaresAchados(lo, eo, busca, t, r, alcance, rotas, dia);
+  const blocoLugares = achados.length ? `<p class="grupo">Lugares</p>${achados.map(({ l, alvo, aqui, chega }) => {
+    const fator = fatorPerfil();
+    const estacao = `Estação ${esc(l.estacao)} · ${longe(l) ? metrosAPe(l.a_pe_m) : caminhada(l, fator)}`;
+    const detalhe = [l.bairro || l.cidade, estacao].filter(Boolean).join(" · ");
+    const direita = longe(l) ? "longe dos trilhos" : aqui ? "você está aqui" : !alvo ? "não dá para chegar daqui"
+      : chega != null ? `chega ${hora(chega)}` : "";
+    const acao = alvo && !longe(l) ? `data-dest="${alvo}" data-lugar="${esc(l.nome)}"` : `data-nota="${esc(l.nome)}"`;
+    return `<button class="destino lugar-achado" ${acao}><span>${emojiLugar(l)} ${esc(l.nome)}
+      <small class="${longe(l) || l.a_pe_m > 1000 ? "alerta" : ""}">${detalhe}</small></span><small>${direita}</small></button>`;
+  }).join("")}` : "";
+  return topo + (grupos || blocoLugares ? grupos + blocoLugares : `<p class="vazio">Nenhuma estação ou lugar com esse nome.</p>`);
+}
+
+/**
+ * Os lugares achados pela busca, cada um com a estação de destino ("linha|estação"):
+ * na linha da origem, se der (Parangaba tem metrô e VLT), senão a de chegada mais
+ * cedo. Sem estação alcançável, outra cidade; com a da origem, a pé daqui.
+ */
+function lugaresAchados(lo, eo, busca, t, r, alcance, rotas, dia) {
+  const { grade, regras } = estado.dados;
+  const fator = fatorPerfil();
+  return buscarLugares(regras, busca).map((l) => {
+    const servidas = Object.keys(grade.estacoes).filter((id) => {
+      const e = grade.estacoes[id];
+      return serve(l, grade.nome(id), e.lat, e.lon);
+    });
+    const aqui = !!eo && servidas.some((id) => semSufixo(grade.nome(id)) === semSufixo(grade.nome(eo)));
+    let melhor = null;
+    if (lo && !aqui) {
+      for (const linha of grade.linhas) {
+        if (alcance && !alcance.has(linha.id)) continue;
+        if (linhaParada(regras, dia?.data ?? t.data, linha.nome)) continue;
+        for (const id of grade.estacoesDaLinha(linha).filter((x) => servidas.includes(x))) {
+          const o = rotas?.planejar({ linha: lo, est: eo }, { linha: linha.id, est: id }, t.minutos - 2, 1, dia.evitar)[0];
+          const nota = linha.id === lo ? -1 : o ? o.chega : Infinity;
+          if (!melhor || nota < melhor.nota) melhor = { alvo: `${linha.id}|${id}`, chega: o ? o.chega + minutosAPe(l, fator) : null, nota };
+        }
+      }
+    }
+    return { l, aqui, alvo: melhor?.alvo || null, chega: melhor?.chega ?? null };
+  }).sort((a, b) => (!a.alvo && !a.aqui) - (!b.alvo && !b.aqui)); // os de outra cidade no fim
+}
+
+/** Por que o lugar não tem roteiro: longe dos trilhos, a pé daqui ou fora do alcance desta rede. */
+function notaLugar(nome, eo) {
+  const { grade, regras } = estado.dados;
+  const l = buscarLugares(regras, nome, 50).find((x) => x.nome === nome);
+  if (!l) return "";
+  const fator = fatorPerfil();
+  const origem = eo ? semSufixo(grade.nome(eo)) : "";
+  const texto = longe(l)
+    ? `<strong>Nenhuma estação fica perto deste lugar.</strong> A mais perto é a estação ${esc(l.estacao)}, a ${metrosAPe(l.a_pe_m)}:
+      uns ${minutosAPe(l, fator)} minutos a pé. O metrô e o VLT não são a melhor opção para chegar lá.`
+    : origem && semAcento(origem) === semAcento(l.estacao)
+      ? `${esc(l.nome)} fica perto daqui: ${caminhada(l, fator)}, saindo da estação ${esc(l.estacao)}. Não precisa pegar o metrô.`
+      : `${esc(l.nome)} fica em ${esc(l.cidade || l.estacao)}. Saindo de ${esc(origem)}, o metrô e o VLT não chegam lá.`;
+  return `<div class="cartao neutro"><p style="margin:0"><strong>${emojiLugar(l)} ${esc(l.nome)}</strong></p><p>${texto}</p></div>`;
 }
 
 /** O roteiro escolhido: horário (agora ou escolhido), o cartão, os outros horários e o lembrete. */
@@ -580,7 +670,9 @@ function resultadoViagem(lo, eo, v, t) {
   const r = new Roteador(grade, regras, perfil);
   const apos = v.hora ?? (dia.domingo ? 0 : t.minutos - 2);
   const opcoes = r.planejar({ linha: lo, est: eo }, { linha: ld, est: ed }, apos, 4, dia.evitar);
-  const nomeDestino = semSufixo(grade.nome(ed));
+  const lugar = v.lugar ? buscarLugares(regras, v.lugar, 50).find((x) => x.nome === v.lugar) : null;
+  const ape = lugar ? { nome: lugar.nome, metros: lugar.a_pe_m, min: minutosAPe(lugar, fatorPerfil()), aoLado: aoLado(lugar) } : null;
+  const nomeDestino = lugar?.nome || semSufixo(grade.nome(ed));
   const horaValor = v.hora != null ? hora(v.hora) : "";
   let html = dia.domingo ? `<p class="aviso"><strong>Hoje é domingo, sem metrô e VLT.</strong> Este é o roteiro de segunda.</p>` : "";
   html += `<div class="chips">
@@ -596,10 +688,10 @@ function resultadoViagem(lo, eo, v, t) {
   }
   const i = Math.min(v.escolhido, opcoes.length - 1);
   const o = opcoes[i];
-  html += cartaoRoteiro(o, grade, dia, perfil);
+  html += cartaoRoteiro(o, grade, dia, perfil, ape);
   if (opcoes.length > 1) {
     html += `<div class="chips"><span class="dica">Outros horários:</span>${opcoes.map((x, k) =>
-      `<button class="chip ${k === i ? "sel" : ""}" data-i="${k}">${hora(x.sai)} → ${hora(x.chega)}</button>`).join("")}</div>`;
+      `<button class="chip ${k === i ? "sel" : ""}" data-i="${k}">${hora(x.sai)} → ${hora(x.chega + (ape?.min || 0))}</button>`).join("")}</div>`;
   }
   // No lugar do modo viagem: o lembrete da partida, para quem ainda não saiu.
   if (dia.domingo || o.sai >= t.minutos) {
@@ -615,7 +707,7 @@ function resultadoViagem(lo, eo, v, t) {
 }
 
 /** O cartão do roteiro: cada trecho na cor da linha, a integração com tempo e passagem, a chegada. */
-function cartaoRoteiro(o, grade, dia, perfil) {
+function cartaoRoteiro(o, grade, dia, perfil, ape = null) {
   const { regras } = estado.dados;
   const rotulo = (l) => l.nome.startsWith("Linha") ? `${veiculo(l.nome).replace(/^./, (c) => c.toUpperCase())} da ${l.nome}` : l.nome;
   let html = `<div class="cartao neutro roteiro">`;
@@ -633,7 +725,12 @@ function cartaoRoteiro(o, grade, dia, perfil) {
         ${justa ? `<small>${x.seguinte != null ? `Se perder, o próximo ${veiculo(grade.linha(o.pernas[i + 1].linha).nome)} sai às ${hora(x.seguinte)}.` : "É o último do dia: se perder, não há outro."}</small>` : ""}</div>`;
     }
   });
-  html += `<p class="chegada">Chega às ${hora(o.chega)}</p>`;
+  // O lugar procurado: a caminhada da estação até a porta, já contada na chegada.
+  if (ape) {
+    html += `<p class="dica">🚶 ${ape.aoLado ? `${esc(ape.nome)} fica ao lado da estação.`
+      : `${esc(ape.nome)}: ${metrosAPe(ape.metros)} a pé, uns ${ape.min} min.`}</p>`;
+  }
+  html += `<p class="chegada">Chega às ${hora(o.chega + (ape?.min || 0))}</p>`;
   if (o.antes != null) {
     html += `<p class="dica">O ${veiculo(grade.linha(o.pernas[0].linha).nome)} das ${hora(o.antes)} chega no mesmo horário, mas espera mais na integração.</p>`;
   }
@@ -739,7 +836,8 @@ function telaSobre() {
     <p>Do GTFS público do Metrofor, atualizado várias vezes por dia. São os horários programados: o app não sabe de
       atrasos em tempo real.${indice.atualizado ? ` Última atualização: ${dataCurta(indice.atualizado.slice(0, 10))} às ${indice.atualizado.slice(11, 16)}.` : ""}
       Endereços e passagens: páginas das linhas no site do Metrofor. Posição de algumas estações de Sobral e do Cariri,
-      que o GTFS põe no lugar errado: © colaboradores do OpenStreetMap.</p>
+      que o GTFS põe no lugar errado: © colaboradores do OpenStreetMap. Lugares da busca e de "Perto desta estação",
+      com a caminhada pelas ruas: © colaboradores do OpenStreetMap.</p>
 
     <h2>Privacidade</h2>
     <p>Sem anúncios, sem cadastro e sem rastreadores. Sua localização é usada só no celular, para achar a estação mais
