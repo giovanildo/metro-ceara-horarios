@@ -46,6 +46,8 @@ data class AppSettings(
     val mobility: Mobility = Mobility.WALKING,
     /** Minutos a mais em toda integração, além do que o perfil e o pico já somam. */
     val transferExtraMinutes: Int = 0,
+    /** Quanto tempo antes da partida toca o alarme da hora de sair (lembrado da última vez). */
+    val leaveBeforeMinutes: Int = 15,
 ) {
     companion object {
         const val THEME_AUTO = 0
@@ -84,6 +86,7 @@ object SettingsStore {
             putBoolean("remind_belongings", settings.remindBelongings)
             putString("mobility", settings.mobility.key)
             putInt("transfer_extra_min", settings.transferExtraMinutes)
+            putInt("leave_before_min", settings.leaveBeforeMinutes)
         }
         state.value = settings
     }
@@ -113,6 +116,7 @@ object SettingsStore {
             remindBelongings = p.getBoolean("remind_belongings", d.remindBelongings),
             mobility = Mobility.entries.firstOrNull { it.key == p.getString("mobility", null) } ?: d.mobility,
             transferExtraMinutes = p.getInt("transfer_extra_min", d.transferExtraMinutes),
+            leaveBeforeMinutes = p.getInt("leave_before_min", d.leaveBeforeMinutes),
         )
     }
 

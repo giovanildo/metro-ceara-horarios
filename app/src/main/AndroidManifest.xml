@@ -14,6 +14,12 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Abre o relógio do celular com o alarme da hora de sair preenchido (sem pedir confirmação). -->
+    <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
+    <!-- Aviso da hora de sair no minuto certo (Android 12+; no 14+ a pessoa libera em "Alarmes e lembretes"). -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- Remarcar os avisos e as rotinas depois que o celular reinicia. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <uses-feature
         android:name="android.hardware.location"
@@ -49,6 +55,17 @@
         </activity>
 
         <!-- Envio do registro de testes (opções de desenvolvedor). -->
+
+        <!-- Avisos da hora de sair e rotinas: disparo, "avisar de novo", reinício e horário exato liberado. -->
+        <receiver
+            android:name=".trip.LeaveReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
 
         <!-- Widgets da tela inicial: a estação fixada (ou a última aberta) e os próximos horários. -->
         <receiver

@@ -103,13 +103,22 @@ fun JourneyScreen(
     plan: (Station, RoutePoint, Int?) -> JourneyResult,
     canStartTrip: (Station) -> Boolean,
     onStartTrip: (Station, RouteView) -> Unit,
+    onRepeat: (Station, JourneyLine, Stop, RouteView?) -> Unit,
     onBack: () -> Unit,
+    /** Destino já escolhido (linha, estação): vindo do aviso da hora de sair, abre o roteiro direto. */
+    initialDestination: Pair<String, String>? = null,
 ) {
     var origin by remember { mutableStateOf(initialOrigin) }
     var query by rememberSaveable { mutableStateOf("") }
     var destination by remember { mutableStateOf<Pair<JourneyLine, Stop>?>(null) }
     var pickingOrigin by remember { mutableStateOf(initialOrigin == null) }
     val lines = remember(origin) { linesFor(origin) }
+    LaunchedEffect(lines) {
+        initialDestination?.let { (routeId, stopId) ->
+            val line = lines.firstOrNull { it.routeId == routeId }
+            line?.stops?.firstOrNull { it.id == stopId }?.let { if (destination == null) destination = line to it }
+        }
+    }
     // A chegada de quem sai agora, calculada fora da tela.
     val arrivals by produceState(emptyMap<String, Int>(), origin) {
         value = origin?.let { o -> withContext(Dispatchers.IO) { arrivalsFor(o) } }.orEmpty()
@@ -177,8 +186,9 @@ fun JourneyScreen(
     }
 
     if (pickingOrigin) {
-        OriginDialog(
+        StationPickerDialog(
             stations = stations,
+            title = stringResource(R.string.journey_pick_origin),
             onPick = {
                 origin = it
                 destination = null
@@ -201,6 +211,8 @@ fun JourneyScreen(
                     plan = { time -> plan(from, RoutePoint(line.routeId, stop.id), time) },
                     canStartTrip = canStartTrip(from),
                     onStartTrip = { onStartTrip(from, it) },
+                    destination = line to stop,
+                    onRepeat = { view -> onRepeat(from, line, stop, view) },
                 )
             }
         }
@@ -279,9 +291,9 @@ private fun StationList(
     }
 }
 
-/** De qual estação a pessoa sai: todas, por linha, com busca. */
+/** Escolher uma estação: todas, por linha, com busca. */
 @Composable
-private fun OriginDialog(stations: List<Station>, onPick: (Station) -> Unit, onDismiss: () -> Unit) {
+fun StationPickerDialog(stations: List<Station>, title: String, onPick: (Station) -> Unit, onDismiss: () -> Unit) {
     var query by rememberSaveable { mutableStateOf("") }
     val lines = remember(stations) {
         stations.groupBy { it.routeId }.values.map { list ->
@@ -292,7 +304,7 @@ private fun OriginDialog(stations: List<Station>, onPick: (Station) -> Unit, onD
     }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.journey_pick_origin)) },
+        title = { Text(title) },
         text = {
             Column {
                 OutlinedTextField(
@@ -331,6 +343,8 @@ private fun JourneyResultSheet(
     plan: (Int?) -> JourneyResult,
     canStartTrip: Boolean,
     onStartTrip: (RouteView) -> Unit,
+    destination: Pair<JourneyLine, Stop>,
+    onRepeat: (RouteView?) -> Unit,
 ) {
     var time by remember { mutableStateOf<Int?>(null) }
     var selected by remember { mutableStateOf(0) }
@@ -397,8 +411,14 @@ private fun JourneyResultSheet(
             } else if (result.monday || first.departure >= nowMinutes()) {
                 OutlinedButton(
                     onClick = {
-                        reminder = LeaveReminder(Departure(first.departure, tomorrow = result.monday), first.fromName,
-                            first.routeName, first.headsign, vehicleName(first.routeName))
+                        val leg = view.itinerary.legs.first()
+                        reminder = LeaveReminder(
+                            Departure(first.departure, tomorrow = result.monday), first.fromName,
+                            first.routeName, first.headsign, vehicleName(first.routeName),
+                            stopId = leg.fromStop, routeId = leg.routeId, directionId = leg.directionId,
+                            destStopId = destination.second.id, destRouteId = destination.first.routeId,
+                            destName = destinationName, arrival = view.itinerary.arrival,
+                        )
                     },
                     modifier = Modifier.fillMaxWidth(),
                 ) {
@@ -410,6 +430,10 @@ private fun JourneyResultSheet(
                     )
                 }
             }
+        }
+        // O trajeto do dia a dia vira rotina: o app avisa sozinho nos dias marcados.
+        TextButton(onClick = { onRepeat(view) }, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.routine_repeat))
         }
     }
 

@@ -152,12 +152,13 @@ mesma tela saindo dali.
   - saindo agora: **Iniciar modo viagem** (perto da estação, até o limite das
     Configurações). Num trecho só, a viagem começa como sempre (com a oferta
     de ir sentado pelo terminal); com integração, o roteiro inteiro.
-  - no horário escolhido: **Lembrete na agenda**, para a partida do roteiro.
+  - no horário escolhido: **Avisar a hora de sair** (alarme ou agenda), para a
+    partida do roteiro.
 - **Domingo sem operação anunciada:** sem modo viagem (não há metrô para
   acompanhar). O resultado avisa "Hoje é domingo, sem metrô e VLT. Este é o
   roteiro de segunda", calcula pela grade de segunda (sem as linhas que o
   Metrofor avisou que param amanhã), começa no **Primeiro horário** e termina
-  em **Lembrete para segunda, 05:30**.
+  em **Avisar a hora de sair na segunda (05:30)**.
 
 **Como o roteiro é calculado** ([`data/Router.kt`](app/src/main/java/io/github/giova/metroceara/data/Router.kt),
 Kotlin puro, com testes em `app/src/test`). A rede é pequena, com até três
@@ -509,17 +510,59 @@ próprias cores, em vermelho). Nas outras seções:
 | Oferecer ir sentado pelo terminal até | 3 estações | 0 (não oferecer) – 5 |
 | Atualizar sua posição (tela inicial) a cada | 10 s | 5 – 60 s |
 
-**Lembrete na agenda:** em qualquer estação, tocar num horário de hoje que
+**Avisar a hora de sair:** em qualquer estação, tocar num horário de hoje que
 ainda não passou (nas próximas partidas ou em "Todos os horários", onde esses
-ficam em destaque e os que já passaram, apagados) abre a janela "Lembrar na
-agenda". O botão "Abrir a agenda" manda um evento para o app de agenda do
-celular (`ACTION_INSERT` do `CalendarContract`, em `ui/LeaveReminder.kt`):
-"Pegar o metrô das 07:50", começando na hora da partida, com a estação como
-local. Quanto tempo antes avisar fica com a agenda: a pessoa escolhe ali, ao
-salvar (por exemplo, o tempo que leva até a estação). Não há configuração, e
-serve para sair de qualquer lugar, não só de casa. Não usa conta, permissão nem
-internet. O resultado de **"Para onde você vai?"** usa a mesma janela para a partida
-do roteiro, quando o horário é escolhido ou o roteiro é o de segunda.
+ficam em destaque e os que já passaram, apagados) abre a janela "Avisar a hora
+de sair" (`ui/LeaveReminder.kt`). O resultado de **"Para onde você vai?"** usa a
+mesma janela para a partida do roteiro. A pessoa escolhe quanto tempo antes (5,
+10, 15, 20, 30 ou 45 min; o app lembra a última escolha em `AppSettings`, e as
+que já passaram somem) e um dos três jeitos:
+
+- **Avisar pelo app** (o principal): o app agenda o aviso
+  ([`data/LeaveAlerts.kt`](app/src/main/java/io/github/giova/metroceara/data/LeaveAlerts.kt),
+  `AlarmManager`). Na hora, [`trip/LeaveReceiver.kt`](app/src/main/java/io/github/giova/metroceara/trip/LeaveReceiver.kt)
+  confere a grade do dia (domingo sem operação, linha que o Metrofor avisou que
+  parou, horário que sumiu numa operação especial: vale o seguinte) e mostra,
+  **mesmo com a tela bloqueada**, "Hora de sair: metrô das 12:14 · São Benedito,
+  sentido Carlito Benevides. Se perder, o próximo é às 12:44", com a **contagem
+  até a partida** ("parte em 24:40", atualizada pelo próprio Android) e os botões
+  **Iniciar viagem** (com destino: abre o roteiro calculado) ou **Ver horários**,
+  **Mais 5 min** e **Cancelar**. A notificação some 2 min depois da partida. Para
+  chegar no minuto certo, o Android 14+ pede que a pessoa libere "Alarmes e
+  lembretes" (`SCHEDULE_EXACT_ALARM`): a janela explica e leva à tela do
+  Android; sem isso, o aviso pode atrasar alguns minutos. Pede também a
+  permissão de notificação, se faltar. Os avisos voltam a ser marcados depois de
+  reiniciar o celular, de atualizar o app e de liberar o horário exato, e um
+  aviso já dado não se repete ao abrir o app.
+- **Alarme do relógio**: o app manda o alarme pronto para o relógio do celular
+  (`AlarmClock.ACTION_SET_ALARM`, com a permissão `SET_ALARM`, que não pede
+  confirmação): "Sair para o metrô das 07:50 (São Benedito)", tocando na partida
+  menos a antecedência. Só para essa partida, sem repetir: um alarme do relógio
+  não sabe de domingo nem de feriado. Para a partida de amanhã, ele só sai se a
+  hora dele já passou hoje (senão tocaria ainda hoje).
+- **Pôr na agenda**: um evento no app de agenda (`ACTION_INSERT` do
+  `CalendarContract`), "Pegar o metrô das 07:50", com a estação como local; a
+  antecedência fica com a agenda.
+
+A lite não cria alarme nem aviso (o navegador não deixa): baixa o evento de agenda.
+
+**Rotinas** (o trajeto do dia a dia): no resultado de "Para onde você vai?",
+**"Repetir este trajeto (rotina)"** abre a tela da rotina (`ui/RoutinesScreen.kt`)
+já preenchida: nome, de, para, dias (segunda a sexta por padrão), **Chegar até**
+(a hora do roteiro, arredondada) ou **Sair a partir de**, e quanto tempo antes
+avisar. Nos dias marcados, umas horas antes (nunca antes das 00:50, quando a
+grade do dia já saiu), o app calcula o metrô do dia pela grade e pelo roteiro
+(`RoutinePlanner`): "chegar até" pega o que sai mais tarde e ainda chega a
+tempo. **Domingo sem operação não avisa; em feriado e operação especial vale a
+grade do dia, e linha parada fica de fora.** O aviso é o mesmo de "Avisar pelo
+app", com **Hoje não vou** no lugar de Cancelar. A tela **Suas rotinas** (com uma
+linha "Rotinas: …" abaixo da busca na tela inicial, quando há alguma) mostra cada
+uma com a chave de ligar e o aviso já marcado ("Aviso marcado: sair às 11:44
+para o metrô das 12:14").
+
+A caminhada até a estação só entra no "Sair agora" quando a pessoa está a até o
+limite do modo viagem (Configurações, 3 km): mais longe, ela está planejando, e
+somar 2 h a pé deixaria o roteiro vazio.
 
 O aviso de distância nunca fica maior que o limite em que o modo viagem some
 (mexer num ajusta o outro). "Restaurar padrões" volta tudo. Os parâmetros

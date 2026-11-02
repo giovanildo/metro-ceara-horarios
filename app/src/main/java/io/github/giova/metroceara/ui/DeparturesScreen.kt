@@ -113,7 +113,10 @@ fun DeparturesScreen(
     var reminder by remember { mutableStateOf<Departure?>(null) }
     reminder?.let { departure ->
         LeaveReminderDialog(
-            reminder = LeaveReminder(departure, stop.name, route.name, direction?.headsign.orEmpty(), vehicleName(route.name)),
+            reminder = LeaveReminder(
+                departure, stop.name, route.name, direction?.headsign.orEmpty(), vehicleName(route.name),
+                stopId = stop.id, routeId = route.id, directionId = direction?.id,
+            ),
             onDismiss = { reminder = null },
         )
     }

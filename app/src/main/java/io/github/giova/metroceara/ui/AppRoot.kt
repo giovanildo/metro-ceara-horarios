@@ -1,5 +1,20 @@
 package io.github.giova.metroceara.ui
 
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
+import androidx.core.content.ContextCompat
+import io.github.giova.metroceara.data.LeaveScheduler
+import io.github.giova.metroceara.data.LeaveStore
+import io.github.giova.metroceara.data.Routine
+import androidx.compose.runtime.key
+import androidx.compose.material.icons.filled.Alarm
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
 import android.Manifest
 import android.os.Build
 import androidx.compose.material3.AlertDialog
@@ -89,6 +104,12 @@ private const val ORIGIN_WALK_FREE_MINUTES = 3
 /** Pedido de abrir uma estação vindo de fora da tela (toque no widget). */
 val OpenStationRequest = kotlinx.coroutines.flow.MutableStateFlow<Pair<String, String>?>(null)
 
+/**
+ * Pedido de abrir o roteiro vindo do aviso da hora de sair ("Iniciar modo
+ * viagem"): estação e linha de origem, estação e linha de destino.
+ */
+val JourneyRequest = kotlinx.coroutines.flow.MutableStateFlow<List<String>?>(null)
+
 
 private fun formatKm(meters: Double): String =
     if (meters < 1000) "${meters.toInt()} m" else "%.1f km".format(meters / 1000).replace('.', ',')
@@ -153,14 +174,6 @@ fun AppRoot() {
     var openDirectionId by rememberSaveable { mutableStateOf<Int?>(null) }
     // Toque no widget: abre a tela da estação dele.
     val widgetRequest by OpenStationRequest.collectAsState()
-    LaunchedEffect(widgetRequest) {
-        widgetRequest?.let { (stop, route) ->
-            openDirectionId = null
-            routeId = route
-            stopId = stop
-            OpenStationRequest.value = null
-        }
-    }
 
     val routes = remember(repo) { repo.routes() }
     val bikeStations = remember(repo) { repo.bikeStations() }
@@ -405,6 +418,61 @@ fun AppRoot() {
     // destaque) ou de uma estação (saindo dela).
     var journeyOpen by remember { mutableStateOf(false) }
     var journeyFrom by remember { mutableStateOf<Station?>(null) }
+    // Rotinas e avisos da hora de sair: a lista, a rotina sendo criada/mudada
+    // (com "nova?") e, ao abrir o app, os avisos remarcados (por garantia).
+    val routinesList by LeaveStore.routines(context).collectAsState()
+    val leaveAlerts by LeaveStore.alerts(context).collectAsState()
+    var routinesOpen by remember { mutableStateOf(false) }
+    var routineEditing by remember { mutableStateOf<Pair<Routine, Boolean>?>(null) }
+    // Toque no widget ou no aviso de uma partida: abre a tela da estação, por cima do que estiver aberto.
+    LaunchedEffect(widgetRequest) {
+        widgetRequest?.let { (stop, route) ->
+            openDirectionId = null
+            journeyOpen = false
+            routinesOpen = false
+            routineEditing = null
+            showSettings = false
+            showAbout = false
+            routeId = route
+            stopId = stop
+            OpenStationRequest.value = null
+        }
+    }
+    // Destino já escolhido (linha, estação), quando vem do aviso da hora de sair.
+    var journeyDest by remember { mutableStateOf<Pair<String, String>?>(null) }
+    val journeyRequest by JourneyRequest.collectAsState()
+    LaunchedEffect(journeyRequest) {
+        journeyRequest?.let { (originStop, originRoute, destStop, destRoute) ->
+            journeyFrom = repo.station(originStop, originRoute)
+            journeyDest = destRoute to destStop
+            stopId = null
+            routeId = null
+            // As telas que ficam na frente do roteiro saem do caminho.
+            routinesOpen = false
+            routineEditing = null
+            showSettings = false
+            showAbout = false
+            journeyOpen = true
+            JourneyRequest.value = null
+        }
+    }
+
+    var askExactForRoutine by remember { mutableStateOf(false) }
+    val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
+    LaunchedEffect(Unit) { withContext(Dispatchers.IO) { LeaveScheduler.rescheduleAll(context) } }
+
+    fun saveRoutine(routine: Routine) {
+        // Mudou a rotina: o aviso já calculado para hoje é refeito.
+        LeaveScheduler.cancelRoutine(context, routine)
+        LeaveStore.putRoutine(context, routine)
+        LeaveScheduler.planNext(context, routine)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+        if (routine.enabled && !LeaveScheduler.canExact(context)) askExactForRoutine = true
+    }
 
     val router = remember(repo, settings) {
         Router(repo.timetable, repo.transferLinks()) { link, arrival -> transferMinutes(link.baseMinutes, arrival, settings) }
@@ -426,8 +494,11 @@ fun AppRoot() {
     }
 
     // Minutos a pé da pessoa até a estação (0 sem localização, ou já nela).
+    // Longe da estação (além do limite do modo viagem), a pessoa está planejando, não
+    // indo agora a pé: a caminhada não conta (de casa, a 10 km, daria 2 h a pé).
     fun walkTo(station: Station): Int =
-        userDistanceTo(station.lat, station.lon)?.let { ceil(it / WALK_METERS_PER_MINUTE).toInt() }
+        userDistanceTo(station.lat, station.lon)?.takeIf { it <= settings.tripMaxMeters }
+            ?.let { ceil(it / WALK_METERS_PER_MINUTE).toInt() }
             ?.takeIf { it > ORIGIN_WALK_FREE_MINUTES } ?: 0
 
     // As linhas da lista de destinos: as que se alcançam da origem (com o caminho)
@@ -618,6 +689,27 @@ fun AppRoot() {
         stopId = station.stopId
     }
 
+    if (askExactForRoutine) {
+        AlertDialog(
+            onDismissRequest = { askExactForRoutine = false },
+            title = { Text(stringResource(R.string.leave_exact_title)) },
+            text = { Text(stringResource(R.string.leave_exact_text)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    askExactForRoutine = false
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        runCatching {
+                            context.startActivity(
+                                Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:${context.packageName}")),
+                            )
+                        }
+                    }
+                }) { Text(stringResource(R.string.leave_exact_allow)) }
+            },
+            dismissButton = { TextButton(onClick = { askExactForRoutine = false }) { Text(stringResource(R.string.leave_exact_later)) } },
+        )
+    }
+
     // --------------------------------------------------------------- telas ----
     when {
         showSettings -> {
@@ -635,19 +727,87 @@ fun AppRoot() {
             AboutScreen(onBack = { showAbout = false })
         }
 
-        journeyOpen -> {
-            BackHandler { journeyOpen = false }
-            JourneyScreen(
-                initialOrigin = journeyFrom,
+        routineEditing != null -> {
+            val (routine, isNew) = routineEditing!!
+            BackHandler { routineEditing = null }
+            RoutineEditScreen(
+                initial = routine,
+                isNew = isNew,
                 stations = remember(repo) { repo.stations() },
-                linesFor = ::journeyLines,
-                arrivalsFor = ::journeyArrivals,
-                plan = ::planJourney,
-                // Modo viagem só com metrô hoje e perto o bastante da estação.
-                canStartTrip = { !sundayOff && tripAllowedFrom(it.lat, it.lon) },
-                onStartTrip = ::startJourney,
-                onBack = { journeyOpen = false },
+                onSave = {
+                    saveRoutine(it)
+                    routineEditing = null
+                    journeyOpen = false
+                    routinesOpen = true
+                },
+                onDelete = {
+                    LeaveScheduler.cancelRoutine(context, routine)
+                    LeaveStore.removeRoutine(context, routine.id)
+                    routineEditing = null
+                },
+                onBack = { routineEditing = null },
             )
+        }
+
+        routinesOpen -> {
+            BackHandler { routinesOpen = false }
+            RoutinesScreen(
+                routines = routinesList.orEmpty(),
+                alerts = leaveAlerts.orEmpty(),
+                onToggle = { r, on ->
+                    if (on) saveRoutine(r.copy(enabled = true)) else {
+                        LeaveScheduler.cancelRoutine(context, r)
+                        LeaveStore.putRoutine(context, r.copy(enabled = false))
+                    }
+                },
+                onEdit = { routineEditing = it to false },
+                onNew = {
+                    routineEditing = Routine(
+                        id = Routine.newId(), name = "",
+                        originStopId = homeState.station?.stopId.orEmpty(), originRouteId = homeState.station?.routeId.orEmpty(),
+                        originName = homeState.station?.let { JourneyPlanner.plainName(it.stopName) }.orEmpty(),
+                        destStopId = "", destRouteId = "", destName = "",
+                        days = Routine.WEEKDAYS, arriveBy = true, minutes = 8 * 60, before = settings.leaveBeforeMinutes,
+                    ) to true
+                },
+                onBack = { routinesOpen = false },
+            )
+        }
+
+        journeyOpen -> {
+            BackHandler {
+                journeyOpen = false
+                journeyDest = null
+            }
+            key(journeyFrom, journeyDest) {
+                JourneyScreen(
+                    initialOrigin = journeyFrom,
+                    stations = remember(repo) { repo.stations() },
+                    linesFor = ::journeyLines,
+                    arrivalsFor = ::journeyArrivals,
+                    plan = ::planJourney,
+                    // Modo viagem só com metrô hoje e perto o bastante da estação.
+                    canStartTrip = { !sundayOff && tripAllowedFrom(it.lat, it.lon) },
+                    onStartTrip = ::startJourney,
+                    onRepeat = { origin, line, dest, view ->
+                        // O trajeto vira rotina: chegar até a hora deste roteiro, de segunda a sexta.
+                        routineEditing = Routine(
+                            id = Routine.newId(), name = "",
+                            originStopId = origin.stopId, originRouteId = origin.routeId,
+                            originName = JourneyPlanner.plainName(origin.stopName),
+                            destStopId = dest.id, destRouteId = line.routeId, destName = JourneyPlanner.plainName(dest.name),
+                            days = Routine.WEEKDAYS, arriveBy = true,
+                            minutes = view?.itinerary?.arrival?.let { (it + 4) / 5 * 5 } ?: (8 * 60),
+                            before = settings.leaveBeforeMinutes,
+                        ) to true
+                    },
+                    onBack = {
+                        journeyOpen = false
+                        journeyDest = null
+                    },
+                    initialDestination = journeyDest,
+                )
+            }
         }
 
         route != null && stop != null -> {
@@ -746,8 +906,21 @@ fun AppRoot() {
                         // "Para onde você vai?", saindo da estação em destaque.
                         JourneySearchBar(onClick = {
                             journeyFrom = homeState.station
+                            journeyDest = null
                             journeyOpen = true
                         })
+                        // As rotinas, quando há alguma: um toque abre a lista.
+                        routinesList?.takeIf { it.isNotEmpty() }?.let { list ->
+                            TextButton(onClick = { routinesOpen = true }) {
+                                Icon(Icons.Filled.Alarm, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Text(
+                                    stringResource(R.string.routines_home, list.joinToString(", ") { it.name }),
+                                    modifier = Modifier.padding(start = 8.dp),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                        }
                     }
                     ScheduleStatus(
                         source = repo.source,

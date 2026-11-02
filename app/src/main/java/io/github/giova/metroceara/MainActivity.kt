@@ -3,6 +3,7 @@ package io.github.giova.metroceara
 import android.graphics.Color
 import android.content.Intent
 import android.os.Bundle
+import io.github.giova.metroceara.ui.JourneyRequest
 import io.github.giova.metroceara.ui.OpenStationRequest
 import io.github.giova.metroceara.widget.StationWidget
 import androidx.activity.ComponentActivity
@@ -24,6 +25,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         openFromWidget(intent)
+        openFromLeave(intent)
         sendTripLog(intent)
         setContent {
             val settings by SettingsStore.flow(this).collectAsState()
@@ -50,6 +52,7 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         openFromWidget(intent)
+        openFromLeave(intent)
         sendTripLog(intent)
     }
 
@@ -63,6 +66,27 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         const val EXTRA_SEND_TRIP = "send_trip_log"
+        const val EXTRA_LEAVE_STOP = "leave_stop"
+        const val EXTRA_LEAVE_ROUTE = "leave_route"
+        const val EXTRA_LEAVE_DEST_STOP = "leave_dest_stop"
+        const val EXTRA_LEAVE_DEST_ROUTE = "leave_dest_route"
+    }
+
+    /**
+     * Toque no aviso da hora de sair: com destino ("Iniciar modo viagem"), abre o
+     * roteiro já calculado; sem destino, a tela da estação.
+     */
+    private fun openFromLeave(intent: Intent?) {
+        val stop = intent?.getStringExtra(EXTRA_LEAVE_STOP) ?: return
+        val route = intent.getStringExtra(EXTRA_LEAVE_ROUTE) ?: return
+        val destStop = intent.getStringExtra(EXTRA_LEAVE_DEST_STOP)
+        val destRoute = intent.getStringExtra(EXTRA_LEAVE_DEST_ROUTE)
+        if (destStop != null && destRoute != null) {
+            JourneyRequest.value = listOf(stop, route, destStop, destRoute)
+        } else {
+            OpenStationRequest.value = stop to route
+        }
+        intent.removeExtra(EXTRA_LEAVE_STOP)
     }
 
     /** Toque no widget: abre a tela da estação dele. */
