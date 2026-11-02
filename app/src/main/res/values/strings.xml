@@ -29,6 +29,7 @@
     <string name="home_no_departures">sem partidas hoje</string>
     <string name="home_unpublished">horários não publicados</string>
     <string name="station_fare">Passagem: %1$s</string>
+    <string name="station_fare_guide">Meia, gratuidade e onde tirar o cartão ›</string>
     <string name="route_not_running_today">não opera hoje</string>
     <string name="line_not_running_today">Esta linha não opera hoje.</string>
     <string name="direction_unpublished">O Metrofor não publicou os horários deste sentido hoje.</string>
@@ -375,4 +376,12 @@
     <string name="routine_days_every">todos os dias</string>
     <string name="routine_repeat">Repetir este trajeto (rotina)</string>
     <string name="routine_pick_station">Escolha a estação</string>
+    <!-- Guia da passagem (regras.json "guia_passagem"). -->
+    <string name="fare_guide_title">Passagem</string>
+    <string name="fare_guide_source_title">Informações do Metrofor</string>
+    <string name="fare_guide_checked">Conferido em %1$s</string>
+    <string name="fare_guide_source_line">Fonte: site do Metrofor · conferido em %1$s</string>
+    <string name="fare_guide_open_site">Ver no site do Metrofor</string>
+    <string name="fare_guide_check_site">Conferir no site do Metrofor</string>
+    <string name="fare_guide_cheaper">Pode pagar menos?</string>
 </resources>

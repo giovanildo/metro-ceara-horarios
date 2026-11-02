@@ -170,6 +170,7 @@ fun AppRoot() {
     var stopId by rememberSaveable { mutableStateOf<String?>(null) }
     var showAbout by rememberSaveable { mutableStateOf(false) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
+    var fareGuideOpen by rememberSaveable { mutableStateOf(false) }
     // Sentido em que a tela de horários deve abrir (vindo de uma baldeação).
     var openDirectionId by rememberSaveable { mutableStateOf<Int?>(null) }
     // Toque no widget: abre a tela da estação dele.
@@ -433,6 +434,7 @@ fun AppRoot() {
             routineEditing = null
             showSettings = false
             showAbout = false
+            fareGuideOpen = false
             routeId = route
             stopId = stop
             OpenStationRequest.value = null
@@ -452,6 +454,7 @@ fun AppRoot() {
             routineEditing = null
             showSettings = false
             showAbout = false
+            fareGuideOpen = false
             journeyOpen = true
             JourneyRequest.value = null
         }
@@ -727,6 +730,15 @@ fun AppRoot() {
             AboutScreen(onBack = { showAbout = false })
         }
 
+        fareGuideOpen && Regras.current.fareGuide != null -> {
+            BackHandler { fareGuideOpen = false }
+            FareGuideScreen(
+                guide = Regras.current.fareGuide!!,
+                fares = Regras.current.fareLines,
+                onBack = { fareGuideOpen = false },
+            )
+        }
+
         routineEditing != null -> {
             val (routine, isNew) = routineEditing!!
             BackHandler { routineEditing = null }
@@ -865,6 +877,7 @@ fun AppRoot() {
                     StationWidget.update(context)
                     refreshHome()
                 },
+                onOpenFareGuide = { fareGuideOpen = true },
                 onBack = { stopId = null },
             )
         }

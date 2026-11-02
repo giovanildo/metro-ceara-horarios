@@ -71,6 +71,10 @@ class Regras(
     val mobilityFactors: Map<String, Double> = emptyMap(),
     /** Cor do mapa oficial por linha (nome em minúsculas), no lugar da do GTFS. */
     val lineColors: Map<String, LineColor> = emptyMap(),
+    /** A passagem de cada linha, na ordem do arquivo e com o nome como está nele. */
+    val fareLines: List<Pair<String, String>> = emptyList(),
+    /** Meia, gratuidade e onde tirar o cartão; sem a seção no arquivo, o app não mostra o guia. */
+    val fareGuide: FareGuide? = null,
 ) {
     /** A partida cai num horário de pico (metrô costuma ir cheio)? */
     fun isPeak(minutes: Int): Boolean = peak.any { minutes in it }
@@ -195,9 +199,16 @@ class Regras(
                     )
                 }
             }.orEmpty()
-            val fares = root.optJSONObject("passagem")?.let { o ->
-                o.keys().asSequence().filterNot { it.startsWith("_") }.associate { it.trim().lowercase() to o.getString(it) }
+            val fareLines = root.optJSONObject("passagem")?.let { o ->
+                o.keys().asSequence().filterNot { it.startsWith("_") }.map { it.trim() to o.getString(it) }.toList()
             }.orEmpty()
+            val fares = fareLines.associate { (name, text) -> name.lowercase() to text }
+            // Um guia com erro fica de fora sem derrubar o resto das regras.
+            val fareGuide = root.optJSONObject("guia_passagem")?.let { o ->
+                runCatching { parseFareGuide(o) }
+                    .onFailure { DevLog.log("guia_passagem_erro", "erro" to it.toString()) }
+                    .getOrNull()
+            }
             val operations = root.optJSONObject("operacoes")?.let { o ->
                 o.keys().asSequence().filterNot { it.startsWith("_") }.associateWith { day ->
                     val op = o.getJSONObject(day)
@@ -225,6 +236,8 @@ class Regras(
                 peakMaxTransferMinutes = pico?.optInt("integracao_maximo_min") ?: 0,
                 mobilityFactors = mobility,
                 lineColors = colors,
+                fareLines = fareLines,
+                fareGuide = fareGuide,
             )
         }
 

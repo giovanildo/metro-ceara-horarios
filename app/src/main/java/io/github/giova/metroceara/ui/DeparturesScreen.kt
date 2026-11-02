@@ -95,6 +95,7 @@ fun DeparturesScreen(
     bike: NearbyBike?,
     isPinned: Boolean,
     onTogglePin: () -> Unit,
+    onOpenFareGuide: () -> Unit,
     onBack: () -> Unit,
 ) {
     // A aba é da estação: ao abrir outra, volta para o sentido pedido (ou o primeiro).
@@ -224,6 +225,18 @@ fun DeparturesScreen(
                                     text = it,
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            // Meia, gratuidade e onde tirar o cartão: o guia do regras.json.
+                            if (fare != null && Regras.current.fareGuide != null) {
+                                Text(
+                                    text = stringResource(R.string.station_fare_guide),
+                                    modifier = Modifier
+                                        .clickable(onClick = onOpenFareGuide)
+                                        .padding(vertical = 4.dp),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary,
                                 )
                             }
                             // Aviso da estação (regras.json), como o de estação subterrânea:

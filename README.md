@@ -473,6 +473,43 @@ viagem. As posições usadas são as do OpenStreetMap. Cada entrada leva também
 `nome` da estação: se um dia o Metrofor renumerar as estações e o nome não
 bater mais, a entrada é ignorada, em vez de ir para a estação errada.
 
+### Guia da passagem (meia, gratuidade, VaiVem Livre)
+
+Abaixo da passagem, a tela da estação (no app e na lite) tem o link **"Meia,
+gratuidade e onde tirar o cartão ›"**. Ele abre a tela **Passagem**
+([`ui/FareGuideScreen.kt`](app/src/main/java/io/github/giova/metroceara/ui/FareGuideScreen.kt);
+na lite, `#/passagem`), com a passagem de cada linha, um quadro para quem paga
+inteira na Linha Sul (o Cartão Múltiplo com nome, pedido pelo site) e três
+temas, cada um numa tela própria:
+
+- **Meia de estudante**: onde vale o cartão do Metrofor e onde basta a carteira,
+  onde tirar o cartão (só Parangaba e Benfica em Fortaleza, em dia útil), o que
+  levar e a renovação anual;
+- **Gratuidade**: quem só mostra o documento e quem precisa do Cartão Gratuidade
+  (onde tirar e o que levar), além de dizer que declaração não vale;
+- **Procurando emprego**: o VaiVem Livre, 40 passagens grátis por mês com
+  cadastro no IDT. Esse programa não aparece na página de gratuidades do Metrofor.
+
+São muitas regras que o app não controla. Por isso a tela diz logo no topo que
+**tudo vem do site do Metrofor**, com a data da conferência, e cada tema começa
+com "Fonte: site do Metrofor · conferido em …" e termina no botão **"Conferir
+no site do Metrofor"**, que abre a página daquele assunto.
+
+Todo o texto fica na seção `guia_passagem` do `regras.json` e muda sem versão
+nova. Um tema pode ter `avisos` com data (`de` e `ate`, AAAA-MM-DD), que só
+aparecem nesse período no topo da tela do tema. Servem para prazos como a
+renovação do cartão de estudante, que o Metrofor pede quase todo ano
+(2019–2022, 2025), com prazo em junho. Sem a seção, ou com erro nela, o link
+some e o resto das regras continua valendo.
+
+**Quanto isso muda** (notícias do Metrofor de 2008 a 2026): o preço da Linha
+Sul está em R$ 3,60 desde mar/2019; a regra da meia é a mesma desde 2017; a
+lista de gratuidades segue a lei. O que muda com frequência é o calendário: a
+renovação dos estudantes e, de vez em quando, a do Cartão Gratuidade, além de
+programas novos, como o VaiVem Livre (2025) e o cadastro online do Cartão
+Múltiplo (2024). Quando o convênio com o Sindiônibus (Bilhete Único nos
+trilhos) entrar em operação, é preciso reescrever a seção.
+
 O `regras.json` é a **fonte única** das regras que não vêm do GTFS (bike,
 integrações, passagem, endereços, posições corrigidas e horários de pico): o app (`data/Regras.kt`), o
 `tools/build_db.py` e a versão lite leem o mesmo arquivo.
@@ -861,7 +898,7 @@ tools/datas_especiais.py             regra de bike de dias especiais, das notíc
 tools/operacoes.py                   dias de operação especial e linhas paradas, das notícias
 app/src/main/assets/metrofor.db      banco gerado (não editar à mão)
 app/src/main/assets/regras.json      regras fora do GTFS: bike, integrações, passagem,
-                                     endereços, cores, operações especiais
+                                     guia da passagem, endereços, cores, operações especiais
 DADOS-DO-METROFOR.md                 números e fontes do Metrofor por trás das decisões
 app/src/main/java/.../data/          modelos, abertura do banco, consultas, relógio
 app/src/main/java/.../ui/            telas Compose: linhas -> estações -> partidas
@@ -993,7 +1030,8 @@ GitHub Pages da página do app, em `giovanildo.github.io/metro-ceara-horarios/ap
 - `app.js` — as telas: início (estação mais perto de cada linha até 3 km, com a
   próxima partida em cada sentido; a localização só é pedida ao tocar no
   botão), linhas, estação (abas por sentido, sem o sentido que termina nela;
-  endereço e passagem; próximas partidas e todos os horários), **Sua viagem**
+  endereço e passagem, com o link para o guia da passagem em `#/passagem`;
+  próximas partidas e todos os horários), **Sua viagem**
   (`#/viagem`, a busca "Para onde você vai?") e configurações.
 - **Integração** e **bike**, com as mesmas regras e frases do app (lidas do
   `regras.json` publicado no ramo `dados`): na tela da estação, o próximo

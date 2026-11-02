@@ -172,5 +172,132 @@
     "VLT Sobral - Linha Norte": "R$ 1,00 (meia R$ 0,50) · dinheiro",
     "VLT Sobral - Linha Sul": "R$ 1,00 (meia R$ 0,50) · dinheiro",
     "VLT Cariri": "R$ 1,00 (meia R$ 0,50) · só dinheiro"
+  },
+  "guia_passagem": {
+    "_sobre": "Guia da passagem, aberto pelo link abaixo da passagem na tela da estação (app e versão web). Todo o texto vem das páginas do Metrofor; cada tema leva à sua página para a pessoa conferir. \"conferido\": quando as páginas foram lidas — atualize ao revisar. \"avisos\" de um tema: só aparecem entre \"de\" e \"ate\" (AAAA-MM-DD, inclusive), no topo da tela do tema, para prazos como a renovação anual do cartão de estudante. Em \"secoes\", \"quadros\" (título e texto) e \"itens\" (lista) são opcionais.",
+    "_fonte": "ce.gov.br/metrofor: tarifas, meia-passagem-estudantil, gratuidades; notícias de 29/02/2024 (Cartão Múltiplo), 24/04/2025 (renovação dos estudantes) e 27/05/2025 (VaiVem Livre); Ceará Digital, serviço 3006 (Cartão Gratuidade). Conferidas em 02/11/2026.",
+    "fonte": "Tudo aqui vem do site do Metrofor. Antes de ir a uma estação tirar cartão, confira lá: as regras podem mudar.",
+    "conferido": "nov/2026",
+    "link": "https://www.ce.gov.br/metrofor/tarifas/",
+    "temas": [
+      {
+        "titulo": "Meia de estudante",
+        "icone": "🎒",
+        "resumo": "Na Linha Sul e em Sobral, com o cartão do Metrofor. Renove todo ano.",
+        "link": "https://www.ce.gov.br/metrofor/meia-passagem-estudantil/",
+        "avisos": [],
+        "secoes": [
+          {
+            "titulo": "Como funciona",
+            "quadros": [
+              {
+                "titulo": "Linha Sul e VLT de Sobral",
+                "texto": "Só com o cartão do estudante do Metrofor. A carteira de estudante sozinha não libera a meia na catraca."
+              },
+              {
+                "titulo": "Linha Oeste e VLT do Cariri",
+                "texto": "Mostre a carteira de estudante na bilheteria."
+              }
+            ]
+          },
+          {
+            "titulo": "Onde tirar o cartão",
+            "itens": [
+              "Fortaleza: estação Parangaba ou Benfica, de segunda a sexta, das 8h às 17h (fecha no almoço)",
+              "Sobral: estação Campo dos Velhos, Boulevard do Arco ou José Euclides, de segunda a sábado, das 5h às 23h"
+            ]
+          },
+          {
+            "titulo": "O que levar",
+            "itens": [
+              "Carteira de estudante (ou Bilhete Único de estudante)",
+              "Documento com foto"
+            ]
+          },
+          {
+            "titulo": "Bom saber",
+            "itens": [
+              "O cartão fica pronto em 10 dias úteis. Volte ao mesmo lugar para buscar.",
+              "Renove todo ano, com a carteira de estudante nova. Sem renovar, a meia para.",
+              "Ponha créditos na bilheteria. Eles não vencem.",
+              "Vale um embarque a cada 30 minutos."
+            ]
+          }
+        ]
+      },
+      {
+        "titulo": "Gratuidade",
+        "icone": "🤝",
+        "resumo": "Idosos a partir de 65 anos, crianças até 7, pessoas com deficiência e outros.",
+        "link": "https://www.ce.gov.br/metrofor/gratuidades/",
+        "secoes": [
+          {
+            "titulo": "Só mostrar o documento",
+            "quadros": [
+              {
+                "titulo": "Idosos a partir de 65 anos",
+                "texto": "RG, carteira de trabalho ou CNH"
+              },
+              {
+                "titulo": "Crianças até 7 anos",
+                "texto": "Certidão de nascimento ou RG"
+              },
+              {
+                "titulo": "Policiais, bombeiros e outros",
+                "texto": "Policiais federais, civis, militares e penais, bombeiros militares, guardas municipais de Fortaleza, Maracanaú e Pacatuba, agentes de defesa civil, oficiais de justiça e inspetores do trabalho: carteira funcional. Carteiros: só fardados."
+              }
+            ]
+          },
+          {
+            "titulo": "Precisa do Cartão Gratuidade do Metrofor",
+            "quadros": [
+              {
+                "titulo": "Pessoas com deficiência, autismo, HIV ou hemofilia, de baixa renda",
+                "texto": "Tire na estação Benfica ou Parangaba, de segunda a sexta, das 8h às 17h (fecha no almoço). Leve documento com foto, CPF, comprovante de endereço e o cartão gratuidade da Etufor (Prefeitura de Fortaleza) ou o Passe Livre Intermunicipal. Fica pronto em 10 dias úteis."
+              }
+            ]
+          }
+        ],
+        "alerta": "Declaração não vale. Perdeu o cartão? A 2ª via custa 5 meias (R$ 9,00) e, até ficar pronta, paga-se a passagem inteira.",
+        "nota": "Cartão da Etufor ou da Arce vermelho, ou escrito \"acompanhante\": o acompanhante também entra de graça."
+      },
+      {
+        "titulo": "Procurando emprego",
+        "icone": "💼",
+        "resumo": "VaiVem Livre: 40 passagens grátis por mês.",
+        "texto": "O VaiVem Livre, do Governo do Ceará, dá 40 passagens grátis por mês para quem está procurando emprego. Vale no metrô da Linha Sul, no VLT da Linha Oeste e também nos ônibus e vans.",
+        "link": "https://www.ce.gov.br/metrofor/2025/05/27/pessoas-procurando-trabalho-podem-usar-metro-e-vlt-de-graca-saiba-como/",
+        "secoes": [
+          {
+            "titulo": "Quem tem direito",
+            "itens": [
+              "Mais de 18 anos e sem emprego",
+              "Mora na Região Metropolitana de Fortaleza",
+              "Procura emprego em outra cidade da região (por exemplo, mora em Maracanaú e procura em Fortaleza)"
+            ]
+          },
+          {
+            "titulo": "Onde se cadastrar",
+            "itens": [
+              "Numa unidade do IDT (o Sine do Ceará)",
+              "No Centro de Fortaleza, Antônio Bezerra, Messejana ou Maracanaú, o cartão sai na hora. Nas outras unidades, chega pelos Correios."
+            ]
+          },
+          {
+            "titulo": "O que levar",
+            "itens": [
+              "RG, CPF e carteira de trabalho (pode ser a digital)"
+            ]
+          }
+        ],
+        "nota": "A Linha Nordeste já é grátis para todo mundo, sem cartão."
+      }
+    ],
+    "inteira": {
+      "titulo": "Paga inteira na Linha Sul?",
+      "texto": "Peça o Cartão Múltiplo com seu nome pelo site do Metrofor. Se perder o cartão, não perde o saldo. Ele fica pronto em até 10 dias úteis, para buscar em Benfica ou Parangaba.",
+      "botao": "Pedir no site do Metrofor",
+      "link": "https://servicos.metrofor.ce.gov.br/servicos/cartao-multiplo/cadastrar"
+    }
   }
 }
