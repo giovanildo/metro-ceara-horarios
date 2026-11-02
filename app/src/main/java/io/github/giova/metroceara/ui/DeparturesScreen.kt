@@ -67,6 +67,7 @@ import io.github.giova.metroceara.data.nowMinutes
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import io.github.giova.metroceara.data.SettingsStore
+import io.github.giova.metroceara.data.Mobility
 import io.github.giova.metroceara.data.LeaveStore
 import io.github.giova.metroceara.data.LeaveAlert
 import androidx.compose.ui.platform.LocalContext
@@ -101,6 +102,7 @@ fun DeparturesScreen(
     isPinned: Boolean,
     onTogglePin: () -> Unit,
     onOpenFareGuide: () -> Unit,
+    onOpenAccess: () -> Unit,
     onBack: () -> Unit,
 ) {
     // A aba é da estação: ao abrir outra, volta para o sentido pedido (ou o primeiro).
@@ -222,7 +224,8 @@ fun DeparturesScreen(
                 val info = Regras.current.station(stop.id, stop.name)
                 val address = info?.address
                 val fare = Regras.current.fare(route.name)
-                if (address != null || fare != null || info?.notice != null) {
+                val wheelchair = SettingsStore.get(context).mobility == Mobility.WHEELCHAIR
+                if (address != null || fare != null || info?.notice != null || info?.access != null || wheelchair) {
                     item {
                         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             listOfNotNull(address, fare?.let { stringResource(R.string.station_fare, it) }).forEach {
@@ -255,6 +258,7 @@ fun DeparturesScreen(
                                     color = MaterialTheme.colorScheme.primary,
                                 )
                             }
+                            StationAccessLine(info?.access, wheelchair, onOpen = onOpenAccess)
                         }
                     }
                 }

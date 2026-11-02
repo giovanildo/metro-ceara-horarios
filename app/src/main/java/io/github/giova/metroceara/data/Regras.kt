@@ -19,7 +19,39 @@ data class StationInfo(
     val underground: Boolean = false,
     /** Aviso livre do regras.json, mostrado na tela da estação abaixo da passagem. */
     val notice: String? = null,
+    /** Elevador, rampa e escada; null quando ainda não temos os dados da estação. */
+    val access: StationAccess? = null,
 )
+
+/**
+ * O que a estação tem para chegar à plataforma, segundo o Metrofor: quantos
+ * elevadores, escadas rolantes, rampas, escadas fixas e plataformas elevatórias
+ * (a que sobe a escada com a cadeira de rodas, ligada por um funcionário).
+ */
+data class StationAccess(
+    val elevators: Int,
+    val escalators: Int,
+    val ramps: Int,
+    val stairs: Int,
+    val lifts: Int = 0,
+) {
+    /** Como uma cadeira de rodas chega à plataforma. */
+    val way: AccessWay get() = when {
+        elevators > 0 -> AccessWay.ELEVATOR
+        lifts > 0 -> AccessWay.LIFT
+        ramps > 0 -> AccessWay.RAMP
+        else -> AccessWay.STAIRS_ONLY
+    }
+}
+
+enum class AccessWay {
+    ELEVATOR,
+    /** Sem elevador: plataforma elevatória, pedida na bilheteria. */
+    LIFT,
+    RAMP,
+    /** Só escada: precisa da ajuda de um funcionário. */
+    STAIRS_ONLY,
+}
 
 /**
  * Um dia de operação especial anunciado numa notícia do Metrofor (feriado, ENEM,
@@ -201,6 +233,15 @@ class Regras(
                         lon = position?.getDouble(1),
                         underground = s.optBoolean("subterranea"),
                         notice = s.optString("aviso").trim().takeIf { it.isNotEmpty() },
+                        access = s.optJSONObject("acesso")?.let { a ->
+                            StationAccess(
+                                elevators = a.optInt("elevador"),
+                                escalators = a.optInt("escada_rolante"),
+                                ramps = a.optInt("rampa"),
+                                stairs = a.optInt("escada"),
+                                lifts = a.optInt("plataforma_elevatoria"),
+                            )
+                        },
                     )
                 }
             }.orEmpty()

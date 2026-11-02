@@ -56,6 +56,8 @@ data class RouteView(
     val legs: List<LegView>,
     val transfers: List<TransferView>,
     val warnings: List<String> = emptyList(),
+    /** Informações sem alerta, como os elevadores das estações (cadeira de rodas). */
+    val notes: List<String> = emptyList(),
 ) {
     val originName get() = legs.first().fromName
     val destinationName get() = legs.last().toName
@@ -101,6 +103,7 @@ fun RouteCard(view: RouteView, modifier: Modifier = Modifier, finalWalk: FinalWa
                 Tip(stringResource(R.string.route_tip_same_arrival, vehicleName(view.legs.first().routeName), formatTime(earlier)))
             }
             view.warnings.forEach { Tip(it, warning = true) }
+            view.notes.forEach { Tip(it) }
         }
     }
 }

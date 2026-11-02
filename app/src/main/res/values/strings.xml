@@ -261,7 +261,7 @@
     <string name="mobility_bike">Com bicicleta</string>
     <string name="mobility_bike_desc">1,5 vez o tempo · o roteiro confere a regra de bike de cada linha</string>
     <string name="mobility_wheelchair">Cadeira de rodas ou mobilidade reduzida</string>
-    <string name="mobility_wheelchair_desc">2 vezes o tempo · caminho por elevador e rampa</string>
+    <string name="mobility_wheelchair_desc">2 vezes o tempo · no roteiro, avisa onde não tem elevador</string>
     <string name="settings_transfer_extra">Minutos a mais em toda integração</string>
     <string name="settings_transfer_extra_desc">Somados ao tempo de trocar de linha, para quem prefere ter mais folga.</string>
     <string name="settings_nearby_lines">Mostrar outras linhas até</string>
@@ -415,4 +415,49 @@
     <string name="fare_guide_open_site">Ver no site do Metrofor</string>
     <string name="fare_guide_check_site">Conferir no site do Metrofor</string>
     <string name="fare_guide_cheaper">Pode pagar menos?</string>
+
+    <!-- Acessibilidade da estação (regras.json, "acesso") -->
+    <plurals name="access_elevators">
+        <item quantity="one">%d elevador</item>
+        <item quantity="other">%d elevadores</item>
+    </plurals>
+    <string name="access_summary_escalator">%1$s e escada rolante</string>
+    <string name="access_summary_ramp">Acesso por rampa</string>
+    <string name="access_see_all">ver tudo ›</string>
+    <string name="access_lift_notice">Sem elevador. Para chegar à plataforma há uma plataforma elevatória, ligada por um funcionário. Peça na bilheteria.</string>
+    <string name="access_stairs_notice">Sem elevador nem rampa. Peça ajuda a um funcionário da estação.</string>
+    <string name="access_open">Elevador, rampa e escada ›</string>
+    <string name="access_unknown">Ainda não temos os dados de elevador e rampa desta estação.</string>
+    <string name="access_unknown_tell">Você sabe? Conte pra gente ›</string>
+    <string name="access_title">Acessibilidade</string>
+    <string name="access_elevator">Elevador</string>
+    <string name="access_lift">Plataforma elevatória</string>
+    <string name="access_lift_desc">Sobe a escada com a cadeira de rodas. Um funcionário liga e acompanha: peça na bilheteria.</string>
+    <string name="access_ramp">Rampa</string>
+    <string name="access_stairs">Escada</string>
+    <string name="access_escalator">Escada rolante</string>
+    <string name="access_none">não tem</string>
+    <string name="access_vehicle_title">Dentro do metrô e do VLT</string>
+    <string name="access_vehicle_text">Todos têm espaço para cadeira de rodas, com cinto de segurança.</string>
+    <string name="access_who_title">Quem pode usar o elevador e a plataforma</string>
+    <string name="access_who_text">Pessoa com deficiência ou mobilidade reduzida, idoso, gestante e quem está em situação de fragilidade, como quem leva carrinho de bebê. Os outros vão pela escada.</string>
+    <string name="access_source">Segundo o Metrofor (tabela de 2015). Um elevador pode estar parado para manutenção.</string>
+    <string name="access_tell">Encontrou algo diferente? Conte pra gente ›</string>
+    <string name="access_report_title">O que você encontrou em %1$s?</string>
+    <string name="access_report_text">Ajuda quem vem depois.</string>
+    <string name="access_report_elevator_broken">Elevador parado</string>
+    <string name="access_report_lift_no_staff">Plataforma elevatória sem funcionário</string>
+    <string name="access_report_ramp_blocked">Rampa bloqueada</string>
+    <string name="access_report_wrong">Os dados estão errados</string>
+    <string name="access_report_ok">Está tudo certo</string>
+    <string name="access_report_other">Outra coisa</string>
+    <string name="access_report_whatsapp">Enviar pelo WhatsApp</string>
+    <string name="access_report_email">Enviar por e-mail</string>
+    <string name="access_report_message">Metrô Ceará · acessibilidade da estação %1$s (%2$s): %3$s. </string>
+    <string name="access_report_subject">Acessibilidade: %1$s</string>
+    <string name="route_access_lift">%1$s não tem elevador: peça a plataforma elevatória na bilheteria.</string>
+    <string name="route_access_stairs">%1$s não tem elevador nem rampa: peça ajuda a um funcionário.</string>
+    <string name="route_access_unknown">%1$s: ainda não temos os dados de elevador e rampa.</string>
+    <string name="route_access_lift_short">plataforma elevatória</string>
+    <string name="route_access_ramp_short">rampa</string>
 </resources>

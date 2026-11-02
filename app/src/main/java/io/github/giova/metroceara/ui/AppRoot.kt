@@ -28,6 +28,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.res.stringResource
 import io.github.giova.metroceara.data.Regras
 import io.github.giova.metroceara.data.JourneyPlanner
+import io.github.giova.metroceara.data.AccessWay
 import io.github.giova.metroceara.data.transferRule
 import io.github.giova.metroceara.data.transferMinutes
 import io.github.giova.metroceara.data.nowDayOfWeek
@@ -176,6 +177,7 @@ fun AppRoot() {
     var showAbout by rememberSaveable { mutableStateOf(false) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
     var fareGuideOpen by rememberSaveable { mutableStateOf(false) }
+    var accessOpen by rememberSaveable { mutableStateOf(false) }
     // Sentido em que a tela de horários deve abrir (vindo de uma baldeação).
     var openDirectionId by rememberSaveable { mutableStateOf<Int?>(null) }
     // Toque no widget: abre a tela da estação dele.
@@ -440,6 +442,7 @@ fun AppRoot() {
             showSettings = false
             showAbout = false
             fareGuideOpen = false
+            accessOpen = false
             routeId = route
             stopId = stop
             OpenStationRequest.value = null
@@ -460,6 +463,7 @@ fun AppRoot() {
             showSettings = false
             showAbout = false
             fareGuideOpen = false
+            accessOpen = false
             journeyOpen = true
             JourneyRequest.value = null
         }
@@ -558,7 +562,25 @@ fun AppRoot() {
             }
         }.distinct()
         val walkNote = if (walk > 0) listOf(context.getString(R.string.route_walk_to_origin, legs.first().fromName, walk)) else emptyList()
-        return RouteView(itinerary, legs, transfers, walkNote + warnings)
+        // Com cadeira de rodas, como se chega à plataforma onde se embarca, troca de linha e desce.
+        val access = if (settings.mobility != Mobility.WHEELCHAIR) emptyList() else
+            (listOf(itinerary.legs.first().fromStop) + itinerary.transfers.flatMap { listOf(it.link.fromStop, it.link.toStop) } +
+                itinerary.legs.last().toStop).distinct().mapNotNull { id ->
+                repo.stop(id)?.let { stop -> JourneyPlanner.plainName(stop.name) to Regras.current.station(stop.id, stop.name)?.access }
+            }
+        val accessWarnings = access.mapNotNull { (name, a) ->
+            when (a?.way) {
+                null -> context.getString(R.string.route_access_unknown, name)
+                AccessWay.LIFT -> context.getString(R.string.route_access_lift, name)
+                AccessWay.STAIRS_ONLY -> context.getString(R.string.route_access_stairs, name)
+                else -> null
+            }
+        }.distinct()
+        // Uma linha por estação: na integração, vale a primeira das duas plataformas de mesmo nome.
+        val accessNote = access.distinctBy { it.first }.mapNotNull { (name, a) ->
+            a?.let { accessSummary(context, it) }?.let { "$name: " + it.replaceFirstChar { c -> c.lowercase() } }
+        }.distinct().takeIf { it.isNotEmpty() }?.let { listOf("♿ " + it.joinToString(" · ")) }.orEmpty()
+        return RouteView(itinerary, legs, transfers, walkNote + warnings + accessWarnings, accessNote)
     }
 
     // Os roteiros de [origin] até [target]: saindo agora ([from] null) ou no horário
@@ -806,6 +828,16 @@ fun AppRoot() {
             )
         }
 
+        accessOpen && route != null && stop != null -> {
+            BackHandler { accessOpen = false }
+            AccessScreen(
+                stationName = JourneyPlanner.plainName(stop.name),
+                lineName = route.name,
+                access = Regras.current.station(stop.id, stop.name)?.access,
+                onBack = { accessOpen = false },
+            )
+        }
+
         routineEditing != null -> {
             val (routine, isNew) = routineEditing!!
             BackHandler { routineEditing = null }
@@ -952,6 +984,7 @@ fun AppRoot() {
                     refreshHome()
                 },
                 onOpenFareGuide = { fareGuideOpen = true },
+                onOpenAccess = { accessOpen = true },
                 onBack = { stopId = null },
             )
         }
