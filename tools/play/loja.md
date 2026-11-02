@@ -39,6 +39,7 @@ Que horas passa o próximo metrô? Abra o app e veja a estação mais perto de v
 • Hora de sair: toque num horário e o app avisa na hora certa, mesmo com a tela bloqueada, mostrando quanto falta para a partida.
 • Rotinas: salve o trajeto do dia a dia e o app avisa sozinho nos dias marcados, com os horários do dia (no domingo sem metrô, não avisa).
 • Integração entre linhas: em Parangaba, Chico da Silva e Expedicionários, o próximo metrô ou VLT da outra linha que ainda dá para pegar, e se a integração é paga ou gratuita.
+• Passagem, meia e gratuidade: quanto custa cada linha, quem paga meia ou não paga, onde tirar o cartão e o que levar, conforme o site do Metrofor.
 • Bike no metrô: se dá para embarcar com bicicleta agora, pelas regras do Metrofor, e a estação do Bicicletar mais perto.
 • Horários do dia: a grade do próprio dia, inclusive sábado e operação especial. Sem internet, usa a última guardada.
 
