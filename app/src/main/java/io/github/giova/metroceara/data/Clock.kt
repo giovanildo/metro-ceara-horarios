@@ -22,6 +22,14 @@ fun nowDayOfWeek(): Int =
  */
 fun isSundayToday(): Boolean = nowDayOfWeek() == Calendar.SUNDAY
 
+/**
+ * Domingo sem operação anunciada pelo Metrofor: metrô e VLT normalmente não
+ * circulam, embora o GTFS traga a grade de dia útil. Hoje fica sem partidas e
+ * valem as de segunda; com operação anunciada, vale a grade do dia.
+ */
+fun isSundayWithoutService(): Boolean =
+    isSundayToday() && Regras.current.operations[ScheduleStore.today()] == null
+
 /** Formata minutos desde a meia-noite como `HH:mm`. */
 fun formatTime(minutes: Int): String {
     val normalized = ((minutes % MINUTES_PER_DAY) + MINUTES_PER_DAY) % MINUTES_PER_DAY

@@ -87,9 +87,12 @@ class ScheduleRepository(context: Context) {
         arrayOf(routeId, directionId.toString()),
     ).map { Stop(it.getString(0), it.getString(1), it.getInt(2)) }
 
-    /** Todas as partidas do dia, em minutos desde a meia-noite, já ordenadas. */
+    /**
+     * Todas as partidas do dia, em minutos desde a meia-noite, já ordenadas.
+     * Num domingo sem operação anunciada, nenhuma ([isSundayWithoutService]).
+     */
     fun departures(stopId: String, routeId: String, directionId: Int): List<Int> =
-        departuresIn(db, stopId, routeId, directionId)
+        if (isSundayWithoutService()) emptyList() else departuresIn(db, stopId, routeId, directionId)
 
     /**
      * As partidas de amanhã, pela grade do tipo de dia de amanhã — e não a de

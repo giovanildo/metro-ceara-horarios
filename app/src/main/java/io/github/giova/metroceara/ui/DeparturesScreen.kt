@@ -60,6 +60,7 @@ import io.github.giova.metroceara.data.Stop
 import io.github.giova.metroceara.data.formatTime
 import io.github.giova.metroceara.data.vehicleName
 import io.github.giova.metroceara.data.isSundayToday
+import io.github.giova.metroceara.data.isSundayWithoutService
 import io.github.giova.metroceara.data.minutesUntil
 import io.github.giova.metroceara.data.nextDepartures
 import io.github.giova.metroceara.data.nowMinutes
@@ -109,6 +110,8 @@ fun DeparturesScreen(
     val tomorrow = remember(direction) { direction?.let(tomorrowFor) }
     val next = remember(all, tomorrow, now) { nextDepartures(all, now, NEXT_COUNT, tomorrow) }
     val sunday = remember(now) { isSundayToday() }
+    // Domingo comum: a lista é a de segunda ("Horários de segunda", lembrete para amanhã).
+    val sundayOff = remember(now) { isSundayWithoutService() }
     // Destinos nos dois sentidos — o da aba aberta primeiro. Só o sentido da
     // aba escondia, por exemplo, Carlito Benevides de quem estava na aba
     // "→ Chico da Silva".
@@ -241,6 +244,10 @@ fun DeparturesScreen(
                     item { MetroforNotices(listOf(ScheduleStore.Notice(operation.title, operation.link, tomorrow = false))) }
                 } else if (sunday) {
                     item { SundayNotice() }
+                    // Os horários mostrados são os de segunda: vale também a notícia de amanhã.
+                    Regras.current.operations[ScheduleStore.tomorrow()]?.let { next ->
+                        item { MetroforNotices(listOf(ScheduleStore.Notice(next.title, next.link, tomorrow = true))) }
+                    }
                 }
                 if (Regras.current.stopped(day, route.name)) {
                     item { SundayNotice(text = stringResource(R.string.line_stopped_today)) }
@@ -258,8 +265,11 @@ fun DeparturesScreen(
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(
                                 stringResource(
-                                    if (direction?.published == false) R.string.direction_unpublished
-                                    else R.string.no_more_today,
+                                    when {
+                                        direction?.published == false -> R.string.direction_unpublished
+                                        sundayOff -> R.string.no_departures_today
+                                        else -> R.string.no_more_today
+                                    },
                                 ),
                             )
                             direction?.let { d ->
@@ -294,7 +304,7 @@ fun DeparturesScreen(
                     }
                     item {
                         Text(
-                            text = stringResource(R.string.leave_hint),
+                            text = stringResource(if (sundayOff) R.string.leave_hint_monday else R.string.leave_hint),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -346,18 +356,23 @@ fun DeparturesScreen(
                     }
                 }
 
-                item {
-                    Text(
-                        text = stringResource(R.string.all_departures),
-                        style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier.padding(top = 8.dp),
-                    )
-                }
-                item {
-                    AllDepartures(
-                        all, now,
-                        onPick = { m: Int -> reminder = Departure(m, tomorrow = false) },
-                    )
+                val monday = if (sundayOff) tomorrow.orEmpty() else emptyList()
+                if (!sundayOff || monday.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = stringResource(if (sundayOff) R.string.monday_departures else R.string.all_departures),
+                            style = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.padding(top = 8.dp),
+                        )
+                    }
+                    item {
+                        if (sundayOff) {
+                            // Todos de amanhã, nenhum passou: o "agora" é a meia-noite.
+                            AllDepartures(monday, now = 0, onPick = { m: Int -> reminder = Departure(m, tomorrow = true) })
+                        } else {
+                            AllDepartures(all, now, onPick = { m: Int -> reminder = Departure(m, tomorrow = false) })
+                        }
+                    }
                 }
 
                 item {

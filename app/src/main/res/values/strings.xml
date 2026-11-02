@@ -7,6 +7,8 @@
     <string name="next_departures">Próximas partidas</string>
     <string name="all_departures">Todos os horários</string>
     <string name="no_more_today">Sem mais partidas hoje neste sentido.</string>
+    <string name="no_departures_today">Sem partidas hoje neste sentido.</string>
+    <string name="monday_departures">Horários de segunda</string>
     <string name="tomorrow">amanhã</string>
     <string name="now">agora</string>
     <string name="in_minutes">em %1$d min</string>
@@ -65,7 +67,7 @@
     <string name="bike_boarding_not_today">Hoje não há embarque com bike no %1$s</string>
     <string name="bike_boarding_no_more_today">Não há mais horário hoje para embarcar com bike no %1$s</string>
 
-    <string name="sunday_warning">Aos domingos o metrô e os VLTs normalmente não circulam. Em dias de operação especial (eleição, ENEM, eventos), os horários podem ser diferentes destes.</string>
+    <string name="sunday_warning">Aos domingos o metrô e os VLTs normalmente não circulam, só em operação especial (eleição, ENEM, eventos). Os horários mostrados são os de segunda. Se houver operação especial hoje, o Metrofor publica os horários nas notícias.</string>
 
     <string name="schedule_syncing">Baixando os horários de hoje do Metrofor…</string>
     <string name="schedule_today">Horários de hoje, baixados do Metrofor às %1$s.</string>
@@ -309,6 +311,7 @@
     <string name="dev_cloud_sending">Copiando para a pasta…</string>
     <string name="dev_cloud_stop">Parar de copiar</string>
     <string name="leave_hint">Toque em qualquer horário de hoje (aqui ou em \"Todos os horários\", mais abaixo) para criar um lembrete na agenda.</string>
+    <string name="leave_hint_monday">Toque em qualquer horário (aqui ou em \"Horários de segunda\", mais abaixo) para criar um lembrete na agenda.</string>
     <string name="leave_title">Lembrar na agenda</string>
     <string name="leave_text">O %1$s sai às %2$s de %3$s.</string>
     <string name="leave_text_tomorrow">Amanhã, o %1$s sai às %2$s de %3$s.</string>
