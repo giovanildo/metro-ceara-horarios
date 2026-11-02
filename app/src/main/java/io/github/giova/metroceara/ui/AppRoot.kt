@@ -58,7 +58,6 @@ import io.github.giova.metroceara.data.LocationSource
 import io.github.giova.metroceara.data.MetroforDatabase
 import io.github.giova.metroceara.data.PinnedStation
 import io.github.giova.metroceara.data.ScheduleRepository
-import io.github.giova.metroceara.data.ScheduleSource
 import io.github.giova.metroceara.data.ScheduleStore
 import io.github.giova.metroceara.data.Station
 import io.github.giova.metroceara.data.nearestBikeTo
@@ -796,7 +795,6 @@ fun AppRoot() {
                         HomeStationCard(
                             state = homeState,
                             departures = homeDepartures,
-                            scheduleIsToday = repo.source.kind == ScheduleSource.Kind.TODAY,
                             now = now,
                             onUseLocation = {
                                 if (locationSource.hasPermission()) {
@@ -812,7 +810,6 @@ fun AppRoot() {
                             HomeStationCard(
                                 state = HomeStation.Nearby(station, distance, nearby.userLat, nearby.userLon),
                                 departures = otherDepartures.getOrElse(i) { emptyList() },
-                                scheduleIsToday = repo.source.kind == ScheduleSource.Kind.TODAY,
                                 now = now,
                                 onUseLocation = {},
                                 onOpenStation = ::openStation,

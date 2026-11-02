@@ -49,7 +49,6 @@ import kotlin.math.roundToInt
 fun HomeStationCard(
     state: HomeStation,
     departures: List<HomeDeparture>,
-    scheduleIsToday: Boolean,
     now: Int,
     onUseLocation: () -> Unit,
     onOpenStation: (Station) -> Unit,
@@ -86,7 +85,6 @@ fun HomeStationCard(
                 subtitle = stringResource(R.string.home_distance, formatDistance(state.distanceMeters)),
                 icon = Icons.Filled.MyLocation,
                 departures = departures,
-                scheduleIsToday = scheduleIsToday,
                 now = now,
                 onRefresh = onUseLocation.takeIf { showRefresh },
                 onClick = { onOpenStation(state.station) },
@@ -97,7 +95,6 @@ fun HomeStationCard(
                 subtitle = stringResource(R.string.home_your_station),
                 icon = Icons.Filled.Star,
                 departures = departures,
-                scheduleIsToday = scheduleIsToday,
                 now = now,
                 onRefresh = null,
                 onClick = { onOpenStation(state.station) },
@@ -135,7 +132,6 @@ private fun StationSummary(
     subtitle: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     departures: List<HomeDeparture>,
-    scheduleIsToday: Boolean,
     now: Int,
     onRefresh: (() -> Unit)?,
     onClick: () -> Unit,
@@ -222,13 +218,14 @@ private fun StationSummary(
                     )
                 }
             }
-            // No domingo há só operação especial: sem regra de bike anunciada para o
-            // dia, o aviso diz que não se sabe (com a grade do dia; sem ela, já há o
-            // aviso de domingo). Sem mais partidas hoje, "pode embarcar" não faria sentido.
+            // No domingo há só operação especial: com ela anunciada mas sem regra de bike,
+            // o aviso diz que não se sabe; sem operação anunciada, já há o aviso de domingo
+            // (a grade de domingo comum vem igual à de dia útil). Sem mais partidas hoje,
+            // "pode embarcar" não faria sentido.
             val runningToday = departures.any { it.departure?.tomorrow == false }
             val bikeRule = bikeRuleFor(station.stopName, station.routeName)
             val known = !sunday || bikeRule?.special == true
-            if (runningToday && !stopped && bikeRule != null && (known || scheduleIsToday)) {
+            if (runningToday && !stopped && bikeRule != null && (known || Regras.current.operations[day] != null)) {
                 BikeBoardingNotice(
                     rule = remember(now, bikeRule, known) {
                         if (known) bikeBoarding(bikeRule, nowDayOfWeek(), now) else BikeBoarding.UNKNOWN

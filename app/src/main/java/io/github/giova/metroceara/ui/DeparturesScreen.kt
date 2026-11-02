@@ -135,9 +135,10 @@ fun DeparturesScreen(
             onDismiss = { pickingDestination = false },
         )
     }
-    // No domingo há só operação especial: sem regra de bike anunciada para o dia,
-    // o aviso diz que não se sabe (com a grade do dia; sem ela, já há o aviso de
-    // domingo). Sem mais partidas hoje nesta estação, não há o que embarcar.
+    // No domingo há só operação especial: com ela anunciada mas sem regra de bike,
+    // o aviso diz que não se sabe; sem operação anunciada, já há o aviso de domingo
+    // (a grade de domingo comum vem igual à de dia útil, então ter a grade do dia não
+    // indica operação). Sem mais partidas hoje nesta estação, não há o que embarcar.
     val runningToday = remember(directions, now) {
         directions.any { d -> departuresFor(d).any { it >= now } }
     }
@@ -145,7 +146,7 @@ fun DeparturesScreen(
         bikeRuleFor(stop.name, route.name)?.takeIf { runningToday }?.let { rule ->
             when {
                 !sunday || rule.special -> bikeBoarding(rule, nowDayOfWeek(), now)
-                schedule.kind == ScheduleSource.Kind.TODAY -> BikeBoarding.UNKNOWN
+                Regras.current.operations[ScheduleStore.today()] != null -> BikeBoarding.UNKNOWN
                 else -> null
             }
         }

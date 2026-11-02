@@ -394,9 +394,10 @@ function avisoBike(linha, stopId, t) {
   if (!janelas) return "";
   const v = veiculo(linha.nome);
   if (t.diaSemana === 0 && !janelas.especial) {
-    // Domingo é só operação especial: sem regra anunciada, não se sabe (com a grade do dia;
-    // sem ela, já há o aviso de domingo).
-    return grade.data === t.data
+    // Domingo é só operação especial: com ela anunciada mas sem regra de bike, não se sabe;
+    // sem operação anunciada, já há o aviso de domingo (a grade de domingo comum vem igual
+    // à de dia útil, então ter a grade do dia não indica operação).
+    return regras?.operacoes?.[t.data]
       ? `<p class="bike">🚲 Operação especial: o Metrofor não informou se dá para embarcar com bike hoje</p>` : "";
   }
   const b = bikeAgora(janelas, t.minutos);
