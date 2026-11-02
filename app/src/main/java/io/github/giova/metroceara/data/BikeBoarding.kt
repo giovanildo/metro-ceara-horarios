@@ -18,6 +18,8 @@ data class BikeRule(
     val sunday: List<BikeWindow> = emptyList(),
     /** Regra de um dia especial (feriado, ENEM, eleição): vale até no domingo. */
     val special: Boolean = false,
+    /** Quantas bikes cabem por viagem; acima disso, espera o próximo trem. */
+    val perTrip: Int? = null,
 ) {
     fun windowsFor(dayOfWeek: Int): List<BikeWindow> = when (dayOfWeek) {
         Calendar.SATURDAY -> saturday
@@ -38,7 +40,7 @@ fun bikeRuleFor(stationName: String, lineName: String, today: String = ScheduleS
     val normal = rules.bikeByStation[stationName.trim().lowercase()] ?: rules.bikeByLine[line]
     val special = rules.bikeSpecialDays[today]?.takeIf { normal != null && (it.lines.isEmpty() || line in it.lines) }
         ?: return normal
-    return BikeRule(special.windows, special.windows, special.windows, special = true)
+    return BikeRule(special.windows, special.windows, special.windows, special = true, perTrip = normal?.perTrip)
 }
 
 /**

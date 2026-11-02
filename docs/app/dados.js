@@ -236,6 +236,7 @@ export function janelasBike(regras, nomeEstacao, nomeLinha, diaSemana, data) {
   const janelas = lista.map(([ini, fim]) => ({ ini: minDe(ini), fim: fim == null ? null : minDe(fim) }))
     .sort((a, b) => a.ini - b.ini);
   janelas.especial = Boolean(vale);
+  janelas.porViagem = reg.limite_por_viagem || null;
   return janelas;
 }
 

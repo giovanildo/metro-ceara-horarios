@@ -2,16 +2,20 @@
   "_sobre": "Regras do Metrofor que não vêm no GTFS. Fonte única: o app Android, o tools/build_db.py e a versão web leem daqui. Mudou uma regra? Edite este arquivo e gere uma versão nova. Nomes de estação e de linha como aparecem no app; maiúsculas e minúsculas não importam.",
 
   "bike": {
-    "_sobre": "Janelas em que dá para entrar com bicicleta, por tipo de dia. [\"09:00\", \"15:00\"] = das 9h às 15h; [\"20:00\", null] = das 20h até o fim da operação. Lista vazia = sem bike. Linha que não aparece aqui (Oeste e VLT do Cariri) não tem aviso de bike.",
+    "_sobre": "Janelas em que dá para entrar com bicicleta, por tipo de dia. [\"09:00\", \"15:00\"] = das 9h às 15h; [\"20:00\", null] = das 20h até o fim da operação. Lista vazia = sem bike. Linha que não aparece aqui (Oeste e VLT do Cariri) não tem aviso de bike. \"limite_por_viagem\" e \"proibidas\" aparecem numa segunda linha do aviso, na tela da estação, quando dá para embarcar com bike hoje.",
+    "proibidas": "Bike elétrica ou de carga não pode.",
+    "_fonte_proibidas": "Regulamento de bikes do Metrofor (2023): bicicletas cargueiras, motorizadas ou bikes comuns com cargas acopladas não podem circular dentro do metrô. Guia do Passageiro: bicicletas elétricas e de carga entre os volumes não autorizados.",
     "regulamentos": {
       "metrofor-2023": {
-        "_fonte": "Regulamento 'Bike é bem-vinda no metrô' (Metrofor, 2023): segunda a sexta das 9h às 15h e a partir das 20h; sábado a partir das 15h; domingo não aparece.",
+        "_fonte": "Regulamento 'Bike é bem-vinda no metrô' (Metrofor, 2023): segunda a sexta das 9h às 15h e a partir das 20h; sábado a partir das 15h; domingo não aparece. Até 4 bicicletas por viagem; acima disso, espera o próximo trem (regulamento; notícias de 06/10/2022, 14/03/2023 e 21/03/2024).",
+        "limite_por_viagem": 4,
         "dias_uteis": [["09:00", "15:00"], ["20:00", null]],
         "sabado": [["15:00", null]],
         "domingo": []
       },
       "vlt-sobral-2025": {
-        "_fonte": "Notícia do Metrofor 'Embarque com bicicleta no metrô e VLT promove sustentabilidade e economia' (19/08/2025): no VLT de Sobral, segunda a sexta das 9h às 16h30 e das 19h às 23h; sábado a partir das 13h; 2 bikes por viagem em cada linha.",
+        "_fonte": "Notícia do Metrofor 'Embarque com bicicleta no metrô e VLT promove sustentabilidade e economia' (19/08/2025): no VLT de Sobral, segunda a sexta das 9h às 16h30 e das 19h às 23h; sábado a partir das 13h; 2 bikes por viagem em cada linha (o mesmo limite da notícia de 10/02/2020).",
+        "limite_por_viagem": 2,
         "dias_uteis": [["09:00", "16:30"], ["19:00", "23:00"]],
         "sabado": [["13:00", null]],
         "domingo": []

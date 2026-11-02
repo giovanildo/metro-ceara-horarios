@@ -405,6 +405,15 @@ especial: o Metrofor não informou se dá para embarcar com bike hoje", em vez d
 calar. Num domingo comum, só fica o aviso de domingo: a grade do dia não serve
 de sinal de operação (o feed de domingo comum vem igual ao de dia útil).
 
+Na tela da estação (app e lite), quando dá para embarcar com bike hoje (agora
+ou mais tarde), o aviso ganha uma segunda linha: **"Até 4 bikes por viagem.
+Bike elétrica ou de carga não pode."** (2 no VLT de Sobral). Sem ela, quem tem
+bike elétrica lia "Pode embarcar com bike agora" e ia até a estação à toa. O
+limite vem do regulamento e das notícias (Sul e Nordeste: 4, desde 2022;
+Sobral: 2, em 2020 e 2025), em `limite_por_viagem` de cada regulamento; a
+proibição vem do regulamento (cargueiras, motorizadas ou com carga presa) e do
+Guia do Passageiro, em `bike.proibidas`.
+
 **Feriados e dias especiais.** Nas operações especiais, o Metrofor anuncia em
 notícia a regra da bike do dia: nos feriados, "nas linhas Sul e Nordeste, o
 embarque com bicicletas estará liberado entre 9h e 15h"; nos domingos do ENEM e

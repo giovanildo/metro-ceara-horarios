@@ -75,6 +75,8 @@ class Regras(
     val fareLines: List<Pair<String, String>> = emptyList(),
     /** Meia, gratuidade e onde tirar o cartão; sem a seção no arquivo, o app não mostra o guia. */
     val fareGuide: FareGuide? = null,
+    /** As bikes que não entram em horário nenhum ("Bike elétrica ou de carga não pode."). */
+    val bikeForbidden: String? = null,
 ) {
     /** A partida cai num horário de pico (metrô costuma ir cheio)? */
     fun isPeak(minutes: Int): Boolean = peak.any { minutes in it }
@@ -145,6 +147,7 @@ class Regras(
                         weekday = windows(o.getJSONArray("dias_uteis")),
                         saturday = windows(o.getJSONArray("sabado")),
                         sunday = windows(o.optJSONArray("domingo") ?: JSONArray()),
+                        perTrip = o.optInt("limite_por_viagem").takeIf { it > 0 },
                     )
                 }
             }
@@ -238,6 +241,7 @@ class Regras(
                 lineColors = colors,
                 fareLines = fareLines,
                 fareGuide = fareGuide,
+                bikeForbidden = bike.optString("proibidas").trim().takeIf { it.isNotEmpty() },
             )
         }
 

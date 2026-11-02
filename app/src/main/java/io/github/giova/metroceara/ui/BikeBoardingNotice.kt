@@ -1,5 +1,6 @@
 package io.github.giova.metroceara.ui
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -18,9 +19,12 @@ import io.github.giova.metroceara.R
 import io.github.giova.metroceara.data.BikeBoarding
 import io.github.giova.metroceara.data.formatTime
 
-/** Uma linha dizendo se dá para levar a bicicleta no trem agora. */
+/**
+ * Uma linha dizendo se dá para levar a bicicleta no trem agora e, se vier [rules]
+ * (limite por viagem, bikes proibidas), uma segunda linha com elas.
+ */
 @Composable
-fun BikeBoardingNotice(rule: BikeBoarding, vehicle: String, modifier: Modifier = Modifier) {
+fun BikeBoardingNotice(rule: BikeBoarding, vehicle: String, modifier: Modifier = Modifier, rules: String? = null) {
     val text = when {
         rule.unknown -> stringResource(R.string.bike_boarding_unknown)
         rule.allowed && rule.boundary != null ->
@@ -36,7 +40,8 @@ fun BikeBoardingNotice(rule: BikeBoarding, vehicle: String, modifier: Modifier =
     } else {
         MaterialTheme.colorScheme.onSurfaceVariant
     }
-    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+    Column(modifier = modifier) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
             imageVector = Icons.AutoMirrored.Filled.DirectionsBike,
             contentDescription = null,
@@ -50,5 +55,14 @@ fun BikeBoardingNotice(rule: BikeBoarding, vehicle: String, modifier: Modifier =
             color = color,
             modifier = Modifier.padding(start = 8.dp),
         )
+    }
+    rules?.let {
+        Text(
+            text = it,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 24.dp, top = 2.dp),
+        )
+    }
     }
 }

@@ -342,7 +342,18 @@ fun DeparturesScreen(
                 }
 
                 if (bikeRule != null) {
-                    item { BikeBoardingNotice(bikeRule, vehicle = vehicleName(route.name)) }
+                    item {
+                        // Dá para embarcar com bike hoje: o limite por viagem e as bikes que não entram.
+                        val rules = if (bikeRule.allowed || bikeRule.boundary != null) {
+                            listOfNotNull(
+                                bikeRuleFor(stop.name, route.name)?.perTrip?.let { stringResource(R.string.bike_per_trip, it) },
+                                Regras.current.bikeForbidden,
+                            ).joinToString(" ").ifEmpty { null }
+                        } else {
+                            null
+                        }
+                        BikeBoardingNotice(bikeRule, vehicle = vehicleName(route.name), rules = rules)
+                    }
                 }
 
                 // Baldeação: o primeiro trem da outra linha que ainda dá para pegar a pé.

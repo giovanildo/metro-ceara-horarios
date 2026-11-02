@@ -567,7 +567,11 @@ function avisoBike(linha, stopId, t) {
     ? (b.limite != null ? `Pode embarcar com bike no ${v} agora, até as ${hora(b.limite)}` : `Pode embarcar com bike no ${v} agora, até o fim da operação`)
     : b.limite != null ? `Bike no ${v} só a partir das ${hora(b.limite)}`
       : janelas.length ? `Não há mais horário hoje para embarcar com bike no ${v}` : `Hoje não há embarque com bike no ${v}`;
-  return `<p class="bike">🚲 ${texto}</p>`;
+  // Dá para embarcar com bike hoje: o limite por viagem e as bikes que não entram.
+  const extra = b.pode || b.limite != null
+    ? [janelas.porViagem && `Até ${janelas.porViagem} bikes por viagem.`, regras?.bike?.proibidas].filter(Boolean).join(" ")
+    : "";
+  return `<p class="bike">🚲 ${texto}${extra ? `<br><span class="dica">${esc(extra)}</span>` : ""}</p>`;
 }
 
 /** O próximo metrô/VLT da outra linha que ainda dá para pegar a pé, e a passagem. */
