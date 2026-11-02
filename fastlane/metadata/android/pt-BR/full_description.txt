@@ -6,12 +6,13 @@
 <ul>
 <li><b>Horários do dia:</b> a grade do próprio dia publicada pelo Metrofor, incluindo sábado e operações especiais (eleição, ENEM). Sem internet, usa a última grade guardada.</li>
 <li><b>Estação mais próxima:</b> pelo GPS, mostrando todas as linhas que passam a até 3 km de você. Ou fixe a sua estação pela estrela.</li>
+<li><b>Para onde você vai?:</b> escolha o destino e veja o roteiro, na mesma linha ou com integração, saindo agora ou no horário que você escolher. Num domingo sem operação, mostra o roteiro de segunda.</li>
 <li><b>Modo viagem:</b> escolha o destino e o app acompanha a viagem com a tela desligada, pelo GPS e, sem sinal, pela tabela de horários (avisando quando a posição é presumida). Avisa duas estações antes do destino, com som opcional e voz dizendo o nome de cada estação.</li>
 <li><b>Lembrete na agenda:</b> toque num horário de qualquer estação e o app cria o lembrete na agenda do celular, avisando quanto tempo antes você quiser.</li>
 <li><b>Integração entre linhas:</b> o próximo metrô ou VLT da outra linha que ainda dá para pegar, e se a integração é paga.</li>
 <li><b>Bicicletar:</b> a estação mais próxima de você ou da estação de metrô.</li>
 <li><b>Bike no metrô e VLT:</b> diz se dá para embarcar com bicicleta agora, pelas regras do Metrofor.</li>
-<li><b>Aviso de domingo:</b> metrô e VLT normalmente não circulam aos domingos.</li>
+<li><b>Aviso de domingo:</b> metrô e VLT normalmente não circulam aos domingos; o app mostra os horários de segunda.</li>
 </ul>
 
 <p><b>Privacidade:</b> sem anúncios, sem rastreadores, sem conta. A localização só é usada no aparelho. A internet serve apenas para baixar os horários publicados pelo Metrofor.</p>

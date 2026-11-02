@@ -63,7 +63,8 @@ terminais, só o sentido em que dá para partir (o que termina ali só teria
 chegadas). A tela de horários de um terminal também mostra só esse sentido. Pelo
 GPS, se houver estações de **outras linhas a até 3 km**, cada linha ganha seu
 cartão (por exemplo, Chico da Silva na Linha Sul e Moura Brasil na Oeste, a
-~200 m uma da outra), e o modo viagem oferece todas como ponto de partida. A
+~200 m uma da outra). A busca **"Para onde você vai?"**, no topo, sai da estação
+em destaque ([abaixo](#para-onde-você-vai-roteiro-na-mesma-linha-ou-com-integração)). A
 estação em destaque pode vir de duas fontes:
 
 - **A mais próxima de você**, o que exige `ACCESS_FINE_LOCATION`. A permissão só
@@ -123,24 +124,40 @@ opcional:
 Sem regra (`UNKNOWN`) o app não fala de passagem, para não informar errado.
 Quando a Nordeste começar a cobrar, basta trocar a entrada que cita o motivo.
 
-### Roteiro com integração (destino em outra linha)
+### "Para onde você vai?" (roteiro na mesma linha ou com integração)
 
-No **Iniciar** do modo viagem, a lista "Para qual estação você vai?" tem uma
-**busca** pelo nome ("bor" → Borges de Melo) e, abaixo das linhas em que a
-pessoa já está, um grupo fechado para cada linha que só se alcança com
-integração ("Linha Nordeste · 10 estações · integração em Parangaba ▾").
-O app escolhe o sentido sozinho, e cada estação mostra a chegada prevista
-("chega ~08:40"). Ao escolher uma estação de outra linha, abre o **roteiro**:
+O jeito de ir de uma estação a outra é um só, como num app de corrida: uma barra
+**"Para onde você vai?"** no topo da tela inicial abre a tela **Sua viagem**
+([`ui/JourneyScreen.kt`](app/src/main/java/io/github/giova/metroceara/ui/JourneyScreen.kt)).
+A tela de cada estação tem o botão **"Ir daqui para outra estação"**, que abre a
+mesma tela saindo dali.
 
-- cada trecho na cor da linha ("07:53 Benfica · Metrô da Linha Sul, sentido
-  Carlito Benevides. Desça em Parangaba às 08:01.");
-- a integração com o tempo de troca da pessoa, a passagem e um selo: **Dá
-  tempo** ou **Integração justa** (sobra 1 minuto ou menos). Na justa, o roteiro
-  diz quando sai o próximo, caso ela perca;
-- a chegada, a dica "o metrô das 07:40 chega no mesmo horário, mas espera
-  mais na integração" e os avisos de bike;
-- **Outros horários**: um roteiro por horário de chegada, para quem vai sair
-  depois.
+- **De:** já vem com a estação em destaque (GPS ou fixada) ou com a estação de
+  onde a pessoa veio. Tocar troca, numa lista de todas as estações com busca.
+- **Para:** busca sem acento ("anto" acha Antônio Sales e Antônio Bezerra) numa
+  lista por linha, com o caminho no título ("Linha Sul · mesma linha", "Linha
+  Nordeste · integração em Parangaba", "VLT Aeroporto · 2 integrações") e a
+  chegada de quem sai agora ("chega 13:57"). Linhas que não se alcançam da
+  origem ficam de fora; linha que o Metrofor avisou que não circula aparece
+  apagada ("não circula hoje").
+- **Resultado**, numa folha que sobe por baixo:
+  - **Sair agora** ou **Escolher horário** (relógio de 24 h; "Sair às 17:30");
+  - o **roteiro**: cada trecho na cor da linha ("13:02 Carlito Benevides · Metrô
+    da Linha Sul, sentido Chico da Silva. Desça em Parangaba às 13:26."), a
+    integração com o tempo de troca da pessoa, a passagem e um selo (**Dá
+    tempo** ou **Integração justa**, com o próximo caso perca), a chegada, a
+    dica "o metrô das 07:32 chega no mesmo horário, mas espera mais na
+    integração", a caminhada até a estação e os avisos de bike;
+  - **Outros horários**, um roteiro por horário de chegada, em botões;
+  - saindo agora: **Iniciar modo viagem** (perto da estação, até o limite das
+    Configurações). Num trecho só, a viagem começa como sempre (com a oferta
+    de ir sentado pelo terminal); com integração, o roteiro inteiro.
+  - no horário escolhido: **Lembrete na agenda**, para a partida do roteiro.
+- **Domingo sem operação anunciada:** sem modo viagem (não há metrô para
+  acompanhar). O resultado avisa "Hoje é domingo, sem metrô e VLT. Este é o
+  roteiro de segunda", calcula pela grade de segunda (sem as linhas que o
+  Metrofor avisou que param amanhã), começa no **Primeiro horário** e termina
+  em **Lembrete para segunda, 05:30**.
 
 **Como o roteiro é calculado** ([`data/Router.kt`](app/src/main/java/io/github/giova/metroceara/data/Router.kt),
 Kotlin puro, com testes em `app/src/test`). A rede é pequena, com até três
@@ -149,12 +166,13 @@ Expedicionários). O app testa cada trem do primeiro trecho e, em cada
 integração, o primeiro trem que ainda dá para pegar. Entre os que chegam no
 mesmo horário, sugere **o último que sai**, desde que a integração não fique
 justa: saindo do Benfica, o metrô das 07:53 pega o mesmo VLT das 08:10 que o
-das 07:40, com 9 min de espera em vez de 22. As partidas possíveis são as
-estações perto da pessoa a até 10 min a pé, contando essa caminhada. Também
+das 07:40, com 9 min de espera em vez de 22. Saindo agora, conta a caminhada
+da pessoa até a estação de partida (até 3 min, ela já está lá). Também
 conta como integração a estação que serve duas linhas (Campo dos Velhos, em
 Sobral), com 1 min. Uma linha que o Metrofor avisou que não circula hoje fica
-de fora. Sem roteiro possível: "Sem integração para Papicu hoje depois das
-22:19".
+de fora. Sem roteiro possível: "Sem metrô ou VLT para Papicu hoje depois das
+22:19". Num domingo sem operação, o mesmo `Router` roda sobre a grade de amanhã
+(`ScheduleRepository.timetableTomorrow`).
 
 **Tempo de troca de linha**
 ([`data/TransferTime.kt`](app/src/main/java/io/github/giova/metroceara/data/TransferTime.kt)).
@@ -176,7 +194,7 @@ pessoa fica nas **Configurações → Integração**: "Como você se desloca" e
 | Pico (6h–8h e 16h–19h) | +1 min | `pico.integracao_min` |
 | Pico máximo (17h–18h, Relatório de Demanda) | +2 min | `pico.maximo`, `pico.integracao_maximo_min` |
 
-**Na viagem (do começo ao fim, sozinha).** "Iniciar viagem" acompanha o
+**Na viagem (do começo ao fim, sozinha).** "Iniciar modo viagem" acompanha o
 roteiro inteiro, trecho por trecho, sem a pessoa tocar em nada
 ([`data/Journey.kt`](app/src/main/java/io/github/giova/metroceara/data/Journey.kt)
 e `TripService`):
@@ -204,11 +222,14 @@ e `TripService`):
 Os textos usam o artigo certo da linha ("vá para a Linha Nordeste", "o VLT
 Aeroporto") e o singular ("Falta 1 estação").
 
-**Versão lite.** Na tela da estação, "Ir para outra linha": um campo com as
-estações das linhas alcançáveis (por linha, com a integração) e "Como você se
-desloca", que o navegador lembra. Mostra o mesmo roteiro, calculado por
-[`docs/app/roteiro.js`](docs/app/roteiro.js) com a mesma regra, e os próximos
-horários. Na lite não há modo viagem.
+**Versão lite.** A mesma barra **"Para onde você vai?"** na tela inicial e o
+botão **"Ir daqui para outra estação"** na estação abrem a tela **Sua viagem**
+(`#/viagem`): "De" (a estação mais perto, com localização, ou a última usada),
+"Para" com a busca sem acento e a lista por linha, e o mesmo resultado (Sair
+agora / Escolher horário, roteiro, outros horários), calculado por
+[`docs/app/roteiro.js`](docs/app/roteiro.js) com a mesma regra. "Como você se
+desloca" fica nessa tela e o navegador lembra. Na lite não há modo viagem: no
+lugar do botão, o **lembrete na agenda** e o convite para o app completo.
 
 ### Widget na tela inicial
 
@@ -253,10 +274,10 @@ navegadores não permitem.
 
 ### Modo viagem
 
-O cartão **Modo viagem** fica no topo da tela inicial: a origem é a estação em
-destaque (GPS ou fixada) e o destino se escolhe entre as estações seguintes,
-nos dois sentidos. O mesmo botão existe na tela de partidas de cada estação.
-Durante a viagem, o cartão do topo passa a mostrar o andamento, e um serviço em
+O modo viagem começa pelo resultado da busca **"Para onde você vai?"**
+([acima](#para-onde-você-vai-roteiro-na-mesma-linha-ou-com-integração)): escolhido
+o destino e saindo agora, o botão **Iniciar modo viagem**. Durante a viagem, a
+barra do topo dá lugar ao cartão com o andamento, e um serviço em
 primeiro plano, com notificação fixa, segue a viagem com a tela desligada (o
 ícone pequeno das notificações é a silhueta do trem, `drawable/ic_notification.xml`:
 o Android só usa a forma, e o ícone do app, de fundo cheio, virava um quadrado):
@@ -339,8 +360,6 @@ o Android só usa a forma, e o ícone do app, de fundo cheio, virava um quadrado
   Relatório de Demanda do Metrofor (3º tri/2025); fora delas a viagem começa
   direto. As faixas ficam em `regras.json` (`pico`), junto das outras regras do
   Metrofor.
-- O destino pode estar nos **dois sentidos**, tanto pelo cartão do topo quanto
-  pelo botão da tela de horários (antes, ali, só o sentido da aba aberta).
 - Durante a viagem, o cartão da estação em destaque some da tela inicial: o da
   viagem já diz onde a pessoa está.
 - **Lembrete dos pertences** (ligado por padrão; desliga nas Configurações): o
@@ -380,9 +399,10 @@ na Sul, na Nordeste e em Sobral. Quando as fontes do Metrofor divergem, vale a
 mais recente. Dobrável fechada na bolsa conta como bagagem. No
 domingo o aviso de bike some, porque nesse dia só há operação especial e a regra
 dela não é conhecida — a não ser que o Metrofor a tenha anunciado (abaixo). Num
-domingo de operação especial com a grade do dia baixada e sem regra anunciada,
-o aviso diz "Operação especial: o Metrofor não informou se dá para embarcar com
-bike hoje", em vez de calar.
+domingo com operação anunciada e sem regra de bike, o aviso diz "Operação
+especial: o Metrofor não informou se dá para embarcar com bike hoje", em vez de
+calar. Num domingo comum, só fica o aviso de domingo: a grade do dia não serve
+de sinal de operação (o feed de domingo comum vem igual ao de dia útil).
 
 **Feriados e dias especiais.** Nas operações especiais, o Metrofor anuncia em
 notícia a regra da bike do dia: nos feriados, "nas linhas Sul e Nordeste, o
@@ -498,7 +518,8 @@ celular (`ACTION_INSERT` do `CalendarContract`, em `ui/LeaveReminder.kt`):
 local. Quanto tempo antes avisar fica com a agenda: a pessoa escolhe ali, ao
 salvar (por exemplo, o tempo que leva até a estação). Não há configuração, e
 serve para sair de qualquer lugar, não só de casa. Não usa conta, permissão nem
-internet.
+internet. O resultado de **"Para onde você vai?"** usa a mesma janela para a partida
+do roteiro, quando o horário é escolhido ou o roteiro é o de segunda.
 
 O aviso de distância nunca fica maior que o limite em que o modo viagem some
 (mexer num ajusta o outro). "Restaurar padrões" volta tudo. Os parâmetros
@@ -567,7 +588,12 @@ Detalhes que valem saber:
   que o Metrofor tenha anunciado operação especial para o dia (veja
   **Operação especial**, abaixo). A grade do dia não serve de sinal: num domingo
   comum (18/10/2026) o feed trouxe a grade de dia útil inteira, e no da eleição
-  (25/10) uma grade própria.
+  (25/10) uma grade própria. Por isso, num domingo **sem operação anunciada**,
+  hoje fica sem partidas (`isSundayWithoutService`, em `data/Clock.kt`): as
+  próximas partidas são as de segunda ("05:30 amanhã"), "Todos os horários"
+  vira **"Horários de segunda"** (o lembrete vai para amanhã), o aviso diz "Os
+  horários mostrados são os de segunda", a tela da estação traz também a notícia
+  de amanhã (feriado na segunda) e o modo viagem some. A lite faz o mesmo.
 - **Depois da última viagem do dia**, as partidas de "amanhã" vêm da grade do
   tipo de dia de amanhã, e não da de hoje repetida: num domingo de eleição,
   segunda mostra a grade de dia útil. Se amanhã for sábado e essa grade nunca
@@ -700,8 +726,8 @@ Estas vêm do feed oficial, não do app:
    **Domingo é o caso mais grave:** metrô e VLTs normalmente não circulam, a
    não ser em operação especial (eleição, ENEM, eventos), mas o feed diz que
    sim. Por isso, aos domingos, o app põe um aviso em destaque na tela inicial
-   e na de partidas. As partidas continuam visíveis como referência para os
-   dias de operação especial.
+   e na de partidas e, sem operação anunciada pelo Metrofor, mostra os horários
+   de segunda no lugar dos de hoje.
 2. **O `calendar_dates.txt` está desatualizado**: lista feriados de 2025,
    enquanto o feed diz valer até 2027. O app ignora esse arquivo.
 3. **Não há `transfers.txt`.** As três baldeações reais foram derivadas por
@@ -917,7 +943,8 @@ GitHub Pages da página do app, em `giovanildo.github.io/metro-ceara-horarios/ap
 - `app.js` — as telas: início (estação mais perto de cada linha até 3 km, com a
   próxima partida em cada sentido; a localização só é pedida ao tocar no
   botão), linhas, estação (abas por sentido, sem o sentido que termina nela;
-  endereço e passagem; próximas partidas e todos os horários) e configurações.
+  endereço e passagem; próximas partidas e todos os horários), **Sua viagem**
+  (`#/viagem`, a busca "Para onde você vai?") e configurações.
 - **Integração** e **bike**, com as mesmas regras e frases do app (lidas do
   `regras.json` publicado no ramo `dados`): na tela da estação, o próximo
   metrô/VLT da outra linha que ainda dá para pegar a pé, com a passagem, e se

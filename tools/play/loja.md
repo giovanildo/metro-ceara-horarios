@@ -34,6 +34,7 @@ App NÃO OFICIAL, sem vínculo com o Metrofor nem com o Governo do Ceará. Os ho
 Que horas passa o próximo metrô? Abra o app e veja a estação mais perto de você e as próximas partidas em cada sentido — do metrô e dos VLTs de Fortaleza, Sobral e Cariri.
 
 • Próxima partida da estação mais perto, pelo GPS, com as outras linhas que passam a até 3 km.
+• Para onde você vai?: escolha o destino e veja o roteiro, na mesma linha ou com integração, saindo agora ou no horário que você escolher, com os outros horários e a hora de chegada.
 • Modo viagem: escolha o destino e guarde o celular. O app acompanha a viagem estação por estação, mesmo com a tela desligada, e avisa antes de você descer — com notificação, vibração e, se quiser, voz.
 • Lembrete na agenda: toque num horário de qualquer estação e o app cria o lembrete na agenda do celular, avisando quanto tempo antes você quiser.
 • Integração entre linhas: em Parangaba, Chico da Silva e Expedicionários, o próximo metrô ou VLT da outra linha que ainda dá para pegar, e se a integração é paga ou gratuita.
@@ -87,7 +88,7 @@ Gratuito e de código aberto (GPL-3.0): github.com/giovanildo/metro-ceara-horari
 Tipo: **Localização** (`FOREGROUND_SERVICE_LOCATION`). Texto da justificativa:
 
 ```
-O modo viagem acompanha a viagem de metrô ou VLT que a pessoa iniciou e avisa duas estações antes do destino escolhido, inclusive com a tela desligada. Para isso usa a localização (GPS) num serviço em primeiro plano, com uma notificação fixa visível o tempo todo e um botão "Encerrar viagem". O serviço só roda depois que a pessoa toca em "Iniciar" e escolhe o destino, e termina sozinho ao chegar. A localização é usada só no aparelho e não é enviada para ninguém.
+O modo viagem acompanha a viagem de metrô ou VLT que a pessoa iniciou e avisa duas estações antes do destino escolhido, inclusive com a tela desligada. Para isso usa a localização (GPS) num serviço em primeiro plano, com uma notificação fixa visível o tempo todo e um botão "Encerrar viagem". O serviço só roda depois que a pessoa escolhe o destino e toca em "Iniciar modo viagem", e termina sozinho ao chegar. A localização é usada só no aparelho e não é enviada para ninguém.
 ```
 
 - **Vídeo:** link do YouTube (não listado) com `tools/play/video-modo-viagem.mp4`.
