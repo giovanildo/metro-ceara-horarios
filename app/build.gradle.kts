@@ -24,8 +24,8 @@ android {
         // fica em 36 de proposito: subir o targetSdk muda comportamento em
         // tempo de execucao, e o app ainda nao foi testado em aparelho.
         targetSdk = 36
-        versionCode = 62
-        versionName = "1.61"
+        versionCode = 63
+        versionName = "1.62"
     }
 
     signingConfigs {

@@ -1,0 +1,2 @@
+• Avisar a hora de sair num toque só: depois da primeira vez, tocar num horário já marca o aviso, com "Desfazer" e "Mais opções". Os horários com aviso ganham um sininho.
+• O aviso do app é o padrão; alarme do relógio e agenda ficam em "Prefere de outro jeito?".
