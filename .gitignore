@@ -31,3 +31,6 @@ referencias/
 
 # Base de conhecimento para o Claude Projetos: tem notas internas, fica só local.
 kb-claude-projetos/
+
+# Prévias em prints (mockups para decidir telas), só locais
+prints/
