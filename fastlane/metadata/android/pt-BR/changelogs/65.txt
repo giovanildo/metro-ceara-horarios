@@ -1,0 +1,2 @@
+• Passagem, meia e gratuidade: na tela da estação, toque em "Meia, gratuidade e onde tirar o cartão" e veja quem paga meia ou não paga, onde tirar o cartão e o que levar, com o link para conferir no site do Metrofor.
+• Correção: avisos da hora de sair marcados nas versões anteriores agora saem com um toque no horário.
