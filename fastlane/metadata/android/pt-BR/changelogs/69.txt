@@ -1,0 +1,2 @@
+• Elevador e rampa: na tela de cada estação, veja se ela tem elevador, rampa ou plataforma elevatória. Em Maracanaú, sem elevador, o app avisa para pedir a plataforma na bilheteria.
+• Com "cadeira de rodas" em Configurações, o roteiro avisa onde não tem elevador. Encontrou algo diferente? Conte pra gente pelo WhatsApp ou e-mail.
