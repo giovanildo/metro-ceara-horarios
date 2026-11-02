@@ -427,7 +427,7 @@ private fun JourneyResultSheet(
                     destStopId = destination.second.id, destRouteId = destination.first.routeId,
                     destName = destinationName, arrival = view.itinerary.arrival,
                 )
-                val marked = leaveAlerts.orEmpty().firstOrNull { it.id == leaveAlertId(leave) }
+                val marked = leaveAlerts?.let { leaveAlertsAt(context, leave).firstOrNull() }
                 OutlinedButton(
                     onClick = { scope.launch { leaveToggle.toggle(context, leave) } },
                     modifier = Modifier.fillMaxWidth(),

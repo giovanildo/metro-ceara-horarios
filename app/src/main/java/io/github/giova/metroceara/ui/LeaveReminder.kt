@@ -63,6 +63,15 @@ private fun departureDate(departure: Departure): String =
 fun leaveAlertId(reminder: LeaveReminder): String =
     "p-${reminder.stopId}-${reminder.routeId}-${reminder.directionId}-${departureDate(reminder.departure)}-${reminder.departure.minutes}"
 
+/** Os avisos marcados para esta partida (mesma estação, linha, sentido, dia e horário). */
+fun leaveAlertsAt(context: Context, reminder: LeaveReminder): List<LeaveAlert> {
+    val date = departureDate(reminder.departure)
+    return LeaveStore.alerts(context).value.orEmpty().filter {
+        it.stopId == reminder.stopId && it.routeId == reminder.routeId && it.directionId == reminder.directionId &&
+            it.date == date && it.departure == reminder.departure.minutes
+    }
+}
+
 /** O aviso do app para esta partida, com [before] minutos de antecedência; `null` sem estação/linha/sentido. */
 fun leaveAlertFor(reminder: LeaveReminder, before: Int): LeaveAlert? {
     val stopId = reminder.stopId ?: return null
@@ -92,10 +101,13 @@ class LeaveToggle(private val show: suspend (String) -> Unit) {
     internal var askNotifications: ((LeaveReminder) -> Unit)? = null
 
     suspend fun toggle(context: Context, reminder: LeaveReminder) {
-        val existing = LeaveStore.alert(context, leaveAlertId(reminder))
-        if (existing != null) {
-            LeaveScheduler.cancel(context, existing.id)
-            show(context.getString(R.string.leave_removed, formatTime(existing.departure - existing.before)))
+        // Todos os avisos deste horário, pelo que eles são (e não pelo id): os da 1.61/1.62
+        // tinham outro id, e o de uma rotina também tem o seu.
+        val existing = leaveAlertsAt(context, reminder)
+        if (existing.isNotEmpty()) {
+            existing.forEach { LeaveScheduler.cancel(context, it.id) }
+            val first = existing.first()
+            show(context.getString(R.string.leave_removed, formatTime(first.departure - first.before)))
             return
         }
         val needsPermission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
