@@ -20,25 +20,50 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import io.github.giova.metroceara.R
+import io.github.giova.metroceara.data.DayType
+import io.github.giova.metroceara.data.Regras
 import io.github.giova.metroceara.data.ScheduleSource
 import io.github.giova.metroceara.data.ScheduleStore
+import io.github.giova.metroceara.data.isSundayWithoutService
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
-/** Diz de onde vêm os horários na tela: de hoje, de outro dia, ou do APK. */
+/**
+ * Diz de onde vêm os horários na tela. A grade de um dia útil comum é igual à
+ * do dia útil anterior: a de outro dia do mesmo tipo só preocupa (e só aí vira
+ * aviso) quando o Metrofor anunciou operação especial para hoje. Num domingo
+ * sem operação, a tela mostra a grade de segunda.
+ */
 @Composable
-fun scheduleStatusText(source: ScheduleSource, syncing: Boolean, failed: Boolean): String = when {
+fun scheduleStatusText(source: ScheduleSource, syncing: Boolean): String = when {
     syncing -> stringResource(R.string.schedule_syncing)
+    isSundayWithoutService() -> stringResource(R.string.schedule_day_type, stringResource(R.string.day_type_weekday))
     source.kind == ScheduleSource.Kind.TODAY ->
         stringResource(R.string.schedule_today, formatClock(source.syncedAt))
+    source.kind == ScheduleSource.Kind.SAME_DAY_TYPE && specialToday() -> stringResource(R.string.schedule_special_missing)
     source.kind == ScheduleSource.Kind.SAME_DAY_TYPE -> stringResource(
-        if (failed) R.string.schedule_same_type_failed else R.string.schedule_same_type,
-        source.date.orEmpty().let { if (it.length == 10) "${it.substring(8)}/${it.substring(5, 7)}" else it },
+        R.string.schedule_day_type,
+        stringResource(
+            when (ScheduleStore.todayType()) {
+                DayType.SATURDAY -> R.string.day_type_saturday
+                DayType.SUNDAY -> R.string.day_type_sunday
+                DayType.WEEKDAY -> R.string.day_type_weekday
+            },
+        ),
     )
     else -> stringResource(R.string.schedule_bundled)
 }
+
+/** Em vermelho só o que pede atenção: a grade do APK, ou dia especial sem a grade do dia. */
+private fun scheduleStatusIsWarning(source: ScheduleSource): Boolean = !isSundayWithoutService() && when (source.kind) {
+    ScheduleSource.Kind.TODAY -> false
+    ScheduleSource.Kind.SAME_DAY_TYPE -> specialToday()
+    else -> true
+}
+
+private fun specialToday(): Boolean = Regras.current.operations[ScheduleStore.today()] != null
 
 /**
  * Linha de status dos horários. Sem botão de baixar de novo: o app baixa a
@@ -48,14 +73,13 @@ fun scheduleStatusText(source: ScheduleSource, syncing: Boolean, failed: Boolean
 fun ScheduleStatus(
     source: ScheduleSource,
     syncing: Boolean,
-    failed: Boolean,
     modifier: Modifier = Modifier,
 ) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         Text(
-            text = scheduleStatusText(source, syncing, failed),
+            text = scheduleStatusText(source, syncing),
             style = MaterialTheme.typography.bodySmall,
-            color = if (source.kind == ScheduleSource.Kind.TODAY || syncing) {
+            color = if (syncing || !scheduleStatusIsWarning(source)) {
                 MaterialTheme.colorScheme.onSurfaceVariant
             } else {
                 MaterialTheme.colorScheme.error

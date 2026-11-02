@@ -753,14 +753,23 @@ function render() {
 }
 
 function status() {
-  const { grade, indice } = estado.dados;
+  const { grade, indice, regras } = estado.dados;
   const t = agora();
   const nomes = { "dia-util": "dia útil", sabado: "sábado", domingo: "domingo" };
-  // Domingo comum: os horários mostrados são os de segunda, tirados do último dia útil publicado.
-  const g = domingoSemOperacao(t) && estado.proximo ? estado.proximo : grade;
-  const quando = g.data === t.data ? "Horários de hoje" : `Horários de ${nomes[g.tipo]} (${dataCurta(g.data)})`;
-  const atualizado = indice.atualizado ? ` Atualizado em ${dataCurta(indice.atualizado.slice(0, 10))} às ${indice.atualizado.slice(11, 16)}.` : "";
-  document.getElementById("status").textContent = `${quando}, publicados pelo Metrofor.${atualizado}`;
+  const el = document.getElementById("status");
+  // A grade de um dia útil comum é igual à do dia útil anterior: a de outro dia do
+  // mesmo tipo só preocupa (e vira aviso) quando o Metrofor anunciou operação para
+  // hoje. Num domingo sem operação, a tela mostra a grade de segunda.
+  const especial = !domingoSemOperacao(t) && grade.data !== t.data && regras?.operacoes?.[t.data];
+  el.classList.toggle("alerta", Boolean(especial));
+  if (especial) {
+    el.textContent = "Hoje tem operação especial e os horários do dia ainda não chegaram. Veja a notícia do Metrofor.";
+  } else if (!domingoSemOperacao(t) && grade.data === t.data) {
+    const hora = indice.tipos?.[grade.tipo]?.atualizado?.slice(11, 16);
+    el.textContent = `Horários de hoje, baixados do Metrofor${hora ? ` às ${hora}` : ""}.`;
+  } else {
+    el.textContent = `Horários de ${domingoSemOperacao(t) ? "dia útil" : nomes[grade.tipo]}, publicados pelo Metrofor.`;
+  }
 }
 
 async function iniciar() {

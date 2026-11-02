@@ -105,7 +105,6 @@ fun AppRoot() {
     var today by remember { mutableStateOf(ScheduleStore.today()) }
     var scheduleVersion by remember { mutableIntStateOf(0) }
     var scheduleSyncing by remember { mutableStateOf(false) }
-    var scheduleSyncFailed by remember { mutableStateOf(false) }
     // Cada vez que o app abre ou volta para a frente, baixa a grade do dia do
     // espelho (é pequena). Um download cortado ao fechar o app é refeito aqui.
     var opened by remember { mutableIntStateOf(0) }
@@ -122,7 +121,6 @@ fun AppRoot() {
             runCatching { ScheduleStore.sync(context, MetroforDatabase.bundledFile(context)) }
         }
         result.exceptionOrNull()?.let { DevLog.log("sync_fail", "reason" to (it.message ?: it.javaClass.simpleName)) }
-        scheduleSyncFailed = result.isFailure
         scheduleSyncing = false
         if (result.isSuccess) scheduleVersion++
         // As notícias de operação especial vêm no regras.json, já baixado acima.
@@ -754,7 +752,6 @@ fun AppRoot() {
                     ScheduleStatus(
                         source = repo.source,
                         syncing = scheduleSyncing,
-                        failed = scheduleSyncFailed,
                     )
                     MetroforNotices(notices)
                     // Durante a viagem, o cartão dela já diz onde a pessoa está.

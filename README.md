@@ -571,9 +571,15 @@ celular). **Baixa sempre que o app abre ou volta para a frente**, sem comparar
 com a guardada: são ~30 KB (o zip de dia útil tem ~29 KB, o de sábado ~20 KB, e
 o índice 0,5 KB), e assim qualquer mudança chega na abertura seguinte; um
 download cortado (app fechado no meio) é refeito na próxima abertura. Sem
-internet, o app usa a última grade do mesmo tipo e avisa em vermelho de que dia
-ela é. O banco do APK fica como último recurso. Uma linha no topo da tela
-inicial diz de onde vêm os horários, sem botão de baixar de novo.
+internet (ou antes de a grade do dia chegar), o app usa a última grade do mesmo
+tipo. O banco do APK fica como último recurso. Uma linha no topo da tela inicial
+diz de onde vêm os horários, sem botão de baixar de novo: "Horários de hoje,
+baixados do Metrofor às 02:42." ou, com a grade de outro dia do mesmo tipo,
+"Horários de dia útil, publicados pelo Metrofor.", em cinza e sem data, porque a
+grade de um dia útil comum é igual à do anterior. Só vira **aviso em vermelho**
+quando importa: a grade do APK, ou dia com operação especial anunciada sem a
+grade do dia ("Hoje tem operação especial e os horários do dia ainda não
+chegaram. Veja a notícia do Metrofor."). A lite segue a mesma regra no rodapé.
 
 Detalhes que valem saber:
 
