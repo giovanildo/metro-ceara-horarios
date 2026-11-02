@@ -169,3 +169,15 @@ select, input[type=number] {
 .viagem-campos select, .viagem-campos input { width: 100%; }
 #status.alerta { color: #b3261e; font-weight: 600; }
 @media (prefers-color-scheme: dark) { #status.alerta { color: #f2b8b5; } }
+
+/* Guia da passagem */
+.link-guia { font-weight: 700; text-decoration: none; }
+.tarifas p { display: flex; gap: 12px; align-items: center; margin: 0; padding: 10px 0; border-bottom: 1px solid var(--borda); }
+.tarifas p:last-child { border-bottom: 0; }
+.tarifas .ponto { width: 12px; height: 12px; flex: none; }
+a.cartao.tema { display: block; text-decoration: none; position: relative; padding-right: 40px; }
+a.cartao.tema .seta { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 1.4rem; }
+.aviso.quadro { background: transparent; border: 1px solid var(--borda); margin: 8px 0; }
+.fonte-guia { color: #43568f; font-weight: 600; font-size: .9rem; margin-top: -6px; }
+@media (prefers-color-scheme: dark) { .fonte-guia { color: #b3c5ff; } }
+.guia ul { padding-left: 20px; } .guia li { margin-bottom: 6px; }

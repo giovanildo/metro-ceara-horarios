@@ -269,6 +269,10 @@ function telaEstacao(linhaId, stopId, sentidoId) {
   if (endereco || tarifa) {
     html += `<p class="dica">${[endereco && esc(endereco), tarifa && `Passagem: ${esc(tarifa)}`].filter(Boolean).join("<br>")}</p>`;
   }
+  // Meia, gratuidade e onde tirar o cartão: o guia do regras.json.
+  if (tarifa && estado.dados.regras?.guia_passagem) {
+    html += `<p style="margin-top:-6px"><a class="link-guia" href="#/passagem">Meia, gratuidade e onde tirar o cartão ›</a></p>`;
+  }
   // Aviso livre da estação (regras.json), como o de estação subterrânea.
   if (info?.aviso) html += `<p class="aviso">${esc(info.aviso)}</p>`;
   if (sentidos.length > 1) {
@@ -662,6 +666,65 @@ function telaSobre() {
   });
 }
 
+// ---------- guia da passagem
+
+/**
+ * Quanto custa cada linha e, em telas próprias, a meia, a gratuidade e o VaiVem
+ * Livre (regras.json "guia_passagem"). É muita regra que o app não controla: a
+ * tela diz no topo que tudo vem do Metrofor, e cada tema termina num link para a
+ * página dele.
+ */
+function telaPassagem(indice) {
+  const regras = estado.dados.regras;
+  const guia = regras?.guia_passagem;
+  if (!guia) return telaNaoAchei();
+  const link = (url) => (/^https:\/\//.test(url || "") ? esc(url) : null);
+  const tema = indice != null ? guia.temas?.[Number(indice)] : null;
+  if (indice != null && !tema) return telaNaoAchei();
+  let html = "";
+  if (!tema) {
+    html += `<h2 style="font-size:1.4rem">Passagem</h2>
+      <div class="cartao"><strong>ⓘ Informações do Metrofor</strong><br>${esc(guia.fonte)}
+        <br><small>Conferido em ${esc(guia.conferido)}</small>
+        ${link(guia.link) ? `<br><a href="${link(guia.link)}" target="_blank" rel="noopener"><strong>Ver no site do Metrofor ›</strong></a>` : ""}</div>`;
+    const linhas = Object.entries(regras.passagem || {}).filter(([k]) => !k.startsWith("_"));
+    html += `<div class="tarifas">${linhas.map(([nome, texto]) =>
+      `<p><span class="ponto" style="background:${cor({ nome, cor: "888888" })}"></span>
+        <span><strong>${esc(nome)}</strong><br><span class="dica">${esc(texto)}</span></span></p>`).join("")}</div>`;
+    if (guia.temas?.length) {
+      html += `<h2>Pode pagar menos?</h2>` + guia.temas.map((t, i) =>
+        `<a class="cartao tema" href="#/passagem/${i}"><strong>${esc([t.icone, t.titulo].filter(Boolean).join(" "))}</strong>
+          <br>${esc(t.resumo)}<span class="seta">›</span></a>`).join("");
+    }
+    const inteira = guia.inteira;
+    if (inteira) {
+      html += `<div class="aviso quadro"><strong>${esc(inteira.titulo)}</strong><br>${esc(inteira.texto)}
+        ${inteira.botao && link(inteira.link) ? `<br><a href="${link(inteira.link)}" target="_blank" rel="noopener">${esc(inteira.botao)} ↗</a>` : ""}</div>`;
+    }
+  } else {
+    html += `<h2 style="font-size:1.4rem">${esc(tema.titulo)}</h2>
+      <p class="fonte-guia">Fonte: site do Metrofor · conferido em ${esc(guia.conferido)}</p>`;
+    // Prazos com data, como a renovação anual do cartão de estudante.
+    const hoje = agora().data;
+    for (const a of tema.avisos || []) {
+      if (hoje >= a.de && hoje <= a.ate) html += `<div class="cartao rosa">${esc(a.texto)}</div>`;
+    }
+    if (tema.texto) html += `<p>${esc(tema.texto)}</p>`;
+    for (const sec of tema.secoes || []) {
+      html += `<h2>${esc(sec.titulo)}</h2>`;
+      html += (sec.quadros || []).map((q) =>
+        `<div class="aviso quadro"><strong>${esc(q.titulo)}</strong><br><span class="dica">${esc(q.texto)}</span></div>`).join("");
+      if (sec.itens?.length) html += `<ul>${sec.itens.map((i) => `<li>${esc(i)}</li>`).join("")}</ul>`;
+    }
+    if (tema.alerta) html += `<div class="cartao rosa">${esc(tema.alerta)}</div>`;
+    if (tema.nota) html += `<p class="dica">${esc(tema.nota)}</p>`;
+    const url = link(tema.link) || link(guia.link);
+    if (url) html += `<a class="botao secundario largo" href="${url}" target="_blank" rel="noopener">Conferir no site do Metrofor ↗</a>`;
+    html += `<p><a href="#/passagem">‹ Passagem</a></p>`;
+  }
+  tela.innerHTML = `<div class="guia">${html}</div>`;
+}
+
 function telaNaoAchei() {
   tela.innerHTML = `<p class="vazio">Não achei essa tela. <a href="#/">Voltar ao início</a></p>`;
 }
@@ -747,6 +810,7 @@ function render() {
   if (partes[0] === "linha") telaLinha(partes[1]);
   else if (partes[0] === "estacao") telaEstacao(partes[1], partes[2], partes[3]);
   else if (partes[0] === "sobre") telaSobre();
+  else if (partes[0] === "passagem") telaPassagem(partes[1]);
   else if (partes[0] === "viagem") telaViagem(partes[1], partes[2]);
   else telaInicio();
   status();
