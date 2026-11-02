@@ -169,7 +169,15 @@ class ScheduleRepository(context: Context) {
     ).map { it.getString(0) to it.getInt(1) }.toMap()
 
     /** A grade do dia vista pelo [Router]: viagens que passam por uma estação e depois por outra. */
-    val timetable = object : Timetable {
+    val timetable = timetableOf(db)
+
+    /**
+     * A grade de amanhã vista pelo [Router] (no domingo, a de segunda), para o
+     * roteiro de consulta quando hoje não há metrô. `null` sem grade para saber.
+     */
+    val timetableTomorrow: Timetable? = tomorrowDb?.let(::timetableOf)
+
+    private fun timetableOf(db: android.database.sqlite.SQLiteDatabase) = object : Timetable {
         override fun trips(routeId: String, fromStop: String, toStop: String): List<LegTrip> = db.rawQuery(
             """
             SELECT a.trip_id, a.direction_id, a.minutes, b.minutes

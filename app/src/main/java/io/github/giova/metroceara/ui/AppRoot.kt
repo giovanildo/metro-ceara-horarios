@@ -59,12 +59,14 @@ import io.github.giova.metroceara.data.MetroforDatabase
 import io.github.giova.metroceara.data.PinnedStation
 import io.github.giova.metroceara.data.ScheduleRepository
 import io.github.giova.metroceara.data.ScheduleStore
+import io.github.giova.metroceara.data.isSundayWithoutService
 import io.github.giova.metroceara.data.Station
 import io.github.giova.metroceara.data.nearestBikeTo
 import io.github.giova.metroceara.data.SettingsStore
 import io.github.giova.metroceara.data.nearestPerRoute
 import io.github.giova.metroceara.data.nextDepartures
 import io.github.giova.metroceara.data.nowMinutes
+import java.util.Calendar
 import kotlin.math.ceil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -418,8 +420,38 @@ fun AppRoot() {
     val stoppedRoutes = remember(repo, today) {
         repo.routes().filter { Regras.current.stopped(today, it.name) }.map { it.id }.toSet()
     }
-    // O roteiro esperando "Iniciar viagem".
+    // O roteiro esperando "Iniciar viagem" (ou só para consulta, o de segunda).
     var routeOptions by remember { mutableStateOf<List<RouteView>?>(null) }
+    var routeForMonday by remember { mutableStateOf(false) }
+
+    // Domingo sem operação anunciada: sem modo viagem, e o roteiro da tela da
+    // estação é o de segunda, pela grade de amanhã, só para consulta.
+    val sundayOff = remember(now, today) { isSundayWithoutService() }
+    val mondayRouter = remember(repo, settings) {
+        repo.timetableTomorrow?.let { tt ->
+            Router(tt, repo.transferLinks()) { link, arrival -> transferMinutes(link.baseMinutes, arrival, settings) }
+        }
+    }
+    val stoppedTomorrow = remember(repo, today) {
+        repo.routes().filter { Regras.current.stopped(ScheduleStore.tomorrow(), it.name) }.map { it.id }.toSet()
+    }
+
+    // As linhas que só se alcançam com integração a partir de [originRoutes]. O
+    // caminho do subtítulo sai, de preferência, das linhas em [preferred].
+    fun otherLineGroups(originRoutes: Set<String>, preferred: List<String>, stopped: Set<String>): List<OtherLineGroup> {
+        val reach = originRoutes.flatMap { router.reachable(it) }.toSet() - originRoutes
+        return repo.routes().filter { it.id in reach }.mapNotNull { route ->
+            val via = preferred.mapNotNull { router.via(it, route.id) }.minByOrNull { it.size }
+                ?: originRoutes.mapNotNull { router.via(it, route.id) }.minByOrNull { it.size }
+                ?: return@mapNotNull null
+            // A estação onde se chega a pé não é destino: ali a pessoa ainda nem embarcou.
+            val arrivalStop = via.lastOrNull()?.toStop
+            val stops = repo.directions(route.id).maxByOrNull { repo.stops(route.id, it.id).size }
+                ?.let { repo.stops(route.id, it.id) }.orEmpty().filter { it.id != arrivalStop }
+            OtherLineGroup(route.id, route.name, route.colorHex,
+                via.map { repo.stop(it.fromStop)?.name.orEmpty() }, stops, stopped = route.id in stopped)
+        }
+    }
 
     // Minutos a pé da pessoa até a estação (0 sem localização, ou já nela).
     fun walkTo(station: Station): Int =
@@ -441,7 +473,7 @@ fun AppRoot() {
             .orEmpty()
     }
 
-    fun routeView(itinerary: Itinerary): RouteView {
+    fun routeView(itinerary: Itinerary, monday: Boolean = false): RouteView {
         // "Parangaba - NE", "Expedicionarios - AE": o sufixo da grade só separa as plataformas.
         fun stopName(id: String) = (repo.stop(id)?.name ?: id).replace(Regex("\\s+-\\s+(AE|NE)$", RegexOption.IGNORE_CASE), "")
         fun headsign(routeId: String, direction: Int) =
@@ -461,12 +493,13 @@ fun AppRoot() {
             val rule = bikeRuleFor(leg.fromName, leg.routeName)
             when {
                 rule == null -> context.getString(R.string.route_bike_no_line, leg.routeName)
-                !bikeBoarding(rule, nowDayOfWeek(), leg.departure).allowed ->
+                !bikeBoarding(rule, if (monday) Calendar.MONDAY else nowDayOfWeek(), leg.departure).allowed ->
                     context.getString(R.string.route_bike_not_now, leg.routeName, formatTime(leg.departure))
                 else -> null
             }
         }.distinct()
-        val walk = tripOrigins.firstOrNull { it.stopId == itinerary.legs.first().fromStop }?.let(::walkTo) ?: 0
+        // A caminhada de agora até a estação não diz nada sobre o roteiro de segunda.
+        val walk = if (monday) 0 else tripOrigins.firstOrNull { it.stopId == itinerary.legs.first().fromStop }?.let(::walkTo) ?: 0
         val walkNote = if (walk > 0) listOf(context.getString(R.string.route_walk_to_origin, legs.first().fromName, walk)) else emptyList()
         return RouteView(itinerary, legs, transfers, walkNote + warnings)
     }
@@ -501,21 +534,10 @@ fun AppRoot() {
         // As linhas que só se alcançam com integração, fechadas até a pessoa abrir.
         val originRoutes = tripOrigins.map { it.routeId }.toSet()
         val others = remember(repo, router, tripOrigins, stoppedRoutes) {
-            val reach = originRoutes.flatMap { router.reachable(it) }.toSet() - originRoutes
             // O caminho do subtítulo sai das partidas a uma caminhada curta, como o roteiro.
             val nearRoutes = tripOrigins.filter { walkTo(it) <= ORIGIN_WALK_MAX_MINUTES }.map { it.routeId }
                 .ifEmpty { listOfNotNull(tripOrigins.minByOrNull(::walkTo)?.routeId) }
-            repo.routes().filter { it.id in reach }.mapNotNull { route ->
-                val via = nearRoutes.mapNotNull { router.via(it, route.id) }.minByOrNull { it.size }
-                    ?: originRoutes.mapNotNull { router.via(it, route.id) }.minByOrNull { it.size }
-                    ?: return@mapNotNull null
-                // A estação onde se chega a pé não é destino: ali a pessoa ainda nem embarcou.
-                val arrivalStop = via.lastOrNull()?.toStop
-                val stops = repo.directions(route.id).maxByOrNull { repo.stops(route.id, it.id).size }
-                    ?.let { repo.stops(route.id, it.id) }.orEmpty().filter { it.id != arrivalStop }
-                OtherLineGroup(route.id, route.name, route.colorHex,
-                    via.map { repo.stop(it.fromStop)?.name.orEmpty() }, stops, stopped = route.id in stoppedRoutes)
-            }
+            otherLineGroups(originRoutes, nearRoutes, stoppedRoutes)
         }
         // A chegada prevista em cada estação da lista, calculada fora da tela.
         val arrivals by produceState(emptyMap<String, Int>(), groups, others, router) {
@@ -556,7 +578,8 @@ fun AppRoot() {
                         context.getString(R.string.route_none_today, destination.name)
                     }
                 } else {
-                    routeOptions = plans.map(::routeView)
+                    routeForMonday = false
+                    routeOptions = plans.map { routeView(it) }
                 }
             },
         )
@@ -565,12 +588,42 @@ fun AppRoot() {
     routeOptions?.let { options ->
         RouteDialog(
             options = options,
-            onStart = { view ->
+            onStart = if (routeForMonday) null else { view ->
                 routeOptions = null
                 startRoute(view)
             },
             onDismiss = { routeOptions = null },
+            note = if (routeForMonday) stringResource(R.string.route_monday_note) else null,
         )
+    }
+
+    // "Ir para outra linha", da tela da estação: o roteiro de agora (que pode virar
+    // viagem) ou, num domingo sem metrô, o de segunda desde o primeiro horário.
+    fun routeFromStation(routeId: String, stop: Stop, group: OtherLineGroup, destination: Stop) {
+        val origin = RoutePoint(routeId, stop.id)
+        val target = RoutePoint(group.routeId, destination.id)
+        if (sundayOff) {
+            val plans = mondayRouter?.plan(origin, target, 0, 4, stoppedTomorrow).orEmpty()
+            if (plans.isEmpty()) {
+                tripMessage = context.getString(R.string.route_none_monday, destination.name)
+            } else {
+                routeForMonday = true
+                routeOptions = plans.map { routeView(it, monday = true) }
+            }
+            return
+        }
+        val plans = router.plan(origin, target, nowMinutes() - settings.lateBoardingMinutes, 4, stoppedRoutes)
+        if (plans.isEmpty()) {
+            val last = router.lastDeparture(origin, target, stoppedRoutes)
+            tripMessage = if (last != null) {
+                context.getString(R.string.route_none_after, destination.name, formatTime(last))
+            } else {
+                context.getString(R.string.route_none_today, destination.name)
+            }
+        } else {
+            routeForMonday = false
+            routeOptions = plans.map { routeView(it) }
+        }
     }
 
     tripChoice?.let { (direct, seated) ->
@@ -710,6 +763,10 @@ fun AppRoot() {
                     repo.stops(route.id, direction.id).dropWhile { it.id != stop.id }.drop(1)
                 },
                 onStartTrip = { direction, destination -> startTrip(route.id, direction, stop, destination) },
+                otherLines = remember(stop.id, route.id, router, stoppedRoutes, stoppedTomorrow, sundayOff) {
+                    otherLineGroups(setOf(route.id), listOf(route.id), if (sundayOff) stoppedTomorrow else stoppedRoutes)
+                },
+                onPickOtherLine = { group, destination -> routeFromStation(route.id, stop, group, destination) },
                 transfers = remember(stop.id) { repo.transfersFrom(stop.id) },
                 transferDepartures = { target, fromMinutes ->
                     nextDepartures(
@@ -726,8 +783,9 @@ fun AppRoot() {
                 },
                 // Pedido por uma integração; senão, o primeiro sentido.
                 initialDirectionId = openDirectionId,
-                tripAllowed = remember(stop.id, route.id, homeState) {
-                    repo.station(stop.id, route.id)?.let { tripAllowedFrom(it.lat, it.lon) } ?: true
+                // Domingo sem operação: não há metrô para acompanhar.
+                tripAllowed = remember(stop.id, route.id, homeState, sundayOff) {
+                    !sundayOff && (repo.station(stop.id, route.id)?.let { tripAllowedFrom(it.lat, it.lon) } ?: true)
                 },
                 schedule = repo.source,
                 bike = bike,
@@ -775,8 +833,9 @@ fun AppRoot() {
                             onStop = { TripTracker.stop(context) },
                         )
                     } else {
-                        // A mais de 3 km de qualquer estação, o modo viagem não aparece.
-                        if (homeState.station == null || tripOrigins.isNotEmpty()) {
+                        // A mais de 3 km de qualquer estação, o modo viagem não aparece; num
+                        // domingo sem operação anunciada também não (não há metrô para acompanhar).
+                        if (!sundayOff && (homeState.station == null || tripOrigins.isNotEmpty())) {
                             TripStartCard(
                                 origins = tripOrigins,
                                 alertStationsBefore = settings.alertStationsBefore,

@@ -74,13 +74,15 @@ data class RouteView(
 /**
  * O roteiro com integração: cada trecho na cor da linha, a troca a pé com o
  * tempo da pessoa e a passagem, a chegada e a dica de horário. "Outros
- * horários" troca para os próximos roteiros.
+ * horários" troca para os próximos roteiros. Sem [onStart], é só consulta
+ * (o roteiro de segunda, num domingo sem metrô), e [note] diz para quando é.
  */
 @Composable
 fun RouteDialog(
     options: List<RouteView>,
-    onStart: (RouteView) -> Unit,
+    onStart: ((RouteView) -> Unit)?,
     onDismiss: () -> Unit,
+    note: String? = null,
 ) {
     var selected by remember { mutableIntStateOf(0) }
     var choosing by remember { mutableStateOf(false) }
@@ -122,6 +124,9 @@ fun RouteDialog(
                         }
                     }
                 } else {
+                    note?.let {
+                        Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                     view.legs.forEachIndexed { i, leg ->
                         LegRow(leg)
                         view.transfers.getOrNull(i)?.let { TransferRow(it, view.legs[i + 1]) }
@@ -139,12 +144,16 @@ fun RouteDialog(
             }
         },
         confirmButton = {
-            Button(onClick = { onStart(view) }) { Text(stringResource(R.string.route_start)) }
+            if (onStart != null) {
+                Button(onClick = { onStart(view) }) { Text(stringResource(R.string.route_start)) }
+            } else {
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) }
+            }
         },
         dismissButton = {
             if (options.size > 1 && !choosing) {
                 TextButton(onClick = { choosing = true }) { Text(stringResource(R.string.route_other_times)) }
-            } else {
+            } else if (onStart != null) {
                 TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
             }
         },

@@ -80,6 +80,7 @@
     <string name="trip_no_trip_today">Não há mais viagens hoje neste sentido.</string>
     <string name="trip_needs_location">O modo viagem precisa da permissão de localização.</string>
     <string name="cancel">Cancelar</string>
+    <string name="close">Fechar</string>
     <string name="trip_channel_ongoing">Viagem em andamento</string>
     <string name="trip_channel_alert_sound">Aviso de chegada (com som)</string>
     <string name="trip_channel_alert_silent">Aviso de chegada (sem som)</string>
@@ -127,6 +128,9 @@
     <string name="route_other_times">Outros horários</string>
     <string name="route_none_today">Hoje não há como chegar a %1$s com integração saindo daqui.</string>
     <string name="route_none_after">Sem integração para %1$s hoje depois das %2$s.</string>
+    <string name="route_none_monday">Na segunda não há como chegar a %1$s com integração saindo daqui.</string>
+    <string name="route_monday_note">Hoje é domingo, sem metrô e VLT. Na segunda:</string>
+    <string name="other_line_button">Ir para outra linha</string>
     <string name="route_walk_to_origin">Saindo de %1$s, a uns %2$d min a pé de você.</string>
     <string name="route_bike_no_line">Com bicicleta: a %1$s não aceita bike.</string>
     <string name="route_bike_not_now">Com bicicleta: a %1$s não aceita bike às %2$s.</string>

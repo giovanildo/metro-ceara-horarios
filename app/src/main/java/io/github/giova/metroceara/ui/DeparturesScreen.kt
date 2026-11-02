@@ -31,6 +31,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.material.icons.filled.Navigation
+import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Button
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -80,6 +82,8 @@ fun DeparturesScreen(
     dayEndFor: (Direction) -> DayEnd,
     destinationsFor: (Direction) -> List<Stop>,
     onStartTrip: (Direction, Stop) -> Unit,
+    otherLines: List<OtherLineGroup>,
+    onPickOtherLine: (OtherLineGroup, Stop) -> Unit,
     tripAllowed: Boolean,
     transfers: List<TransferTarget>,
     transferDepartures: (TransferTarget, Int) -> Departure?,
@@ -121,6 +125,19 @@ fun DeparturesScreen(
     }
     val destinations = destinationGroups.flatMap { it.stops }
     var pickingDestination by remember { mutableStateOf(false) }
+    var pickingOtherLine by remember { mutableStateOf(false) }
+    if (pickingOtherLine) {
+        DestinationDialog(
+            groups = emptyList(),
+            onPick = { _, _ -> },
+            onDismiss = { pickingOtherLine = false },
+            others = otherLines,
+            onPickOther = { group, destination ->
+                pickingOtherLine = false
+                onPickOtherLine(group, destination)
+            },
+        )
+    }
     var reminder by remember { mutableStateOf<Departure?>(null) }
     reminder?.let { departure ->
         LeaveReminderDialog(
@@ -337,6 +354,19 @@ fun DeparturesScreen(
                                 now = now,
                                 onOpen = onOpenTransfer,
                             )
+                        }
+                    }
+                }
+
+                // O roteiro até uma estação de outra linha, sem precisar começar o modo viagem.
+                if (otherLines.isNotEmpty()) {
+                    item {
+                        OutlinedButton(
+                            onClick = { pickingOtherLine = true },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Icon(Icons.Filled.SwapHoriz, contentDescription = null)
+                            Text(stringResource(R.string.other_line_button), modifier = Modifier.padding(start = 8.dp))
                         }
                     }
                 }
