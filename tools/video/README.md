@@ -68,6 +68,11 @@ As telas vêm do emulador Android, com o sistema em pt-BR
   e posição estação por estação até Couto Fernandes; o cartão expandido da
   notificação é recortado da barra de notificações e colado no topo. Todas são
   cortadas de 1080×2400 para 1080×1920.
+  **Na 1.60** a 1, a 2 e a 6 (tela inicial com "Para onde você vai?", estação
+  com "Ir daqui para outra estação" e o resultado São Benedito → Papicu) foram
+  refeitas com `wm size 1080x1920` em vez do corte, para a folha do resultado
+  caber inteira (depois, `wm size reset`). O ícone de GPS da barra de status e a
+  barra de gestos foram cobertos com a cor do fundo, com Pillow.
 - **App Android (gravação):** `adb shell screenrecord`, o modo demo do
   SystemUI para a barra de status, e a viagem simulada com `date` +
   `emu geo fix` a cada estação: é o que `gravar_viagem.sh` faz.
