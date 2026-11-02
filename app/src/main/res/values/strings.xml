@@ -167,6 +167,22 @@
     <string name="place_pick_work">Qual estação fica perto do seu trabalho?</string>
     <string name="place_pick_note">O app guarda só a estação, não o seu endereço. Fica só neste celular.</string>
     <string name="places_title">Seus lugares</string>
+    <!-- Lugares (regras.json "lugares"): buscar o lugar em vez da estação. -->
+    <string name="journey_dest_search">Estação ou lugar (ex.: Rodoviária)</string>
+    <string name="landmarks_title">Lugares</string>
+    <string name="landmark_beside">ao lado da estação</string>
+    <string name="landmark_walk">%1$s · %2$d min a pé</string>
+    <string name="landmark_station">Estação %1$s · %2$s</string>
+    <string name="landmark_far_short">longe dos trilhos</string>
+    <string name="landmark_unreachable">não dá para chegar daqui</string>
+    <string name="landmark_far_title">Nenhuma estação fica perto deste lugar.</string>
+    <string name="landmark_far_text">A mais perto é a estação %1$s, a %2$s: uns %3$d minutos a pé. O metrô e o VLT não são a melhor opção para chegar lá.</string>
+    <string name="landmark_here_text">%1$s fica perto daqui: %2$s, saindo da estação %3$s. Não precisa pegar o metrô.</string>
+    <string name="landmark_unreachable_text">%1$s fica em %2$s. Saindo de %3$s, o metrô e o VLT não chegam lá.</string>
+    <string name="route_walk_to_place">%1$s: %2$s a pé, uns %3$d min.</string>
+    <string name="route_walk_beside">%1$s fica ao lado da estação.</string>
+    <string name="landmarks_near_title">Perto desta estação</string>
+    <string name="landmarks_source">Lugares: OpenStreetMap (© colaboradores, ODbL). Distância a pé pelas ruas, aproximada.</string>
     <string name="settings_section_places">Casa e Trabalho</string>
     <string name="settings_places_desc">Atalhos debaixo de \"Para onde você vai?\": um toque mostra o roteiro até lá. Toque aqui para trocar a estação; tocar e segurar o atalho na tela inicial também troca.</string>
     <string name="settings_place_unset">Nenhuma estação</string>
@@ -227,7 +243,7 @@
     <string name="about_version">Versão %1$s</string>
     <string name="about_unofficial">Este app NÃO é oficial e não tem ligação com o Metrofor nem com o Governo do Ceará. Os horários são os publicados pelo Metrofor e podem não refletir atrasos ou mudanças de última hora. Em caso de dúvida, confira os canais oficiais.</string>
     <string name="about_sources_title">De onde vêm os dados</string>
-    <string name="about_sources">• Horários e estações: GTFS público do Metrofor (info.metrofor.ce.gov.br), atualizado várias vezes por dia.\n• Endereços e passagens: páginas das linhas no site do Metrofor. Posição de algumas estações de Sobral e do Cariri, que o GTFS põe no lugar errado: © colaboradores do OpenStreetMap.\n• Estações do Bicicletar: dados abertos da Prefeitura de Fortaleza (AMC).\n• Regras de bicicleta no metrô e VLT: regulamento "Bike é bem-vinda no metrô" do Metrofor.</string>
+    <string name="about_sources">• Horários e estações: GTFS público do Metrofor (info.metrofor.ce.gov.br), atualizado várias vezes por dia.\n• Endereços e passagens: páginas das linhas no site do Metrofor. Posição de algumas estações de Sobral e do Cariri, que o GTFS põe no lugar errado: © colaboradores do OpenStreetMap.\n• Lugares da busca e de \"Perto desta estação\" (hospitais, universidades, terminais…), com a caminhada pelas ruas: © colaboradores do OpenStreetMap, conferidos com os pontos de referência das estações no site do Metrofor.\n• Estações do Bicicletar: dados abertos da Prefeitura de Fortaleza (AMC).\n• Regras de bicicleta no metrô e VLT: regulamento "Bike é bem-vinda no metrô" do Metrofor.</string>
     <string name="about_license_title">Licença</string>
     <string name="about_license">Software livre, sob a GNU GPL versão 3. O código-fonte está no GitHub.</string>
     <string name="about_source_code">Ver o código-fonte</string>

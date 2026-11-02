@@ -61,12 +61,16 @@ data class RouteView(
     val destinationName get() = legs.last().toName
 }
 
+/** A caminhada da estação até o lugar procurado ("Rodoviária"), no fim do roteiro. */
+data class FinalWalk(val placeName: String, val meters: Int, val minutes: Int, val beside: Boolean)
+
 /**
  * O cartão do roteiro: cada trecho na cor da linha, a troca a pé com o tempo da
- * pessoa e a passagem, a chegada, a dica de horário e os avisos (bike).
+ * pessoa e a passagem, a caminhada até o lugar ([finalWalk]), a chegada, a dica
+ * de horário e os avisos (bike).
  */
 @Composable
-fun RouteCard(view: RouteView, modifier: Modifier = Modifier) {
+fun RouteCard(view: RouteView, modifier: Modifier = Modifier, finalWalk: FinalWalk? = null) {
     Surface(
         color = MaterialTheme.colorScheme.surfaceVariant,
         shape = RoundedCornerShape(18.dp),
@@ -80,8 +84,16 @@ fun RouteCard(view: RouteView, modifier: Modifier = Modifier) {
                 LegRow(leg)
                 view.transfers.getOrNull(i)?.let { TransferRow(it, view.legs[i + 1]) }
             }
+            finalWalk?.let {
+                Text(
+                    text = "🚶 " + if (it.beside) stringResource(R.string.route_walk_beside, it.placeName)
+                    else stringResource(R.string.route_walk_to_place, it.placeName, formatWalkMeters(it.meters), it.minutes),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             Text(
-                text = stringResource(R.string.route_arrival, formatTime(view.itinerary.arrival)),
+                text = stringResource(R.string.route_arrival, formatTime(view.itinerary.arrival + (finalWalk?.minutes ?: 0))),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold,
             )

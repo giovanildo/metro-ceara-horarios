@@ -5,6 +5,9 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
 import androidx.core.content.ContextCompat
+import io.github.giova.metroceara.data.Landmark
+import io.github.giova.metroceara.data.near
+import io.github.giova.metroceara.data.walkMinutes
 import io.github.giova.metroceara.data.LeaveScheduler
 import io.github.giova.metroceara.data.LeaveStore
 import io.github.giova.metroceara.data.Routine
@@ -506,6 +509,10 @@ fun AppRoot() {
             ?.let { ceil(it / WALK_METERS_PER_MINUTE).toInt() }
             ?.takeIf { it > ORIGIN_WALK_FREE_MINUTES } ?: 0
 
+    // Da estação até um lugar procurado, no passo da pessoa (Configurações > Como você se desloca).
+    fun landmarkWalkMinutes(landmark: Landmark): Int =
+        landmark.walkMinutes(Regras.current.mobilityFactors[settings.mobility.key] ?: settings.mobility.defaultFactor)
+
     // As linhas da lista de destinos: as que se alcançam da origem (com o caminho)
     // ou, sem origem, todas. A estação onde se chega a pé numa integração não é
     // destino: ali a pessoa ainda nem embarcou.
@@ -879,6 +886,8 @@ fun AppRoot() {
                     },
                     initialDestination = journeyDest,
                     places = Place.entries.mapNotNull { place -> places?.get(place)?.let { place to it } },
+                    landmarks = Regras.current.landmarks,
+                    walkMinutes = ::landmarkWalkMinutes,
                 )
             }
         }
@@ -932,6 +941,10 @@ fun AppRoot() {
                 initialDirectionId = openDirectionId,
                 schedule = repo.source,
                 bike = bike,
+                nearby = remember(stop.id, route.id) {
+                    repo.station(stop.id, route.id)?.let { Regras.current.landmarks.near(stop.name, it.lat, it.lon) }.orEmpty()
+                },
+                walkMinutes = ::landmarkWalkMinutes,
                 isPinned = isPinned,
                 onTogglePin = {
                     if (isPinned) pinned.clear() else pinned.set(stop.id, route.id)

@@ -77,6 +77,8 @@ class Regras(
     val fareGuide: FareGuide? = null,
     /** As bikes que não entram em horário nenhum ("Bike elétrica ou de carga não pode."). */
     val bikeForbidden: String? = null,
+    /** Lugares da busca ("Rodoviária", "HGF") e de "Perto desta estação". */
+    val landmarks: List<Landmark> = emptyList(),
 ) {
     /** A partida cai num horário de pico (metrô costuma ir cheio)? */
     fun isPeak(minutes: Int): Boolean = peak.any { minutes in it }
@@ -242,7 +244,27 @@ class Regras(
                 fareLines = fareLines,
                 fareGuide = fareGuide,
                 bikeForbidden = bike.optString("proibidas").trim().takeIf { it.isNotEmpty() },
+                landmarks = landmarks(root.optJSONObject("lugares")?.optJSONArray("lista")),
             )
+        }
+
+        /** Um lugar com erro (sem posição, sem estação) fica de fora sem derrubar os outros. */
+        private fun landmarks(list: JSONArray?): List<Landmark> = (0 until (list?.length() ?: 0)).mapNotNull { i ->
+            runCatching {
+                val o = list!!.getJSONObject(i)
+                val position = o.getJSONArray("posicao")
+                Landmark(
+                    name = o.getString("nome"),
+                    type = o.optString("tipo"),
+                    search = o.optString("busca"),
+                    district = o.optString("bairro"),
+                    city = o.optString("cidade"),
+                    lat = position.getDouble(0),
+                    lon = position.getDouble(1),
+                    station = o.getString("estacao"),
+                    walkMeters = o.getInt("a_pe_m"),
+                )
+            }.getOrNull()
         }
 
         /** "Alto da Brasília" e "Alto Da Brasilia" viram o mesmo texto. */

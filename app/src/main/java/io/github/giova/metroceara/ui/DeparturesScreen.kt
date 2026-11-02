@@ -49,6 +49,7 @@ import io.github.giova.metroceara.data.bikeBoarding
 import io.github.giova.metroceara.data.nowDayOfWeek
 import io.github.giova.metroceara.data.DayEnd
 import io.github.giova.metroceara.data.Regras
+import io.github.giova.metroceara.data.Landmark
 import io.github.giova.metroceara.data.Departure
 import io.github.giova.metroceara.data.Direction
 import io.github.giova.metroceara.data.Route
@@ -75,6 +76,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 
 private const val NEXT_COUNT = 4
+private const val NEARBY_COUNT = 8
 private const val TICK_MILLIS = 15_000L
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -93,6 +95,9 @@ fun DeparturesScreen(
     initialDirectionId: Int? = null,
     schedule: ScheduleSource,
     bike: NearbyBike?,
+    /** Lugares a uma caminhada curta (regras.json), do mais perto ao mais longe. */
+    nearby: List<Landmark>,
+    walkMinutes: (Landmark) -> Int,
     isPinned: Boolean,
     onTogglePin: () -> Unit,
     onOpenFareGuide: () -> Unit,
@@ -380,6 +385,29 @@ fun DeparturesScreen(
                             BikeStationRow(
                                 bike = bike,
                                 modifier = Modifier.padding(top = 10.dp),
+                            )
+                        }
+                    }
+                }
+
+                // O que tem perto: hospital, universidade, shopping (o "entorno" da estação).
+                if (nearby.isNotEmpty()) {
+                    item {
+                        Column(modifier = Modifier.padding(top = 8.dp)) {
+                            Text(
+                                text = stringResource(R.string.landmarks_near_title),
+                                style = MaterialTheme.typography.titleSmall,
+                            )
+                            nearby.take(NEARBY_COUNT).forEach { l ->
+                                LandmarkRow(landmark = l, detail = null,
+                                    trailing = landmarkWalk(l, walkMinutes(l)), onClick = null)
+                                HorizontalDivider()
+                            }
+                            Text(
+                                text = stringResource(R.string.landmarks_source),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 6.dp),
                             )
                         }
                     }

@@ -64,6 +64,9 @@ import androidx.compose.ui.unit.dp
 import io.github.giova.metroceara.R
 import io.github.giova.metroceara.data.Departure
 import io.github.giova.metroceara.data.JourneyPlanner.plainName
+import io.github.giova.metroceara.data.Landmark
+import io.github.giova.metroceara.data.search
+import io.github.giova.metroceara.data.servedBy
 import io.github.giova.metroceara.data.Place
 import io.github.giova.metroceara.data.RoutePoint
 import io.github.giova.metroceara.data.Station
@@ -115,10 +118,18 @@ fun JourneyScreen(
     initialDestination: Pair<String, String>? = null,
     /** Casa e Trabalho, no topo da lista de destinos. */
     places: List<Pair<Place, Pair<String, String>>> = emptyList(),
+    /** Os lugares do regras.json ("Rodoviária"), achados pela busca. */
+    landmarks: List<Landmark> = emptyList(),
+    /** Os minutos a pé da estação até o lugar, no passo da pessoa. */
+    walkMinutes: (Landmark) -> Int = { 0 },
 ) {
     var origin by remember { mutableStateOf(initialOrigin) }
     var query by rememberSaveable { mutableStateOf("") }
     var destination by remember { mutableStateOf<Pair<JourneyLine, Stop>?>(null) }
+    // O lugar escolhido: o roteiro vai até a estação dele e termina a pé.
+    var landmark by remember { mutableStateOf<Landmark?>(null) }
+    // O lugar sem roteiro (longe dos trilhos, outra cidade, ou a pé daqui): só a explicação.
+    var landmarkNote by remember { mutableStateOf<Landmark?>(null) }
     var pickingOrigin by remember { mutableStateOf(initialOrigin == null) }
     val lines = remember(origin) { linesFor(origin) }
     LaunchedEffect(lines) {
@@ -133,6 +144,24 @@ fun JourneyScreen(
     }
     val focus = remember { FocusRequester() }
     LaunchedEffect(origin) { if (origin != null && destination == null) runCatching { focus.requestFocus() } }
+
+    // Cada lugar achado com a estação dele na lista de destinos: na mesma linha da
+    // origem, se der (Parangaba tem plataforma no metrô e no VLT); senão, a de chegada
+    // mais cedo. Sem estação na lista, o metrô daqui não chega lá (outra cidade) ou a
+    // pessoa já está na estação do lugar.
+    val landmarkRows = remember(query, lines, arrivals, origin) {
+        landmarks.search(query).map { l ->
+            val served = stations.filter { l.servedBy(it.stopName, it.lat, it.lon) }
+            val here = origin?.let { o -> served.any { plainName(it.stopName) == plainName(o.stopName) } } == true
+            val target = lines.filterNot { it.stopped }.flatMap { line ->
+                line.stops.filter { s -> served.any { it.routeId == line.routeId && it.stopId == s.id } }.map { line to it }
+            }.minByOrNull { (line, stop) ->
+                if (line.routeId == origin?.routeId) -1 else arrivals["${line.routeId}:${stop.id}"] ?: Int.MAX_VALUE
+            }
+            LandmarkHit(l, if (here) null else target, here,
+                target?.let { (line, stop) -> arrivals["${line.routeId}:${stop.id}"] }?.let { it + walkMinutes(l) })
+        }.sortedBy { it.target == null && !it.here } // os de outra cidade no fim
+    }
 
     Scaffold(
         topBar = {
@@ -171,7 +200,7 @@ fun JourneyScreen(
                         value = query,
                         onValueChange = { query = it },
                         label = { Text(stringResource(R.string.journey_to)) },
-                        placeholder = { Text(stringResource(R.string.dest_search)) },
+                        placeholder = { Text(stringResource(R.string.journey_dest_search)) },
                         leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp).focusRequester(focus),
@@ -188,9 +217,23 @@ fun JourneyScreen(
                     }
                 },
                 header = { line -> lineHeader(line) },
-                onPick = { line, stop -> destination = line to stop },
+                onPick = { line, stop ->
+                    landmark = null
+                    destination = line to stop
+                },
                 places = places,
                 originName = origin?.let { plainName(it.stopName) },
+                landmarks = landmarkRows,
+                walkMinutes = walkMinutes,
+                onPickLandmark = { row ->
+                    val target = row.target
+                    if (target == null || row.landmark.far) {
+                        landmarkNote = row.landmark
+                    } else {
+                        landmark = row.landmark
+                        destination = target
+                    }
+                },
             )
         }
     }
@@ -208,16 +251,26 @@ fun JourneyScreen(
         )
     }
 
+    landmarkNote?.let { l ->
+        landmarkRows.firstOrNull { it.landmark == l }?.let { hit ->
+            LandmarkNoteDialog(hit, origin?.let { plainName(it.stopName) }.orEmpty(), walkMinutes(l)) { landmarkNote = null }
+        }
+    }
+
     val from = origin
     destination?.let { (line, stop) ->
         if (from != null) {
             ModalBottomSheet(
-                onDismissRequest = { destination = null },
+                onDismissRequest = {
+                    destination = null
+                    landmark = null
+                },
                 sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
             ) {
                 JourneyResultSheet(
                     origin = from,
-                    destinationName = plainName(stop.name),
+                    destinationName = landmark?.name ?: plainName(stop.name),
+                    finalWalk = landmark?.let { FinalWalk(it.name, it.walkMeters, walkMinutes(it), it.beside) },
                     plan = { time -> plan(from, RoutePoint(line.routeId, stop.id), time) },
                     canStartTrip = canStartTrip(from),
                     onStartTrip = { onStartTrip(from, it) },
@@ -227,6 +280,36 @@ fun JourneyScreen(
             }
         }
     }
+}
+
+/** Um lugar achado pela busca, com a estação de destino ([target]) e a chegada a pé. */
+data class LandmarkHit(
+    val landmark: Landmark,
+    val target: Pair<JourneyLine, Stop>?,
+    /** A estação do lugar é a de onde se sai. */
+    val here: Boolean,
+    val arrival: Int?,
+)
+
+/** Por que o lugar não tem roteiro: longe dos trilhos, a pé daqui ou fora do alcance desta linha. */
+@Composable
+private fun LandmarkNoteDialog(hit: LandmarkHit, originName: String, walkMinutes: Int, onDismiss: () -> Unit) {
+    val l = hit.landmark
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("${landmarkEmoji(l.type)} ${l.name}") },
+        text = {
+            Text(
+                when {
+                    l.far -> stringResource(R.string.landmark_far_title) + " " +
+                        stringResource(R.string.landmark_far_text, l.station, formatWalkMeters(l.walkMeters), walkMinutes)
+                    hit.here -> stringResource(R.string.landmark_here_text, l.name, landmarkWalk(l, walkMinutes), l.station)
+                    else -> stringResource(R.string.landmark_unreachable_text, l.name, l.city.ifBlank { l.station }, originName)
+                },
+            )
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("OK") } },
+    )
 }
 
 @Composable
@@ -254,6 +337,10 @@ private fun StationList(
     places: List<Pair<Place, Pair<String, String>>> = emptyList(),
     /** A estação de onde se sai: o lugar que é ela vira "você está aqui". */
     originName: String? = null,
+    /** Os lugares achados pela busca, depois das estações. */
+    landmarks: List<LandmarkHit> = emptyList(),
+    onPickLandmark: (LandmarkHit) -> Unit = {},
+    walkMinutes: (Landmark) -> Int = { 0 },
 ) {
     val needle = plainText(query)
     val shown = lines.map { line -> line to line.stops.filter { needle.isEmpty() || plainText(it.name).contains(needle) } }
@@ -300,7 +387,7 @@ private fun StationList(
                 HorizontalDivider()
             }
         }
-        if (shown.isEmpty()) {
+        if (shown.isEmpty() && landmarks.isEmpty()) {
             item { Text(stringResource(R.string.dest_none), modifier = Modifier.padding(vertical = 16.dp)) }
         }
         shown.forEach { (line, stops) ->
@@ -340,6 +427,35 @@ private fun StationList(
                         Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
+                HorizontalDivider()
+            }
+        }
+        if (landmarks.isNotEmpty()) {
+            item(key = "landmarks") {
+                Text(
+                    text = stringResource(R.string.landmarks_title),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(top = 16.dp, bottom = 2.dp),
+                )
+            }
+            items(landmarks, key = { "landmark-${it.landmark.name}-${it.landmark.lat}" }) { hit ->
+                val l = hit.landmark
+                val station = stringResource(R.string.landmark_station, l.station,
+                    if (l.far) formatWalkMeters(l.walkMeters) else landmarkWalk(l, walkMinutes(l)))
+                val unreachable = hit.target == null && !hit.here
+                LandmarkRow(
+                    landmark = l,
+                    detail = listOf(l.district.ifBlank { l.city }, station).filter { it.isNotBlank() }.joinToString(" · "),
+                    trailing = when {
+                        l.far -> stringResource(R.string.landmark_far_short)
+                        hit.here -> stringResource(R.string.place_here)
+                        unreachable -> stringResource(R.string.landmark_unreachable)
+                        else -> hit.arrival?.let { stringResource(R.string.dest_arrives, formatTime(it)) }
+                    },
+                    onClick = { onPickLandmark(hit) },
+                    warning = l.far || l.walkMeters > Landmark.NEAR_METERS,
+                )
                 HorizontalDivider()
             }
         }
@@ -411,6 +527,8 @@ fun StationPickerDialog(
 private fun JourneyResultSheet(
     origin: Station,
     destinationName: String,
+    /** O lugar escolhido: o roteiro termina com a caminhada até ele. */
+    finalWalk: FinalWalk?,
     plan: (Int?) -> JourneyResult,
     canStartTrip: Boolean,
     onStartTrip: (RouteView) -> Unit,
@@ -457,7 +575,7 @@ private fun JourneyResultSheet(
         if (view == null) {
             Text(result.message.orEmpty(), color = MaterialTheme.colorScheme.onSurfaceVariant)
         } else {
-            RouteCard(view)
+            RouteCard(view, finalWalk = finalWalk)
             if (result.options.size > 1) {
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -470,7 +588,9 @@ private fun JourneyResultSheet(
                         FilterChip(
                             selected = option === view,
                             onClick = { selected = i },
-                            label = { Text("${formatTime(option.itinerary.departure)} → ${formatTime(option.itinerary.arrival)}") },
+                            label = {
+                                Text("${formatTime(option.itinerary.departure)} → ${formatTime(option.itinerary.arrival + (finalWalk?.minutes ?: 0))}")
+                            },
                         )
                     }
                 }
