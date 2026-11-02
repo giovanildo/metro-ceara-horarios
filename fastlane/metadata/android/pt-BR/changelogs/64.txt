@@ -1,0 +1,3 @@
+• Hora de sair mais simples: toque num horário e pronto, o app avisa. Toque de novo para tirar o aviso.
+• Quanto tempo antes avisar fica nas Configurações, em "Hora de sair".
+• O aviso agora é só o do próprio app (saíram o alarme do relógio e a agenda).
