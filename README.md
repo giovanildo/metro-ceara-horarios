@@ -205,7 +205,7 @@ pessoa fica nas **Configurações → Integração**: "Como você se desloca" e
 | Andando (padrão) | 1 | `deslocamento.andando` |
 | Sem pressa, com criança ou idoso | 1,5 | `deslocamento.sem_pressa` |
 | Com bicicleta (o roteiro confere a regra de bike de cada trecho) | 1,5 | `deslocamento.bicicleta` |
-| Cadeira de rodas ou mobilidade reduzida | 2 | `deslocamento.cadeira_de_rodas` |
+| Cadeira de rodas ou mobilidade reduzida (o roteiro avisa onde não tem elevador) | 2 | `deslocamento.cadeira_de_rodas` |
 
 | Horário | A mais | `regras.json` |
 |---|---|---|
@@ -508,6 +508,45 @@ viagem. As posições usadas são as do OpenStreetMap. Cada entrada leva também
 `nome` da estação: se um dia o Metrofor renumerar as estações e o nome não
 bater mais, a entrada é ignorada, em vez de ir para a estação errada.
 
+### Acessibilidade das estações (elevador, rampa, plataforma elevatória)
+
+Na tela da estação (no app e na lite), logo abaixo da passagem, uma linha diz
+como se chega à plataforma: **"♿ 2 elevadores e escada rolante · ver tudo ›"**
+ou "♿ Acesso por rampa". Onde **não tem elevador**, vira um aviso destacado,
+para todos (quem leva carrinho de bebê também precisa saber): em Maracanaú,
+"Sem elevador. Para chegar à plataforma há uma plataforma elevatória, ligada
+por um funcionário. Peça na bilheteria." O toque abre a tela **Acessibilidade**
+([`ui/AccessScreen.kt`](app/src/main/java/io/github/giova/metroceara/ui/AccessScreen.kt);
+na lite, `#/acesso/<linha>/<estação>`): quantos elevadores, plataformas
+elevatórias, rampas, escadas e escadas rolantes, o espaço para cadeira de rodas
+dentro do metrô e do VLT, quem pode usar o elevador e a fonte.
+
+- **Cadeira de rodas** em Configurações > Como você se desloca: além de dobrar
+  o tempo da integração, o roteiro olha a estação de embarque, as duas da
+  integração e a de chegada. Sem elevador, um alerta ("Maracanaú não tem
+  elevador: peça a plataforma elevatória na bilheteria."); com elevador ou
+  rampa, uma nota ("♿ Parangaba: 2 elevadores e escada rolante · Papicu: 1
+  elevador"). Estação sem dado aparece como "ainda não temos os dados", na
+  tela da estação só para quem escolheu cadeira de rodas.
+- **Conte pra gente**: na tela Acessibilidade, a pessoa escolhe o que encontrou
+  (elevador parado, plataforma sem funcionário, rampa bloqueada, dados errados)
+  e a mensagem sai pronta pelo WhatsApp ou por e-mail. É como o dado se mantém
+  em dia até a resposta oficial.
+
+Os números ficam em `estacoes` > `acesso` do `regras.json` (`elevador`,
+`escada_rolante`, `rampa`, `escada`, `plataforma_elevatoria`) e mudam sem
+versão nova. Vêm das tabelas de acessibilidade por linha do Metrofor (Gerência
+de Projetos, nov/2015; cópia em `referencias/acessibilidade-2015/`, fora do
+git), conferidas com as notícias: as inaugurações da Linha Sul em 2012 batem na
+maioria das estações, e Maracanaú sem elevador aparece em três notícias
+(2012, 2013, 2017). Três nomes de 2015 foram trocados pelos de hoje (Rodoviária
+= Borges de Melo, Bezerra de Menezes = Antônio Bezerra, Cruzamento José
+Euclides = José Euclides). Ficaram **sem dado** Padre Cícero, Expedicionários,
+Boulevard do Arco (reconstruída em 2021) e Campo dos Velhos (é a "Coração de
+Jesus" da tabela, mas ela diz "sem rampa" e o mesmo PDF diz que as estações de
+Sobral têm rampas). O `_fonte` da seção lista o que cada notícia confirma ou
+contradiz. O próximo passo é pedir a tabela atualizada pelo SIC.
+
 ### Guia da passagem (meia, gratuidade, VaiVem Livre)
 
 Abaixo da passagem, a tela da estação (no app e na lite) tem o link **"Meia,
@@ -593,7 +632,7 @@ gravada pelo nome; o app confere também a posição, porque há nomes repetidos
 (Padre Cícero em Fortaleza e no Cariri).
 
 O `regras.json` é a **fonte única** das regras que não vêm do GTFS (bike,
-integrações, passagem, endereços, posições corrigidas, horários de pico e lugares): o app (`data/Regras.kt`), o
+integrações, passagem, endereços, posições corrigidas, acessibilidade, horários de pico e lugares): o app (`data/Regras.kt`), o
 `tools/build_db.py` e a versão lite leem o mesmo arquivo.
 
 **Mudar uma regra não exige versão nova do app.** A tarefa do espelho publica
@@ -980,7 +1019,8 @@ tools/datas_especiais.py             regra de bike de dias especiais, das notíc
 tools/operacoes.py                   dias de operação especial e linhas paradas, das notícias
 app/src/main/assets/metrofor.db      banco gerado (não editar à mão)
 app/src/main/assets/regras.json      regras fora do GTFS: bike, integrações, passagem,
-                                     guia da passagem, endereços, cores, operações especiais
+                                     guia da passagem, endereços, acessibilidade, cores,
+                                     operações especiais, lugares
 DADOS-DO-METROFOR.md                 números e fontes do Metrofor por trás das decisões
 app/src/main/java/.../data/          modelos, abertura do banco, consultas, relógio
 app/src/main/java/.../ui/            telas Compose: linhas -> estações -> partidas
@@ -1112,7 +1152,8 @@ GitHub Pages da página do app, em `giovanildo.github.io/metro-ceara-horarios/ap
 - `app.js` — as telas: início (estação mais perto de cada linha até 3 km, com a
   próxima partida em cada sentido; a localização só é pedida ao tocar no
   botão), linhas, estação (abas por sentido, sem o sentido que termina nela;
-  endereço e passagem, com o link para o guia da passagem em `#/passagem`;
+  endereço e passagem, com o link para o guia da passagem em `#/passagem`,
+  e a acessibilidade da estação em `#/acesso/…`;
   próximas partidas e todos os horários), **Sua viagem**
   (`#/viagem`, a busca "Para onde você vai?", com os atalhos Casa e Trabalho
   em `#/lugar/…` e `#/ir/…`) e configurações.
