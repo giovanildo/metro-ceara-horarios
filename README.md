@@ -140,6 +140,10 @@ mesma tela saindo dali.
   chegada de quem sai agora ("chega 13:57"). Linhas que não se alcançam da
   origem ficam de fora; linha que o Metrofor avisou que não circula aparece
   apagada ("não circula hoje").
+- **Lugares**, não só estações: "rodoviaria", "hgf", "UFC" ou "castelão" acham
+  o lugar e a estação mais perto dele, com a caminhada ("Fátima · Estação Borges
+  de Melo · 630 m · 9 min a pé") e a chegada já contando ela. O roteiro termina
+  a pé até a porta. Ver [Lugares](#lugares-busca-e-perto-desta-estação).
 - **Casa e Trabalho**, como num app de corrida: dois atalhos logo abaixo da
   barra na tela inicial
   ([`ui/PlaceShortcuts.kt`](app/src/main/java/io/github/giova/metroceara/ui/PlaceShortcuts.kt)).
@@ -250,7 +254,9 @@ lugar do botão, o **lembrete na agenda** e o convite para o app completo.
 "Nenhuma") e o link **Trocar** faz o papel de tocar e segurar. Sem a
 localização, a tela inicial não sabe de onde a pessoa sai e os atalhos mostram
 só a estação; com ela, a chegada ou "você está aqui". Na lista do **Para**,
-"Seus lugares" no topo, como no app.
+"Seus lugares" no topo, como no app. Os **lugares** (busca e "Perto desta
+estação") também, pelo mesmo `regras.json`
+([`docs/app/lugares.js`](docs/app/lugares.js)).
 
 ### Widget na tela inicial
 
@@ -539,8 +545,55 @@ programas novos, como o VaiVem Livre (2025) e o cadastro online do Cartão
 Múltiplo (2024). Quando o convênio com o Sindiônibus (Bilhete Único nos
 trilhos) entrar em operação, é preciso reescrever a seção.
 
+### Lugares (busca e "Perto desta estação")
+
+Quem não sabe o nome da estação procura o lugar: na tela **Sua viagem**, o
+**Para** ("Estação ou lugar (ex.: Rodoviária)") acha também 203 lugares de
+Fortaleza e da região metropolitana, de Sobral e do Cariri: hospitais,
+universidades, terminais e rodoviárias, aeroporto, shoppings, mercados, museus,
+teatros, igrejas, praças, Detran, Vapt Vupt, Polícia Federal, fóruns. A busca é
+sem acento, por qualquer palavra do nome e por apelidos ("hgf", "hgcc", "ijf",
+"pv", "joao thome"). Os lugares vêm depois das estações, cada um com bairro,
+estação e caminhada; os de outra cidade vão para o fim ("não dá para chegar
+daqui").
+
+- **O roteiro termina a pé**: a última linha do cartão diz "Rodoviária de
+  Fortaleza: 630 m a pé, uns 9 min", e a chegada já conta a caminhada, no passo
+  de **Como você se desloca**. A estação de destino é a do lugar na linha da
+  origem, se houver (Parangaba tem metrô e VLT); senão, a de chegada mais cedo.
+- **Longe dos trilhos** (mais de 2 km a pé da estação, como Castelão, Unifor,
+  Horto): sem roteiro, só a explicação ("Nenhuma estação fica perto deste
+  lugar. A mais perto é a estação Aeroporto, a 5,1 km…").
+- **Perto desta estação**: na tela da estação, até 8 lugares a menos de 1 km,
+  do mais perto ao mais longe ("Shopping Benfica · ao lado da estação", "UFC ·
+  Reitoria · 500 m · 7 min a pé"). É o "entorno das estações" que o estudo da
+  concessão pede ao app oficial.
+
+Os lugares ficam na seção `lugares` do `regras.json`, um por linha, e mudam sem
+versão nova
+([`data/Landmarks.kt`](app/src/main/java/io/github/giova/metroceara/data/Landmarks.kt)).
+As posições são do OpenStreetMap, e a escolha foi conferida com os pontos de
+referência das páginas das estações do Metrofor (2011 e 2015). Para acrescentar
+um lugar, basta `nome`, `tipo` e `posicao` ([lat, lon]), e `busca` com os
+apelidos, se houver; depois rodar
+
+```sh
+python3 tools/lugares.py               # completa só os lugares novos
+python3 tools/lugares.py --recalcular  # recalcula todos (estação mudou etc.)
+```
+
+O [`tools/lugares.py`](tools/lugares.py) preenche a estação mais perto a pé
+(entre as três mais perto em linha reta), a caminhada pelas ruas (rota a pé do
+OpenStreetMap, routing.openstreetmap.de) e o bairro (Nominatim). A caminhada fica
+entre 1,1 e 1,5 vez a linha reta: a posição da estação fica no meio dos trilhos,
+e a rota às vezes engatava numa rua do outro lado e dava a volta no quarteirão
+(o Terminal do Papicu, colado na estação, dava 1 km). Para 200 lugares, leva uns
+10 minutos (o Nominatim aceita uma consulta por segundo). A estação do lugar é
+gravada pelo nome; o app confere também a posição, porque há nomes repetidos
+(Padre Cícero em Fortaleza e no Cariri).
+
 O `regras.json` é a **fonte única** das regras que não vêm do GTFS (bike,
-integrações, passagem, endereços, posições corrigidas e horários de pico): o app (`data/Regras.kt`), o
+integrações, passagem, endereços, posições corrigidas, horários de pico e lugares): o app (`data/Regras.kt`), o
 `tools/build_db.py` e a versão lite leem o mesmo arquivo.
 
 **Mudar uma regra não exige versão nova do app.** A tarefa do espelho publica
