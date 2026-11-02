@@ -553,10 +553,12 @@ os dias:
 | domingo, 04/10 (eleição) | 7h30 – 18h10 (operação especial) |
 
 Por isso o feed é baixado pela tarefa do GitHub que também alimenta a versão
-lite ([`dados-web.yml`](.github/workflows/dados-web.yml)), **quatro vezes por
-dia** (01:00, 10:00, 15:00 e 20:00 de Fortaleza; o GitHub chega a atrasar ~5 h, e
-o Metrofor já publica a grade do dia logo depois da meia-noite):
-se o site do Metrofor falhar de manhã ou a grade mudar durante o dia, a rodada
+lite ([`dados-web.yml`](.github/workflows/dados-web.yml)), **oito vezes por
+dia**: cinco de madrugada (00:47, 01:17, 01:47, 02:47 e 04:17 de Fortaleza),
+porque o Metrofor publica a grade do dia logo depois da meia-noite e o GitHub
+chega a atrasar ~5 h, e mais 10:00, 15:00 e 20:00. Nada antes das 00:40: o feed
+não diz de que dia é, e o espelho guarda a grade pelo dia em que baixou.
+Se o site do Metrofor falhar de manhã ou a grade mudar durante o dia, a rodada
 seguinte corrige. Ela guarda o zip original de cada tipo de dia no ramo
 `dados` (`gtfs-dia-util.zip`, `gtfs-sabado.zip`, `gtfs-domingo.zip`), e o
 `indice.json` diz a data, o tamanho e a hora de cada um. O app
@@ -922,7 +924,7 @@ libera acesso a partir de outras páginas —, então os horários chegam pronto
   ela (`null` = não para): a grade de um dia útil inteiro tem ~23 KB. Junto
   vai o zip original (`gtfs-<tipo>.zip`), que o **app Android** baixa.
 - A tarefa [`dados-web.yml`](.github/workflows/dados-web.yml) roda o script
-  quatro vezes por dia (01:00, 10:00, 15:00 e 20:00 de Fortaleza; ou à mão, em Actions → "Dados da versão
+  oito vezes por dia (00:47, 01:17, 01:47, 02:47, 04:17, 10:00, 15:00 e 20:00 de Fortaleza; ou à mão, em Actions → "Dados da versão
   web" → Run workflow) e publica o resultado no ramo **`dados`**, fora da
   `main`, para não encher o histórico do app. A web lê de
   `raw.githubusercontent.com/giovanildo/metro-ceara-horarios/dados/…`.

@@ -7,12 +7,21 @@ name: Dados da versão web
 
 on:
   schedule:
-    # Quatro vezes por dia (horário de Fortaleza: 01:00, 10:00, 15:00 e 20:00).
-    # A primeira é de madrugada porque o GitHub atrasa os agendamentos em até
-    # ~5 h (a das 04:30 rodava lá pelas 9h), e o Metrofor já publica a grade do
-    # dia logo depois da meia-noite (em 25/10, a da eleição, às 00:33). As
-    # outras corrigem falhas do site ou mudanças durante o dia.
-    - cron: "0 4 * * *"
+    # Horário de Fortaleza (UTC−3). O Metrofor publica a grade do dia logo
+    # depois da meia-noite (em 25/10, a da eleição, já estava lá às 00:33), e o
+    # GitHub atrasa os agendamentos em até ~5 h, mais na hora cheia. Por isso
+    # cinco tentativas de madrugada, em minutos quebrados (00:47, 01:17, 01:47,
+    # 02:47 e 04:17): quem abre o app às 5h já acha a grade de hoje. Nada antes
+    # das 00:40: o feed não diz de que dia é (nem no zip nem no feed_info.txt) e
+    # o espelho guarda a grade pelo dia em que baixou; antes da troca, guardaria
+    # a de ontem como a de hoje (a de sexta como a de sábado). O GitHub só atrasa,
+    # nunca adianta. As de 10:00, 15:00 e 20:00 corrigem falhas do site ou
+    # mudanças durante o dia.
+    - cron: "47 3 * * *"
+    - cron: "17 4 * * *"
+    - cron: "47 4 * * *"
+    - cron: "47 5 * * *"
+    - cron: "17 7 * * *"
     - cron: "0 13 * * *"
     - cron: "0 18 * * *"
     - cron: "0 23 * * *"
