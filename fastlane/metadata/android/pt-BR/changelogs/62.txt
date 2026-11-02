@@ -1,0 +1,3 @@
+• Avisar a hora de sair: toque num horário e o app avisa na hora certa, mesmo com a tela bloqueada, mostrando quanto falta para a partida. Também dá para criar um alarme no relógio ou pôr na agenda.
+• Rotinas: salve o trajeto do dia a dia e o app avisa sozinho nos dias marcados, com os horários do dia (sem avisar no domingo sem metrô).
+• Mensagem dos horários mais clara: só aparece em vermelho quando importa.
