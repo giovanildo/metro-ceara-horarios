@@ -373,6 +373,7 @@ function telaEstacao(linhaId, stopId, sentidoId) {
   }
   // Aviso livre da estação (regras.json), como o de estação subterrânea.
   if (info?.aviso) html += `<p class="aviso">${esc(info.aviso)}</p>`;
+  html += linhaAcesso(info?.acesso, `#/acesso/${linha.id}/${stopId}`);
   if (sentidos.length > 1) {
     html += `<nav class="abas">${sentidos.map((s) =>
       `<a href="#/estacao/${linha.id}/${stopId}/${s.id}" class="${s === sentido ? "ativa" : ""}">→ ${esc(s.destino)}</a>`).join("")}</nav>`;
@@ -414,6 +415,94 @@ function telaEstacao(linhaId, stopId, sentidoId) {
 
   tela.querySelectorAll("button[data-m]:not([disabled])").forEach((b) => b.addEventListener("click", () =>
     lembrete(linha, sentido, stopId, +b.dataset.m, b.dataset.amanha === "true")));
+}
+
+// ---------- acessibilidade da estação (regras.json, "acesso"), como no app
+
+const WHATSAPP_RELATO = "https://wa.me/5585997619295?text=";
+const EMAIL_RELATO = "giovanildos@gmail.com";
+
+/** Como a cadeira de rodas chega à plataforma: elevador, plataforma elevatória, rampa ou só escada. */
+function formaDeAcesso(a) {
+  return a.elevador > 0 ? "elevador" : a.plataforma_elevatoria > 0 ? "plataforma" : a.rampa > 0 ? "rampa" : "escada";
+}
+
+/** "2 elevadores e escada rolante", "Acesso por rampa"; null sem elevador nem rampa. */
+function resumoAcesso(a) {
+  const f = formaDeAcesso(a);
+  if (f === "elevador") {
+    const e = `${a.elevador} ${a.elevador === 1 ? "elevador" : "elevadores"}`;
+    return a.escada_rolante > 0 ? `${e} e escada rolante` : e;
+  }
+  return f === "rampa" ? "Acesso por rampa" : null;
+}
+
+/**
+ * Na tela da estação: com elevador ou rampa, uma linha curta; sem elevador, o aviso,
+ * para todos (quem leva carrinho de bebê também precisa saber). Sem dados, só para
+ * quem escolheu "cadeira de rodas".
+ */
+function linhaAcesso(a, href) {
+  if (!a) {
+    return perfilGuardado() === "cadeira_de_rodas"
+      ? `<p class="dica">♿ Ainda não temos os dados de elevador e rampa desta estação. <a href="${href}">Você sabe? Conte pra gente ›</a></p>` : "";
+  }
+  const f = formaDeAcesso(a);
+  if (f === "plataforma" || f === "escada") {
+    return `<p class="aviso">♿ ${f === "plataforma"
+      ? "<strong>Sem elevador.</strong> Para chegar à plataforma há uma plataforma elevatória, ligada por um funcionário. Peça na bilheteria."
+      : "<strong>Sem elevador nem rampa.</strong> Peça ajuda a um funcionário da estação."}
+      <br><a href="${href}"><strong>Elevador, rampa e escada ›</strong></a></p>`;
+  }
+  return `<p class="dica"><a href="${href}">♿ ${esc(resumoAcesso(a))} · ver tudo ›</a></p>`;
+}
+
+/** Elevador, plataforma elevatória, rampa e escada da estação, quem pode usar e o "Conte pra gente". */
+function telaAcesso(linhaId, stopId) {
+  const { grade, regras } = estado.dados;
+  const linha = grade.linha(linhaId);
+  if (!linha || !grade.estacoes[stopId]) return telaNaoAchei();
+  const nome = semSufixo(grade.nome(stopId));
+  const a = infoEstacao(regras, stopId, grade.nome(stopId))?.acesso;
+  const item = (nomeItem, n, desc = "") => `<p class="item-acesso"><span><strong>${nomeItem}</strong>${desc ? `<br><span class="dica">${desc}</span>` : ""}</span>
+    <strong class="${n > 0 ? "" : "nao-tem"}">${n > 0 ? n : "não tem"}</strong></p>`;
+  let html = `<h2 style="font-size:1.4rem;margin-bottom:0">Acessibilidade</h2>
+    <p class="dica" style="margin-top:2px"><span class="ponto" style="background:${cor(linha)}"></span> ${esc(nome)} · ${esc(linha.nome)}</p>`;
+  if (!a) {
+    html += `<p>Ainda não temos os dados de elevador e rampa desta estação.</p>`;
+  } else {
+    html += `<div class="tarifas">${item("🛗 Elevador", a.elevador)}
+      ${a.plataforma_elevatoria > 0 ? item("♿ Plataforma elevatória", a.plataforma_elevatoria,
+        "Sobe a escada com a cadeira de rodas. Um funcionário liga e acompanha: peça na bilheteria.") : ""}
+      ${item("↗ Rampa", a.rampa)}${item("🪜 Escada", a.escada)}${item("⇅ Escada rolante", a.escada_rolante)}</div>`;
+  }
+  html += `<div class="aviso quadro"><strong>Dentro do metrô e do VLT</strong><br>Todos têm espaço para cadeira de rodas, com cinto de segurança.</div>
+    <div class="aviso quadro"><strong>Quem pode usar o elevador e a plataforma</strong><br>Pessoa com deficiência ou mobilidade reduzida,
+      idoso, gestante e quem está em situação de fragilidade, como quem leva carrinho de bebê. Os outros vão pela escada.</div>`;
+  const msg = `Metrô Ceará · acessibilidade da estação ${nome} (${linha.nome}): `;
+  html += `<h2>${a ? "Encontrou algo diferente?" : "Você sabe como é?"}</h2>
+    <p class="dica">Elevador parado, plataforma sem funcionário, rampa bloqueada… Conte pra gente: ajuda quem vem depois.</p>
+    <a class="botao largo" href="${WHATSAPP_RELATO}${encodeURIComponent(msg)}" target="_blank" rel="noopener">Contar pelo WhatsApp</a>
+    <a class="botao secundario largo" href="mailto:${EMAIL_RELATO}?subject=${encodeURIComponent(`Acessibilidade: ${nome}`)}&body=${encodeURIComponent(msg)}">Contar por e-mail</a>`;
+  if (a) html += `<p class="dica">Segundo o Metrofor (tabela de 2015). Um elevador pode estar parado para manutenção.</p>`;
+  html += `<p><a href="#/estacao/${linha.id}/${stopId}">‹ ${esc(nome)}</a></p>`;
+  tela.innerHTML = html;
+}
+
+/** Com cadeira de rodas: onde o roteiro embarca, troca de linha e desce, e como se chega à plataforma. */
+function acessoDoRoteiro(o, grade) {
+  const { regras } = estado.dados;
+  const ids = [o.pernas[0].de, ...o.trocas.flatMap((x) => [x.lig.deEst, x.lig.paraEst]), o.pernas.at(-1).para];
+  const ests = [...new Set(ids)].map((id) => ({ nome: semSufixo(grade.nome(id)), a: infoEstacao(regras, id, grade.nome(id))?.acesso }));
+  const avisos = [...new Set(ests.map(({ nome, a }) => !a ? `${nome}: ainda não temos os dados de elevador e rampa.`
+    : formaDeAcesso(a) === "plataforma" ? `${nome} não tem elevador: peça a plataforma elevatória na bilheteria.`
+    : formaDeAcesso(a) === "escada" ? `${nome} não tem elevador nem rampa: peça ajuda a um funcionário.` : null).filter(Boolean))];
+  // Uma linha por estação: na integração, vale a primeira das duas plataformas de mesmo nome.
+  const vistos = new Set();
+  const notas = ests.filter(({ nome }) => !vistos.has(nome) && vistos.add(nome))
+    .map(({ nome, a }) => a && resumoAcesso(a) && `${nome}: ${resumoAcesso(a).replace(/^./, (c) => c.toLowerCase())}`).filter(Boolean);
+  return avisos.map((x) => `<p class="aviso">♿ ${esc(x)}</p>`).join("")
+    + (notas.length ? `<p class="dica">♿ ${esc(notas.join(" · "))}</p>` : "");
 }
 
 /** "Perto desta estação": hospital, universidade, shopping a uma caminhada curta (regras.json). */
@@ -734,6 +823,7 @@ function cartaoRoteiro(o, grade, dia, perfil, ape = null) {
   if (o.antes != null) {
     html += `<p class="dica">O ${veiculo(grade.linha(o.pernas[0].linha).nome)} das ${hora(o.antes)} chega no mesmo horário, mas espera mais na integração.</p>`;
   }
+  if (perfil === "cadeira_de_rodas") html += acessoDoRoteiro(o, grade);
   if (perfil === "bicicleta") {
     for (const p of o.pernas) {
       const l = grade.linha(p.linha);
@@ -1015,6 +1105,7 @@ function render() {
   else if (partes[0] === "estacao") telaEstacao(partes[1], partes[2], partes[3]);
   else if (partes[0] === "sobre") telaSobre();
   else if (partes[0] === "passagem") telaPassagem(partes[1]);
+  else if (partes[0] === "acesso") telaAcesso(partes[1], partes[2]);
   else if (partes[0] === "viagem") telaViagem(partes[1], partes[2]);
   else if (partes[0] === "lugar") telaLugar(partes[1]);
   else if (partes[0] === "ir") irParaLugar(partes[1]);

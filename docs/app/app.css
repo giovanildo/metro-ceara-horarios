@@ -197,3 +197,7 @@ a.cartao.tema .seta { position: absolute; right: 16px; top: 50%; transform: tran
 .fonte-guia { color: #43568f; font-weight: 600; font-size: .9rem; margin-top: -6px; }
 @media (prefers-color-scheme: dark) { .fonte-guia { color: #b3c5ff; } }
 .guia ul { padding-left: 20px; } .guia li { margin-bottom: 6px; }
+
+/* Acessibilidade da estação */
+.item-acesso { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+.item-acesso .nao-tem { color: #b3261e; white-space: nowrap; }
