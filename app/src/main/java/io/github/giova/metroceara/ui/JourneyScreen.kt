@@ -64,6 +64,7 @@ import androidx.compose.ui.unit.dp
 import io.github.giova.metroceara.R
 import io.github.giova.metroceara.data.Departure
 import io.github.giova.metroceara.data.JourneyPlanner.plainName
+import io.github.giova.metroceara.data.Place
 import io.github.giova.metroceara.data.RoutePoint
 import io.github.giova.metroceara.data.Station
 import io.github.giova.metroceara.data.Stop
@@ -112,6 +113,8 @@ fun JourneyScreen(
     onBack: () -> Unit,
     /** Destino já escolhido (linha, estação): vindo do aviso da hora de sair, abre o roteiro direto. */
     initialDestination: Pair<String, String>? = null,
+    /** Casa e Trabalho, no topo da lista de destinos. */
+    places: List<Pair<Place, Pair<String, String>>> = emptyList(),
 ) {
     var origin by remember { mutableStateOf(initialOrigin) }
     var query by rememberSaveable { mutableStateOf("") }
@@ -186,6 +189,8 @@ fun JourneyScreen(
                 },
                 header = { line -> lineHeader(line) },
                 onPick = { line, stop -> destination = line to stop },
+                places = places,
+                originName = origin?.let { plainName(it.stopName) },
             )
         }
     }
@@ -245,11 +250,56 @@ private fun StationList(
     header: @Composable (JourneyLine) -> String,
     onPick: (JourneyLine, Stop) -> Unit,
     modifier: Modifier = Modifier,
+    /** Casa e Trabalho, no topo enquanto a busca está vazia. */
+    places: List<Pair<Place, Pair<String, String>>> = emptyList(),
+    /** A estação de onde se sai: o lugar que é ela vira "você está aqui". */
+    originName: String? = null,
 ) {
     val needle = plainText(query)
     val shown = lines.map { line -> line to line.stops.filter { needle.isEmpty() || plainText(it.name).contains(needle) } }
         .filter { it.second.isNotEmpty() }
+    // Cada lugar com a linha e a estação da lista (ou nenhuma: é a de onde se sai).
+    val placeRows = if (needle.isNotEmpty()) emptyList() else places.mapNotNull { (place, saved) ->
+        val (stopId, routeId) = saved
+        val line = lines.firstOrNull { it.routeId == routeId }
+        val stop = line?.stops?.firstOrNull { it.id == stopId }
+        val name = stop?.name ?: lines.firstNotNullOfOrNull { l -> l.stops.firstOrNull { it.id == stopId }?.name }
+        when {
+            line != null && stop != null && plainName(stop.name) != originName -> Triple(place, line to stop, plainName(stop.name))
+            originName != null -> Triple(place, null, name?.let(::plainName) ?: originName)
+            else -> null
+        }
+    }
     LazyColumn(modifier = modifier.fillMaxWidth()) {
+        if (placeRows.isNotEmpty()) {
+            item(key = "places") {
+                Text(
+                    text = stringResource(R.string.places_title),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(top = 16.dp, bottom = 2.dp),
+                )
+            }
+            items(placeRows, key = { "place-${it.first.key}" }) { (place, pick, name) ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(enabled = pick != null && !pick.first.stopped) { pick?.let { onPick(it.first, it.second) } }
+                        .padding(vertical = 12.dp),
+                ) {
+                    Text(
+                        text = "${placeEmoji(place)} ${stringResource(placeLabel(place))} · $name",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.weight(1f),
+                    )
+                    (if (pick == null) stringResource(R.string.place_here) else detail(pick.first, pick.second))?.let {
+                        Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+                HorizontalDivider()
+            }
+        }
         if (shown.isEmpty()) {
             item { Text(stringResource(R.string.dest_none), modifier = Modifier.padding(vertical = 16.dp)) }
         }
@@ -296,9 +346,19 @@ private fun StationList(
     }
 }
 
-/** Escolher uma estação: todas, por linha, com busca. */
+/**
+ * Escolher uma estação: todas, por linha, com busca. [note]: uma explicação
+ * curta debaixo do título; [onNone]: o botão "Nenhuma" (para apagar a escolha).
+ */
 @Composable
-fun StationPickerDialog(stations: List<Station>, title: String, onPick: (Station) -> Unit, onDismiss: () -> Unit) {
+fun StationPickerDialog(
+    stations: List<Station>,
+    title: String,
+    onPick: (Station) -> Unit,
+    onDismiss: () -> Unit,
+    note: String? = null,
+    onNone: (() -> Unit)? = null,
+) {
     var query by rememberSaveable { mutableStateOf("") }
     val lines = remember(stations) {
         stations.groupBy { it.routeId }.values.map { list ->
@@ -312,6 +372,10 @@ fun StationPickerDialog(stations: List<Station>, title: String, onPick: (Station
         title = { Text(title) },
         text = {
             Column {
+                note?.let {
+                    Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 12.dp))
+                }
                 OutlinedTextField(
                     value = query,
                     onValueChange = { query = it },
@@ -331,7 +395,9 @@ fun StationPickerDialog(stations: List<Station>, title: String, onPick: (Station
                 )
             }
         },
-        confirmButton = {},
+        confirmButton = {
+            onNone?.let { TextButton(onClick = it) { Text(stringResource(R.string.place_none)) } }
+        },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     )
 }

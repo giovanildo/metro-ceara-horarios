@@ -72,6 +72,8 @@ import io.github.giova.metroceara.data.DevLog
 import io.github.giova.metroceara.data.LocationSource
 import io.github.giova.metroceara.data.MetroforDatabase
 import io.github.giova.metroceara.data.PinnedStation
+import io.github.giova.metroceara.data.Place
+import io.github.giova.metroceara.data.Places
 import io.github.giova.metroceara.data.ScheduleRepository
 import io.github.giova.metroceara.data.ScheduleStore
 import io.github.giova.metroceara.data.isSundayWithoutService
@@ -583,6 +585,41 @@ fun AppRoot() {
         }.toMap()
     }
 
+    // ----------------------------------------------------- Casa e Trabalho ----
+    // Atalhos debaixo de "Para onde você vai?": a estação guardada, a chegada de
+    // quem sai agora da estação em destaque, ou "você está aqui".
+    val places by Places.all(context).collectAsState()
+    var placeEditing by remember { mutableStateOf<Place?>(null) }
+    fun placeName(saved: Pair<String, String>) = repo.stop(saved.first)?.name?.let(JourneyPlanner::plainName)
+    val placeOrigin = homeState.station
+    val placeShortcuts by produceState(emptyList<PlaceShortcut>(), places, placeOrigin, now, sundayOff, stoppedRoutes) {
+        value = withContext(Dispatchers.IO) {
+            Place.entries.map { place ->
+                val saved = places?.get(place)
+                val name = saved?.let(::placeName)
+                val here = name != null && placeOrigin != null && JourneyPlanner.plainName(placeOrigin.stopName) == name
+                val arrival = if (saved == null || name == null || here || placeOrigin == null || sundayOff) null else
+                    router.plan(RoutePoint(placeOrigin.routeId, placeOrigin.stopId), RoutePoint(saved.second, saved.first),
+                        leaveNow(placeOrigin), 1, stoppedRoutes).firstOrNull()?.arrival
+                PlaceShortcut(place, name,
+                    when {
+                        here -> context.getString(R.string.place_here)
+                        arrival != null -> context.getString(R.string.dest_arrives, formatTime(arrival))
+                        else -> null
+                    },
+                    here)
+            }
+        }
+    }
+
+    fun openPlace(place: Place) {
+        val saved = places?.get(place) ?: return
+        journeyFrom = homeState.station
+        // Já na estação do lugar: abre a lista, para escolher outro destino.
+        journeyDest = (saved.second to saved.first).takeUnless { placeShortcuts.firstOrNull { it.place == place }?.here == true }
+        journeyOpen = true
+    }
+
     // O roteiro vira viagem. Num trecho só, pelo caminho de sempre (que oferece ir
     // sentado pelo terminal); com integração, o roteiro inteiro, trecho a trecho.
     fun startJourney(origin: Station, view: RouteView) {
@@ -713,6 +750,23 @@ fun AppRoot() {
         )
     }
 
+    placeEditing?.let { place ->
+        StationPickerDialog(
+            stations = remember(repo) { repo.stations() },
+            title = stringResource(if (place == Place.HOME) R.string.place_pick_home else R.string.place_pick_work),
+            note = stringResource(R.string.place_pick_note),
+            onPick = {
+                Places.set(context, place, it.stopId to it.routeId)
+                placeEditing = null
+            },
+            onDismiss = { placeEditing = null },
+            onNone = if (places?.get(place) == null) null else ({
+                Places.set(context, place, null)
+                placeEditing = null
+            }),
+        )
+    }
+
     // --------------------------------------------------------------- telas ----
     when {
         showSettings -> {
@@ -722,6 +776,12 @@ fun AppRoot() {
                 onChange = { SettingsStore.save(context, it) },
                 onReset = { SettingsStore.reset(context) },
                 onBack = { showSettings = false },
+                places = Place.entries.map { place ->
+                    place to places?.get(place)?.let { saved ->
+                        placeName(saved)?.let { name -> listOfNotNull(name, repo.route(saved.second)?.name).joinToString(" · ") }
+                    }
+                },
+                onEditPlace = { placeEditing = it },
             )
         }
 
@@ -818,6 +878,7 @@ fun AppRoot() {
                         journeyDest = null
                     },
                     initialDestination = journeyDest,
+                    places = Place.entries.mapNotNull { place -> places?.get(place)?.let { place to it } },
                 )
             }
         }
@@ -922,6 +983,11 @@ fun AppRoot() {
                             journeyDest = null
                             journeyOpen = true
                         })
+                        PlaceShortcuts(
+                            shortcuts = placeShortcuts,
+                            onOpen = ::openPlace,
+                            onEdit = { placeEditing = it },
+                        )
                         // As rotinas, quando há alguma: um toque abre a lista.
                         routinesList?.takeIf { it.isNotEmpty() }?.let { list ->
                             TextButton(onClick = { routinesOpen = true }) {

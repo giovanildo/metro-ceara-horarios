@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import io.github.giova.metroceara.R
 import io.github.giova.metroceara.data.AppSettings
 import io.github.giova.metroceara.data.Mobility
+import io.github.giova.metroceara.data.Place
 import io.github.giova.metroceara.data.TripLog
 import kotlin.math.roundToInt
 
@@ -53,6 +54,9 @@ fun SettingsScreen(
     onChange: (AppSettings) -> Unit,
     onReset: () -> Unit,
     onBack: () -> Unit,
+    /** Casa e Trabalho, com o nome da estação guardada (ou `null`). */
+    places: List<Pair<Place, String?>> = emptyList(),
+    onEditPlace: (Place) -> Unit = {},
 ) {
     Scaffold(
         topBar = {
@@ -116,6 +120,29 @@ fun SettingsScreen(
                 }
             }
             HorizontalDivider(modifier = Modifier.padding(top = 12.dp))
+
+            SectionTitle(R.string.settings_section_places)
+            Text(
+                text = stringResource(R.string.settings_places_desc),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            places.forEach { (place, name) ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onEditPlace(place) }
+                        .padding(vertical = 10.dp),
+                ) {
+                    Text("${placeEmoji(place)} ${stringResource(placeLabel(place))}", style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        text = name ?: stringResource(R.string.settings_place_unset),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
 
             SectionTitle(R.string.settings_section_distances)
             SettingSlider(

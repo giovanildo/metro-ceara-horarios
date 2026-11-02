@@ -140,6 +140,19 @@ mesma tela saindo dali.
   chegada de quem sai agora ("chega 13:57"). Linhas que não se alcançam da
   origem ficam de fora; linha que o Metrofor avisou que não circula aparece
   apagada ("não circula hoje").
+- **Casa e Trabalho**, como num app de corrida: dois atalhos logo abaixo da
+  barra na tela inicial
+  ([`ui/PlaceShortcuts.kt`](app/src/main/java/io/github/giova/metroceara/ui/PlaceShortcuts.kt)).
+  Na primeira vez, "🏠 Definir Casa" e "💼 Definir Trabalho" abrem a escolha da
+  estação ("O app guarda só a estação, não o seu endereço"). Depois, cada
+  atalho mostra a estação e a chegada de quem sai agora da estação em destaque
+  ("Mondubim · chega 18:12"); um toque abre o roteiro direto, pronto para o
+  modo viagem. O lugar onde a pessoa já está vira "você está aqui" e vai para
+  o fim, então de manhã, em casa, o Trabalho fica na frente e, no fim do dia,
+  a Casa. Tocar e segurar troca a estação (com "Nenhuma" para apagar), e
+  **Configurações → Casa e Trabalho** também. Na lista do **Para**, os dois
+  aparecem no topo, em "Seus lugares", enquanto a busca está vazia. Guardados
+  só no aparelho (`data/Places.kt`, estação e linha).
 - **Resultado**, numa folha que sobe por baixo:
   - **Sair agora** ou **Escolher horário** (relógio de 24 h; "Sair às 17:30");
   - o **roteiro**: cada trecho na cor da linha ("13:02 Carlito Benevides · Metrô
