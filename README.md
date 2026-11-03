@@ -1224,8 +1224,9 @@ GitHub Pages da página do app, em `giovanildo.github.io/metro-ceara-horarios/ap
 
 - `dados.js` — download dos JSON (com a última cópia guardada no aparelho, para
   abrir sem internet), relógio sempre no fuso de Fortaleza, grade do tipo de
-  dia, próximas partidas (acabando as de hoje, seguem as de amanhã; com amanhã
-  domingo, o fim do dia mostra a segunda) e
+  dia, próximas partidas (acabando as de hoje, seguem as de amanhã, pela grade
+  comum; com amanhã domingo, o fim do dia mostra a segunda; com operação
+  especial no próximo dia, o aviso no lugar dos horários) e
   distância. É a tradução das mesmas regras do app.
 - `app.js` — as telas: início (estação mais perto de cada linha até 3 km, com a
   próxima partida em cada sentido; a localização só é pedida ao tocar no

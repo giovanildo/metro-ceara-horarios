@@ -180,6 +180,11 @@ function fimDoDia(linha, sentido, stopId) {
   if (primeiro !== undefined) {
     partes.push(`${partes.length ? "p" : "P"}rimeiro de ${estado.dados.proximoEhSegunda ? "segunda" : "amanhã"}: ${hora(primeiro)}`
       + (estado.dados.proximoEhSegunda ? " (domingo, só em operação especial)" : ""));
+  } else if (estado.dados.proximoEspecial) {
+    const texto = estado.dados.proximoEhSegunda
+      ? "segunda o horário é especial e só sai depois da meia-noite de domingo"
+      : "amanhã o horário é especial e só sai depois da meia-noite";
+    partes.push(partes.length ? texto : texto[0].toUpperCase() + texto.slice(1));
   }
   return partes.join(" · ");
 }
@@ -781,7 +786,11 @@ function notaLugar(nome, eo) {
 function resultadoViagem(lo, eo, v, t) {
   const { regras } = estado.dados;
   const dia = diaDaViagem(t);
-  if (!dia) return `<p class="vazio">Carregando os horários de segunda…</p>`;
+  if (!dia) {
+    return estado.dados.proximoEspecial
+      ? `<p class="vazio">Segunda o horário é especial e só sai depois da meia-noite.</p>`
+      : `<p class="vazio">Carregando os horários de segunda…</p>`;
+  }
   const { grade } = dia;
   const [ld, ed] = v.destino.split("|");
   const perfil = perfilGuardado();

@@ -62,12 +62,22 @@ async function json(nome) {
   }
 }
 
-/** A grade de um tipo de dia (ou a de dia útil, se ainda não houver). */
-async function carregarGrade(indice, tipo) {
-  const info = indice.tipos[tipo] || indice.tipos["dia-util"];
+/**
+ * A grade de um tipo de dia (ou a de dia útil, se ainda não houver). Com [prever], a
+ * última de um dia comum ("normais"): a de um feriado não serve de previsão.
+ */
+async function carregarGrade(indice, tipo, prever = false) {
+  const tipos = prever && indice.normais ? { ...indice.tipos, ...indice.normais } : indice.tipos;
+  const info = tipos[tipo] || tipos["dia-util"];
   if (!info) return null;
   const g = await json(info.arquivo);
   return new Grade(g);
+}
+
+/** Dia com operação especial anunciada que muda o horário ("normal": a notícia diz que não muda). */
+function diaEspecial(regras, data) {
+  const op = regras?.operacoes?.[data];
+  return !!op && !op.normal;
 }
 
 export async function carregar() {
@@ -88,14 +98,16 @@ export async function carregar() {
   // (metrô e VLT normalmente não circulam, embora o GTFS diga que sim).
   const proximoEhSegunda = (hoje.diaSemana + 1) % 7 === 0;
   const proximoTipo = tipoDoDia(proximoEhSegunda ? 1 : (hoje.diaSemana + 1) % 7);
+  // Operação especial anunciada no próximo dia: a grade dele só sai depois da meia-noite.
+  const proximoEspecial = diaEspecial(regras, somarDias(hoje.data, proximoEhSegunda ? 2 : 1));
   return {
-    indice, grade, regras, bike, tipo, proximoEhSegunda,
+    indice, grade, regras, bike, tipo, proximoEhSegunda, proximoEspecial,
     // A notícia do Metrofor que explica a operação especial de hoje e a de amanhã (feriado,
     // ENEM, eleição), do regras.json; sem operação anunciada, nenhuma.
     avisos: [[hoje.data, false], [somarDias(hoje.data, 1), true]]
       .map(([d, amanha]) => regras?.operacoes?.[d] && { ...regras.operacoes[d], amanha })
       .filter((o, i, l) => o && l.findIndex((x) => x?.titulo === o.titulo) === i),
-    proximoDia: () => carregarGrade(indice, proximoTipo),
+    proximoDia: () => (proximoEspecial ? Promise.resolve(null) : carregarGrade(indice, proximoTipo, true)),
   };
 }
 
