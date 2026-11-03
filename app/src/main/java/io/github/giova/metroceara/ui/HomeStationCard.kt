@@ -194,10 +194,11 @@ private fun StationSummary(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Bottom,
                 ) {
-                    Text(
-                        text = "→ ${item.headsign}",
-                        style = MaterialTheme.typography.bodyMedium,
+                    DirectionLabel(
+                        headsign = item.headsign,
+                        modifier = Modifier.weight(1f, fill = false).padding(end = 8.dp),
                     )
                     Text(
                         text = item.departure?.let { departure ->

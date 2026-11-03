@@ -52,6 +52,7 @@ import io.github.giova.metroceara.data.Regras
 import io.github.giova.metroceara.data.Landmark
 import io.github.giova.metroceara.data.Departure
 import io.github.giova.metroceara.data.Direction
+import io.github.giova.metroceara.data.DirectionVia
 import io.github.giova.metroceara.data.Route
 import io.github.giova.metroceara.data.TransferTarget
 import io.github.giova.metroceara.data.ScheduleSource
@@ -89,6 +90,8 @@ fun DeparturesScreen(
     departuresFor: (Direction) -> List<Int>,
     tomorrowFor: (Direction) -> List<Int>?,
     dayEndFor: (Direction) -> DayEnd,
+    /** Por onde o sentido passa a partir desta estação. */
+    viaFor: (Direction) -> DirectionVia?,
     onPlanJourney: () -> Unit,
     transfers: List<TransferTarget>,
     transferDepartures: (TransferTarget, Int) -> Departure?,
@@ -212,7 +215,13 @@ fun DeparturesScreen(
                     Tab(
                         selected = index == selectedTab,
                         onClick = { selectedTab = index },
-                        text = { Text("→ ${item.headsign}") },
+                        text = {
+                            DirectionLabel(
+                                headsign = item.headsign,
+                                style = MaterialTheme.typography.titleSmall,
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                            )
+                        },
                     )
                 }
             }
@@ -221,6 +230,16 @@ fun DeparturesScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+                // Por onde o sentido passa: quem não conhece a ponta da linha reconhece o caminho.
+                direction?.let(viaFor)?.let { via ->
+                    item(key = "via-${direction.id}") {
+                        Text(
+                            text = directionViaText(via),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
                 val info = Regras.current.station(stop.id, stop.name)
                 val address = info?.address
                 val fare = Regras.current.fare(route.name)

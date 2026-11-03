@@ -478,4 +478,12 @@
     <string name="sources_close">Fechar</string>
     <string name="sources_open">Abrir a fonte</string>
     <string name="about_sources_button">De onde vem cada informação</string>
+    <!-- Sentido da linha: rótulo em cima do nome da ponta, e por onde ele passa. -->
+    <string name="direction_label">sentido</string>
+    <string name="direction_via_prefix">"Passa por "</string>
+    <string name="direction_via_and">" e "</string>
+    <string name="direction_via_until">" até %1$s"</string>
+    <string name="direction_via_count">%1$d estações</string>
+    <string name="direction_via_next">"Próxima estação: "</string>
+    <string name="direction_via_last">", a última"</string>
 </resources>

@@ -964,6 +964,7 @@ fun AppRoot() {
                     repo.departuresTomorrow(stop.id, route.id, direction.id)
                 },
                 dayEndFor = { direction -> repo.dayEnd(stop.id, route.id, direction.id) },
+                viaFor = { direction -> repo.via(stop.id, route.id, direction) },
                 onPlanJourney = {
                     journeyFrom = repo.station(stop.id, route.id)
                     journeyOpen = true

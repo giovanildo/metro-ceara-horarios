@@ -127,8 +127,12 @@ fun TransferBlock(
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.Bottom,
                         ) {
-                            Text("→ ${target.direction.headsign}", style = MaterialTheme.typography.bodyMedium)
+                            DirectionLabel(
+                                headsign = target.direction.headsign,
+                                modifier = Modifier.weight(1f, fill = false).padding(end = 8.dp),
+                            )
                             Text(
                                 text = departure?.let {
                                     "${formatTime(it.minutes)}  ·  ${relativeLabel(minutesUntil(it, now))}"

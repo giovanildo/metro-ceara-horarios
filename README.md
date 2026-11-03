@@ -60,7 +60,13 @@ scripts que gravam e montam os vídeos e a receita das capturas estão em
 
 A tela inicial destaca uma estação com a próxima partida de cada sentido — nos
 terminais, só o sentido em que dá para partir (o que termina ali só teria
-chegadas). A tela de horários de um terminal também mostra só esse sentido. Pelo
+chegadas). A tela de horários de um terminal também mostra só esse sentido.
+Cada sentido aparece com "sentido" pequeno em cima do nome da ponta da linha (no
+app e na lite; o widget mantém a seta, por falta de espaço), para não parecer o
+nome de uma estação de destino. Na tela da estação, debaixo das abas, vem por
+onde ele passa: "Passa por **Padre Cícero, Porangabussu, Couto Fernandes,
+Juscelino Kubitscheck**… até Carlito Benevides · 16 estações" (as 4 primeiras
+estações do caminho; `data/DirectionVia.kt`). Pelo
 GPS, se houver estações de **outras linhas a até 3 km**, cada linha ganha seu
 cartão (por exemplo, Chico da Silva na Linha Sul e Moura Brasil na Oeste, a
 ~200 m uma da outra). A busca **"Para onde você vai?"**, no topo, sai da estação

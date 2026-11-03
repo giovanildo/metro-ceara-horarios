@@ -89,6 +89,17 @@ class ScheduleRepository(context: Context) {
     ).map { Stop(it.getString(0), it.getString(1), it.getInt(2)) }
 
     /**
+     * Por onde passa [direction] a partir de [stopId]. O sentido que o Metrofor
+     * não publicou hoje não tem estações na grade: é o outro, ao contrário.
+     */
+    fun via(stopId: String, routeId: String, direction: Direction): DirectionVia? {
+        val stops = stops(routeId, direction.id).ifEmpty {
+            if (direction.published) emptyList() else stops(routeId, 1 - direction.id).reversed()
+        }
+        return directionVia(stops, stopId)
+    }
+
+    /**
      * Todas as partidas do dia, em minutos desde a meia-noite, já ordenadas.
      * Num domingo sem operação anunciada, nenhuma ([isSundayWithoutService]).
      */
