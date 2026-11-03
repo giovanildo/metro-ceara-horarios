@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import android.Manifest
 import android.os.Build
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.DisposableEffect
@@ -84,7 +85,10 @@ import io.github.giova.metroceara.data.isSundayWithoutService
 import io.github.giova.metroceara.data.Station
 import io.github.giova.metroceara.data.nearestBikeTo
 import io.github.giova.metroceara.data.SettingsStore
-import io.github.giova.metroceara.data.nearestPerRoute
+import io.github.giova.metroceara.data.nearestStations
+import io.github.giova.metroceara.data.HomeBlock
+import io.github.giova.metroceara.data.HomeLayout
+import io.github.giova.metroceara.data.HomeLayoutStore
 import io.github.giova.metroceara.data.nextDepartures
 import io.github.giova.metroceara.data.nowMinutes
 import java.util.Calendar
@@ -179,6 +183,10 @@ fun AppRoot() {
     var fareGuideOpen by rememberSaveable { mutableStateOf(false) }
     var sourcesOpen by rememberSaveable { mutableStateOf(false) }
     var accessOpen by rememberSaveable { mutableStateOf(false) }
+    // "Ajustar para mim" e "Ordem da tela inicial".
+    var adjustOpen by rememberSaveable { mutableStateOf(false) }
+    var orderOpen by rememberSaveable { mutableStateOf(false) }
+    val homeLayout = HomeLayoutStore.flow(context).collectAsState().value ?: HomeLayout()
     // Sentido em que a tela de horários deve abrir (vindo de uma baldeação).
     var openDirectionId by rememberSaveable { mutableStateOf<Int?>(null) }
     // Toque no widget: abre a tela da estação dele.
@@ -205,12 +213,12 @@ fun AppRoot() {
         }
     }
 
-    // A estação mais próxima em destaque e, a até 3 km, a mais próxima de cada
-    // outra linha — cada uma ganha seu cartão.
+    // As duas estações mais próximas, de qualquer linha: a segunda só se estiver
+    // até a distância das configurações (3 km no padrão).
     fun nearbyState(stations: List<Station>, lat: Double, lon: Double): HomeStation.Nearby? {
-        val perRoute = stations.nearestPerRoute(lat, lon)
-        val (main, distance) = perRoute.firstOrNull() ?: return null
-        val others = perRoute.drop(1).filter { it.second <= settings.nearbyLinesMeters }
+        val nearest = stations.nearestStations(lat, lon, count = 2)
+        val (main, distance) = nearest.firstOrNull() ?: return null
+        val others = nearest.drop(1).filter { it.second <= settings.nearbyLinesMeters }
         return HomeStation.Nearby(main, distance, lat, lon, others)
     }
 
@@ -419,7 +427,7 @@ fun AppRoot() {
         }
     }
 
-    // Outras linhas a até 3 km (cada uma ganha cartão próprio na tela inicial).
+    // A segunda estação mais próxima, a até 3 km (ganha cartão próprio na tela inicial).
     val otherLines = (homeState as? HomeStation.Nearby)?.others.orEmpty()
 
     // ------------------------------------------------------ "Sua viagem" ----
@@ -445,6 +453,8 @@ fun AppRoot() {
             fareGuideOpen = false
             sourcesOpen = false
             accessOpen = false
+            adjustOpen = false
+            orderOpen = false
             routeId = route
             stopId = stop
             OpenStationRequest.value = null
@@ -467,6 +477,8 @@ fun AppRoot() {
             fareGuideOpen = false
             sourcesOpen = false
             accessOpen = false
+            adjustOpen = false
+            orderOpen = false
             journeyOpen = true
             JourneyRequest.value = null
         }
@@ -805,8 +817,157 @@ fun AppRoot() {
         )
     }
 
+    // ------------------------------------------------- blocos da tela inicial --
+    // Cada bloco na ordem que a pessoa escolheu (padrão: Trabalho e Casa, as duas
+    // estações, aviso, busca, rotinas, Bicicletar, linhas). Durante a viagem, o
+    // cartão dela ocupa o lugar de Casa/Trabalho, estações, busca e rotinas.
+    val trip = activeTrip
+    fun homeBlocks(layout: HomeLayout): List<HomeBlock> = layout.order.filter { b ->
+        layout.shows(b) && when (b) {
+            HomeBlock.PLACES, HomeBlock.STATIONS, HomeBlock.SEARCH -> trip == null
+            HomeBlock.ROUTINES -> trip == null && !routinesList.isNullOrEmpty()
+            HomeBlock.NOTICES -> notices.isNotEmpty()
+            HomeBlock.BIKE -> homeBike != null
+            HomeBlock.LINES -> true
+        }
+    }
+
+    @Composable
+    fun HomeBlockContent(block: HomeBlock, layout: HomeLayout) {
+        when (block) {
+            HomeBlock.PLACES -> Column {
+                PlaceShortcuts(
+                    shortcuts = placeShortcuts,
+                    onOpen = ::openPlace,
+                    onEdit = { placeEditing = it },
+                )
+                AdjustLink(onClick = { adjustOpen = true }, modifier = Modifier.padding(top = 4.dp))
+            }
+
+            HomeBlock.STATIONS -> Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                // Aviso escondido pela pessoa: o dia especial aparece aqui mesmo assim.
+                if (!layout.shows(HomeBlock.NOTICES)) MetroforNotices(notices)
+                val extras = HomeCardExtras(
+                    bike = layout.bike,
+                    halfFare = layout.halfFare,
+                    access = layout.access,
+                    onOpenFareGuide = { fareGuideOpen = true },
+                )
+                HomeStationCard(
+                    state = homeState,
+                    departures = homeDepartures,
+                    now = now,
+                    onUseLocation = {
+                        if (locationSource.hasPermission()) {
+                            scope.launch { locate() }
+                        } else {
+                            permissionLauncher.launch(LocationSource.PERMISSIONS)
+                        }
+                    },
+                    onOpenStation = ::openStation,
+                    extras = extras,
+                )
+                otherLines.forEachIndexed { i, (station, distance) ->
+                    val nearby = homeState as HomeStation.Nearby
+                    HomeStationCard(
+                        state = HomeStation.Nearby(station, distance, nearby.userLat, nearby.userLon),
+                        departures = otherDepartures.getOrElse(i) { emptyList() },
+                        now = now,
+                        onUseLocation = {},
+                        onOpenStation = ::openStation,
+                        showRefresh = false,
+                        // A passagem é por linha: na mesma linha do primeiro cartão, não repete.
+                        extras = extras.copy(halfFare = extras.halfFare && station.routeName != homeState.station?.routeName),
+                    )
+                }
+            }
+
+            HomeBlock.NOTICES -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { MetroforNotices(notices) }
+
+            // "Para onde você vai?", saindo da estação em destaque.
+            HomeBlock.SEARCH -> JourneySearchBar(onClick = {
+                journeyFrom = homeState.station
+                journeyDest = null
+                journeyOpen = true
+            })
+
+            // As rotinas: um toque abre a lista.
+            HomeBlock.ROUTINES -> routinesList?.takeIf { it.isNotEmpty() }?.let { list ->
+                TextButton(onClick = { routinesOpen = true }) {
+                    Icon(Icons.Filled.Alarm, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Text(
+                        stringResource(R.string.routines_home, list.joinToString(", ") { it.name }),
+                        modifier = Modifier.padding(start = 8.dp),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+
+            HomeBlock.BIKE -> homeBike?.let { HomeBikeCard(it) }
+            HomeBlock.LINES -> Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                routes.forEach { route ->
+                    RouteCard(route = route, stationCount = repo.stationCount(route.id), onClick = { routeId = route.id })
+                }
+            }
+        }
+    }
+
+    // Por cima dos blocos: a viagem em andamento e, só quando os horários não
+    // são os de hoje, o aviso disso (no dia normal, a origem fica em "Fonte").
+    val showStatus = scheduleStatusIsWarning(repo.source)
+    val homeHeader: (@Composable () -> Unit)? = if (trip == null && !showStatus) null else ({
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            if (trip != null) {
+                TripCard(
+                    trip = trip,
+                    soundEnabled = tripSound ?: true,
+                    onToggleSound = { TripTracker.setSoundEnabled(context, it) },
+                    stationAlerts = tripStationAlerts ?: false,
+                    onToggleStationAlerts = { TripTracker.setStationAlerts(context, it) },
+                    onStop = { TripTracker.stop(context) },
+                )
+            }
+            if (showStatus) ScheduleStatus(source = repo.source, syncing = scheduleSyncing)
+        }
+    })
+
+    // A prévia de "Ordem da tela inicial": os mesmos blocos, com o cabeçalho do app.
+    @Composable
+    fun HomePreviewContent(layout: HomeLayout) {
+        Column {
+            Text(stringResource(R.string.app_name), style = MaterialTheme.typography.titleLarge)
+            Text(
+                text = stringResource(R.string.subtitle),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        homeBlocks(layout).forEach { HomeBlockContent(it, layout) }
+    }
+
     // --------------------------------------------------------------- telas ----
     when {
+        orderOpen -> {
+            BackHandler { orderOpen = false }
+            HomeOrderScreen(
+                layout = homeLayout,
+                onChange = { HomeLayoutStore.save(context, it) },
+                onBack = { orderOpen = false },
+                preview = { layout -> HomePreviewContent(layout) },
+            )
+        }
+
+        adjustOpen -> {
+            BackHandler { adjustOpen = false }
+            AdjustScreen(
+                layout = homeLayout,
+                onChange = { HomeLayoutStore.save(context, it) },
+                onOpenOrder = { orderOpen = true },
+                onBack = { adjustOpen = false },
+            )
+        }
+
         showSettings -> {
             BackHandler { showSettings = false }
             SettingsScreen(
@@ -820,6 +981,7 @@ fun AppRoot() {
                     }
                 },
                 onEditPlace = { placeEditing = it },
+                onOpenAdjust = { adjustOpen = true },
             )
         }
 
@@ -1025,78 +1187,9 @@ fun AppRoot() {
             onRouteClick = { routeId = it.id },
             onAbout = { showAbout = true },
             onSettings = { showSettings = true },
-            header = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    val trip = activeTrip
-                    if (trip != null) {
-                        TripCard(
-                            trip = trip,
-                            soundEnabled = tripSound ?: true,
-                            onToggleSound = { TripTracker.setSoundEnabled(context, it) },
-                            stationAlerts = tripStationAlerts ?: false,
-                            onToggleStationAlerts = { TripTracker.setStationAlerts(context, it) },
-                            onStop = { TripTracker.stop(context) },
-                        )
-                    } else {
-                        // "Para onde você vai?", saindo da estação em destaque.
-                        JourneySearchBar(onClick = {
-                            journeyFrom = homeState.station
-                            journeyDest = null
-                            journeyOpen = true
-                        })
-                        PlaceShortcuts(
-                            shortcuts = placeShortcuts,
-                            onOpen = ::openPlace,
-                            onEdit = { placeEditing = it },
-                        )
-                        // As rotinas, quando há alguma: um toque abre a lista.
-                        routinesList?.takeIf { it.isNotEmpty() }?.let { list ->
-                            TextButton(onClick = { routinesOpen = true }) {
-                                Icon(Icons.Filled.Alarm, contentDescription = null, modifier = Modifier.size(18.dp))
-                                Text(
-                                    stringResource(R.string.routines_home, list.joinToString(", ") { it.name }),
-                                    modifier = Modifier.padding(start = 8.dp),
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                            }
-                        }
-                    }
-                    ScheduleStatus(
-                        source = repo.source,
-                        syncing = scheduleSyncing,
-                    )
-                    MetroforNotices(notices)
-                    // Durante a viagem, o cartão dela já diz onde a pessoa está.
-                    if (trip == null) {
-                        HomeStationCard(
-                            state = homeState,
-                            departures = homeDepartures,
-                            now = now,
-                            onUseLocation = {
-                                if (locationSource.hasPermission()) {
-                                    scope.launch { locate() }
-                                } else {
-                                    permissionLauncher.launch(LocationSource.PERMISSIONS)
-                                }
-                            },
-                            onOpenStation = ::openStation,
-                        )
-                        otherLines.forEachIndexed { i, (station, distance) ->
-                            val nearby = homeState as HomeStation.Nearby
-                            HomeStationCard(
-                                state = HomeStation.Nearby(station, distance, nearby.userLat, nearby.userLon),
-                                departures = otherDepartures.getOrElse(i) { emptyList() },
-                                now = now,
-                                onUseLocation = {},
-                                onOpenStation = ::openStation,
-                                showRefresh = false,
-                            )
-                        }
-                    }
-                    homeBike?.let { HomeBikeCard(it) }
-                }
-            },
+            blocks = homeBlocks(homeLayout),
+            block = { HomeBlockContent(it, homeLayout) },
+            header = homeHeader,
         )
     }
 }

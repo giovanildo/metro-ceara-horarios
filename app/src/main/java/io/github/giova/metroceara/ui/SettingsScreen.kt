@@ -57,6 +57,7 @@ fun SettingsScreen(
     /** Casa e Trabalho, com o nome da estação guardada (ou `null`). */
     places: List<Pair<Place, String?>> = emptyList(),
     onEditPlace: (Place) -> Unit = {},
+    onOpenAdjust: () -> Unit = {},
 ) {
     Scaffold(
         topBar = {
@@ -78,6 +79,31 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
         ) {
+            // A tela inicial com a cara da pessoa: bike, meia, acessibilidade e a ordem.
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onOpenAdjust)
+                    .padding(vertical = 8.dp),
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        stringResource(R.string.adjust_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Text(
+                        text = stringResource(R.string.adjust_home_link_sub) + " · " + stringResource(R.string.adjust_order).lowercase(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Text("›", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+            }
+            HorizontalDivider()
+
             SectionTitle(R.string.settings_section_appearance)
             Text(
                 text = stringResource(R.string.settings_theme),

@@ -54,6 +54,8 @@ fun HomeStationCard(
     onOpenStation: (Station) -> Unit,
     modifier: Modifier = Modifier,
     showRefresh: Boolean = true,
+    /** O que a pessoa ligou em "Ajustar para mim": bike, meia, acessibilidade. */
+    extras: HomeCardExtras = HomeCardExtras(),
 ) {
     Card(
         colors = CardDefaults.cardColors(
@@ -88,6 +90,7 @@ fun HomeStationCard(
                 now = now,
                 onRefresh = onUseLocation.takeIf { showRefresh },
                 onClick = { onOpenStation(state.station) },
+                extras = extras,
             )
 
             is HomeStation.Pinned -> StationSummary(
@@ -98,6 +101,7 @@ fun HomeStationCard(
                 now = now,
                 onRefresh = null,
                 onClick = { onOpenStation(state.station) },
+                extras = extras,
             )
 
             is HomeStation.Unavailable -> Invitation(
@@ -135,6 +139,7 @@ private fun StationSummary(
     now: Int,
     onRefresh: (() -> Unit)?,
     onClick: () -> Unit,
+    extras: HomeCardExtras,
 ) {
     Column(
         modifier = Modifier
@@ -208,16 +213,30 @@ private fun StationSummary(
                         )
                         DirectionLabel(headsign = item.headsign)
                     }
-                    Text(
-                        text = item.departure?.let { departure ->
-                            val remaining = minutesUntil(departure, now)
-                            "${formatTime(departure.minutes)}  ·  ${relativeLabel(remaining)}"
-                        } ?: stringResource(
-                            if (item.published) R.string.home_no_departures else R.string.home_unpublished,
-                        ),
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium,
-                    )
+                    // O tempo que falta é o que a pessoa procura: ele vem grande, a hora embaixo.
+                    val departure = item.departure
+                    if (departure != null) {
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                text = relativeLabel(minutesUntil(departure, now)),
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            Text(
+                                text = formatTime(departure.minutes),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = stringResource(
+                                if (item.published) R.string.home_no_departures else R.string.home_unpublished,
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                        )
+                    }
                 }
                 item.dayEnd?.let { dayEndText(it) }?.let {
                     Text(
@@ -234,7 +253,7 @@ private fun StationSummary(
             val runningToday = departures.any { it.departure?.tomorrow == false }
             val bikeRule = bikeRuleFor(station.stopName, station.routeName)
             val known = !sunday || bikeRule?.special == true
-            if (runningToday && !stopped && bikeRule != null && (known || Regras.current.operations[day] != null)) {
+            if (extras.bike && runningToday && !stopped && bikeRule != null && (known || Regras.current.operations[day] != null)) {
                 BikeBoardingNotice(
                     rule = remember(now, bikeRule, known) {
                         if (known) bikeBoarding(bikeRule, nowDayOfWeek(), now) else BikeBoarding.UNKNOWN
@@ -243,9 +262,43 @@ private fun StationSummary(
                     modifier = Modifier.padding(top = 6.dp),
                 )
             }
+            if (extras.halfFare) {
+                Regras.current.fare(station.routeName)?.let { fare ->
+                    Text(
+                        text = "🎫 " + stringResource(R.string.station_fare, fare),
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(top = 6.dp),
+                    )
+                    if (Regras.current.fareGuide != null) {
+                        Text(
+                            text = stringResource(R.string.station_fare_guide),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.clickable(onClick = extras.onOpenFareGuide).padding(vertical = 4.dp),
+                        )
+                    }
+                }
+            }
+            if (extras.access) {
+                // Tocar abre a estação, onde estão o elevador, a rampa e o "Conte pra gente".
+                StationAccessLine(
+                    access = Regras.current.station(station.stopId, station.stopName)?.access,
+                    wheelchair = true,
+                    onOpen = onClick,
+                )
+            }
         }
     }
 }
+
+/** O que entra no cartão da estação conforme "Ajustar para mim". */
+data class HomeCardExtras(
+    val bike: Boolean = false,
+    val halfFare: Boolean = false,
+    val access: Boolean = false,
+    val onOpenFareGuide: () -> Unit = {},
+)
 
 private fun formatDistance(meters: Double): String =
     if (meters < 1000) "${meters.roundToInt()} m" else "%.1f km".format(meters / 1000)

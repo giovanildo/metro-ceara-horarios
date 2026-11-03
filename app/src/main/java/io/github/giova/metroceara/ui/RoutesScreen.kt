@@ -35,6 +35,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.github.giova.metroceara.R
+import io.github.giova.metroceara.data.HomeBlock
 import io.github.giova.metroceara.data.Route
 import io.github.giova.metroceara.ui.theme.routeColor
 
@@ -44,7 +45,12 @@ fun RoutesScreen(
     routes: List<Route>,
     stationCount: (Route) -> Int,
     onRouteClick: (Route) -> Unit,
-    header: @Composable () -> Unit = {},
+    /** Os blocos da tela inicial que aparecem, na ordem da pessoa. */
+    blocks: List<HomeBlock> = listOf(HomeBlock.LINES),
+    /** Desenha um bloco; [HomeBlock.LINES] é a lista de linhas, feita aqui. */
+    block: @Composable (HomeBlock) -> Unit = {},
+    /** Por cima de tudo: o modo viagem em andamento e o aviso de horários antigos. */
+    header: (@Composable () -> Unit)? = null,
     onAbout: () -> Unit = {},
     onSettings: () -> Unit = {},
 ) {
@@ -79,13 +85,19 @@ fun RoutesScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            item { header() }
-            items(routes, key = { it.id }) { route ->
-                RouteCard(
-                    route = route,
-                    stationCount = stationCount(route),
-                    onClick = { onRouteClick(route) },
-                )
+            header?.let { h -> item(key = "topo") { h() } }
+            blocks.forEach { b ->
+                if (b == HomeBlock.LINES) {
+                    items(routes, key = { it.id }) { route ->
+                        RouteCard(
+                            route = route,
+                            stationCount = stationCount(route),
+                            onClick = { onRouteClick(route) },
+                        )
+                    }
+                } else {
+                    item(key = b.key) { block(b) }
+                }
             }
             item {
                 Text(
@@ -101,7 +113,7 @@ fun RoutesScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RouteCard(route: Route, stationCount: Int, onClick: () -> Unit) {
+internal fun RouteCard(route: Route, stationCount: Int, onClick: () -> Unit) {
     Card(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
         Row(
             // IntrinsicSize.Min dá altura ao Row para a faixa colorida poder esticar.

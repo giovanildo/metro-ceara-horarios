@@ -57,7 +57,7 @@ fun scheduleStatusText(source: ScheduleSource, syncing: Boolean): String = when 
 }
 
 /** Em vermelho só o que pede atenção: a grade do APK, ou dia especial sem a grade do dia. */
-private fun scheduleStatusIsWarning(source: ScheduleSource): Boolean = !isSundayWithoutService() && when (source.kind) {
+internal fun scheduleStatusIsWarning(source: ScheduleSource): Boolean = !isSundayWithoutService() && when (source.kind) {
     ScheduleSource.Kind.TODAY -> false
     ScheduleSource.Kind.SAME_DAY_TYPE -> specialToday()
     else -> true

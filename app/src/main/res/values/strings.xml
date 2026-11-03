@@ -272,8 +272,8 @@
     <string name="mobility_wheelchair_desc">2 vezes o tempo · no roteiro, avisa onde não tem elevador</string>
     <string name="settings_transfer_extra">Minutos a mais em toda integração</string>
     <string name="settings_transfer_extra_desc">Somados ao tempo de trocar de linha, para quem prefere ter mais folga.</string>
-    <string name="settings_nearby_lines">Mostrar outras linhas até</string>
-    <string name="settings_nearby_lines_desc">Na tela inicial, além da estação mais perto, mostra os horários de outras linhas que passam até essa distância de você.</string>
+    <string name="settings_nearby_lines">Segunda estação até</string>
+    <string name="settings_nearby_lines_desc">Na tela inicial, além da estação mais perto, mostra os horários da segunda estação mais perto, se ela estiver até essa distância de você.</string>
     <string name="settings_bike_you">Bicicletar perto de você até</string>
     <string name="settings_bike_you_desc">Mostra a estação do Bicicletar mais próxima de você só se ela estiver até essa distância.</string>
     <string name="settings_bike_station">Bicicletar perto da estação até</string>
@@ -486,4 +486,44 @@
     <string name="direction_via_count">%1$d estações</string>
     <string name="direction_via_next">"Próxima estação: "</string>
     <string name="direction_via_last">", a última"</string>
+
+    <!-- Ajustar para mim e ordem da tela inicial (v1.74) -->
+    <string name="adjust_title">Ajustar para mim</string>
+    <string name="adjust_home_link">Ajustar para mim ›</string>
+    <string name="adjust_home_link_sub">bike, meia, acessibilidade</string>
+    <string name="adjust_intro">Ligue só o que serve para você. A tela inicial mostra mais ou menos coisas conforme o que estiver ligado.</string>
+    <string name="adjust_commute">Vou ao trabalho ou à escola</string>
+    <string name="adjust_commute_desc">Casa e Trabalho no topo, com a hora de chegada</string>
+    <string name="adjust_bike">Levo bike</string>
+    <string name="adjust_bike_desc">Horário em que a bike pode entrar e o Bicicletar mais perto</string>
+    <string name="adjust_half_fare">Pago meia ou tenho gratuidade</string>
+    <string name="adjust_half_fare_desc">Valor da passagem e onde tirar a carteira, no cartão da estação</string>
+    <string name="adjust_access">Preciso de elevador ou rampa</string>
+    <string name="adjust_access_desc">Se a estação tem elevador, rampa ou escada rolante</string>
+    <string name="adjust_newcomer">Ainda não conheço o metrô</string>
+    <string name="adjust_newcomer_desc">“Para onde você vai?” no topo da tela</string>
+    <string name="adjust_order">Ordem da tela inicial</string>
+    <string name="adjust_order_desc">Escolha o que vem primeiro e o que aparece</string>
+    <string name="adjust_private">🔒 Fica só neste celular. Não tem cadastro.</string>
+    <string name="order_hint">Liga e desliga à esquerda; ↑ e ↓ mudam a ordem. A prévia muda na hora.</string>
+    <string name="order_preview">prévia</string>
+    <string name="order_fixed">fixo</string>
+    <string name="order_up">Subir %1$s</string>
+    <string name="order_down">Descer %1$s</string>
+    <string name="order_moved_first">“%1$s” agora é o 1º</string>
+    <string name="order_moved">“%1$s” agora é o %2$dº</string>
+    <string name="order_undo">Desfazer</string>
+    <string name="order_reset">Voltar ao padrão</string>
+    <string name="order_reset_title">Voltar ao padrão?</string>
+    <string name="order_reset_text">A tela inicial volta para a ordem que veio com o app e tudo aparece de novo. Casa, Trabalho e os ajustes de bike, meia e acessibilidade não mudam.</string>
+    <string name="block_places">Trabalho e Casa</string>
+    <string name="block_stations">As duas estações mais próximas</string>
+    <string name="block_stations_sub">sempre aparece</string>
+    <string name="block_notices">Aviso do Metrofor</string>
+    <string name="block_notices_sub">dia especial aparece no cartão da estação mesmo assim</string>
+    <string name="block_search">Para onde você vai?</string>
+    <string name="block_routines">Rotinas</string>
+    <string name="block_bike">Bicicletar</string>
+    <string name="block_bike_sub">só com “Levo bike” ligado</string>
+    <string name="block_lines">Linhas</string>
 </resources>

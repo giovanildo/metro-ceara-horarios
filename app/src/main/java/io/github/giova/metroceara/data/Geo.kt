@@ -35,6 +35,17 @@ fun List<Station>.nearestPerRoute(lat: Double, lon: Double): List<Pair<Station, 
         .sortedBy { it.second }
 
 /**
+ * As [count] estações mais próximas, de qualquer linha, da mais perto para a
+ * mais longe. A mesma parada em duas linhas (Parangaba na Sul e na Nordeste)
+ * conta como duas estações.
+ */
+fun List<Station>.nearestStations(lat: Double, lon: Double, count: Int): List<Pair<Station, Double>> =
+    map { it to distanceMeters(lat, lon, it.lat, it.lon) }
+        .distinctBy { (station, _) -> station.stopId to station.routeId }
+        .sortedBy { it.second }
+        .take(count)
+
+/**
  * Padrão da distância a pé que ainda vale a pena para pegar uma bicicleta perto
  * de uma estação. A pessoa ajusta nas configurações ([AppSettings]).
  */
