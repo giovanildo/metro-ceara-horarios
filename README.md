@@ -63,7 +63,11 @@ terminais, só o sentido em que dá para partir (o que termina ali só teria
 chegadas). A tela de horários de um terminal também mostra só esse sentido.
 Cada sentido aparece com "sentido" pequeno em cima do nome da ponta da linha (no
 app e na lite; o widget mantém a seta, por falta de espaço), para não parecer o
-nome de uma estação de destino. Na tela da estação, debaixo das abas, vem por
+nome de uma estação de destino. Na tela da estação, as abas são um trilho na cor
+da linha: a estação é a bolinha no meio (no terminal, na ponta) e cada aba tem
+um metrô indo para a sua ponta. O sentido 0 da linha fica sempre à esquerda. Nos
+cartões do início e das integrações, uma seta curva com o metrô de frente vira
+para o mesmo lado (`ui/DirectionLabel.kt`). Na tela da estação, debaixo das abas, vem por
 onde ele passa: "Passa por **Padre Cícero, Porangabussu, Couto Fernandes,
 Juscelino Kubitscheck**… até Carlito Benevides · 16 estações" (as 4 primeiras
 estações do caminho; `data/DirectionVia.kt`). Pelo

@@ -7,6 +7,8 @@ import io.github.giova.metroceara.data.Station
 /** A próxima partida de um sentido, para o resumo da tela inicial. */
 data class HomeDeparture(
     val headsign: String,
+    /** O número do sentido: o 0 vai para a esquerda no desenho do metrô. */
+    val directionId: Int,
     val departure: Departure?,
     /** Só quando não há [departure]: o último de hoje e o primeiro do próximo dia. */
     val dayEnd: DayEnd? = null,

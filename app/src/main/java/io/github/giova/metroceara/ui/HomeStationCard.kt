@@ -196,10 +196,18 @@ private fun StationSummary(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.Bottom,
                 ) {
-                    DirectionLabel(
-                        headsign = item.headsign,
+                    Row(
                         modifier = Modifier.weight(1f, fill = false).padding(end = 8.dp),
-                    )
+                        verticalAlignment = Alignment.Bottom,
+                    ) {
+                        DirectionTurn(
+                            toLeft = item.directionId == 0,
+                            color = routeColor(station.routeColor),
+                            modifier = Modifier.padding(end = 10.dp, bottom = 2.dp),
+                            width = 40.dp,
+                        )
+                        DirectionLabel(headsign = item.headsign)
+                    }
                     Text(
                         text = item.departure?.let { departure ->
                             val remaining = minutesUntil(departure, now)

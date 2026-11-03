@@ -24,8 +24,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
-import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -43,6 +41,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.giova.metroceara.R
+import io.github.giova.metroceara.ui.theme.routeColor
 import io.github.giova.metroceara.data.bikeRuleFor
 import io.github.giova.metroceara.data.BikeBoarding
 import io.github.giova.metroceara.data.bikeBoarding
@@ -210,21 +209,12 @@ fun DeparturesScreen(
                 .fillMaxSize()
                 .padding(padding),
         ) {
-            PrimaryTabRow(selectedTabIndex = selectedTab) {
-                directions.forEachIndexed { index, item ->
-                    Tab(
-                        selected = index == selectedTab,
-                        onClick = { selectedTab = index },
-                        text = {
-                            DirectionLabel(
-                                headsign = item.headsign,
-                                style = MaterialTheme.typography.titleSmall,
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                            )
-                        },
-                    )
-                }
-            }
+            DirectionTrack(
+                directions = directions,
+                selected = selectedTab,
+                onSelect = { selectedTab = it },
+                lineColor = routeColor(route.colorHex),
+            )
 
             LazyColumn(
                 contentPadding = PaddingValues(16.dp),

@@ -73,7 +73,9 @@ class ScheduleRepository(context: Context) {
             stops(routeId, only.id).takeIf { it.size >= 2 && it.first().id != stopId }
                 ?.let { Direction(1 - only.id, it.first().name, published = false) }
         }
+        // Pelo número do sentido: o 0 fica sempre à esquerda no trilho das abas.
         return (listed.filterNot { endsAt(stopId, routeId, it.id) } + listOfNotNull(missing)).ifEmpty { listed }
+            .sortedBy { it.id }
     }
 
     /** Estações na ordem em que [routeId] as percorre no sentido [directionId]. */

@@ -730,6 +730,7 @@ fun AppRoot() {
             ).firstOrNull()
             HomeDeparture(
                 headsign = direction.headsign,
+                directionId = direction.id,
                 departure = departure,
                 dayEnd = if (departure == null) repo.dayEnd(station.stopId, station.routeId, direction.id) else null,
                 published = direction.published,

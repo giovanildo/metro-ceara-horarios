@@ -129,10 +129,18 @@ fun TransferBlock(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.Bottom,
                         ) {
-                            DirectionLabel(
-                                headsign = target.direction.headsign,
+                            Row(
                                 modifier = Modifier.weight(1f, fill = false).padding(end = 8.dp),
-                            )
+                                verticalAlignment = Alignment.Bottom,
+                            ) {
+                                DirectionTurn(
+                                    toLeft = target.direction.id == 0,
+                                    color = routeColor(target.routeColor),
+                                    modifier = Modifier.padding(end = 10.dp, bottom = 2.dp),
+                                    width = 40.dp,
+                                )
+                                DirectionLabel(headsign = target.direction.headsign)
+                            }
                             Text(
                                 text = departure?.let {
                                     "${formatTime(it.minutes)}  ·  ${relativeLabel(minutesUntil(it, now))}"
