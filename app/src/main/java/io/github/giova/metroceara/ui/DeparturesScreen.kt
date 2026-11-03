@@ -370,10 +370,13 @@ fun DeparturesScreen(
                         val base = bikeRuleFor(stop.name, route.name)
                         val sourcePadding = Modifier.padding(start = 24.dp)
                         if (base?.special == true) {
-                            SourceText(
-                                stringResource(R.string.bike_source_today),
-                                Regras.current.operations[ScheduleStore.today()]?.link,
-                                sourcePadding,
+                            SourceLink(
+                                label = stringResource(R.string.source_label),
+                                title = stringResource(R.string.bike_source_today_title),
+                                facts = listOf(stringResource(R.string.bike_source_today)),
+                                detail = null,
+                                link = Regras.current.operations[ScheduleStore.today()]?.link,
+                                modifier = sourcePadding,
                             )
                         } else {
                             SourceLine(base?.sourceId, sourcePadding)

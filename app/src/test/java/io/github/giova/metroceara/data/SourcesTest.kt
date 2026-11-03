@@ -66,4 +66,30 @@ class SourcesTest {
         val s = source(checked = null, review = null, daily = true, origin = "notícias do Metrofor")
         assertEquals("Fonte: notícias do Metrofor · acompanhado todo dia", s.line(YearMonth(2026, 11)))
     }
+
+    @Test
+    fun `o link é curto e só cresce quando a conferência atrasou`() {
+        val s = source(since = "preço sem reajuste desde mar/2019")
+        assertEquals("Fonte", s.label(YearMonth(2026, 11)))
+        assertEquals("Fonte · pode ter mudado", s.label(YearMonth(2027, 6)))
+        val estimate = source(kind = InfoSource.Kind.APP, checked = null, review = null, origin = "Estimativa do app")
+        assertEquals("Estimativa do app", estimate.label(YearMonth(2026, 11)))
+    }
+
+    @Test
+    fun `a janela mostra uma coisa por linha`() {
+        val s = source(since = "preço sem reajuste desde mar/2019")
+        assertEquals(
+            listOf(
+                "Fonte: site do Metrofor",
+                "Preço sem reajuste desde mar/2019",
+                "Conferido em nov/2026",
+                "Próxima conferência: mai/2027",
+            ),
+            s.facts(YearMonth(2026, 11)),
+        )
+        assertEquals("Conferência atrasada desde mai/2027: pode ter mudado", s.facts(YearMonth(2027, 6)).last())
+        val observed = source(kind = InfoSource.Kind.APP, checked = "2026-10", review = null, origin = "Observado nas viagens de teste do app")
+        assertEquals(listOf("Observado nas viagens de teste do app (out/2026)"), observed.facts(YearMonth(2026, 11)))
+    }
 }

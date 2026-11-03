@@ -172,13 +172,25 @@ private fun FareOverview(guide: FareGuide, fares: List<Pair<String, String>>, on
 @Composable
 private fun FareTopicDetail(guide: FareGuide, topic: FareTopic) {
     val context = LocalContext.current
+    // O nome do Metrofor fica à vista; datas e explicação, na janela da fonte.
     val source = Regras.current.source("guia_passagem")
-    Text(
-        source?.line(currentMonth()) ?: stringResource(R.string.fare_guide_source_line, guide.checked),
-        style = MaterialTheme.typography.bodySmall,
-        fontWeight = FontWeight.SemiBold,
-        color = MaterialTheme.colorScheme.primary,
-    )
+    if (source != null) {
+        val month = currentMonth()
+        SourceLink(
+            label = if (source.overdue(month)) source.label(month) else "Fonte: ${source.origin}",
+            title = source.title,
+            facts = source.facts(month),
+            detail = source.detail,
+            link = topic.link ?: source.link,
+        )
+    } else {
+        Text(
+            stringResource(R.string.fare_guide_source_line, guide.checked),
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary,
+        )
+    }
     // Prazos com data, como a renovação anual do cartão de estudante.
     topic.noticesOn(ScheduleStore.today()).forEach {
         Surface(

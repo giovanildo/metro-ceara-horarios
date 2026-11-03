@@ -552,11 +552,21 @@ contradiz. O próximo passo é pedir a tabela atualizada pelo SIC.
 O app não é oficial. Para dar credibilidade, **cada informação diz de onde vem
 e até quando foi conferida**. Embaixo da passagem, do aviso de bike, da
 integração, do Bicicletar, da acessibilidade, dos lugares, do guia da passagem
-e do aviso das estações subterrâneas há uma linha pequena, no app e na lite:
+e do aviso das estações subterrâneas há um link curto, no app e na lite:
+**"Fonte ›"** (ou **"Estimativa do app ›"**, ou **"Fonte · pode ter mudado ›"**
+quando a conferência atrasou, que não pode ficar escondido). Tocar abre uma
+janela com uma coisa por linha e o botão "Abrir a fonte":
 
-> Fonte: site do Metrofor · preço sem reajuste desde mar/2019 · conferido em nov/2026 · próxima conferência: mai/2027 ›
+> **Passagem e endereço das estações**
+> Fonte: site do Metrofor
+> Preço sem reajuste desde mar/2019
+> Conferido em nov/2026
+> Próxima conferência: mai/2027
 
-Tocar abre a fonte. A lista inteira, com uma explicação de cada uma, fica em
+A primeira versão (1.69) mostrava tudo isso numa frase embaixo de cada
+informação; ficou transparente, mas verboso demais, e virou o link (1.70). No
+guia da passagem o nome do Metrofor continua à vista ("Fonte: site e notícias
+do Metrofor ›"). A lista inteira, com uma explicação de cada uma, fica em
 Sobre → **"De onde vem cada informação"** (na lite, `#/fontes`), começando pelos
 horários ("baixados hoje às 14:06 · valem só para hoje").
 

@@ -3,6 +3,7 @@ package io.github.giova.metroceara.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -113,8 +114,10 @@ fun TransferBlock(
                     TransferFare.UNKNOWN -> Unit
                 }
                 // De onde vem a regra da passagem; o tempo a pé é estimativa do app.
-                if (first.fare.fare != TransferFare.UNKNOWN) SourceLine("integracao")
-                SourceText(stringResource(R.string.transfer_walk_estimate), link = null)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    if (first.fare.fare != TransferFare.UNKNOWN) SourceLine("integracao")
+                    SourceLine("tempo_a_pe")
+                }
                 Column(
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                     modifier = Modifier.padding(top = 10.dp),

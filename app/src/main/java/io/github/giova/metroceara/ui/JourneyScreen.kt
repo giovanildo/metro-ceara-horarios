@@ -577,7 +577,7 @@ private fun JourneyResultSheet(
         } else {
             RouteCard(view, finalWalk = finalWalk)
             // Horários do Metrofor; chegada, integração e caminhada são conta do app.
-            SourceText(stringResource(R.string.journey_estimate), link = null)
+            SourceLine("tempo_a_pe")
             if (result.options.size > 1) {
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),

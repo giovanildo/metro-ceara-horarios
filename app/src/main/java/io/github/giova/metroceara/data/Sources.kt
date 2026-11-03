@@ -32,7 +32,33 @@ data class InfoSource(
     fun overdue(today: YearMonth): Boolean = nextCheck?.let { today > it } ?: false
 
     /**
-     * A linha mostrada embaixo da informação:
+     * O link curto embaixo da informação: "Fonte", ou "Fonte · pode ter mudado"
+     * quando a conferência atrasou (isso não pode ficar escondido); estimativa ou
+     * observação do app leva o próprio nome ("Estimativa do app").
+     */
+    fun label(today: YearMonth): String = when {
+        kind == Kind.APP -> origin
+        overdue(today) -> "Fonte · pode ter mudado"
+        else -> "Fonte"
+    }
+
+    /** O que a janela da fonte mostra, uma coisa por linha. */
+    fun facts(today: YearMonth): List<String> = buildList {
+        if (kind == Kind.APP) {
+            add(origin + (checked?.let { " (${it.label()})" } ?: ""))
+            return@buildList
+        }
+        add("Fonte: $origin")
+        since?.let { add(it.replaceFirstChar(Char::uppercaseChar)) }
+        if (daily) add("Acompanhado todo dia")
+        checked?.let { add("Conferido em ${it.label()}") }
+        nextCheck?.let {
+            add(if (today > it) "Conferência atrasada desde ${it.label()}: pode ter mudado" else "Próxima conferência: ${it.label()}")
+        }
+    }
+
+    /**
+     * A linha completa, na lista "De onde vem cada informação":
      * "Fonte: site do Metrofor · preço sem reajuste desde mar/2019 · conferido em
      * nov/2026 · próxima conferência: mai/2027". Estimativa ou observação do app
      * não leva "Fonte:" nem próxima conferência, para não parecer dado oficial.

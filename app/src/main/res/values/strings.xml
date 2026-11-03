@@ -63,7 +63,9 @@
 
     <string name="bike_boarding_until">Pode embarcar com bike no %1$s agora, até as %2$s</string>
     <string name="bike_boarding_until_close">Pode embarcar com bike no %1$s agora, até o fim da operação</string>
-    <string name="bike_source_today">Regra de hoje: notícia do Metrofor · vale só para hoje</string>
+    <string name="bike_source_today">Fonte: notícia do Metrofor de hoje · vale só para hoje</string>
+    <string name="bike_source_today_title">Bike no metrô hoje</string>
+    <string name="source_label">Fonte</string>
     <string name="bike_per_trip">Até %1$d bikes por viagem.</string>
     <string name="bike_boarding_from">Bike no %1$s só a partir das %2$s</string>
     <string name="bike_boarding_unknown">Operação especial: o Metrofor não informou se dá para embarcar com bike hoje</string>
@@ -468,8 +470,7 @@
     <string name="sources_schedule_today">Fonte: GTFS do Metrofor · baixados hoje às %1$s · valem só para hoje</string>
     <string name="sources_schedule_other">Fonte: GTFS do Metrofor · grade de %1$s · o Metrofor publica a grade de cada dia</string>
     <string name="sources_schedule_detail">O app baixa a grade do dia publicada pelo Metrofor sempre que é aberto. São os horários programados: o app não sabe de atrasos.</string>
-    <string name="transfer_walk_estimate">Tempo a pé: estimativa do app</string>
-    <string name="journey_estimate">Chegada e integrações: estimativa do app, sobre os horários do Metrofor</string>
+    <string name="sources_close">Fechar</string>
     <string name="sources_open">Abrir a fonte</string>
     <string name="about_sources_button">De onde vem cada informação</string>
 </resources>
