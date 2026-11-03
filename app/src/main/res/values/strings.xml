@@ -273,7 +273,7 @@
     <string name="settings_transfer_extra">Minutos a mais em toda integração</string>
     <string name="settings_transfer_extra_desc">Somados ao tempo de trocar de linha, para quem prefere ter mais folga.</string>
     <string name="settings_nearby_lines">Segunda estação até</string>
-    <string name="settings_nearby_lines_desc">Na tela inicial, além da estação mais perto, mostra os horários da segunda estação mais perto, se ela estiver até essa distância de você.</string>
+    <string name="settings_nearby_lines_desc">Na tela inicial, além da estação mais perto, mostra a de outra linha (ou, sem outra linha por perto, a segunda da mesma) até essa distância de você.</string>
     <string name="settings_bike_you">Bicicletar perto de você até</string>
     <string name="settings_bike_you_desc">Mostra a estação do Bicicletar mais próxima de você só se ela estiver até essa distância.</string>
     <string name="settings_bike_station">Bicicletar perto da estação até</string>
@@ -519,8 +519,8 @@
     <string name="block_places">Trabalho e Casa</string>
     <string name="block_stations">As duas estações mais próximas</string>
     <string name="block_stations_sub">sempre aparece</string>
-    <string name="block_notices">Aviso do Metrofor</string>
-    <string name="block_notices_sub">dia especial aparece no cartão da estação mesmo assim</string>
+    <string name="block_notices">Aviso do Metrofor para amanhã</string>
+    <string name="block_notices_sub">o de hoje aparece acima das estações, mesmo escondido</string>
     <string name="block_search">Para onde você vai?</string>
     <string name="block_routines">Rotinas</string>
     <string name="block_bike">Bicicletar</string>

@@ -35,15 +35,20 @@ fun List<Station>.nearestPerRoute(lat: Double, lon: Double): List<Pair<Station, 
         .sortedBy { it.second }
 
 /**
- * As [count] estações mais próximas, de qualquer linha, da mais perto para a
- * mais longe. A mesma parada em duas linhas (Parangaba na Sul e na Nordeste)
- * conta como duas estações.
+ * As duas estações da tela inicial: a mais próxima e, até [maxMeters], a mais
+ * próxima de **outra linha**; sem outra linha por perto, a segunda mais próxima
+ * da mesma linha. A mesma parada em duas linhas (Parangaba na Sul e na
+ * Nordeste) conta como duas estações.
  */
-fun List<Station>.nearestStations(lat: Double, lon: Double, count: Int): List<Pair<Station, Double>> =
-    map { it to distanceMeters(lat, lon, it.lat, it.lon) }
+fun List<Station>.nearestTwo(lat: Double, lon: Double, maxMeters: Double): List<Pair<Station, Double>> {
+    val sorted = map { it to distanceMeters(lat, lon, it.lat, it.lon) }
         .distinctBy { (station, _) -> station.stopId to station.routeId }
         .sortedBy { it.second }
-        .take(count)
+    val first = sorted.firstOrNull() ?: return emptyList()
+    val rest = sorted.drop(1).filter { it.second <= maxMeters }
+    val second = rest.firstOrNull { it.first.routeId != first.first.routeId } ?: rest.firstOrNull()
+    return listOfNotNull(first, second)
+}
 
 /**
  * Padrão da distância a pé que ainda vale a pena para pegar uma bicicleta perto

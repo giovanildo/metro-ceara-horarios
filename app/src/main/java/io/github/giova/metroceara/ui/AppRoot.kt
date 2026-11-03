@@ -85,7 +85,7 @@ import io.github.giova.metroceara.data.isSundayWithoutService
 import io.github.giova.metroceara.data.Station
 import io.github.giova.metroceara.data.nearestBikeTo
 import io.github.giova.metroceara.data.SettingsStore
-import io.github.giova.metroceara.data.nearestStations
+import io.github.giova.metroceara.data.nearestTwo
 import io.github.giova.metroceara.data.HomeBlock
 import io.github.giova.metroceara.data.HomeLayout
 import io.github.giova.metroceara.data.HomeLayoutStore
@@ -213,13 +213,12 @@ fun AppRoot() {
         }
     }
 
-    // As duas estações mais próximas, de qualquer linha: a segunda só se estiver
-    // até a distância das configurações (3 km no padrão).
+    // As duas estações da tela inicial: a mais próxima e a de outra linha até a
+    // distância das configurações (3 km no padrão); sem outra linha, a 2ª da mesma.
     fun nearbyState(stations: List<Station>, lat: Double, lon: Double): HomeStation.Nearby? {
-        val nearest = stations.nearestStations(lat, lon, count = 2)
+        val nearest = stations.nearestTwo(lat, lon, settings.nearbyLinesMeters.toDouble())
         val (main, distance) = nearest.firstOrNull() ?: return null
-        val others = nearest.drop(1).filter { it.second <= settings.nearbyLinesMeters }
-        return HomeStation.Nearby(main, distance, lat, lon, others)
+        return HomeStation.Nearby(main, distance, lat, lon, nearest.drop(1))
     }
 
     suspend fun locate() {
@@ -826,7 +825,8 @@ fun AppRoot() {
         layout.shows(b) && when (b) {
             HomeBlock.PLACES, HomeBlock.STATIONS, HomeBlock.SEARCH -> trip == null
             HomeBlock.ROUTINES -> trip == null && !routinesList.isNullOrEmpty()
-            HomeBlock.NOTICES -> notices.isNotEmpty()
+            // O de hoje vai com as estações; aqui fica só o de amanhã.
+            HomeBlock.NOTICES -> notices.any { it.tomorrow }
             HomeBlock.BIKE -> homeBike != null
             HomeBlock.LINES -> true
         }
@@ -845,8 +845,9 @@ fun AppRoot() {
             }
 
             HomeBlock.STATIONS -> Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                // Aviso escondido pela pessoa: o dia especial aparece aqui mesmo assim.
-                if (!layout.shows(HomeBlock.NOTICES)) MetroforNotices(notices)
+                // Dia especial: o aviso de hoje vem antes dos horários, que são outros
+                // (mesmo com o bloco de aviso escondido).
+                MetroforNotices(notices.filterNot { it.tomorrow })
                 val extras = HomeCardExtras(
                     bike = layout.bike,
                     halfFare = layout.halfFare,
@@ -882,7 +883,9 @@ fun AppRoot() {
                 }
             }
 
-            HomeBlock.NOTICES -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { MetroforNotices(notices) }
+            HomeBlock.NOTICES -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                MetroforNotices(notices.filter { it.tomorrow })
+            }
 
             // "Para onde você vai?", saindo da estação em destaque.
             HomeBlock.SEARCH -> JourneySearchBar(onClick = {
