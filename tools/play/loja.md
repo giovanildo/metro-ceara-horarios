@@ -43,6 +43,8 @@ Que horas passa o próximo metrô? Abra o app e veja a estação mais perto de v
 • Bike no metrô: se dá para embarcar com bicicleta agora, pelas regras do Metrofor, e a estação do Bicicletar mais perto.
 • Horários do dia: a grade do próprio dia, inclusive sábado e operação especial. Sem internet, usa a última guardada.
 
+Transparência: cada informação diz de onde vem e quando foi conferida, com o link para conferir. O que é estimativa do app aparece como estimativa.
+
 Privacidade: sem anúncios, sem cadastro, sem rastreadores. A localização é usada só no celular; nada é enviado para ninguém.
 
 Gratuito e de código aberto (GPL-3.0): github.com/giovanildo/metro-ceara-horarios

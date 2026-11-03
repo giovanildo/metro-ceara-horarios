@@ -20,6 +20,8 @@
 <li><b>Aviso de domingo:</b> metrô e VLT normalmente não circulam aos domingos; o app mostra os horários de segunda.</li>
 </ul>
 
+<p><b>Transparência:</b> cada informação diz de onde vem e quando foi conferida (o site do Metrofor, uma notícia, o OpenStreetMap), com o link para conferir. O que é estimativa do app aparece como estimativa.</p>
+
 <p><b>Privacidade:</b> sem anúncios, sem rastreadores, sem conta. A localização só é usada no aparelho. A internet serve apenas para baixar os horários publicados pelo Metrofor.</p>
 
 <p>Software livre (GPL-3.0). Fontes dos dados: GTFS do Metrofor e dados abertos da Prefeitura de Fortaleza (AMC) para o Bicicletar.</p>
