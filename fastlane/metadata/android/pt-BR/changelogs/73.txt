@@ -1,0 +1,1 @@
+• Sentido mais claro: em vez da seta, a palavra "sentido" aparece em cima do nome da ponta da linha. Na tela da estação, o app mostra por onde o metrô passa até lá.
