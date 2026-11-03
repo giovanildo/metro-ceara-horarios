@@ -201,3 +201,9 @@ a.cartao.tema .seta { position: absolute; right: 16px; top: 50%; transform: tran
 /* Acessibilidade da estação */
 .item-acesso { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
 .item-acesso .nao-tem { color: #b3261e; white-space: nowrap; }
+
+/* Fonte e data de cada informação */
+.fonte { color: var(--texto-2); font-size: .8rem; margin: 4px 0 8px; }
+.fonte a { color: inherit; }
+.fonte-item { border-top: 1px solid var(--borda); padding: 10px 0; }
+.fonte-item p { margin: 4px 0; }

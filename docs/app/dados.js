@@ -237,6 +237,7 @@ export function janelasBike(regras, nomeEstacao, nomeLinha, diaSemana, data) {
     .sort((a, b) => a.ini - b.ini);
   janelas.especial = Boolean(vale);
   janelas.porViagem = reg.limite_por_viagem || null;
+  janelas.fonteId = vale ? null : reg.fonte_id || null;
   return janelas;
 }
 
@@ -256,4 +257,38 @@ export function passagem(regras, nomeDe, nomePara) {
     if (n(r.b) === n(nomeDe) && n(r.a) === n(nomePara)) return { tipo: r.passagem_b_para_a, motivo: r.motivo_b_para_a };
   }
   return { tipo: "desconhecida" };
+}
+
+const MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+/** "2026-11" ou "2026-11-02" → número de meses (ano*12 + mês-1), ou null. */
+function mesNum(texto) {
+  const m = /^(\d{4})-(\d{2})/.exec(texto || "");
+  return m && +m[2] >= 1 && +m[2] <= 12 ? +m[1] * 12 + (+m[2] - 1) : null;
+}
+const mesTexto = (n) => `${MESES[n % 12]}/${Math.floor(n / 12)}`;
+
+/**
+ * A linha de fonte de uma informação (regras.json "fontes"), igual à do app:
+ * "Fonte: site do Metrofor · conferido em nov/2026 · próxima conferência: mai/2027".
+ * Estimativa ou observação do app não leva "Fonte:" nem próxima conferência.
+ * Devolve { texto, link, titulo, detalhe } ou null.
+ */
+export function fonteLinha(regras, id, data) {
+  const f = regras?.fontes?.[id];
+  if (!f || id.startsWith("_")) return null;
+  const app = f.tipo === "app";
+  const partes = [app ? f.fonte : `Fonte: ${f.fonte}`];
+  if (f.desde) partes.push(f.desde);
+  const conferido = mesNum(f.conferido);
+  if (f.diario) partes.push("acompanhado todo dia");
+  else if (app) { if (conferido != null) partes.push(mesTexto(conferido)); }
+  else {
+    if (conferido != null) partes.push(`conferido em ${mesTexto(conferido)}`);
+    if (conferido != null && f.revisar_em_meses > 0) {
+      const proxima = conferido + f.revisar_em_meses;
+      partes.push(mesNum(data) > proxima ? `conferência atrasada desde ${mesTexto(proxima)}: pode ter mudado`
+        : `próxima conferência: ${mesTexto(proxima)}`);
+    }
+  }
+  return { texto: partes.join(" · "), link: /^https:\/\//.test(f.link || "") ? f.link : null, titulo: f.titulo, detalhe: f.detalhe || null };
 }

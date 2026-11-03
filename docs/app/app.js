@@ -1,6 +1,6 @@
 import {
   agora, bikeAgora, carregar, dataCurta, distancia, falta, hora, infoEstacao, janelasBike, metros, minutosAte, passagem,
-  linhaParada, passagemDaLinha, proximas, somarDias, veiculo,
+  linhaParada, passagemDaLinha, fonteLinha, proximas, somarDias, veiculo,
 } from "./dados.js";
 import { PERFIS, Roteador } from "./roteiro.js";
 import { aoLado, buscarLugares, caminhada, emojiLugar, longe, metrosAPe, minutosAPe, pertoDaEstacao, serve } from "./lugares.js";
@@ -63,6 +63,15 @@ function cor(linha) {
   const c = Object.entries(estado.dados?.regras?.cores || {}).find(([n]) => n.trim().toLowerCase() === nome)?.[1];
   const escuro = matchMedia("(prefers-color-scheme: dark)").matches;
   return "#" + ((c && (escuro ? c.escuro || c.claro : c.claro)) || linha.cor);
+}
+
+/** A linha pequena de fonte e data embaixo de uma informação; com link, abre a fonte. */
+function fonte(id, estilo = "") {
+  const f = fonteLinha(estado.dados?.regras, id, agora().data);
+  return f ? fonteHtml(f.texto, f.link, estilo) : "";
+}
+function fonteHtml(texto, link, estilo = "") {
+  return `<p class="fonte" style="${estilo}">${link ? `<a href="${esc(link)}" target="_blank" rel="noopener">${esc(texto)} ›</a>` : esc(texto)}</p>`;
 }
 
 /** A pessoa está escolhendo algo (janela aberta ou campo em uso): não redesenhar agora. */
@@ -366,13 +375,14 @@ function telaEstacao(linhaId, stopId, sentidoId) {
   const tarifa = passagemDaLinha(estado.dados.regras, linha.nome);
   if (endereco || tarifa) {
     html += `<p class="dica">${[endereco && esc(endereco), tarifa && `Passagem: ${esc(tarifa)}`].filter(Boolean).join("<br>")}</p>`;
+    html += fonte("passagem", "margin-top:-8px");
   }
   // Meia, gratuidade e onde tirar o cartão: o guia do regras.json.
   if (tarifa && estado.dados.regras?.guia_passagem) {
     html += `<p style="margin-top:-6px"><a class="link-guia" href="#/passagem">Meia, gratuidade e onde tirar o cartão ›</a></p>`;
   }
   // Aviso livre da estação (regras.json), como o de estação subterrânea.
-  if (info?.aviso) html += `<p class="aviso">${esc(info.aviso)}</p>`;
+  if (info?.aviso) html += `<p class="aviso">${esc(info.aviso)}</p>${info.subterranea ? fonte("subterranea", "margin-top:-6px") : ""}`;
   html += linhaAcesso(info?.acesso, `#/acesso/${linha.id}/${stopId}`);
   if (sentidos.length > 1) {
     html += `<nav class="abas">${sentidos.map((s) =>
@@ -484,7 +494,7 @@ function telaAcesso(linhaId, stopId) {
     <p class="dica">Elevador parado, plataforma sem funcionário, rampa bloqueada… Conte pra gente: ajuda quem vem depois.</p>
     <a class="botao largo" href="${WHATSAPP_RELATO}${encodeURIComponent(msg)}" target="_blank" rel="noopener">Contar pelo WhatsApp</a>
     <a class="botao secundario largo" href="mailto:${EMAIL_RELATO}?subject=${encodeURIComponent(`Acessibilidade: ${nome}`)}&body=${encodeURIComponent(msg)}">Contar por e-mail</a>`;
-  if (a) html += `<p class="dica">Segundo o Metrofor (tabela de 2015). Um elevador pode estar parado para manutenção.</p>`;
+  if (a) html += fonte("acessibilidade") + `<p class="dica">Um elevador pode estar parado para manutenção.</p>`;
   html += `<p><a href="#/estacao/${linha.id}/${stopId}">‹ ${esc(nome)}</a></p>`;
   tela.innerHTML = html;
 }
@@ -514,7 +524,7 @@ function blocoPerto(stopId) {
   const fator = fatorPerfil();
   return `<h2>Perto desta estação</h2><div class="perto">${perto.map((l) =>
     `<div class="destino"><span>${emojiLugar(l)} ${esc(l.nome)}</span><small>${caminhada(l, fator)}</small></div>`).join("")}</div>
-    <p class="dica">Lugares: OpenStreetMap (© colaboradores, ODbL). Distância a pé pelas ruas, aproximada.</p>`;
+    <p class="dica">Distância a pé pelas ruas, aproximada.</p>${fonte("lugares", "margin-top:-8px")}`;
 }
 
 /** Quantas vezes o tempo a pé, pelo jeito de se deslocar escolhido (o mesmo do roteiro). */
@@ -820,6 +830,7 @@ function cartaoRoteiro(o, grade, dia, perfil, ape = null) {
       : `${esc(ape.nome)}: ${metrosAPe(ape.metros)} a pé, uns ${ape.min} min.`}</p>`;
   }
   html += `<p class="chegada">Chega às ${hora(o.chega + (ape?.min || 0))}</p>`;
+  html += fonteHtml("Chegada e integrações: estimativa do app, sobre os horários do Metrofor", null, "margin-top:-6px");
   if (o.antes != null) {
     html += `<p class="dica">O ${veiculo(grade.linha(o.pernas[0].linha).nome)} das ${hora(o.antes)} chega no mesmo horário, mas espera mais na integração.</p>`;
   }
@@ -860,7 +871,11 @@ function avisoBike(linha, stopId, t) {
   const extra = b.pode || b.limite != null
     ? [janelas.porViagem && `Até ${janelas.porViagem} bikes por viagem.`, regras?.bike?.proibidas].filter(Boolean).join(" ")
     : "";
-  return `<p class="bike">🚲 ${texto}${extra ? `<br><span class="dica">${esc(extra)}</span>` : ""}</p>`;
+  // A regra vem do regulamento ou, num dia especial, da notícia do dia.
+  const origem = janelas.especial
+    ? fonteHtml("Regra de hoje: notícia do Metrofor · vale só para hoje", regras?.operacoes?.[t.data]?.link, "margin-top:-8px")
+    : fonte(janelas.fonteId, "margin-top:-8px");
+  return `<p class="bike">🚲 ${texto}${extra ? `<br><span class="dica">${esc(extra)}</span>` : ""}</p>${origem}`;
 }
 
 /** O próximo metrô/VLT da outra linha que ainda dá para pegar a pé, e a passagem. */
@@ -888,7 +903,7 @@ function blocoIntegracao(stopId, t) {
             return `<div class="partida"><span>→ ${esc(s.destino)}</span><span class="hora">${textoPartida(p, t.minutos, s)}</span></div>`;
           }).join("")}
           <p class="dica" style="margin:10px 0 0">Toque para ver todos os horários de lá</p>
-        </a></div>`;
+        </a>${textoTarifa ? fonte("integracao", "margin:8px 0 0") : ""}${fonteHtml("Tempo a pé: estimativa do app", null, "margin:2px 0 0")}</div>`;
     }
   }
   return html;
@@ -928,6 +943,7 @@ function telaSobre() {
       Endereços e passagens: páginas das linhas no site do Metrofor. Posição de algumas estações de Sobral e do Cariri,
       que o GTFS põe no lugar errado: © colaboradores do OpenStreetMap. Lugares da busca e de "Perto desta estação",
       com a caminhada pelas ruas: © colaboradores do OpenStreetMap.</p>
+    <a class="botao secundario" href="#/fontes">De onde vem cada informação</a>
 
     <h2>Privacidade</h2>
     <p>Sem anúncios, sem cadastro e sem rastreadores. Sua localização é usada só no celular, para achar a estação mais
@@ -979,7 +995,7 @@ function telaPassagem(indice) {
   if (!tema) {
     html += `<h2 style="font-size:1.4rem">Passagem</h2>
       <div class="cartao"><strong>ⓘ Informações do Metrofor</strong><br>${esc(guia.fonte)}
-        <br><small>Conferido em ${esc(guia.conferido)}</small>
+        <br><small>${esc(fonteLinha(regras, "guia_passagem", agora().data)?.texto || `Conferido em ${guia.conferido}`)}</small>
         ${link(guia.link) ? `<br><a href="${link(guia.link)}" target="_blank" rel="noopener"><strong>Ver no site do Metrofor ›</strong></a>` : ""}</div>`;
     const linhas = Object.entries(regras.passagem || {}).filter(([k]) => !k.startsWith("_"));
     html += `<div class="tarifas">${linhas.map(([nome, texto]) =>
@@ -997,7 +1013,7 @@ function telaPassagem(indice) {
     }
   } else {
     html += `<h2 style="font-size:1.4rem">${esc(tema.titulo)}</h2>
-      <p class="fonte-guia">Fonte: site do Metrofor · conferido em ${esc(guia.conferido)}</p>`;
+      <p class="fonte-guia">${esc(fonteLinha(regras, "guia_passagem", agora().data)?.texto || `Fonte: site do Metrofor · conferido em ${guia.conferido}`)}</p>`;
     // Prazos com data, como a renovação anual do cartão de estudante.
     const hoje = agora().data;
     for (const a of tema.avisos || []) {
@@ -1017,6 +1033,32 @@ function telaPassagem(indice) {
     html += `<p><a href="#/passagem">‹ Passagem</a></p>`;
   }
   tela.innerHTML = `<div class="guia">${html}</div>`;
+}
+
+// ---------- de onde vem cada informação
+
+/** Os horários e cada fonte do regras.json, com a conferência e a próxima (como no app). */
+function telaFontes() {
+  const { indice, regras, grade } = estado.dados;
+  const t = agora();
+  const hoje = grade.data === t.data;
+  const horaBaixada = indice.tipos?.[grade.tipo]?.atualizado?.slice(11, 16);
+  let html = `<h2 style="font-size:1.4rem">De onde vem cada informação</h2>
+    <p>Este app não é oficial. Para você poder confiar e conferir, cada informação diz de onde vem e quando foi conferida.
+      A próxima conferência é a data em que vamos olhar a fonte de novo; até lá, nenhuma notícia do Metrofor indicou
+      mudança. Estimativas do app não são dados do Metrofor.</p>
+    <div class="fonte-item"><strong>Horários</strong>
+      <p>O app baixa a grade do dia publicada pelo Metrofor. São os horários programados: o app não sabe de atrasos.</p>
+      <p class="fonte">${hoje ? `Fonte: GTFS do Metrofor · baixados hoje${horaBaixada ? ` às ${horaBaixada}` : ""} · valem só para hoje`
+        : `Fonte: GTFS do Metrofor · grade de ${dataCurta(grade.data)} · o Metrofor publica a grade de cada dia`}</p></div>`;
+  for (const id of Object.keys(regras?.fontes || {})) {
+    const f = fonteLinha(regras, id, t.data);
+    if (!f) continue;
+    html += `<div class="fonte-item"><strong>${esc(f.titulo)}</strong>${f.detalhe ? `<p>${esc(f.detalhe)}</p>` : ""}
+      <p class="fonte">${esc(f.texto)}</p>${f.link ? `<p><a href="${esc(f.link)}" target="_blank" rel="noopener">Abrir a fonte ↗</a></p>` : ""}</div>`;
+  }
+  html += `<p><a href="#/sobre">‹ Sobre</a></p>`;
+  tela.innerHTML = `<div class="sobre">${html}</div>`;
 }
 
 function telaNaoAchei() {
@@ -1105,6 +1147,7 @@ function render() {
   else if (partes[0] === "estacao") telaEstacao(partes[1], partes[2], partes[3]);
   else if (partes[0] === "sobre") telaSobre();
   else if (partes[0] === "passagem") telaPassagem(partes[1]);
+  else if (partes[0] === "fontes") telaFontes();
   else if (partes[0] === "acesso") telaAcesso(partes[1], partes[2]);
   else if (partes[0] === "viagem") telaViagem(partes[1], partes[2]);
   else if (partes[0] === "lugar") telaLugar(partes[1]);
