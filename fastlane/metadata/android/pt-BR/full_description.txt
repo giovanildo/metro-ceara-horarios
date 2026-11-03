@@ -5,7 +5,8 @@
 <p><b>Recursos</b></p>
 <ul>
 <li><b>Horários do dia:</b> a grade do próprio dia publicada pelo Metrofor, incluindo sábado e operações especiais (eleição, ENEM). Sem internet, usa a última grade guardada.</li>
-<li><b>Estação mais próxima:</b> pelo GPS, mostrando todas as linhas que passam a até 3 km de você. Ou fixe a sua estação pela estrela.</li>
+<li><b>Estações mais próximas:</b> pelo GPS, as duas estações mais perto de você, com o tempo que falta para o próximo metrô. Ou fixe a sua estação pela estrela.</li>
+<li><b>Ajustar para mim:</b> bike, meia, elevador ou rampa e a ordem da tela inicial, sem cadastro.</li>
 <li><b>Para onde você vai?:</b> escolha o destino e veja o roteiro, na mesma linha ou com integração, saindo agora ou no horário que você escolher. Num domingo sem operação, mostra o roteiro de segunda.</li>
 <li><b>Procure o lugar, não só a estação:</b> digite "Rodoviária", "HGF" ou "UFC" e veja a estação mais perto, a caminhada até a porta e a hora de chegar. Na tela de cada estação, o que tem perto: hospitais, universidades, shoppings.</li>
 <li><b>Elevador e rampa:</b> veja se a estação tem elevador, rampa ou plataforma elevatória. Com "cadeira de rodas", o roteiro avisa onde não tem elevador e onde pedir ajuda.</li>

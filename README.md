@@ -71,10 +71,11 @@ para o mesmo lado (`ui/DirectionLabel.kt`). Na tela da estação, debaixo das ab
 onde ele passa: "Passa por **Padre Cícero, Porangabussu, Couto Fernandes,
 Juscelino Kubitscheck**… até Carlito Benevides · 16 estações" (as 4 primeiras
 estações do caminho; `data/DirectionVia.kt`). Pelo
-GPS, se houver estações de **outras linhas a até 3 km**, cada linha ganha seu
-cartão (por exemplo, Chico da Silva na Linha Sul e Moura Brasil na Oeste, a
-~200 m uma da outra). A busca **"Para onde você vai?"**, no topo, sai da estação
-em destaque ([abaixo](#para-onde-você-vai-roteiro-na-mesma-linha-ou-com-integração)). A
+GPS, aparecem as **duas estações mais próximas**, de qualquer linha (a segunda
+só até 3 km, ajustável): perto de São Benedito, São Benedito e José de Alencar;
+em Parangaba, a Linha Sul e a Nordeste. No cartão, o tempo que falta ("em 7
+min") vem grande e a hora embaixo. A busca **"Para onde você vai?"** sai da
+estação em destaque ([abaixo](#para-onde-você-vai-roteiro-na-mesma-linha-ou-com-integração)). A
 estação em destaque pode vir de duas fontes:
 
 - **A mais próxima de você**, o que exige `ACCESS_FINE_LOCATION`. A permissão só
@@ -87,6 +88,38 @@ estação em destaque pode vir de duas fontes:
 
 Sem permissão e sem estação fixada, o app continua inteiro: o cartão vira um
 convite e o resto funciona igual.
+
+### Ordem da tela inicial e "Ajustar para mim"
+
+O app faz muita coisa, mas o propósito é simples: a pessoa ver logo quando
+passa o próximo metrô. Por isso a tela inicial é uma lista de blocos e, no
+padrão, segue o perfil da maioria (quem vai e volta do trabalho ou da escola):
+
+1. **Trabalho e Casa**, com a faixa **"Ajustar para mim ›"** logo abaixo;
+2. **as duas estações mais próximas** (sempre aparecem: é o motivo do app);
+3. o **aviso do Metrofor** (operação especial, feriado);
+4. **"Para onde você vai?"**;
+5. as **rotinas**;
+6. o **Bicicletar** (só com "Levo bike");
+7. as **linhas**.
+
+**Ajustar para mim** (pela faixa ou no topo das Configurações; `ui/HomeLayoutScreens.kt`)
+são interruptores, sem cadastro e sem "perfil" (que lembra login): **Vou ao
+trabalho ou à escola** (Trabalho e Casa aparecem), **Levo bike** (a regra da
+bike no cartão e o Bicicletar; desligado no padrão), **Pago meia ou tenho
+gratuidade** (a passagem e o guia da meia no cartão), **Preciso de elevador ou
+rampa** (a acessibilidade da estação no cartão) e **Ainda não conheço o metrô**
+(a busca vai para o topo). A tela da estação continua mostrando tudo.
+
+**Ordem da tela inicial** tem a prévia da tela inicial em cima, na largura toda
+e sem receber toques, e embaixo cada bloco com liga/desliga à esquerda e **↑ ↓**
+à direita. Setas em vez de arrastar: um toque cada, funciona com letra grande e
+o TalkBack lê "Subir Trabalho e Casa". Mover mostra "agora é o 1º" com
+**Desfazer**; **Voltar ao padrão** pede confirmação e não mexe em Casa, Trabalho
+nem nos ajustes. As estações têm cadeado. Se a pessoa esconder o aviso do
+Metrofor, o dia especial aparece acima das estações mesmo assim. Tudo fica no
+aparelho (`data/HomeLayout.kt`, preferências `metrofor_home_layout`, à parte das
+Configurações). A lite só segue a ordem padrão, para continuar enxuta.
 
 A localização usa o `LocationManager` do próprio Android, sem Play Services.
 Para achar a posição, o app pede **ao mesmo tempo** ao provedor do Google
@@ -138,7 +171,7 @@ Quando a Nordeste ou o VLT Aeroporto começarem a cobrar, basta trocar as entrad
 ### "Para onde você vai?" (roteiro na mesma linha ou com integração)
 
 O jeito de ir de uma estação a outra é um só, como num app de corrida: uma barra
-**"Para onde você vai?"** no topo da tela inicial abre a tela **Sua viagem**
+**"Para onde você vai?"** na tela inicial abre a tela **Sua viagem**
 ([`ui/JourneyScreen.kt`](app/src/main/java/io/github/giova/metroceara/ui/JourneyScreen.kt)).
 A tela de cada estação tem o botão **"Ir daqui para outra estação"**, que abre a
 mesma tela saindo dali.
@@ -155,8 +188,8 @@ mesma tela saindo dali.
   o lugar e a estação mais perto dele, com a caminhada ("Fátima · Estação Borges
   de Melo · 630 m · 9 min a pé") e a chegada já contando ela. O roteiro termina
   a pé até a porta. Ver [Lugares](#lugares-busca-e-perto-desta-estação).
-- **Casa e Trabalho**, como num app de corrida: dois atalhos logo abaixo da
-  barra na tela inicial
+- **Casa e Trabalho**, como num app de corrida: dois atalhos no topo da tela
+  inicial
   ([`ui/PlaceShortcuts.kt`](app/src/main/java/io/github/giova/metroceara/ui/PlaceShortcuts.kt)).
   Na primeira vez, "🏠 Definir Casa" e "💼 Definir Trabalho" abrem a escolha da
   estação ("O app guarda só a estação, não o seu endereço"). Depois, cada
@@ -260,7 +293,7 @@ agora / Escolher horário, roteiro, outros horários), calculado por
 desloca" fica nessa tela e o navegador lembra. Na lite não há modo viagem: no
 lugar do botão, o **lembrete na agenda** e o convite para o app completo.
 **Casa e Trabalho** também estão na lite, guardados no navegador
-(`localStorage` "lugares"): os atalhos debaixo da barra levam ao roteiro
+(`localStorage` "lugares"): os atalhos no topo da tela inicial levam ao roteiro
 (`#/ir/casa`), a escolha da estação é uma tela própria (`#/lugar/casa`, com
 "Nenhuma") e o link **Trocar** faz o papel de tocar e segurar. Sem a
 localização, a tela inicial não sabe de onde a pessoa sai e os atalhos mostram
@@ -416,7 +449,8 @@ distância, em dois lugares (são 253 estações no banco, também offline). A
 capacidade de vagas, que o banco também guarda, não aparece: não é quantas
 bicicletas há agora e confundia.
 
-- **Na tela inicial**, num cartão próprio logo abaixo do da estação. Com GPS, a
+- **Na tela inicial**, num cartão próprio, para quem ligou **Levo bike** em
+  "Ajustar para mim". Com GPS, a
   distância é medida a partir de **você**, até 3 km — acima disso (fora de
   Fortaleza, por exemplo) o cartão some. Com estação fixada, é medida a partir
   da estação, até 600 m.
@@ -425,7 +459,7 @@ bicicletas há agora e confundia.
 
 Nas linhas Sul e Nordeste e no VLT de Sobral, o app diz também **se dá para embarcar com
 bicicleta agora** (no metrô ou no VLT, conforme a linha; o aviso some quando
-não há mais partidas no dia), na tela de partidas e no cartão da tela inicial. As
+não há mais partidas no dia), na tela de partidas e, com **Levo bike**, no cartão da tela inicial. As
 janelas vêm do regulamento
 [*Bike é bem-vinda no metrô*](https://www.ce.gov.br/metrofor/wp-content/uploads/sites/75/2023/03/Regula_Bikes_2023.pdf)
 (Metrofor, 2023): segunda a sexta das 9h às 15h e a partir das 20h; sábado a
@@ -728,7 +762,7 @@ próprias cores, em vermelho). Nas outras seções:
 
 | Ajuste | Padrão | Faixa |
 |---|---|---|
-| Mostrar outras linhas até | 3 km | 500 m – 5 km |
+| Segunda estação até | 3 km | 500 m – 5 km |
 | Bicicletar perto de você até | 3 km | 500 m – 5 km |
 | Bicicletar perto da estação até | 600 m | 200 m – 1,5 km |
 | Avisar antes do destino | 2 estações | 1 – 4 |
@@ -785,7 +819,7 @@ grade do dia já saiu), o app calcula o metrô do dia pela grade e pelo roteiro
 tempo. **Domingo sem operação não avisa; em feriado e operação especial vale a
 grade do dia, e linha parada fica de fora.** O aviso é o mesmo de "Avisar pelo
 app", com **Hoje não vou** no lugar de Cancelar. A tela **Suas rotinas** (com uma
-linha "Rotinas: …" abaixo da busca na tela inicial, quando há alguma) mostra cada
+linha "Rotinas: …" na tela inicial, quando há alguma) mostra cada
 uma com a chave de ligar e o aviso já marcado ("Aviso marcado: sair às 11:44
 para o metrô das 12:14").
 
@@ -848,12 +882,10 @@ com a guardada: são ~30 KB (o zip de dia útil tem ~29 KB, o de sábado ~20 KB,
 o índice 0,5 KB), e assim qualquer mudança chega na abertura seguinte; um
 download cortado (app fechado no meio) é refeito na próxima abertura. Sem
 internet (ou antes de a grade do dia chegar), o app usa a última grade do mesmo
-tipo. O banco do APK fica como último recurso. Uma linha no topo da tela inicial
-diz de onde vêm os horários, sem botão de baixar de novo: "Horários de hoje,
-baixados do Metrofor às 02:42." ou, com a grade de outro dia do mesmo tipo,
-"Horários de dia útil, publicados pelo Metrofor.", em cinza e sem data, porque a
-grade de um dia útil comum é igual à do anterior. Só vira **aviso em vermelho**
-quando importa: a grade do APK, ou dia com operação especial anunciada sem a
+tipo. O banco do APK fica como último recurso. De onde vêm os horários ("Horários
+de hoje, baixados do Metrofor às 02:42.") fica em **Fonte ›**, na tela da
+estação; no topo da tela inicial só aparece, como **aviso em vermelho**, quando
+importa: a grade do APK, ou dia com operação especial anunciada sem a
 grade do dia ("Hoje tem operação especial e os horários do dia ainda não
 chegaram. Veja a notícia do Metrofor."). A lite segue a mesma regra no rodapé.
 
@@ -1201,7 +1233,10 @@ mesmos dados do `app_start`).
 Para quem tem iPhone (e para quem prefere não instalar APK) há uma versão
 web instalável (PWA), a **versão lite**, neste mesmo repositório. Fica de
 fora de propósito o que depende do celular em segundo plano: modo viagem, voz,
-registro de testes — esses ficam só no app de Android. O navegador não consegue baixar
+registro de testes — esses ficam só no app de Android. A tela inicial segue a
+mesma ordem padrão do app (Trabalho e Casa, as duas estações mais próximas com o
+tempo que falta grande, o aviso do Metrofor, "Para onde você vai?" e as linhas),
+sem "Ajustar para mim" nem a escolha da ordem. O navegador não consegue baixar
 o GTFS direto do Metrofor — o certificado costuma estar vencido e o site não
 libera acesso a partir de outras páginas —, então os horários chegam prontos:
 
