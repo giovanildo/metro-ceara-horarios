@@ -5,7 +5,7 @@ import {
 import { PERFIS, Roteador } from "./roteiro.js";
 import { aoLado, buscarLugares, caminhada, emojiLugar, longe, metrosAPe, minutosAPe, pertoDaEstacao, serve } from "./lugares.js";
 
-const PERTO_METROS = 3000; // outras linhas aparecem até esta distância (padrão do app)
+const PERTO_METROS = 3000; // a segunda estação mais perto aparece até esta distância (padrão do app)
 const LINK = "https://giovanildo.github.io/metro-ceara-horarios/app/";
 const PAGINA_INSTALAR = "../#baixar"; // direto no convite para testar pela Play Store
 // O convite da lite abre o WhatsApp com a mensagem pronta (o mesmo botão da página, em #baixar).
@@ -242,6 +242,12 @@ function viaDoSentido(s, stopId) {
   return `Passa por <b>${nomes}</b>${mais ? "…" : ""} até ${esc(fim)} · ${frente.length} estações`;
 }
 
+/** No cartão do início: o tempo que falta grande e a hora embaixo (como no app). */
+function partidaGrande(p, minutos, sentido) {
+  if (!p) return `<span class="hora">${textoPartida(p, minutos, sentido)}</span>`;
+  return `<span class="hora grande"><b>${falta(minutosAte(p, minutos))}</b><small>${hora(p.m)}${p.amanha ? " (amanhã)" : ""}</small></span>`;
+}
+
 function textoPartida(p, minutos, sentido) {
   if (!p) return sentido?.naoPublicado ? "horários não publicados" : "sem mais partidas hoje";
   return `${hora(p.m)}${p.amanha ? " (amanhã)" : ""} · ${falta(minutosAte(p, minutos))}`;
@@ -252,8 +258,9 @@ function textoPartida(p, minutos, sentido) {
 function telaInicio() {
   const { grade } = estado.dados;
   const t = agora();
-  let html = convite() + avisoDomingo(t) + avisosMetrofor();
-  html += `<a class="para-onde" href="#/viagem">${LUPA} Para onde você vai?</a>`;
+  // A mesma ordem do app: Trabalho e Casa, as duas estações mais perto, o aviso
+  // do Metrofor, "Para onde você vai?" e as linhas. Domingo fica no topo.
+  let html = convite() + avisoDomingo(t);
   html += atalhosLugares(t);
 
   if (!estado.pos) {
@@ -264,17 +271,12 @@ function telaInicio() {
       ${estado.erroLocal ? `<p class="dica">${esc(estado.erroLocal)}</p>` : ""}
     </div>`;
   } else {
-    // A estação mais perto de cada linha; mostra as que estão até 3 km (e sempre a mais perto).
-    const porLinha = grade.linhas.map((linha) => {
-      let melhor = null;
-      for (const id of grade.estacoesDaLinha(linha)) {
-        const e = grade.estacoes[id];
-        const d = distancia(estado.pos.lat, estado.pos.lon, e.lat, e.lon);
-        if (!melhor || d < melhor.d) melhor = { id, d };
-      }
-      return melhor && { linha, ...melhor };
-    }).filter(Boolean).sort((a, b) => a.d - b.d);
-    const perto = porLinha.filter((x, i) => i === 0 || x.d <= PERTO_METROS);
+    // As duas estações mais perto, de qualquer linha (a segunda só até 3 km).
+    const todas = grade.linhas.flatMap((linha) => grade.estacoesDaLinha(linha).map((id) => {
+      const e = grade.estacoes[id];
+      return { linha, id, d: distancia(estado.pos.lat, estado.pos.lon, e.lat, e.lon) };
+    })).sort((a, b) => a.d - b.d);
+    const perto = todas.slice(0, 2).filter((x, i) => i === 0 || x.d <= PERTO_METROS);
     for (const { linha, id, d } of perto) {
       const sentidos = grade.sentidosDePartida(linha, id);
       html += `<div class="cartao">
@@ -287,13 +289,15 @@ function telaInicio() {
             const { hoje, amanha } = partidasComAmanha(linha, s, id);
             const p = proximas(hoje, t.minutos, 1, amanha)[0];
             const fim = p ? "" : fimDoDia(linha, s, id);
-            return `<div class="partida">${sentidoNoCartao(s, linha)}<span class="hora">${textoPartida(p, t.minutos, s)}</span></div>`
+            return `<div class="partida">${sentidoNoCartao(s, linha)}${partidaGrande(p, t.minutos, s)}</div>`
               + (fim ? `<p class="dica fim-do-dia">${fim}</p>` : "");
           }).join("")}
         </a></div>`;
     }
   }
 
+  html += avisosMetrofor();
+  html += `<a class="para-onde" href="#/viagem">${LUPA} Para onde você vai?</a>`;
   if (pedidoInstalar && !INSTALADA) {
     html += `<p><button class="botao secundario" id="instalar">📲 Adicionar à tela inicial</button></p>`;
   }

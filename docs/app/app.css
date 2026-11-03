@@ -64,6 +64,9 @@ h2 { font-size: 1rem; font-weight: 600; margin: 20px 0 8px; }
 .partida { display: flex; justify-content: space-between; gap: 8px; margin-top: 10px; }
 .partida { align-items: flex-end; }
 .partida .hora { font-weight: 600; white-space: nowrap; }
+.partida .hora.grande { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.1; }
+.partida .hora.grande b { font-size: 1.35rem; font-weight: 700; }
+.partida .hora.grande small { font-size: .8rem; font-weight: 400; opacity: .8; }
 .sentido small { display: block; font-size: .75rem; font-weight: 400; color: var(--texto-2); line-height: 1.2; }
 .sentido-cartao { display: flex; align-items: flex-end; gap: 10px; }
 .sentido-cartao .trem { margin-bottom: 2px; }
