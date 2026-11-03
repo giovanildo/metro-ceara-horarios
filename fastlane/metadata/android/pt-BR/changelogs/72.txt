@@ -1,0 +1,1 @@
+• Horários de amanhã mais certos: depois de um feriado, a previsão de amanhã usa a grade de um dia comum. Quando amanhã tem horário especial anunciado, o app avisa em vez de mostrar horários que podem estar errados.
