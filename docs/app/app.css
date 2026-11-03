@@ -203,7 +203,9 @@ a.cartao.tema .seta { position: absolute; right: 16px; top: 50%; transform: tran
 .item-acesso .nao-tem { color: #b3261e; white-space: nowrap; }
 
 /* Fonte e data de cada informação */
-.fonte { color: var(--texto-2); font-size: .8rem; margin: 4px 0 8px; }
-.fonte a { color: inherit; }
+.fonte { font-size: .85rem; margin: 4px 0 8px; }
+.fonte a { color: #43568f; font-weight: 600; text-decoration: none; }
+@media (prefers-color-scheme: dark) { .fonte a { color: #b3c5ff; } }
+.fontes-linha { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 8px; }
 .fonte-item { border-top: 1px solid var(--borda); padding: 10px 0; }
 .fonte-item p { margin: 4px 0; }

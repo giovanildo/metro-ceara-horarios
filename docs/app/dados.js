@@ -290,5 +290,19 @@ export function fonteLinha(regras, id, data) {
         : `próxima conferência: ${mesTexto(proxima)}`);
     }
   }
-  return { texto: partes.join(" · "), link: /^https:\/\//.test(f.link || "") ? f.link : null, titulo: f.titulo, detalhe: f.detalhe || null };
+  // O link curto na tela e o que a janela mostra, uma coisa por linha (igual ao app).
+  const proxima = conferido != null && f.revisar_em_meses > 0 ? conferido + f.revisar_em_meses : null;
+  const atrasada = proxima != null && mesNum(data) > proxima;
+  const rotulo = app ? f.fonte : atrasada ? "Fonte · pode ter mudado" : "Fonte";
+  const fatos = app ? [f.fonte + (conferido != null ? ` (${mesTexto(conferido)})` : "")] : [
+    `Fonte: ${f.fonte}`,
+    ...(f.desde ? [f.desde[0].toUpperCase() + f.desde.slice(1)] : []),
+    ...(f.diario ? ["Acompanhado todo dia"] : []),
+    ...(conferido != null ? [`Conferido em ${mesTexto(conferido)}`] : []),
+    ...(proxima != null ? [atrasada ? `Conferência atrasada desde ${mesTexto(proxima)}: pode ter mudado` : `Próxima conferência: ${mesTexto(proxima)}`] : []),
+  ];
+  return {
+    texto: partes.join(" · "), rotulo, fatos, atrasada,
+    link: /^https:\/\//.test(f.link || "") ? f.link : null, titulo: f.titulo, detalhe: f.detalhe || null,
+  };
 }

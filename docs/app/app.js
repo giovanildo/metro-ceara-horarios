@@ -65,14 +65,33 @@ function cor(linha) {
   return "#" + ((c && (escuro ? c.escuro || c.claro : c.claro)) || linha.cor);
 }
 
-/** A linha pequena de fonte e data embaixo de uma informação; com link, abre a fonte. */
-function fonte(id, estilo = "") {
-  const f = fonteLinha(estado.dados?.regras, id, agora().data);
-  return f ? fonteHtml(f.texto, f.link, estilo) : "";
+/** O link curto embaixo de uma informação ("Fonte ›"); tocar abre a janela com a origem e as datas. */
+function fonte(id, estilo = "", rotulo = null) {
+  const f = id === "bike-hoje" ? { rotulo: "Fonte" } : fonteLinha(estado.dados?.regras, id, agora().data);
+  return f ? `<p class="fonte" style="${estilo}"><a href="#" data-fonte="${esc(id)}">${esc(rotulo || f.rotulo)} ›</a></p>` : "";
 }
-function fonteHtml(texto, link, estilo = "") {
-  return `<p class="fonte" style="${estilo}">${link ? `<a href="${esc(link)}" target="_blank" rel="noopener">${esc(texto)} ›</a>` : esc(texto)}</p>`;
+
+/** A janela da fonte. "bike-hoje": a regra de bike do dia especial, que vem da notícia do dia. */
+function abrirFonte(id) {
+  const { regras } = estado.dados;
+  const t = agora();
+  const f = id === "bike-hoje"
+    ? { titulo: "Bike no metrô hoje", fatos: ["Fonte: notícia do Metrofor de hoje · vale só para hoje"], link: regras?.operacoes?.[t.data]?.link }
+    : fonteLinha(regras, id, t.data);
+  if (!f) return;
+  janela.innerHTML = `<h3>${esc(f.titulo)}</h3>${f.fatos.map((x) => `<p style="margin:6px 0">${esc(x)}</p>`).join("")}
+    ${f.detalhe ? `<p class="dica">${esc(f.detalhe)}</p>` : ""}
+    <div class="acoes"><button class="botao secundario" id="fechar-fonte">Fechar</button>
+      ${f.link ? `<a class="botao" href="${esc(f.link)}" target="_blank" rel="noopener">Abrir a fonte</a>` : ""}</div>`;
+  janela.showModal();
+  janela.querySelector("#fechar-fonte").onclick = () => janela.close();
 }
+document.addEventListener("click", (e) => {
+  const a = e.target.closest("[data-fonte]");
+  if (!a) return;
+  e.preventDefault();
+  abrirFonte(a.dataset.fonte);
+});
 
 /** A pessoa está escolhendo algo (janela aberta ou campo em uso): não redesenhar agora. */
 function ocupado() {
@@ -830,7 +849,7 @@ function cartaoRoteiro(o, grade, dia, perfil, ape = null) {
       : `${esc(ape.nome)}: ${metrosAPe(ape.metros)} a pé, uns ${ape.min} min.`}</p>`;
   }
   html += `<p class="chegada">Chega às ${hora(o.chega + (ape?.min || 0))}</p>`;
-  html += fonteHtml("Chegada e integrações: estimativa do app, sobre os horários do Metrofor", null, "margin-top:-6px");
+  html += fonte("tempo_a_pe", "margin-top:-6px");
   if (o.antes != null) {
     html += `<p class="dica">O ${veiculo(grade.linha(o.pernas[0].linha).nome)} das ${hora(o.antes)} chega no mesmo horário, mas espera mais na integração.</p>`;
   }
@@ -873,7 +892,7 @@ function avisoBike(linha, stopId, t) {
     : "";
   // A regra vem do regulamento ou, num dia especial, da notícia do dia.
   const origem = janelas.especial
-    ? fonteHtml("Regra de hoje: notícia do Metrofor · vale só para hoje", regras?.operacoes?.[t.data]?.link, "margin-top:-8px")
+    ? fonte("bike-hoje", "margin-top:-8px")
     : fonte(janelas.fonteId, "margin-top:-8px");
   return `<p class="bike">🚲 ${texto}${extra ? `<br><span class="dica">${esc(extra)}</span>` : ""}</p>${origem}`;
 }
@@ -903,7 +922,7 @@ function blocoIntegracao(stopId, t) {
             return `<div class="partida"><span>→ ${esc(s.destino)}</span><span class="hora">${textoPartida(p, t.minutos, s)}</span></div>`;
           }).join("")}
           <p class="dica" style="margin:10px 0 0">Toque para ver todos os horários de lá</p>
-        </a>${textoTarifa ? fonte("integracao", "margin:8px 0 0") : ""}${fonteHtml("Tempo a pé: estimativa do app", null, "margin:2px 0 0")}</div>`;
+        </a><div class="fontes-linha">${textoTarifa ? fonte("integracao", "margin:0") : ""}${fonte("tempo_a_pe", "margin:0")}</div></div>`;
     }
   }
   return html;
@@ -995,7 +1014,7 @@ function telaPassagem(indice) {
   if (!tema) {
     html += `<h2 style="font-size:1.4rem">Passagem</h2>
       <div class="cartao"><strong>ⓘ Informações do Metrofor</strong><br>${esc(guia.fonte)}
-        <br><small>${esc(fonteLinha(regras, "guia_passagem", agora().data)?.texto || `Conferido em ${guia.conferido}`)}</small>
+        ${regras?.fontes?.guia_passagem ? fonte("guia_passagem", "margin:4px 0 0") : `<br><small>Conferido em ${esc(guia.conferido)}</small>`}
         ${link(guia.link) ? `<br><a href="${link(guia.link)}" target="_blank" rel="noopener"><strong>Ver no site do Metrofor ›</strong></a>` : ""}</div>`;
     const linhas = Object.entries(regras.passagem || {}).filter(([k]) => !k.startsWith("_"));
     html += `<div class="tarifas">${linhas.map(([nome, texto]) =>
@@ -1013,7 +1032,12 @@ function telaPassagem(indice) {
     }
   } else {
     html += `<h2 style="font-size:1.4rem">${esc(tema.titulo)}</h2>
-      <p class="fonte-guia">${esc(fonteLinha(regras, "guia_passagem", agora().data)?.texto || `Fonte: site do Metrofor · conferido em ${guia.conferido}`)}</p>`;
+      ${(() => {
+        // O nome do Metrofor fica à vista; datas e explicação, na janela da fonte.
+        const f = fonteLinha(regras, "guia_passagem", agora().data);
+        return f ? fonte("guia_passagem", "margin-top:-6px", f.atrasada ? f.rotulo : `Fonte: ${regras.fontes.guia_passagem.fonte}`)
+          : `<p class="fonte-guia">Fonte: site do Metrofor · conferido em ${esc(guia.conferido)}</p>`;
+      })()}`;
     // Prazos com data, como a renovação anual do cartão de estudante.
     const hoje = agora().data;
     for (const a of tema.avisos || []) {
