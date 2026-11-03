@@ -16,6 +16,10 @@ fun dayEndText(end: DayEnd): String? {
                 if (end.nextIsMonday) R.string.day_end_next_monday else R.string.day_end_next_tomorrow,
                 formatTime(it),
             )
+        } ?: if (end.nextSpecial) {
+            stringResource(if (end.nextIsMonday) R.string.day_end_special_monday else R.string.day_end_special_tomorrow)
+        } else {
+            null
         },
     )
     return parts.takeIf { it.isNotEmpty() }?.joinToString("  ·  ")?.replaceFirstChar { it.uppercase() }

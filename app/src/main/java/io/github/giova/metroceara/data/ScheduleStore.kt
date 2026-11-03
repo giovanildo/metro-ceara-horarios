@@ -65,6 +65,18 @@ object ScheduleStore {
 
     fun tomorrowType(): DayType = typeOf(Calendar.getInstance(zone).apply { add(Calendar.DAY_OF_MONTH, 1) })
 
+    /** Depois de amanhã: a segunda, quando amanhã é domingo. */
+    fun dayAfterTomorrow(): String = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        .apply { timeZone = zone }
+        .format(Calendar.getInstance(zone).apply { add(Calendar.DAY_OF_MONTH, 2) }.time)
+
+    /**
+     * O Metrofor anunciou operação especial nesse dia (feriado, ENEM, eleição) e
+     * a notícia não diz que o horário é o de sempre. A grade desse dia só sai
+     * depois da meia-noite, e a grade baixada nele não serve de previsão.
+     */
+    fun isSpecial(date: String?): Boolean = date != null && Regras.current.operations[date]?.normal == false
+
     private fun typeOf(calendar: Calendar): DayType = when (calendar.get(Calendar.DAY_OF_WEEK)) {
         Calendar.SATURDAY -> DayType.SATURDAY
         Calendar.SUNDAY -> DayType.SUNDAY
@@ -74,6 +86,16 @@ object ScheduleStore {
     /** A última grade baixada de [type], se houver. */
     fun stored(context: Context, type: DayType): File? =
         file(context, type).takeIf { it.exists() && prefs(context).getString(keyDate(type), null) != null }
+
+    /**
+     * A grade para prever um dia de [type]: a última baixada, se não foi de um dia
+     * especial; senão, a última comum do espelho ("normais"). Sem isso, a grade
+     * de Finados virou a previsão da terça seguinte.
+     */
+    fun forecast(context: Context, type: DayType): File? {
+        stored(context, type)?.takeIf { !isSpecial(prefs(context).getString(keyDate(type), null)) }?.let { return it }
+        return normalFile(context, type).takeIf { it.exists() && prefs(context).getString(keyNormalDate(type), null) != null }
+    }
 
     /** O arquivo da grade a usar agora e de onde ele veio. `null` = usar a do APK. */
     fun current(context: Context): Pair<File, ScheduleSource>? {
@@ -95,15 +117,46 @@ object ScheduleStore {
      */
     fun sync(context: Context, bikeSource: File?) {
         val type = todayType()
-        val entry = JSONObject(String(fetch(MIRROR + "indice.json"))).getJSONObject("tipos")
+        val index = JSONObject(String(fetch(MIRROR + "indice.json")))
+        val entry = index.getJSONObject("tipos")
             .optJSONObject(mirrorName(type)) ?: error("o espelho ainda não tem grade de ${mirrorName(type)}")
-        val zipName = entry.optString("gtfs").ifBlank { error("o espelho ainda não tem o GTFS de ${mirrorName(type)}") }
         val date = entry.getString("data")
+        val zip = install(entry, file(context, type), bikeSource)
+        prefs(context).edit {
+            putString(keyDate(type), date)
+            putLong(keySyncedAt(type), publishedAt(entry))
+        }
+        if (DevLog.isEnabled) {
+            DevLog.log("sync_ok", "day_type" to type.name, "date" to date, "bytes" to zip.size, "lines" to summary(file(context, type)))
+        }
+        // A previsão do próximo dia com metrô é um extra: falhar aqui não desfaz a grade de hoje.
+        runCatching { syncForecast(context, index, bikeSource) }
+            .onFailure { DevLog.log("previsao_sync_fail", "reason" to (it.message ?: it.javaClass.simpleName)) }
+    }
+
+    /**
+     * Se a última grade guardada do tipo do próximo dia com metrô foi de um dia
+     * especial, baixa a última comum ("normais" no índice) para a previsão.
+     */
+    private fun syncForecast(context: Context, index: JSONObject, bikeSource: File?) {
+        val type = if (tomorrowType() == DayType.SUNDAY) DayType.WEEKDAY else tomorrowType()
+        if (!isSpecial(prefs(context).getString(keyDate(type), null))) return
+        val entry = index.optJSONObject("normais")?.optJSONObject(mirrorName(type)) ?: return
+        val date = entry.getString("data")
+        if (isSpecial(date)) return
+        if (normalFile(context, type).exists() && prefs(context).getString(keyNormalDate(type), null) == date) return
+        install(entry, normalFile(context, type), bikeSource)
+        prefs(context).edit { putString(keyNormalDate(type), date) }
+        DevLog.log("previsao_sync_ok", "day_type" to type.name, "date" to date)
+    }
+
+    /** Baixa o GTFS de uma entrada do índice e monta o banco em [target]; devolve o zip. */
+    private fun install(entry: JSONObject, target: File, bikeSource: File?): ByteArray {
+        val zipName = entry.optString("gtfs").ifBlank { error("o espelho ainda não tem o GTFS de ${target.name}") }
         val zip = fetch(MIRROR + zipName)
         check(entry.optLong("bytes", -1) < 0 || entry.getLong("bytes") == zip.size.toLong()) {
             "GTFS com tamanho diferente do índice: ${zip.size} de ${entry.getLong("bytes")} bytes"
         }
-        val target = file(context, type)
         target.parentFile?.mkdirs()
         val temp = File(target.parentFile, "${target.name}.tmp")
         try {
@@ -117,18 +170,13 @@ object ScheduleStore {
             temp.delete()
             File(temp.path + "-journal").delete()
         }
-        // A hora é a de quando o espelho baixou do Metrofor, não a deste download.
-        val publishedAt = runCatching {
-            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).parse(entry.getString("atualizado"))!!.time
-        }.getOrDefault(System.currentTimeMillis())
-        prefs(context).edit {
-            putString(keyDate(type), date)
-            putLong(keySyncedAt(type), publishedAt)
-        }
-        if (DevLog.isEnabled) {
-            DevLog.log("sync_ok", "day_type" to type.name, "date" to date, "bytes" to zip.size, "lines" to summary(target))
-        }
+        return zip
     }
+
+    /** A hora em que o espelho baixou do Metrofor, não a deste download. */
+    private fun publishedAt(entry: JSONObject): Long = runCatching {
+        SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).parse(entry.getString("atualizado"))!!.time
+    }.getOrDefault(System.currentTimeMillis())
 
     /** Por linha: viagens, primeira e última partida — para comparar grades no registro. */
     private fun summary(file: File): String = runCatching {
@@ -188,6 +236,9 @@ object ScheduleStore {
     private fun file(context: Context, type: DayType) =
         File(context.applicationContext.noBackupFilesDir, "schedules/${type.name.lowercase()}.db")
 
+    private fun normalFile(context: Context, type: DayType) =
+        File(context.applicationContext.noBackupFilesDir, "schedules/normal_${type.name.lowercase()}.db")
+
     /**
      * Baixa do espelho as regras do Metrofor (bike, integrações, passagem, pico)
      * e passa a usá-las. Bloqueia; falha (rede ou arquivo com erro) lança e
@@ -214,4 +265,5 @@ object ScheduleStore {
 
     private fun keyDate(type: DayType) = "date_${type.name.lowercase()}"
     private fun keySyncedAt(type: DayType) = "synced_at_${type.name.lowercase()}"
+    private fun keyNormalDate(type: DayType) = "normal_date_${type.name.lowercase()}"
 }

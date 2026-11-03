@@ -871,7 +871,14 @@ Detalhes que valem saber:
 - **Depois da última viagem do dia**, as partidas de "amanhã" vêm da grade do
   tipo de dia de amanhã, e não da de hoje repetida: num domingo de eleição,
   segunda mostra a grade de dia útil. Se amanhã for sábado e essa grade nunca
-  tiver sido baixada, o app não inventa horário. **Se amanhã for domingo**, a
+  tiver sido baixada, o app não inventa horário. A previsão usa a última grade
+  de um **dia comum** do mesmo tipo: a de um feriado não serve (a de Finados
+  virou a previsão da terça seguinte). Se a guardada for de um dia especial, o
+  app baixa do espelho a última comum (`normais` no índice) ou usa a do APK.
+  **Se amanhã tiver operação especial anunciada**, o app não prevê: a grade
+  desse dia só sai depois da meia-noite, e o fim do dia diz "amanhã o horário é
+  especial e só sai depois da meia-noite" (o widget, "Amanhã: horário
+  especial"). A lite faz o mesmo. **Se amanhã for domingo**, a
   lista não mostra horários de amanhã (metrô e VLT normalmente não circulam,
   embora o GTFS diga que sim).
 - **Operação especial (feriado, domingo, ENEM, eleição).** O Metrofor publica

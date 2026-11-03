@@ -16,8 +16,9 @@ class ScheduleRepository(context: Context) {
     private val tomorrowDb = MetroforDatabase.openTomorrow(context)
 
     /** Amanhã é domingo: o próximo dia com metrô é a segunda, um dia útil. */
-    private val mondayDb = if (ScheduleStore.tomorrowType() == DayType.SUNDAY) {
-        MetroforDatabase.openType(context, DayType.WEEKDAY)
+    private val tomorrowIsSunday = ScheduleStore.tomorrowType() == DayType.SUNDAY
+    private val mondayDb = if (tomorrowIsSunday) {
+        MetroforDatabase.openForecast(context, ScheduleStore.dayAfterTomorrow(), DayType.WEEKDAY)
     } else {
         null
     }
@@ -105,9 +106,9 @@ class ScheduleRepository(context: Context) {
     /** O último horário de hoje e o primeiro do próximo dia com metrô, para quando hoje acabou. */
     fun dayEnd(stopId: String, routeId: String, directionId: Int): DayEnd {
         val last = departures(stopId, routeId, directionId).lastOrNull()
-        val monday = tomorrowDb == null && mondayDb != null
-        val next = (tomorrowDb ?: mondayDb)?.let { departuresIn(it, stopId, routeId, directionId).firstOrNull() }
-        return DayEnd(last, next, monday)
+        val next = (if (tomorrowIsSunday) mondayDb else tomorrowDb)?.let { departuresIn(it, stopId, routeId, directionId).firstOrNull() }
+        val special = ScheduleStore.isSpecial(if (tomorrowIsSunday) ScheduleStore.dayAfterTomorrow() else ScheduleStore.tomorrow())
+        return DayEnd(last, next, tomorrowIsSunday, special)
     }
 
     private fun departuresIn(

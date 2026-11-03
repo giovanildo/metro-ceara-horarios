@@ -594,7 +594,12 @@ fun AppRoot() {
         if (sundayOff) {
             val plans = mondayRouter?.plan(start, target, from ?: 0, 4, stoppedTomorrow).orEmpty()
             return JourneyResult(plans.map { routeView(it, monday = true) }, monday = true,
-                context.getString(R.string.route_none_monday, name).takeIf { plans.isEmpty() })
+                when {
+                    plans.isNotEmpty() -> null
+                    // Segunda de operação especial: a grade dela só sai depois da meia-noite.
+                    ScheduleStore.isSpecial(ScheduleStore.tomorrow()) -> context.getString(R.string.route_special_monday)
+                    else -> context.getString(R.string.route_none_monday, name)
+                })
         }
         val walk = if (from == null) walkTo(origin) else 0
         val plans = router.plan(start, target, from ?: leaveNow(origin), 4, stoppedRoutes)

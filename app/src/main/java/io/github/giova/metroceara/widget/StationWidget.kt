@@ -14,6 +14,7 @@ import android.view.View
 import android.widget.RemoteViews
 import io.github.giova.metroceara.MainActivity
 import io.github.giova.metroceara.R
+import io.github.giova.metroceara.data.DayEnd
 import io.github.giova.metroceara.data.LocationSource
 import io.github.giova.metroceara.data.PinnedStation
 import io.github.giova.metroceara.data.Regras
@@ -105,9 +106,12 @@ object StationWidget {
         run {
             val station = repo.station(stopId, routeId) ?: return null
             val now = nowMinutes()
+            // Hoje acabou e o próximo dia com metrô tem operação especial: a grade dele ainda não saiu.
+            var nextSpecial: DayEnd? = null
             val rows = repo.boardingDirections(stopId, routeId).take(2).map { direction ->
                 val today = repo.departures(stopId, routeId, direction.id).filter { it >= now }.take(2)
                 val end = if (today.isEmpty()) repo.dayEnd(stopId, routeId, direction.id) else null
+                if (end?.nextSpecial == true) nextSpecial = end
                 Row(
                     headsign = direction.headsign,
                     times = today.ifEmpty { listOfNotNull(end?.nextFirst) },
@@ -121,6 +125,9 @@ object StationWidget {
             val (note, warning) = when {
                 Regras.current.stopped(day, station.routeName) -> context.getString(R.string.line_stopped_today) to true
                 operation != null -> context.getString(R.string.widget_operation, operation.title) to false
+                nextSpecial != null -> context.getString(
+                    if (nextSpecial!!.nextIsMonday) R.string.widget_monday_special else R.string.widget_tomorrow_special,
+                ) to false
                 isSundayToday() -> context.getString(R.string.widget_sunday) to true
                 else -> null to false
             }

@@ -40,21 +40,24 @@ internal object MetroforDatabase {
 
     /**
      * O banco com a grade mais provável de amanhã. `null` quando não há como
-     * saber (sábado nunca baixado) e quando amanhã é domingo: metrô e VLT
-     * normalmente não circulam, embora o GTFS diga que sim.
+     * saber (sábado nunca baixado, operação especial anunciada) e quando amanhã
+     * é domingo: metrô e VLT normalmente não circulam, embora o GTFS diga que sim.
      */
     fun openTomorrow(context: Context): SQLiteDatabase? {
         val type = ScheduleStore.tomorrowType()
-        return if (type == DayType.SUNDAY) null else openType(context, type)
+        return if (type == DayType.SUNDAY) null else openForecast(context, ScheduleStore.tomorrow(), type)
     }
 
     /**
-     * A grade de um tipo de dia: a última baixada, ou a do APK para dia útil (é
-     * a grade dela). `null` para sábado ou domingo nunca baixados.
+     * A grade prevista para [date], de tipo [type]: a última comum baixada, ou a
+     * do APK para dia útil (é a grade dela). `null` para sábado nunca baixado e
+     * para dia de operação especial anunciada: a grade dele só sai depois da
+     * meia-noite, e prever com a de um dia comum daria horário errado.
      */
-    fun openType(context: Context, type: DayType): SQLiteDatabase? {
+    fun openForecast(context: Context, date: String, type: DayType): SQLiteDatabase? {
+        if (ScheduleStore.isSpecial(date)) return null
         val app = context.applicationContext
-        val file = ScheduleStore.stored(app, type)?.takeIf(::isValid)
+        val file = ScheduleStore.forecast(app, type)?.takeIf(::isValid)
             ?: bundledFile(app).takeIf { type == DayType.WEEKDAY }
             ?: return null
         return openFile(file)
