@@ -1,0 +1,3 @@
+• Tela inicial nova: Trabalho e Casa no topo e, logo abaixo, as duas estações mais perto de você, com o tempo que falta para o próximo metrô em letra grande.
+• Ajustar para mim: ligue bike, meia, elevador ou rampa e "ainda não conheço o metrô" para ver só o que serve para você.
+• Ordem da tela inicial: escolha o que vem primeiro e o que aparece, com uma prévia na hora.

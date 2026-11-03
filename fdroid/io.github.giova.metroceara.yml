@@ -14,14 +14,14 @@ RepoType: git
 Repo: https://github.com/giovanildo/metro-ceara-horarios.git
 
 Builds:
-  - versionName: '1.73'
-    versionCode: 74
-    commit: v1.73
+  - versionName: '1.74'
+    versionCode: 75
+    commit: v1.74
     subdir: app
     gradle:
       - yes
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: '1.73'
-CurrentVersionCode: 74
+CurrentVersion: '1.74'
+CurrentVersionCode: 75
