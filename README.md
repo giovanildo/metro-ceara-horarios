@@ -71,9 +71,11 @@ para o mesmo lado (`ui/DirectionLabel.kt`). Na tela da estação, debaixo das ab
 onde ele passa: "Passa por **Padre Cícero, Porangabussu, Couto Fernandes,
 Juscelino Kubitscheck**… até Carlito Benevides · 16 estações" (as 4 primeiras
 estações do caminho; `data/DirectionVia.kt`). Pelo
-GPS, aparecem as **duas estações mais próximas**, de qualquer linha (a segunda
-só até 3 km, ajustável): perto de São Benedito, São Benedito e José de Alencar;
-em Parangaba, a Linha Sul e a Nordeste. No cartão, o tempo que falta ("em 7
+GPS, aparecem **duas estações**: a mais próxima e a mais próxima de **outra
+linha**, até 3 km (ajustável); sem outra linha por perto, a segunda mais próxima
+da mesma linha (`nearestTwo`, em `data/Geo.kt`). Perto de São Benedito, São
+Benedito e Moura Brasil (Oeste); em Parangaba, a Sul e a Nordeste; em Mondubim,
+Mondubim e Manoel Sátiro. No cartão, o tempo que falta ("em 7
 min") vem grande e a hora embaixo. A busca **"Para onde você vai?"** sai da
 estação em destaque ([abaixo](#para-onde-você-vai-roteiro-na-mesma-linha-ou-com-integração)). A
 estação em destaque pode vir de duas fontes:
@@ -96,8 +98,10 @@ passa o próximo metrô. Por isso a tela inicial é uma lista de blocos e, no
 padrão, segue o perfil da maioria (quem vai e volta do trabalho ou da escola):
 
 1. **Trabalho e Casa**, com a faixa **"Ajustar para mim ›"** logo abaixo;
-2. **as duas estações mais próximas** (sempre aparecem: é o motivo do app);
-3. o **aviso do Metrofor** (operação especial, feriado);
+2. **as duas estações mais próximas** (sempre aparecem: é o motivo do app). Em
+   **dia especial** (operação especial, feriado), o aviso de hoje do Metrofor vem
+   logo acima delas, porque os horários são outros;
+3. o **aviso do Metrofor para amanhã**;
 4. **"Para onde você vai?"**;
 5. as **rotinas**;
 6. o **Bicicletar** (só com "Levo bike");
@@ -116,8 +120,8 @@ e sem receber toques, e embaixo cada bloco com liga/desliga à esquerda e **↑ 
 à direita. Setas em vez de arrastar: um toque cada, funciona com letra grande e
 o TalkBack lê "Subir Trabalho e Casa". Mover mostra "agora é o 1º" com
 **Desfazer**; **Voltar ao padrão** pede confirmação e não mexe em Casa, Trabalho
-nem nos ajustes. As estações têm cadeado. Se a pessoa esconder o aviso do
-Metrofor, o dia especial aparece acima das estações mesmo assim. Tudo fica no
+nem nos ajustes. As estações têm cadeado. O bloco de aviso só move e esconde o
+de amanhã: o de hoje aparece sempre acima das estações. Tudo fica no
 aparelho (`data/HomeLayout.kt`, preferências `metrofor_home_layout`, à parte das
 Configurações). A lite só segue a ordem padrão, para continuar enxuta.
 
@@ -1234,8 +1238,9 @@ Para quem tem iPhone (e para quem prefere não instalar APK) há uma versão
 web instalável (PWA), a **versão lite**, neste mesmo repositório. Fica de
 fora de propósito o que depende do celular em segundo plano: modo viagem, voz,
 registro de testes — esses ficam só no app de Android. A tela inicial segue a
-mesma ordem padrão do app (Trabalho e Casa, as duas estações mais próximas com o
-tempo que falta grande, o aviso do Metrofor, "Para onde você vai?" e as linhas),
+mesma ordem padrão do app (Trabalho e Casa, o aviso do Metrofor de hoje, as duas
+estações mais próximas com o tempo que falta grande, o aviso de amanhã, "Para
+onde você vai?" e as linhas),
 sem "Ajustar para mim" nem a escolha da ordem. O navegador não consegue baixar
 o GTFS direto do Metrofor — o certificado costuma estar vencido e o site não
 libera acesso a partir de outras páginas —, então os horários chegam prontos:
