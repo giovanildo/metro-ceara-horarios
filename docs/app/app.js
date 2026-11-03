@@ -194,6 +194,42 @@ function rotuloSentido(s) {
   return `<span class="sentido"><small>sentido</small>${esc(s.destino)}</span>`;
 }
 
+/** Metrô de lado com a seta na frente (abas): o sentido 0 vai para a esquerda. */
+function tremDeLado(s, c) {
+  return `<svg class="trem${s.id === 0 ? " esq" : ""}" width="36" height="20" viewBox="0 0 40 22" aria-hidden="true">
+    <rect x="1" y="3" width="22" height="13" rx="4" fill="${c}"/><rect x="4" y="6" width="4" height="4" rx="1" fill="#fff"/>
+    <rect x="11" y="6" width="4" height="4" rx="1" fill="#fff"/><rect x="18" y="6" width="4" height="4" rx="1" fill="#fff"/>
+    <circle cx="6" cy="18.6" r="1.9" fill="${c}"/><circle cx="18" cy="18.6" r="1.9" fill="${c}"/>
+    <path d="M27 9.5h11M34 5.5l4 4-4 4" stroke="${c}" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+
+/** Seta curva e metrô de frente (cartões): o sentido 0 vira para a esquerda. */
+function tremVirando(s, c) {
+  return `<svg class="trem${s.id === 0 ? "" : " esq"}" width="40" height="20" viewBox="0 0 44 22" aria-hidden="true">
+    <path d="M19 20v-8q0-5-5-5H6" stroke="${c}" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M0.5 7 8 1v12z" fill="${c}"/><rect x="25" y="1.5" width="15" height="15.5" rx="4" fill="${c}"/>
+    <rect x="27.5" y="4" width="10" height="5" rx="1.5" fill="#fff"/><circle cx="28.8" cy="13" r="1.4" fill="#fff"/><circle cx="36.2" cy="13" r="1.4" fill="#fff"/>
+    <path d="M27.5 17l-2 4M37.5 17l2 4" stroke="${c}" stroke-width="2" stroke-linecap="round"/></svg>`;
+}
+
+/** Sentido no cartão: a seta curva com o metrô e o rótulo. */
+function sentidoNoCartao(s, linha) {
+  return `<span class="sentido-cartao">${tremVirando(s, cor(linha))}${rotuloSentido(s)}</span>`;
+}
+
+/** As abas dos sentidos como um trilho: a estação é a bolinha no meio (no terminal, na ponta). */
+function trilhoDeSentidos(linha, stopId, sentidos, sentido) {
+  const c = cor(linha);
+  const unico = sentidos.length === 1 ? sentidos[0] : null;
+  const ponto = !unico ? "meio" : unico.id === 0 ? "dir" : "esq";
+  return `<nav class="trilho" style="--cor-linha:${c}"><span class="ponto-estacao ${ponto}"></span>${sentidos.map((s) => {
+    const esq = s.id === 0, ativa = s === sentido;
+    const trem = tremDeLado(s, c);
+    return `<a href="#/estacao/${linha.id}/${stopId}/${s.id}" class="${esq ? "esq" : "dir"}${ativa ? " ativa" : ""}${unico ? " unica" : ""}"
+      ${ativa ? 'aria-current="true"' : ""}>${esq ? trem : ""}${rotuloSentido(s)}${esq ? "" : trem}</a>`;
+  }).join("")}</nav>`;
+}
+
 /** "Passa por A, B, C, D… até X · N estações" a partir desta estação (como no app). */
 function viaDoSentido(s, stopId) {
   const i = s.estacoes.indexOf(stopId);
@@ -251,7 +287,7 @@ function telaInicio() {
             const { hoje, amanha } = partidasComAmanha(linha, s, id);
             const p = proximas(hoje, t.minutos, 1, amanha)[0];
             const fim = p ? "" : fimDoDia(linha, s, id);
-            return `<div class="partida">${rotuloSentido(s)}<span class="hora">${textoPartida(p, t.minutos, s)}</span></div>`
+            return `<div class="partida">${sentidoNoCartao(s, linha)}<span class="hora">${textoPartida(p, t.minutos, s)}</span></div>`
               + (fim ? `<p class="dica fim-do-dia">${fim}</p>` : "");
           }).join("")}
         </a></div>`;
@@ -425,12 +461,7 @@ function telaEstacao(linhaId, stopId, sentidoId) {
   // Aviso livre da estação (regras.json), como o de estação subterrânea.
   if (info?.aviso) html += `<p class="aviso">${esc(info.aviso)}</p>${info.subterranea ? fonte("subterranea", "margin-top:-6px") : ""}`;
   html += linhaAcesso(info?.acesso, `#/acesso/${linha.id}/${stopId}`);
-  if (sentidos.length > 1) {
-    html += `<nav class="abas">${sentidos.map((s) =>
-      `<a href="#/estacao/${linha.id}/${stopId}/${s.id}" class="${s === sentido ? "ativa" : ""}">${rotuloSentido(s)}</a>`).join("")}</nav>`;
-  } else {
-    html += `<p class="sentido-unico"><strong>${rotuloSentido(sentido)}</strong></p>`;
-  }
+  html += trilhoDeSentidos(linha, stopId, sentidos, sentido);
   const via = viaDoSentido(sentido, stopId);
   if (via) html += `<p class="dica via">${via}</p>`;
   // Domingo comum: a lista é a de segunda, então vale também a notícia de amanhã.
@@ -947,7 +978,7 @@ function blocoIntegracao(stopId, t) {
           ${sentidos.map((s) => {
             const { hoje, amanha } = partidasComAmanha(linha, s, id);
             const p = proximas(hoje, t.minutos + caminhada, 1, amanha)[0];
-            return `<div class="partida">${rotuloSentido(s)}<span class="hora">${textoPartida(p, t.minutos, s)}</span></div>`;
+            return `<div class="partida">${sentidoNoCartao(s, linha)}<span class="hora">${textoPartida(p, t.minutos, s)}</span></div>`;
           }).join("")}
           <p class="dica" style="margin:10px 0 0">Toque para ver todos os horários de lá</p>
         </a><div class="fontes-linha">${textoTarifa ? fonte("integracao", "margin:0") : ""}${fonte("tempo_a_pe", "margin:0")}</div></div>`;

@@ -65,6 +65,24 @@ h2 { font-size: 1rem; font-weight: 600; margin: 20px 0 8px; }
 .partida { align-items: flex-end; }
 .partida .hora { font-weight: 600; white-space: nowrap; }
 .sentido small { display: block; font-size: .75rem; font-weight: 400; color: var(--texto-2); line-height: 1.2; }
+.sentido-cartao { display: flex; align-items: flex-end; gap: 10px; }
+.sentido-cartao .trem { margin-bottom: 2px; }
+.trem { flex: none; } .trem.esq { transform: scaleX(-1); }
+.trilho { position: relative; display: flex; margin: 8px 0 4px; border-bottom: 1px solid var(--borda); }
+.trilho::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 3px; margin-top: -1.5px;
+  background: var(--cor-linha); opacity: .35; }
+.trilho a { position: relative; flex: 1; display: flex; align-items: center; padding: 12px 6px; text-decoration: none;
+  color: var(--texto-2); border-bottom: 3px solid transparent; margin-bottom: -1px; }
+.trilho a.esq { justify-content: flex-start; padding-right: 18px; }
+.trilho a.dir { justify-content: flex-end; text-align: right; padding-left: 18px; }
+.trilho a.unica { padding-left: 6px; padding-right: 6px; }
+.trilho a .sentido, .trilho a .trem { background: var(--fundo); padding: 0 4px; }
+.trilho a .trem { opacity: .5; }
+.trilho a.ativa { color: var(--texto); font-weight: 600; border-color: #43568f; }
+.trilho a.ativa .trem { opacity: 1; }
+.ponto-estacao { position: absolute; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%;
+  border: 3px solid var(--cor-linha); background: var(--fundo); z-index: 1; box-sizing: border-box; }
+.ponto-estacao.meio { left: 50%; } .ponto-estacao.dir { left: calc(100% - 16px); } .ponto-estacao.esq { left: 16px; }
 .via { margin: 8px 0 4px; } .via b { color: var(--texto); font-weight: 600; }
 .fim-do-dia { margin: 2px 0 0; }
 .aviso-metrofor { margin: 0 0 12px; }

@@ -156,7 +156,8 @@ export class Grade {
       const pos = s.estacoes.indexOf(stopId);
       return pos >= 0 && pos < s.estacoes.length - 1;
     });
-    return lista.length ? lista : linha.sentidos.filter((s) => s.estacoes.includes(stopId));
+    // Pelo número do sentido: o 0 fica sempre à esquerda no trilho das abas.
+    return (lista.length ? lista : linha.sentidos.filter((s) => s.estacoes.includes(stopId))).sort((a, b) => a.id - b.id);
   }
 
   /** Minutos de partida nesta estação, neste sentido, em ordem. */
