@@ -28,6 +28,7 @@ import os
 import re
 import ssl
 import sys
+import time
 import urllib.request
 import zipfile
 from email.utils import parsedate_to_datetime
@@ -131,13 +132,23 @@ def baixar_feed(source):
     if source:
         with open(source, "rb") as fh:
             return fh.read()
-    print(f"baixando {gtfs.FEED_URL}")
     ctx = ssl.create_default_context()
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
     req = urllib.request.Request(gtfs.FEED_URL, headers={"User-Agent": "metro-ceara-horarios/1.0"})
-    with urllib.request.urlopen(req, context=ctx, timeout=60) as resp:
-        return resp.read()
+    # O site do Metrofor as vezes nao responde (dois "timed out" em 02/11) e
+    # volta minutos depois: tenta de novo antes de perder a rodada.
+    esperas = [30, 90]
+    for tentativa in range(len(esperas) + 1):
+        print(f"baixando {gtfs.FEED_URL} (tentativa {tentativa + 1})")
+        try:
+            with urllib.request.urlopen(req, context=ctx, timeout=60) as resp:
+                return resp.read()
+        except OSError as e:
+            if tentativa == len(esperas):
+                raise
+            print(f"falhou ({e}); nova tentativa em {esperas[tentativa]} s")
+            time.sleep(esperas[tentativa])
 
 
 NOTICIAS_URL = "https://www.ce.gov.br/metrofor/feed/"
