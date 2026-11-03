@@ -820,6 +820,10 @@ dia**: cinco de madrugada (00:47, 01:17, 01:47, 02:47 e 04:17 de Fortaleza),
 porque o Metrofor publica a grade do dia logo depois da meia-noite e o GitHub
 chega a atrasar ~5 h, e mais 10:00, 15:00 e 20:00. Nada antes das 00:40: o feed
 não diz de que dia é, e o espelho guarda a grade pelo dia em que baixou.
+Desde 02/11, um agendador externo (cron-job.org) também dispara a tarefa pela
+API do GitHub, sem atraso, às 01:10, 05:10, 10:10, 14:10 e 20:10; o agendamento
+do GitHub ficou como reserva. O download do feed tenta três vezes (espera 30 s e
+depois 90 s), porque o site do Metrofor às vezes não responde por alguns minutos.
 Se o site do Metrofor falhar de manhã ou a grade mudar durante o dia, a rodada
 seguinte corrige. Ela guarda o zip original de cada tipo de dia no ramo
 `dados` (`gtfs-dia-util.zip`, `gtfs-sabado.zip`, `gtfs-domingo.zip`), e o
@@ -1189,7 +1193,11 @@ libera acesso a partir de outras páginas —, então os horários chegam pronto
   integrações do `regras.json`. Como no app, guarda **uma grade por tipo de
   dia** (`horarios-dia-util.json`, `horarios-sabado.json`,
   `horarios-domingo.json`), atualizando só a do dia; `indice.json` diz a data
-  de cada uma. Feed vazio ou quebrado não substitui a grade boa. Cada sentido
+  de cada uma. Feed vazio ou quebrado não substitui a grade boa. Em dia de
+  operação especial anunciada, a grade vai para `horarios-<tipo>-especial.json`
+  e `gtfs-<tipo>-especial.zip`: `tipos` no índice aponta para ela (é a de hoje,
+  e as versões antigas do app seguem certas) e `normais` mantém a última grade
+  comum de cada tipo, que o app e a lite usam para prever amanhã. Cada sentido
   traz a ordem das estações e as viagens como listas de minutos alinhadas a
   ela (`null` = não para): a grade de um dia útil inteiro tem ~23 KB. Junto
   vai o zip original (`gtfs-<tipo>.zip`), que o **app Android** baixa.

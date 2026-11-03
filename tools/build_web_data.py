@@ -10,8 +10,15 @@ a grade do dia em que e baixado (dia util, sabado ou operacao especial). Cada
 execucao atualiza so o arquivo do tipo de hoje e mantem os outros que ja
 estiverem em SAIDA. Feed vazio ou quebrado nao substitui a grade boa.
 
+Dia com operacao especial anunciada (regras.json "operacoes"): a grade do dia
+vai para horarios-<tipo>-especial.json e gtfs-<tipo>-especial.zip, e "tipos"
+aponta para ela (o app ate a 1.70 e a lite antiga usam "tipos"). "normais"
+continua com a ultima grade comum do tipo: e a que o app usa para prever
+amanha. Sem isso, a grade de Finados virou a previsao da terca seguinte.
+
 Arquivos em SAIDA:
-    indice.json                 data e arquivo de cada tipo de dia
+    indice.json                 data e arquivo de cada tipo de dia: "tipos" (a grade de
+                                hoje) e "normais" (a ultima sem operacao especial)
     horarios-<tipo>.json        linhas, sentidos, estacoes e viagens (versao lite)
     gtfs-<tipo>.zip             o GTFS original do Metrofor (o app Android baixa daqui)
     bicicletar.json             estacoes do Bicicletar
@@ -220,6 +227,12 @@ def operacoes_das_noticias(out, manuais):
     return {**automaticas, **manuais}
 
 
+def dia_especial(regras, dia):
+    """Dia com operacao anunciada que muda o horario ("normal": a noticia diz que nao muda)."""
+    op = regras.get("operacoes", {}).get(dia)
+    return isinstance(op, dict) and not op.get("normal")
+
+
 def escrever(path, data):
     tmp = path + ".tmp"
     with open(tmp, "w", encoding="utf-8") as fh:
@@ -242,6 +255,15 @@ def main():
         with open(indice_path, encoding="utf-8") as fh:
             indice = json.load(fh)
 
+    # As regras vem antes: dizem se hoje e dia de operacao especial.
+    regras = regras_com_datas_especiais(out)
+    especial = dia_especial(regras, hoje)
+    normais = indice.setdefault("normais", {})
+    for t, info in indice["tipos"].items():
+        # Primeira rodada com "normais": vale a grade guardada, se nao for de dia especial.
+        if t not in normais and not dia_especial(regras, info["data"]):
+            normais[t] = info
+
     bruto = baixar_feed(source)
     dados = grade(zipfile.ZipFile(io.BytesIO(bruto)))
     total = sum(len(s["viagens"]) for l in dados["linhas"] for s in l["sentidos"])
@@ -249,11 +271,12 @@ def main():
         # Mesma protecao do app: feed vazio ou quebrado nao apaga a grade boa.
         print(f"feed sem viagens ({len(dados['linhas'])} linhas, {total} viagens): grade de {tipo} mantida")
     else:
-        arquivo = f"horarios-{tipo}.json"
+        sufixo = "-especial" if especial else ""
+        arquivo = f"horarios-{tipo}{sufixo}.json"
         escrever(os.path.join(out, arquivo), {"data": hoje, "tipo": tipo, **dados})
         # O zip original vai junto: o app Android baixa daqui, com certificado
         # válido, em vez de ir ao site do Metrofor.
-        zip_nome = f"gtfs-{tipo}.zip"
+        zip_nome = f"gtfs-{tipo}{sufixo}.zip"
         tmp = os.path.join(out, zip_nome + ".tmp")
         with open(tmp, "wb") as fh:
             fh.write(bruto)
@@ -262,7 +285,10 @@ def main():
             "data": hoje, "arquivo": arquivo, "viagens": total,
             "gtfs": zip_nome, "bytes": len(bruto), "atualizado": agora.isoformat(timespec="seconds"),
         }
-        print(f"{arquivo}: {len(dados['linhas'])} linhas, {total} viagens")
+        if not especial:
+            normais[tipo] = indice["tipos"][tipo]
+        print(f"{arquivo}: {len(dados['linhas'])} linhas, {total} viagens"
+              + (" (operacao especial: a previsao segue com a grade comum)" if especial else ""))
 
     bikes = gtfs.load_bike_stations()
     if bikes:
@@ -271,7 +297,7 @@ def main():
             for n, nome, bairro, vagas, lat, lon in bikes
         ])
 
-    escrever(os.path.join(out, "regras.json"), regras_com_datas_especiais(out))
+    escrever(os.path.join(out, "regras.json"), regras)
     # Os avisos sao um extra: se o site falhar, fica o arquivo anterior e os
     # horarios seguem normalmente.
     try:
