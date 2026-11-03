@@ -119,10 +119,11 @@ opcional:
 | Moura Brasil → Chico da Silva (Oeste → Sul) | paga |
 | Parangaba → Parangaba - NE (Sul → Nordeste) | **gratuita** — a Linha Nordeste está gratuita durante a implantação |
 | Parangaba - NE → Parangaba (Nordeste → Sul) | paga — entrar na estação da Linha Sul cobra |
-| Expedicionários ↔ Expedicionários - AE (Nordeste ↔ VLT Aeroporto) | não informada |
+| Expedicionários → Expedicionários - AE (Nordeste → VLT Aeroporto) | **gratuita** — o VLT Aeroporto está gratuito durante a operação assistida (notícia de 10/03/2026) |
+| Expedicionários - AE → Expedicionários (VLT Aeroporto → Nordeste) | **gratuita** — a Linha Nordeste está gratuita durante a implantação (notícia de 03/02/2026) |
 
 Sem regra (`UNKNOWN`) o app não fala de passagem, para não informar errado.
-Quando a Nordeste começar a cobrar, basta trocar a entrada que cita o motivo.
+Quando a Nordeste ou o VLT Aeroporto começarem a cobrar, basta trocar as entradas que citam o motivo.
 
 ### "Para onde você vai?" (roteiro na mesma linha ou com integração)
 

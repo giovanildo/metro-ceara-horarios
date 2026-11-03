@@ -76,8 +76,10 @@
       "b": "Expedicionarios - Ae",
       "caminhada_min": 3,
       "obs": "Passarela",
-      "passagem_a_para_b": "desconhecida",
-      "passagem_b_para_a": "desconhecida"
+      "passagem_a_para_b": "gratis",
+      "motivo_a_para_b": "o VLT Aeroporto está gratuito durante a operação assistida",
+      "passagem_b_para_a": "gratis",
+      "motivo_b_para_a": "a Linha Nordeste está gratuita durante a implantação"
     },
     {
       "a": "Chico Da Silva",
@@ -565,11 +567,11 @@
     "integracao": {
       "titulo": "Passagem nas integrações",
       "tipo": "metrofor",
-      "fonte": "notícia do Metrofor de 03/02/2026",
+      "fonte": "notícias do Metrofor de 03/02/2026 e 10/03/2026",
       "link": "https://www.ce.gov.br/metrofor/2026/02/03/um-terco-dos-embarques-nas-linhas-da-metrofor-sao-gratuitos/",
       "conferido": "2026-11",
       "revisar_em_meses": 6,
-      "detalhe": "A Linha Nordeste opera com catracas livres para todos, então quem chega a ela não paga. Onde a integração é paga, é conclusão do app: a estação cobra na entrada e não há integração tarifária anunciada."
+      "detalhe": "A Linha Nordeste opera com catracas livres para todos (notícia de 03/02/2026), e o VLT Aeroporto está em operação assistida com embarque gratuito desde 09/02/2026 (notícia de 10/03/2026): por isso Parangaba (Sul → Nordeste) e Expedicionários (nos dois sentidos) são gratuitas. Onde a integração é paga, é conclusão do app: a estação cobra na entrada e não há integração tarifária anunciada."
     },
     "tempo_a_pe": {
       "titulo": "Tempo a pé, chegada prevista e \"dá tempo\"",
