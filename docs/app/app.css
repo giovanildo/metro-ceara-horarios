@@ -62,7 +62,10 @@ h2 { font-size: 1rem; font-weight: 600; margin: 20px 0 8px; }
 .linha-nome { font-weight: 400; font-size: .95rem; }
 .distancia { font-size: .9rem; opacity: .85; }
 .partida { display: flex; justify-content: space-between; gap: 8px; margin-top: 10px; }
+.partida { align-items: flex-end; }
 .partida .hora { font-weight: 600; white-space: nowrap; }
+.sentido small { display: block; font-size: .75rem; font-weight: 400; color: var(--texto-2); line-height: 1.2; }
+.via { margin: 8px 0 4px; } .via b { color: var(--texto); font-weight: 600; }
 .fim-do-dia { margin: 2px 0 0; }
 .aviso-metrofor { margin: 0 0 12px; }
 .aviso-metrofor a { color: inherit; text-decoration: none; }

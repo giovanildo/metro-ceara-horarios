@@ -189,6 +189,23 @@ function fimDoDia(linha, sentido, stopId) {
   return partes.join(" · ");
 }
 
+/** Um sentido: "sentido" pequeno em cima do nome da ponta, para não parecer uma estação de destino. */
+function rotuloSentido(s) {
+  return `<span class="sentido"><small>sentido</small>${esc(s.destino)}</span>`;
+}
+
+/** "Passa por A, B, C, D… até X · N estações" a partir desta estação (como no app). */
+function viaDoSentido(s, stopId) {
+  const i = s.estacoes.indexOf(stopId);
+  const frente = i < 0 ? [] : s.estacoes.slice(i + 1).map((id) => estado.dados.grade.nome(id));
+  if (!frente.length) return "";
+  const fim = frente.at(-1), meio = frente.slice(0, -1);
+  if (!meio.length) return `Próxima estação: <b>${esc(fim)}</b>, a última`;
+  const vistos = meio.slice(0, 4).map(esc), mais = meio.length > 4;
+  const nomes = mais || vistos.length === 1 ? vistos.join(", ") : `${vistos.slice(0, -1).join(", ")} e ${vistos.at(-1)}`;
+  return `Passa por <b>${nomes}</b>${mais ? "…" : ""} até ${esc(fim)} · ${frente.length} estações`;
+}
+
 function textoPartida(p, minutos, sentido) {
   if (!p) return sentido?.naoPublicado ? "horários não publicados" : "sem mais partidas hoje";
   return `${hora(p.m)}${p.amanha ? " (amanhã)" : ""} · ${falta(minutosAte(p, minutos))}`;
@@ -234,7 +251,7 @@ function telaInicio() {
             const { hoje, amanha } = partidasComAmanha(linha, s, id);
             const p = proximas(hoje, t.minutos, 1, amanha)[0];
             const fim = p ? "" : fimDoDia(linha, s, id);
-            return `<div class="partida"><span>→ ${esc(s.destino)}</span><span class="hora">${textoPartida(p, t.minutos, s)}</span></div>`
+            return `<div class="partida">${rotuloSentido(s)}<span class="hora">${textoPartida(p, t.minutos, s)}</span></div>`
               + (fim ? `<p class="dica fim-do-dia">${fim}</p>` : "");
           }).join("")}
         </a></div>`;
@@ -410,10 +427,12 @@ function telaEstacao(linhaId, stopId, sentidoId) {
   html += linhaAcesso(info?.acesso, `#/acesso/${linha.id}/${stopId}`);
   if (sentidos.length > 1) {
     html += `<nav class="abas">${sentidos.map((s) =>
-      `<a href="#/estacao/${linha.id}/${stopId}/${s.id}" class="${s === sentido ? "ativa" : ""}">→ ${esc(s.destino)}</a>`).join("")}</nav>`;
+      `<a href="#/estacao/${linha.id}/${stopId}/${s.id}" class="${s === sentido ? "ativa" : ""}">${rotuloSentido(s)}</a>`).join("")}</nav>`;
   } else {
-    html += `<p><strong>→ ${esc(sentido.destino)}</strong></p>`;
+    html += `<p class="sentido-unico"><strong>${rotuloSentido(sentido)}</strong></p>`;
   }
+  const via = viaDoSentido(sentido, stopId);
+  if (via) html += `<p class="dica via">${via}</p>`;
   // Domingo comum: a lista é a de segunda, então vale também a notícia de amanhã.
   html += avisoDomingo(t) + avisosMetrofor(!domingo) + avisoParada(linha, t);
   html += `<h2>Próximas partidas</h2>`;
@@ -928,7 +947,7 @@ function blocoIntegracao(stopId, t) {
           ${sentidos.map((s) => {
             const { hoje, amanha } = partidasComAmanha(linha, s, id);
             const p = proximas(hoje, t.minutos + caminhada, 1, amanha)[0];
-            return `<div class="partida"><span>→ ${esc(s.destino)}</span><span class="hora">${textoPartida(p, t.minutos, s)}</span></div>`;
+            return `<div class="partida">${rotuloSentido(s)}<span class="hora">${textoPartida(p, t.minutos, s)}</span></div>`;
           }).join("")}
           <p class="dica" style="margin:10px 0 0">Toque para ver todos os horários de lá</p>
         </a><div class="fontes-linha">${textoTarifa ? fonte("integracao", "margin:0") : ""}${fonte("tempo_a_pe", "margin:0")}</div></div>`;
