@@ -172,8 +172,9 @@ private fun FareOverview(guide: FareGuide, fares: List<Pair<String, String>>, on
 @Composable
 private fun FareTopicDetail(guide: FareGuide, topic: FareTopic) {
     val context = LocalContext.current
+    val source = Regras.current.source("guia_passagem")
     Text(
-        stringResource(R.string.fare_guide_source_line, guide.checked),
+        source?.line(currentMonth()) ?: stringResource(R.string.fare_guide_source_line, guide.checked),
         style = MaterialTheme.typography.bodySmall,
         fontWeight = FontWeight.SemiBold,
         color = MaterialTheme.colorScheme.primary,
@@ -242,7 +243,12 @@ private fun SourceBox(guide: FareGuide, onOpen: (() -> Unit)?) {
                 )
             }
             Text(guide.source, style = MaterialTheme.typography.bodyMedium)
-            Text(stringResource(R.string.fare_guide_checked, guide.checked), style = MaterialTheme.typography.bodySmall)
+            // Com a fonte em regras.json "fontes", a linha diz também a próxima conferência.
+            if (Regras.current.source("guia_passagem") != null) {
+                SourceLine("guia_passagem")
+            } else {
+                Text(stringResource(R.string.fare_guide_checked, guide.checked), style = MaterialTheme.typography.bodySmall)
+            }
             if (onOpen != null) {
                 Text(
                     stringResource(R.string.fare_guide_open_site) + " ›",

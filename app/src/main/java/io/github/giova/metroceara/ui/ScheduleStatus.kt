@@ -95,7 +95,7 @@ fun ScheduleStatus(
     }
 }
 
-private fun formatClock(millis: Long): String =
+internal fun formatClock(millis: Long): String =
     SimpleDateFormat("HH:mm", Locale.US)
         .apply { timeZone = TimeZone.getTimeZone("America/Fortaleza") }
         .format(Date(millis))

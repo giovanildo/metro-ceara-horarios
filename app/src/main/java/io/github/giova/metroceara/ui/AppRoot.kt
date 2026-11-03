@@ -177,6 +177,7 @@ fun AppRoot() {
     var showAbout by rememberSaveable { mutableStateOf(false) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
     var fareGuideOpen by rememberSaveable { mutableStateOf(false) }
+    var sourcesOpen by rememberSaveable { mutableStateOf(false) }
     var accessOpen by rememberSaveable { mutableStateOf(false) }
     // Sentido em que a tela de horários deve abrir (vindo de uma baldeação).
     var openDirectionId by rememberSaveable { mutableStateOf<Int?>(null) }
@@ -442,6 +443,7 @@ fun AppRoot() {
             showSettings = false
             showAbout = false
             fareGuideOpen = false
+            sourcesOpen = false
             accessOpen = false
             routeId = route
             stopId = stop
@@ -463,6 +465,7 @@ fun AppRoot() {
             showSettings = false
             showAbout = false
             fareGuideOpen = false
+            sourcesOpen = false
             accessOpen = false
             journeyOpen = true
             JourneyRequest.value = null
@@ -814,9 +817,14 @@ fun AppRoot() {
             )
         }
 
+        sourcesOpen -> {
+            BackHandler { sourcesOpen = false }
+            SourcesScreen(schedule = repo.source, onBack = { sourcesOpen = false })
+        }
+
         showAbout -> {
             BackHandler { showAbout = false }
-            AboutScreen(onBack = { showAbout = false })
+            AboutScreen(onBack = { showAbout = false }, onOpenSources = { sourcesOpen = true })
         }
 
         fareGuideOpen && Regras.current.fareGuide != null -> {

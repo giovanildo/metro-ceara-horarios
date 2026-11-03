@@ -235,6 +235,8 @@ fun DeparturesScreen(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
+                            // De onde vêm o endereço e a passagem, e até quando foram conferidos.
+                            if (address != null || fare != null) SourceLine("passagem")
                             // Meia, gratuidade e onde tirar o cartão: o guia do regras.json.
                             if (fare != null && Regras.current.fareGuide != null) {
                                 Text(
@@ -258,6 +260,7 @@ fun DeparturesScreen(
                                     color = MaterialTheme.colorScheme.primary,
                                 )
                             }
+                            if (info?.notice != null && info.underground) SourceLine("subterranea")
                             StationAccessLine(info?.access, wheelchair, onOpen = onOpenAccess)
                         }
                     }
@@ -361,7 +364,21 @@ fun DeparturesScreen(
                         } else {
                             null
                         }
+                        Column {
                         BikeBoardingNotice(bikeRule, vehicle = vehicleName(route.name), rules = rules)
+                        // A regra vem do regulamento ou, num dia especial, da notícia do dia.
+                        val base = bikeRuleFor(stop.name, route.name)
+                        val sourcePadding = Modifier.padding(start = 24.dp)
+                        if (base?.special == true) {
+                            SourceText(
+                                stringResource(R.string.bike_source_today),
+                                Regras.current.operations[ScheduleStore.today()]?.link,
+                                sourcePadding,
+                            )
+                        } else {
+                            SourceLine(base?.sourceId, sourcePadding)
+                        }
+                        }
                     }
                 }
 
@@ -390,6 +407,7 @@ fun DeparturesScreen(
                                 bike = bike,
                                 modifier = Modifier.padding(top = 10.dp),
                             )
+                            SourceLine("bicicletar")
                         }
                     }
                 }
@@ -408,11 +426,12 @@ fun DeparturesScreen(
                                 HorizontalDivider()
                             }
                             Text(
-                                text = stringResource(R.string.landmarks_source),
+                                text = stringResource(R.string.landmarks_walk_note),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(top = 6.dp),
                             )
+                            SourceLine("lugares")
                         }
                     }
                 }

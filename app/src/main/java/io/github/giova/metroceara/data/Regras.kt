@@ -111,7 +111,11 @@ class Regras(
     val bikeForbidden: String? = null,
     /** Lugares da busca ("Rodoviária", "HGF") e de "Perto desta estação". */
     val landmarks: List<Landmark> = emptyList(),
+    /** De onde vem cada informação e quando foi conferida, na ordem do arquivo. */
+    val sources: Map<String, InfoSource> = emptyMap(),
 ) {
+    fun source(id: String?): InfoSource? = id?.let { sources[it] }
+
     /** A partida cai num horário de pico (metrô costuma ir cheio)? */
     fun isPeak(minutes: Int): Boolean = peak.any { minutes in it }
 
@@ -182,6 +186,7 @@ class Regras(
                         saturday = windows(o.getJSONArray("sabado")),
                         sunday = windows(o.optJSONArray("domingo") ?: JSONArray()),
                         perTrip = o.optInt("limite_por_viagem").takeIf { it > 0 },
+                        sourceId = o.optString("fonte_id").takeIf { it.isNotBlank() },
                     )
                 }
             }
@@ -286,6 +291,12 @@ class Regras(
                 fareGuide = fareGuide,
                 bikeForbidden = bike.optString("proibidas").trim().takeIf { it.isNotEmpty() },
                 landmarks = landmarks(root.optJSONObject("lugares")?.optJSONArray("lista")),
+                // Fontes com erro tiram só as linhas de fonte, não as regras.
+                sources = root.optJSONObject("fontes")?.let { o ->
+                    runCatching { parseSources(o) }
+                        .onFailure { DevLog.log("fontes_erro", "erro" to it.toString()) }
+                        .getOrNull()
+                }.orEmpty(),
             )
         }
 

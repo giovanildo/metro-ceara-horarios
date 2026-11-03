@@ -63,6 +63,7 @@
 
     <string name="bike_boarding_until">Pode embarcar com bike no %1$s agora, até as %2$s</string>
     <string name="bike_boarding_until_close">Pode embarcar com bike no %1$s agora, até o fim da operação</string>
+    <string name="bike_source_today">Regra de hoje: notícia do Metrofor · vale só para hoje</string>
     <string name="bike_per_trip">Até %1$d bikes por viagem.</string>
     <string name="bike_boarding_from">Bike no %1$s só a partir das %2$s</string>
     <string name="bike_boarding_unknown">Operação especial: o Metrofor não informou se dá para embarcar com bike hoje</string>
@@ -182,7 +183,7 @@
     <string name="route_walk_to_place">%1$s: %2$s a pé, uns %3$d min.</string>
     <string name="route_walk_beside">%1$s fica ao lado da estação.</string>
     <string name="landmarks_near_title">Perto desta estação</string>
-    <string name="landmarks_source">Lugares: OpenStreetMap (© colaboradores, ODbL). Distância a pé pelas ruas, aproximada.</string>
+    <string name="landmarks_walk_note">Distância a pé pelas ruas, aproximada.</string>
     <string name="settings_section_places">Casa e Trabalho</string>
     <string name="settings_places_desc">Atalhos debaixo de \"Para onde você vai?\": um toque mostra o roteiro até lá. Toque aqui para trocar a estação; tocar e segurar o atalho na tela inicial também troca.</string>
     <string name="settings_place_unset">Nenhuma estação</string>
@@ -441,7 +442,7 @@
     <string name="access_vehicle_text">Todos têm espaço para cadeira de rodas, com cinto de segurança.</string>
     <string name="access_who_title">Quem pode usar o elevador e a plataforma</string>
     <string name="access_who_text">Pessoa com deficiência ou mobilidade reduzida, idoso, gestante e quem está em situação de fragilidade, como quem leva carrinho de bebê. Os outros vão pela escada.</string>
-    <string name="access_source">Segundo o Metrofor (tabela de 2015). Um elevador pode estar parado para manutenção.</string>
+    <string name="access_maintenance">Um elevador pode estar parado para manutenção.</string>
     <string name="access_tell">Encontrou algo diferente? Conte pra gente ›</string>
     <string name="access_report_title">O que você encontrou em %1$s?</string>
     <string name="access_report_text">Ajuda quem vem depois.</string>
@@ -460,4 +461,15 @@
     <string name="route_access_unknown">%1$s: ainda não temos os dados de elevador e rampa.</string>
     <string name="route_access_lift_short">plataforma elevatória</string>
     <string name="route_access_ramp_short">rampa</string>
+    <!-- De onde vem cada informação (regras.json "fontes"). -->
+    <string name="sources_title">De onde vem cada informação</string>
+    <string name="sources_intro">Este app não é oficial. Para você poder confiar e conferir, cada informação diz de onde vem e quando foi conferida. A próxima conferência é a data em que vamos olhar a fonte de novo; até lá, nenhuma notícia do Metrofor indicou mudança. Estimativas do app não são dados do Metrofor.</string>
+    <string name="sources_schedule_title">Horários</string>
+    <string name="sources_schedule_today">Fonte: GTFS do Metrofor · baixados hoje às %1$s · valem só para hoje</string>
+    <string name="sources_schedule_other">Fonte: GTFS do Metrofor · grade de %1$s · o Metrofor publica a grade de cada dia</string>
+    <string name="sources_schedule_detail">O app baixa a grade do dia publicada pelo Metrofor sempre que é aberto. São os horários programados: o app não sabe de atrasos.</string>
+    <string name="transfer_walk_estimate">Tempo a pé: estimativa do app</string>
+    <string name="journey_estimate">Chegada e integrações: estimativa do app, sobre os horários do Metrofor</string>
+    <string name="sources_open">Abrir a fonte</string>
+    <string name="about_sources_button">De onde vem cada informação</string>
 </resources>

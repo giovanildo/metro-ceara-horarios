@@ -547,6 +547,49 @@ Jesus" da tabela, mas ela diz "sem rampa" e o mesmo PDF diz que as estações de
 Sobral têm rampas). O `_fonte` da seção lista o que cada notícia confirma ou
 contradiz. O próximo passo é pedir a tabela atualizada pelo SIC.
 
+### De onde vem cada informação (fonte e data)
+
+O app não é oficial. Para dar credibilidade, **cada informação diz de onde vem
+e até quando foi conferida**. Embaixo da passagem, do aviso de bike, da
+integração, do Bicicletar, da acessibilidade, dos lugares, do guia da passagem
+e do aviso das estações subterrâneas há uma linha pequena, no app e na lite:
+
+> Fonte: site do Metrofor · preço sem reajuste desde mar/2019 · conferido em nov/2026 · próxima conferência: mai/2027 ›
+
+Tocar abre a fonte. A lista inteira, com uma explicação de cada uma, fica em
+Sobre → **"De onde vem cada informação"** (na lite, `#/fontes`), começando pelos
+horários ("baixados hoje às 14:06 · valem só para hoje").
+
+Decisões, conversadas com o autor do app:
+
+- **Idade não é confiabilidade.** A passagem de 2019 está certa; a grade de
+  ontem pode estar errada. Por isso a linha separa *desde quando vale*
+  (`desde`), *quando foi conferida* (`conferido`) e *até quando dá para confiar
+  sem conferir de novo*, que depende do tipo da informação
+  (`revisar_em_meses`: passagem e bike 6, acessibilidade e lugares 12, cores
+  24; horários valem para o dia).
+- **"Próxima conferência", não "válido até".** O app não controla o Metrofor e
+  não pode prometer validade; pode se comprometer a olhar de novo. Passada a
+  data sem reconferir, a linha diz "conferência atrasada desde …: pode ter
+  mudado".
+- **Sem cores** de confiável a defasado: as cores já são das linhas, e cor
+  sozinha não chega a todo mundo.
+- **Estimativa não parece dado oficial.** O que é conta do app (tempo a pé,
+  chegada, "dá tempo") ou observação nas viagens de teste (sinal nas
+  subterrâneas) aparece sem "Fonte:" e sem próxima conferência: "Tempo a pé:
+  estimativa do app".
+- **Regra do dia especial** (bike em feriado) vem da notícia do dia: "Regra de
+  hoje: notícia do Metrofor · vale só para hoje".
+
+Tudo fica na seção `fontes` do `regras.json` (`titulo`, `tipo` = `metrofor`,
+`terceiros` ou `app`, `fonte`, `detalhe` para a lista, `link`, `desde`,
+`conferido` AAAA-MM, `revisar_em_meses`, `diario`), lida por
+[`data/Sources.kt`](app/src/main/java/io/github/giova/metroceara/data/Sources.kt)
+(com testes) e por `fonteLinha` na lite; cada regulamento de bike aponta para a
+sua com `fonte_id`. Reconferir sem mudança só sobe o `conferido`.
+[`tools/fontes.py`](tools/fontes.py) lista as fontes e, com `--vencidas`, só as
+que passaram da data (sai com 1 se houver).
+
 ### Guia da passagem (meia, gratuidade, VaiVem Livre)
 
 Abaixo da passagem, a tela da estação (no app e na lite) tem o link **"Meia,
@@ -1017,6 +1060,7 @@ tools/build_db.py                    GTFS oficial -> SQLite embarcado
 tools/build_web_data.py              espelho: grade do dia, Bicicletar e regras.json no ramo dados
 tools/datas_especiais.py             regra de bike de dias especiais, das notícias do Metrofor
 tools/operacoes.py                   dias de operação especial e linhas paradas, das notícias
+tools/fontes.py                      fontes do regras.json e quais estão com a conferência vencida
 app/src/main/assets/metrofor.db      banco gerado (não editar à mão)
 app/src/main/assets/regras.json      regras fora do GTFS: bike, integrações, passagem,
                                      guia da passagem, endereços, acessibilidade, cores,

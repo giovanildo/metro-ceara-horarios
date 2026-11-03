@@ -576,6 +576,8 @@ private fun JourneyResultSheet(
             Text(result.message.orEmpty(), color = MaterialTheme.colorScheme.onSurfaceVariant)
         } else {
             RouteCard(view, finalWalk = finalWalk)
+            // Horários do Metrofor; chegada, integração e caminhada são conta do app.
+            SourceText(stringResource(R.string.journey_estimate), link = null)
             if (result.options.size > 1) {
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),

@@ -20,6 +20,8 @@ data class BikeRule(
     val special: Boolean = false,
     /** Quantas bikes cabem por viagem; acima disso, espera o próximo trem. */
     val perTrip: Int? = null,
+    /** De onde vem a regra (`fontes` do regras.json); a de dia especial vem da notícia do dia. */
+    val sourceId: String? = null,
 ) {
     fun windowsFor(dayOfWeek: Int): List<BikeWindow> = when (dayOfWeek) {
         Calendar.SATURDAY -> saturday

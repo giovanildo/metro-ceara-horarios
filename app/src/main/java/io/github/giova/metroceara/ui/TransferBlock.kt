@@ -112,6 +112,9 @@ fun TransferBlock(
                     )
                     TransferFare.UNKNOWN -> Unit
                 }
+                // De onde vem a regra da passagem; o tempo a pé é estimativa do app.
+                if (first.fare.fare != TransferFare.UNKNOWN) SourceLine("integracao")
+                SourceText(stringResource(R.string.transfer_walk_estimate), link = null)
                 Column(
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                     modifier = Modifier.padding(top = 10.dp),

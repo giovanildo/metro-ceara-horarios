@@ -275,6 +275,7 @@ fun TripChoiceDialog(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                SourceLine("pico")
             }
         },
         confirmButton = {},

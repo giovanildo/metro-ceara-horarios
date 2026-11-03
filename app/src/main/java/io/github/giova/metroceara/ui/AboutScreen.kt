@@ -86,7 +86,7 @@ private const val SITE_URL = "https://giovanildo.github.io/metro-ceara-horarios/
 /** Sobre o app: aviso de não oficial, fontes dos dados, licença e doação. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AboutScreen(onBack: () -> Unit) {
+fun AboutScreen(onBack: () -> Unit, onOpenSources: () -> Unit = {}) {
     val context = LocalContext.current
     var versionTaps by remember { mutableIntStateOf(0) }
     val devUnlocked by DevLog.unlocked.collectAsState()
@@ -149,6 +149,9 @@ fun AboutScreen(onBack: () -> Unit) {
             }
 
             Section(R.string.about_sources_title, R.string.about_sources)
+            OutlinedButton(onClick = onOpenSources) {
+                Text(stringResource(R.string.about_sources_button))
+            }
             Section(R.string.about_privacy_title, R.string.about_privacy)
             OutlinedButton(onClick = { open(context, PRIVACY_URL) }) {
                 Text(stringResource(R.string.about_privacy_link))

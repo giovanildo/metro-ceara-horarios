@@ -9,6 +9,7 @@
       "metrofor-2023": {
         "_fonte": "Regulamento 'Bike é bem-vinda no metrô' (Metrofor, 2023): segunda a sexta das 9h às 15h e a partir das 20h; sábado a partir das 15h; domingo não aparece. Até 4 bicicletas por viagem; acima disso, espera o próximo trem (regulamento; notícias de 06/10/2022, 14/03/2023 e 21/03/2024).",
         "limite_por_viagem": 4,
+        "fonte_id": "bike",
         "dias_uteis": [["09:00", "15:00"], ["20:00", null]],
         "sabado": [["15:00", null]],
         "domingo": []
@@ -16,6 +17,7 @@
       "vlt-sobral-2025": {
         "_fonte": "Notícia do Metrofor 'Embarque com bicicleta no metrô e VLT promove sustentabilidade e economia' (19/08/2025): no VLT de Sobral, segunda a sexta das 9h às 16h30 e das 19h às 23h; sábado a partir das 13h; 2 bikes por viagem em cada linha (o mesmo limite da notícia de 10/02/2020).",
         "limite_por_viagem": 2,
+        "fonte_id": "bike_sobral",
         "dias_uteis": [["09:00", "16:30"], ["19:00", "23:00"]],
         "sabado": [["13:00", null]],
         "domingo": []
@@ -513,5 +515,123 @@
       {"nome": "Hospital São Lucas", "tipo": "hospital", "bairro": "São Miguel", "cidade": "Juazeiro do Norte", "posicao": [-7.205747, -39.309654], "estacao": "Fátima", "a_pe_m": 690, "osm": "way/816190136"},
       {"nome": "Hospital Geral Padre Cícero", "tipo": "hospital", "bairro": "Triângulo", "cidade": "Juazeiro do Norte", "posicao": [-7.226865, -39.328442], "estacao": "Teatro", "a_pe_m": 1500, "osm": "way/253390761"}
     ]
+  },
+  "fontes": {
+    "_sobre": "De onde vem cada informação mostrada ao usuário, e quando foi conferida. O app mostra uma linha pequena embaixo de cada informação (\"Fonte: … · conferido em nov/2026 · próxima conferência: mai/2027\") e a lista inteira em Sobre → \"De onde vem cada informação\" (app e lite). \"conferido\": AAAA-MM em que alguém olhou a fonte e a informação continuava valendo; reconferir sem mudança só sobe essa data. \"revisar_em_meses\": de quanto em quanto tempo conferir de novo (a próxima conferência é calculada); passada essa data, a linha diz \"conferência atrasada desde …: pode ter mudado\". \"detalhe\": explicação mais longa, só na lista. \"desde\": desde quando a informação vale, quando isso ajuda a confiar. \"tipo\": \"metrofor\", \"terceiros\" ou \"app\" (estimativa ou observação do próprio app: sem \"Fonte:\" na frente e sem próxima conferência). \"diario\": true = acompanhado todo dia pelo app. tools/fontes.py lista as conferências vencidas.",
+    "passagem": {
+      "titulo": "Passagem e endereço das estações",
+      "tipo": "metrofor",
+      "fonte": "site do Metrofor",
+      "link": "https://www.ce.gov.br/metrofor/tarifas/",
+      "desde": "preço sem reajuste desde mar/2019",
+      "conferido": "2026-11",
+      "revisar_em_meses": 6,
+      "detalhe": "Tarifas e páginas das linhas, onde também estão os endereços das estações."
+    },
+    "guia_passagem": {
+      "titulo": "Meia, gratuidade e VaiVem Livre",
+      "tipo": "metrofor",
+      "fonte": "site e notícias do Metrofor",
+      "link": "https://www.ce.gov.br/metrofor/gratuidades/",
+      "conferido": "2026-11",
+      "revisar_em_meses": 6,
+      "detalhe": "Páginas de tarifas, meia passagem estudantil e gratuidades; notícias de 29/02/2024 (Cartão Múltiplo), 24/04/2025 (renovação dos estudantes) e 27/05/2025 (VaiVem Livre); Ceará Digital (Cartão Gratuidade)."
+    },
+    "operacoes": {
+      "titulo": "Operação especial e linhas paradas",
+      "tipo": "metrofor",
+      "fonte": "notícias do Metrofor",
+      "link": "https://www.ce.gov.br/metrofor/",
+      "diario": true
+    },
+    "bike": {
+      "titulo": "Bike no metrô e no VLT (Linhas Sul e Nordeste)",
+      "tipo": "metrofor",
+      "fonte": "regulamento de bikes do Metrofor (2023)",
+      "link": "https://www.ce.gov.br/metrofor/wp-content/uploads/sites/75/2023/03/Regula_Bikes_2023.pdf",
+      "conferido": "2026-11",
+      "revisar_em_meses": 6,
+      "detalhe": "Horários, até 4 bikes por viagem e bikes proibidas (elétrica, de carga ou com carga presa). Confirmado nas notícias de 06/10/2022, 14/03/2023 e 21/03/2024. Em feriados e operações especiais vale a regra da notícia do dia."
+    },
+    "bike_sobral": {
+      "titulo": "Bike no VLT de Sobral",
+      "tipo": "metrofor",
+      "fonte": "notícia do Metrofor de 19/08/2025",
+      "link": "https://www.ce.gov.br/metrofor/2025/08/19/embarque-com-bicicleta-no-metro-e-vlt-promove-sustentabilidade-e-economia/",
+      "conferido": "2026-11",
+      "revisar_em_meses": 6,
+      "detalhe": "Horários do VLT de Sobral e 2 bikes por viagem em cada linha; bikes proibidas pelo regulamento de 2023."
+    },
+    "integracao": {
+      "titulo": "Passagem nas integrações",
+      "tipo": "metrofor",
+      "fonte": "notícia do Metrofor de 03/02/2026",
+      "link": "https://www.ce.gov.br/metrofor/2026/02/03/um-terco-dos-embarques-nas-linhas-da-metrofor-sao-gratuitos/",
+      "conferido": "2026-11",
+      "revisar_em_meses": 6,
+      "detalhe": "A Linha Nordeste opera com catracas livres para todos, então quem chega a ela não paga. Onde a integração é paga, é conclusão do app: a estação cobra na entrada e não há integração tarifária anunciada."
+    },
+    "tempo_a_pe": {
+      "titulo": "Tempo a pé, chegada prevista e \"dá tempo\"",
+      "tipo": "app",
+      "fonte": "Estimativa do app",
+      "detalhe": "Tempo a pé nas integrações, chegada prevista, \"dá tempo\" e \"integração justa\" são contas do app sobre os horários do Metrofor, ajustadas pelo jeito de se deslocar escolhido nas Configurações e pelo pico. Não são dados do Metrofor."
+    },
+    "acessibilidade": {
+      "titulo": "Elevadores, escadas rolantes e rampas",
+      "tipo": "metrofor",
+      "fonte": "Metrofor (tabelas de 2015)",
+      "conferido": "2026-11",
+      "revisar_em_meses": 12,
+      "detalhe": "Tabelas de acessibilidade por linha da Gerência de Projetos do Metrofor (nov/2015) e notícias de 22/08/2013 e 01/11/2017 (plataformas elevatórias de Maracanaú). Um elevador pode estar parado para manutenção."
+    },
+    "subterranea": {
+      "titulo": "Sinal do celular nas estações subterrâneas",
+      "tipo": "app",
+      "fonte": "Observado nas viagens de teste do app",
+      "conferido": "2026-10",
+      "detalhe": "Benfica, São Benedito, José de Alencar e Chico da Silva: nos registros das viagens de teste (out/2026), o GPS e a internet somem nesse trecho."
+    },
+    "pico": {
+      "titulo": "Horários de pico (metrô cheio)",
+      "tipo": "metrofor",
+      "fonte": "Relatório de Demanda do Metrofor, 3º tri/2025",
+      "link": "https://www.ce.gov.br/metrofor/institucional/estatisticas/",
+      "conferido": "2026-11",
+      "revisar_em_meses": 12,
+      "detalhe": "Das 6h às 8h e das 16h às 19h, cerca de 45% das viagens; a hora mais cheia é das 17h às 18h."
+    },
+    "lugares": {
+      "titulo": "Lugares perto das estações",
+      "tipo": "terceiros",
+      "fonte": "OpenStreetMap (© colaboradores, ODbL)",
+      "link": "https://www.openstreetmap.org/copyright",
+      "conferido": "2026-11",
+      "revisar_em_meses": 12
+    },
+    "posicoes": {
+      "titulo": "Posição das estações no mapa",
+      "tipo": "metrofor",
+      "fonte": "GTFS do Metrofor e OpenStreetMap",
+      "conferido": "2026-10",
+      "revisar_em_meses": 12,
+      "detalhe": "O GTFS do Metrofor põe 7 estações de Sobral e do Cariri a 220 m–2 km do lugar; essas usam a posição do OpenStreetMap."
+    },
+    "cores": {
+      "titulo": "Cores e números das linhas",
+      "tipo": "metrofor",
+      "fonte": "mapas oficiais do Metrofor (2025)",
+      "link": "https://www.ce.gov.br/metrofor/",
+      "conferido": "2026-10",
+      "revisar_em_meses": 24
+    },
+    "bicicletar": {
+      "titulo": "Estações do Bicicletar",
+      "tipo": "terceiros",
+      "fonte": "dados abertos da Prefeitura de Fortaleza (AMC)",
+      "link": "https://dados.fortaleza.ce.gov.br/",
+      "conferido": "2026-11",
+      "revisar_em_meses": 6
+    }
   }
 }

@@ -165,8 +165,9 @@ fun AccessScreen(stationName: String, lineName: String, access: StationAccess?, 
                 modifier = Modifier.clickable { reporting = true }.padding(vertical = 4.dp),
             )
             if (access != null) {
+                SourceLine("acessibilidade")
                 Text(
-                    stringResource(R.string.access_source),
+                    stringResource(R.string.access_maintenance),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
