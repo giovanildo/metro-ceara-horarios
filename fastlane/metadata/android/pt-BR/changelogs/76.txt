@@ -1,0 +1,2 @@
+• A segunda estação da tela inicial agora é de outra linha quando há uma por perto (por exemplo, Moura Brasil perto de São Benedito).
+• Em dia de operação especial ou feriado, o aviso do Metrofor aparece logo acima dos horários.
