@@ -17,8 +17,8 @@ Uso:
     python3 tools/lugares.py               # só os lugares sem esses campos
     python3 tools/lugares.py --recalcular  # todos (estação mudou de lugar etc.)
 
-Reescreve só o bloco "lugares", que tem de ser o último do arquivo, com um
-lugar por linha.
+Reescreve só o bloco "lugares" (um lugar por linha); o resto do arquivo fica
+como está, byte a byte, e o script confere isso antes de gravar.
 """
 import json
 import math
@@ -113,6 +113,30 @@ def bairro_e_cidade(posicao):
     return bairro, cidade
 
 
+def fim_do_objeto(texto, inicio):
+    """O índice logo depois do "}" que fecha o objeto que começa em texto[inicio]."""
+    profundidade, em_texto, escape = 0, False, False
+    for i in range(inicio, len(texto)):
+        c = texto[i]
+        if em_texto:
+            if escape:
+                escape = False
+            elif c == "\\":
+                escape = True
+            elif c == '"':
+                em_texto = False
+            continue
+        if c == '"':
+            em_texto = True
+        elif c in "{[":
+            profundidade += 1
+        elif c in "}]":
+            profundidade -= 1
+            if profundidade == 0:
+                return i + 1
+    raise ValueError("bloco lugares sem fim")
+
+
 def linha(lugar):
     ordenado = {k: lugar[k] for k in ORDEM if k in lugar}
     ordenado.update({k: v for k, v in lugar.items() if k not in ordenado})
@@ -135,12 +159,20 @@ def main():
             lugar.setdefault("cidade", cidade)
         print(f"{i:3} {lugar['nome'][:45]:45} {lugar['estacao']:20} {lugar['a_pe_m']:5} m  {lugar['bairro']}")
 
-    inicio = texto.index('\n  "lugares": {')
+    inicio = texto.index('"lugares": {') + len('"lugares": ')
+    fim = fim_do_objeto(texto, inicio)
     cabeca = {k: v for k, v in bloco.items() if k != "lista"}
     partes = [f"    {json.dumps(k, ensure_ascii=False)}: {json.dumps(v, ensure_ascii=False)}," for k, v in cabeca.items()]
     corpo = ",\n".join("      " + linha(l) for l in bloco["lista"])
-    novo = texto[:inicio] + '\n  "lugares": {\n' + "\n".join(partes) + '\n    "lista": [\n' + corpo + "\n    ]\n  }\n}\n"
-    json.loads(novo)  # não grava arquivo quebrado
+    novo = texto[:inicio] + "{\n" + "\n".join(partes) + '\n    "lista": [\n' + corpo + "\n    ]\n  }" + texto[fim:]
+    # Não grava arquivo quebrado, nem um que mude outra seção além de "lugares".
+    depois = json.loads(novo)
+    assert {k: v for k, v in depois.items() if k != "lugares"} == {k: v for k, v in regras.items() if k != "lugares"}
+    # Outra pessoa (ou outro processo) pode ter mexido no arquivo durante os minutos
+    # das consultas: nesse caso, não grava por cima.
+    with open(REGRAS, encoding="utf-8") as arquivo:
+        if arquivo.read() != texto:
+            sys.exit("regras.json mudou enquanto o script rodava; rode de novo")
     with open(REGRAS, "w", encoding="utf-8") as arquivo:
         arquivo.write(novo)
 
