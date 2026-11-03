@@ -159,8 +159,8 @@ function partidasComAmanha(linha, sentido, stopId) {
  * A notícia do Metrofor que explica a operação especial de hoje (e a de amanhã):
  * a manchete; tocar abre a notícia no site deles.
  */
-function avisosMetrofor(soHoje = false) {
-  return estado.dados.avisos.filter((n) => !soHoje || !n.amanha).map((n) => {
+function avisosMetrofor(soHoje = false, soAmanha = false) {
+  return estado.dados.avisos.filter((n) => (!soHoje || !n.amanha) && (!soAmanha || n.amanha)).map((n) => {
     const texto = `<strong>Metrofor, ${n.amanha ? "amanhã" : "hoje"}:</strong> ${esc(n.titulo)}`;
     return /^https:\/\//.test(n.link || "")
       ? `<p class="aviso-metrofor"><a href="${esc(n.link)}" target="_blank" rel="noopener">${texto} ›</a></p>`
@@ -260,8 +260,11 @@ function telaInicio() {
   const t = agora();
   // A mesma ordem do app: Trabalho e Casa, as duas estações mais perto, o aviso
   // do Metrofor, "Para onde você vai?" e as linhas. Domingo fica no topo.
+  // Dia especial: o aviso de hoje vem antes das estações (os horários são outros);
+  // o de amanhã fica no lugar dele, depois das estações.
   let html = convite() + avisoDomingo(t);
   html += atalhosLugares(t);
+  html += avisosMetrofor(true);
 
   if (!estado.pos) {
     html += `<div class="cartao">
@@ -271,12 +274,16 @@ function telaInicio() {
       ${estado.erroLocal ? `<p class="dica">${esc(estado.erroLocal)}</p>` : ""}
     </div>`;
   } else {
-    // As duas estações mais perto, de qualquer linha (a segunda só até 3 km).
+    // As duas estações mais perto: a segunda é de outra linha quando houver uma
+    // até 3 km; senão, a segunda mais perto da mesma linha (também até 3 km).
     const todas = grade.linhas.flatMap((linha) => grade.estacoesDaLinha(linha).map((id) => {
       const e = grade.estacoes[id];
       return { linha, id, d: distancia(estado.pos.lat, estado.pos.lon, e.lat, e.lon) };
     })).sort((a, b) => a.d - b.d);
-    const perto = todas.slice(0, 2).filter((x, i) => i === 0 || x.d <= PERTO_METROS);
+    const [primeira, ...resto] = todas;
+    const segunda = resto.find((x) => x.linha.id !== primeira?.linha.id && x.d <= PERTO_METROS)
+      ?? resto.find((x) => x.d <= PERTO_METROS);
+    const perto = [primeira, segunda].filter(Boolean);
     for (const { linha, id, d } of perto) {
       const sentidos = grade.sentidosDePartida(linha, id);
       html += `<div class="cartao">
@@ -296,7 +303,7 @@ function telaInicio() {
     }
   }
 
-  html += avisosMetrofor();
+  html += avisosMetrofor(false, true);
   html += `<a class="para-onde" href="#/viagem">${LUPA} Para onde você vai?</a>`;
   if (pedidoInstalar && !INSTALADA) {
     html += `<p><button class="botao secundario" id="instalar">📲 Adicionar à tela inicial</button></p>`;
