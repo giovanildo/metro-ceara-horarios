@@ -233,9 +233,41 @@ object ScheduleStore {
      * Baixa do espelho as regras do Metrofor (bike, integrações, passagem, pico)
      * e passa a usá-las. Bloqueia; falha (rede ou arquivo com erro) lança e
      * mantém as anteriores.
+     *
+     * Só baixa se mudou: manda a etiqueta (ETag) da cópia guardada e, se o
+     * GitHub responder 304, fica com ela. O arquivo tem ~120 KB e o app o pedia
+     * a cada abertura; assim quase sempre a resposta é só "não mudou".
      */
     fun syncRules(context: Context) {
-        Regras.update(context, String(fetch(MIRROR + "regras.json")))
+        val url = MIRROR + "regras.json"
+        val saved = File(context.applicationContext.filesDir, "regras.json")
+        // Sem a cópia guardada, a etiqueta não vale: baixa inteiro.
+        val etag = prefs(context).getString(KEY_RULES_ETAG, null)?.takeIf { saved.exists() }
+        val connection = URL(url).openConnection() as HttpsURLConnection
+        connection.connectTimeout = 20_000
+        connection.readTimeout = 30_000
+        connection.useCaches = false
+        connection.setRequestProperty("User-Agent", "metro-ceara-horarios/1.0")
+        if (etag != null) connection.setRequestProperty("If-None-Match", etag)
+        try {
+            val code = connection.responseCode
+            if (code == HttpsURLConnection.HTTP_NOT_MODIFIED) {
+                DevLog.log("regras_sync", "status" to 304)
+                return
+            }
+            check(code == 200) { "HTTP $code em $url" }
+            val bytes = connection.inputStream.use { it.readBytes() }
+            val expected = connection.contentLengthLong
+            check(expected <= 0 || bytes.size.toLong() == expected) {
+                "download incompleto: ${bytes.size} de $expected bytes"
+            }
+            Regras.update(context, String(bytes))
+            // Só depois de guardar: arquivo com erro não deixa etiqueta para trás.
+            prefs(context).edit { putString(KEY_RULES_ETAG, connection.getHeaderField("ETag")) }
+            DevLog.log("regras_sync", "status" to 200, "bytes" to bytes.size)
+        } finally {
+            connection.disconnect()
+        }
     }
 
     /** A notícia do Metrofor que explica a operação especial de hoje ou de amanhã. */
@@ -252,6 +284,8 @@ object ScheduleStore {
 
     private fun prefs(context: Context) =
         context.applicationContext.getSharedPreferences("metrofor_schedules", Context.MODE_PRIVATE)
+
+    private const val KEY_RULES_ETAG = "regras_etag"
 
     private fun keyDate(type: DayType) = "date_${type.name.lowercase()}"
     private fun keySyncedAt(type: DayType) = "synced_at_${type.name.lowercase()}"
