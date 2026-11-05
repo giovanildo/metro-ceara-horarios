@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    O GTFS do Metrofor (info.metrofor.ce.gov.br) usa Let's Encrypt com a raiz
+    ISRG Root X1, que o Android só conhece a partir do 7.1.1. O app aceita o
+    Android 7.0: só para esse domínio, a raiz vai junto no app, além das do
+    sistema. Nada de aceitar certificado inválido.
+-->
+<network-security-config>
+    <domain-config>
+        <domain includeSubdomains="false">info.metrofor.ce.gov.br</domain>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="@raw/isrg_root_x1" />
+        </trust-anchors>
+    </domain-config>
+</network-security-config>

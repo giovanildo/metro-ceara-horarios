@@ -1,8 +1,8 @@
 # Baixa o GTFS do Metrofor todo dia e publica os horários em JSON para a
 # versão web, no ramo "dados" (fora da main, para não gerar um commit por dia
-# no histórico do app). O navegador não consegue baixar o feed direto: o
-# certificado do Metrofor costuma estar vencido e o site não libera acesso de
-# outras páginas.
+# no histórico do app). O navegador não consegue baixar o feed direto: o site
+# não libera acesso de outras páginas (sem CORS). Por isso este espelho é da
+# lite; o app Android baixa a grade só do Metrofor (daqui, só o regras.json).
 name: Dados da versão web
 
 on:
@@ -17,6 +17,12 @@ on:
     # a de ontem como a de hoje (a de sexta como a de sábado). O GitHub só atrasa,
     # nunca adianta. As de 10:00, 15:00 e 20:00 corrigem falhas do site ou
     # mudanças durante o dia.
+    # A grade muda também durante o dia (04/11: seis versões da Linha Sul até as
+    # 12h27), e a lite só a vê por aqui: de 05:17 a 23:47, a cada 30 min. Só
+    # publica se mudou. O disparo principal é o do cron-job.org (o GitHub atrasa
+    # e pula agendamentos); estes são a reserva. Nenhum entre 00:00 e 00:40.
+    - cron: "17,47 8-23 * * *"
+    - cron: "17,47 0-2 * * *"
     - cron: "47 3 * * *"
     - cron: "17 4 * * *"
     - cron: "47 4 * * *"

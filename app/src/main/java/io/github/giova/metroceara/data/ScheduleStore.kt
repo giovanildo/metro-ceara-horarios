@@ -2,8 +2,6 @@ package io.github.giova.metroceara.data
 
 import android.content.Context
 import androidx.core.content.edit
-import org.json.JSONArray
-import org.json.JSONObject
 import java.io.File
 import java.net.URL
 import java.text.SimpleDateFormat
@@ -42,15 +40,29 @@ data class ScheduleSource(
  * O GTFS do Metrofor é gerado a cada requisição e traz a grade **do dia**:
  * dia útil, sábado, ou a operação especial de um domingo de eleição — mesmo
  * com o `calendar.txt` dizendo que vale para todos os dias. Uma tarefa do
- * GitHub (`.github/workflows/dados-web.yml`) baixa o feed todo dia às 04:30 e
- * guarda o zip de cada tipo de dia no ramo `dados`. O app baixa de lá — com
- * certificado válido, ao contrário do site do Metrofor — e guarda a última
- * grade de cada [DayType], com a data que o índice informa.
+ * GitHub (`.github/workflows/dados-web.yml`) baixa o feed várias vezes por dia
+ * e guarda o zip de cada tipo de dia no ramo `dados` (o espelho).
+ *
+ * O app baixa a grade só do Metrofor: ela muda também durante o dia (em 04/11,
+ * seis versões da Linha Sul até as 12h27), e o espelho só a vê quando a tarefa
+ * roda. O espelho fica para a lite (o navegador não consegue baixar do
+ * Metrofor) e para o regras.json. Se o Metrofor falhar, fica a última grade
+ * guardada. A grade de um dia comum também é guardada à parte: é a previsão de
+ * amanhã quando a guardada for de um dia especial (feriado, eleição).
  */
 object ScheduleStore {
 
-    /** O espelho dos dados no GitHub (ramo `dados`). */
+    /** O espelho dos dados no GitHub (ramo `dados`): aqui, só o regras.json. */
     const val MIRROR = "https://raw.githubusercontent.com/giovanildo/metro-ceara-horarios/dados/"
+
+    /** O GTFS do Metrofor: gerado a cada pedido, com a grade do dia. */
+    const val FEED_URL = "https://info.metrofor.ce.gov.br/gtfs_file"
+
+    /**
+     * Antes disto (minutos depois da meia-noite) o Metrofor pode ainda servir a
+     * grade de ontem, e o feed não diz de que dia é: nesse intervalo, não baixa.
+     */
+    private const val DIRECT_AFTER_MINUTES = 40
     private val zone: TimeZone = TimeZone.getTimeZone("America/Fortaleza")
 
     fun today(): String = SimpleDateFormat("yyyy-MM-dd", Locale.US)
@@ -89,7 +101,7 @@ object ScheduleStore {
 
     /**
      * A grade para prever um dia de [type]: a última baixada, se não foi de um dia
-     * especial; senão, a última comum do espelho ("normais"). Sem isso, a grade
+     * especial; senão, a última de dia comum guardada à parte. Sem isso, a grade
      * de Finados virou a previsão da terça seguinte.
      */
     fun forecast(context: Context, type: DayType): File? {
@@ -108,59 +120,49 @@ object ScheduleStore {
     }
 
     /**
-     * Baixa do espelho a grade do tipo de hoje, monta o banco e troca a
-     * guardada. Bloqueia: chamar fora da main. Qualquer falha — índice sem
-     * esse tipo, download cortado, zip incompleto, banco sem viagens — lança
+     * Baixa do Metrofor a grade de hoje, monta o banco e troca a guardada.
+     * Bloqueia: chamar fora da main. Qualquer falha — site fora do ar, download
+     * cortado, zip incompleto, banco sem viagens, antes das 00:40 — lança
      * exceção e mantém a grade anterior intacta. Baixa sempre, sem comparar
      * com a guardada: o arquivo é pequeno (~30 KB) e assim qualquer mudança do
      * dia chega na próxima abertura do app.
      */
     fun sync(context: Context, bikeSource: File?) {
         val type = todayType()
-        val index = JSONObject(String(fetch(MIRROR + "indice.json")))
-        val entry = index.getJSONObject("tipos")
-            .optJSONObject(mirrorName(type)) ?: error("o espelho ainda não tem grade de ${mirrorName(type)}")
-        val date = entry.getString("data")
-        val zip = install(entry, file(context, type), bikeSource)
+        val now = Calendar.getInstance(zone)
+        val minutes = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE)
+        check(minutes >= DIRECT_AFTER_MINUTES) { "antes de 00:40 o Metrofor pode servir a grade de ontem" }
+        val zip = fetch(FEED_URL, connectTimeout = 8_000, readTimeout = 15_000)
+        val target = file(context, type)
+        installZip(zip, target, bikeSource, FEED_URL)
+        val date = today()
         prefs(context).edit {
             putString(keyDate(type), date)
-            putLong(keySyncedAt(type), publishedAt(entry))
+            putLong(keySyncedAt(type), System.currentTimeMillis())
         }
         if (DevLog.isEnabled) {
-            DevLog.log("sync_ok", "day_type" to type.name, "date" to date, "bytes" to zip.size, "lines" to summary(file(context, type)))
+            DevLog.log("sync_ok", "source" to "metrofor", "day_type" to type.name, "date" to date, "bytes" to zip.size, "lines" to summary(target))
         }
-        // A previsão do próximo dia com metrô é um extra: falhar aqui não desfaz a grade de hoje.
-        runCatching { syncForecast(context, index, bikeSource) }
-            .onFailure { DevLog.log("previsao_sync_fail", "reason" to (it.message ?: it.javaClass.simpleName)) }
+        // Dia comum: guarda também à parte, para a previsão depois de um dia
+        // especial. Falhar aqui não desfaz a grade de hoje.
+        if (!isSpecial(date)) {
+            runCatching {
+                // Copia e renomeia: quem estiver lendo a previsão não vê um arquivo pela metade.
+                val normal = normalFile(context, type)
+                val temp = File(normal.parentFile, "${normal.name}.tmp")
+                target.copyTo(temp, overwrite = true)
+                check(temp.renameTo(normal)) { "não foi possível guardar ${normal.name}" }
+                prefs(context).edit { putString(keyNormalDate(type), date) }
+            }.onFailure { DevLog.log("previsao_sync_fail", "reason" to (it.message ?: it.javaClass.simpleName)) }
+        }
     }
 
-    /**
-     * Se a última grade guardada do tipo do próximo dia com metrô foi de um dia
-     * especial, baixa a última comum ("normais" no índice) para a previsão.
-     */
-    private fun syncForecast(context: Context, index: JSONObject, bikeSource: File?) {
-        val type = if (tomorrowType() == DayType.SUNDAY) DayType.WEEKDAY else tomorrowType()
-        if (!isSpecial(prefs(context).getString(keyDate(type), null))) return
-        val entry = index.optJSONObject("normais")?.optJSONObject(mirrorName(type)) ?: return
-        val date = entry.getString("data")
-        if (isSpecial(date)) return
-        if (normalFile(context, type).exists() && prefs(context).getString(keyNormalDate(type), null) == date) return
-        install(entry, normalFile(context, type), bikeSource)
-        prefs(context).edit { putString(keyNormalDate(type), date) }
-        DevLog.log("previsao_sync_ok", "day_type" to type.name, "date" to date)
-    }
-
-    /** Baixa o GTFS de uma entrada do índice e monta o banco em [target]; devolve o zip. */
-    private fun install(entry: JSONObject, target: File, bikeSource: File?): ByteArray {
-        val zipName = entry.optString("gtfs").ifBlank { error("o espelho ainda não tem o GTFS de ${target.name}") }
-        val zip = fetch(MIRROR + zipName)
-        check(entry.optLong("bytes", -1) < 0 || entry.getLong("bytes") == zip.size.toLong()) {
-            "GTFS com tamanho diferente do índice: ${zip.size} de ${entry.getLong("bytes")} bytes"
-        }
+    /** Monta o banco em [target] a partir do zip; só troca o atual se o novo tiver viagens. */
+    private fun installZip(zip: ByteArray, target: File, bikeSource: File?, sourceUrl: String) {
         target.parentFile?.mkdirs()
         val temp = File(target.parentFile, "${target.name}.tmp")
         try {
-            GtfsImporter.import(zip, temp, bikeSource, MIRROR + zipName)
+            GtfsImporter.import(zip, temp, bikeSource, sourceUrl)
             // Só troca se o banco novo é utilizável e tem viagens; senão fica a
             // grade que já existe.
             check(MetroforDatabase.hasSchedule(temp)) { "grade baixada sem viagens ou corrompida" }
@@ -170,13 +172,7 @@ object ScheduleStore {
             temp.delete()
             File(temp.path + "-journal").delete()
         }
-        return zip
     }
-
-    /** A hora em que o espelho baixou do Metrofor, não a deste download. */
-    private fun publishedAt(entry: JSONObject): Long = runCatching {
-        SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).parse(entry.getString("atualizado"))!!.time
-    }.getOrDefault(System.currentTimeMillis())
 
     /** Por linha: viagens, primeira e última partida — para comparar grades no registro. */
     private fun summary(file: File): String = runCatching {
@@ -198,16 +194,10 @@ object ScheduleStore {
         }
     }.getOrDefault("?")
 
-    private fun mirrorName(type: DayType) = when (type) {
-        DayType.WEEKDAY -> "dia-util"
-        DayType.SATURDAY -> "sabado"
-        DayType.SUNDAY -> "domingo"
-    }
-
-    private fun fetch(url: String): ByteArray {
+    private fun fetch(url: String, connectTimeout: Int = 20_000, readTimeout: Int = 30_000): ByteArray {
         val connection = URL(url).openConnection() as HttpsURLConnection
-        connection.connectTimeout = 20_000
-        connection.readTimeout = 30_000
+        connection.connectTimeout = connectTimeout
+        connection.readTimeout = readTimeout
         connection.useCaches = false
         connection.setRequestProperty("User-Agent", "metro-ceara-horarios/1.0")
         return try {

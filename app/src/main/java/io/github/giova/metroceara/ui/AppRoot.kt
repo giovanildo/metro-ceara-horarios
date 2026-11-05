@@ -137,7 +137,7 @@ fun AppRoot() {
     var scheduleVersion by remember { mutableIntStateOf(0) }
     var scheduleSyncing by remember { mutableStateOf(false) }
     // Cada vez que o app abre ou volta para a frente, baixa a grade do dia do
-    // espelho (é pequena). Um download cortado ao fechar o app é refeito aqui.
+    // Metrofor (é pequena). Um download cortado ao fechar o app é refeito aqui.
     var opened by remember { mutableIntStateOf(0) }
     var notices by remember { mutableStateOf(ScheduleStore.notices()) }
     LaunchedEffect(today, opened) {
