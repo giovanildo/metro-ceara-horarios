@@ -369,6 +369,24 @@ o Android só usa a forma, e o ícone do app, de fundo cheio, virava um quadrado
   atrasado, e a tabela não sabe disso; se o GPS não aparecer no tempo de "GPS
   perdido" (quem começa já no túnel), a tabela volta a andar. Os dois ajustes
   vieram do registro de testes de campo.
+  **Depois de embarcar, com o satélite respondendo, só o GPS faz a viagem
+  andar**: cada estação passa pelo raio dele. Enquanto o metrô não chega à
+  próxima, o atraso sobe (é no mínimo o que já passou do horário dela). Em
+  04/11 o metrô passou de Jereissati, ficou 6 min parado em Carlito Benevides
+  (fora da viagem) e a tabela já o punha em Maracanaú e Virgílio Távora.
+  O atraso vale pela **chegada** à estação: o tempo parado na plataforma não
+  conta (na origem, sim: continuar lá depois do horário é atraso da partida).
+  **No túnel** (sem satélite, depois de o GPS ter visto o metrô fora da origem),
+  a chegada às estações **subterrâneas** (`"subterranea": true` no
+  `regras.json`) é estimada **1,5 min antes**: o metrô recupera tempo entre
+  Padre Cícero e Chico da Silva, e sem isso a estimativa ficou duas estações
+  atrás e o aviso "2 estações antes" saiu a 1 min de Chico. Ali também vale a
+  rede de celular com até 300 m de erro, só para andar para a frente. Uma
+  posição de satélite solta depois de um tempo sem sinal (pode ser velha: veio
+  uma de Padre Cícero com o metrô já perto de Chico) só conta a partir da
+  segunda seguida, e posições com mais de 30 s são ignoradas. As duas viagens
+  de 04/11 estão em `app/src/test/resources/campo/` e o `TripFieldReplayTest`
+  as repassa ao estimador.
 - **Quando o GPS é dado como perdido.** Depois de **1 minuto** sem nenhuma
   posição boa (12 tentativas, uma a cada 5 s) — menos que os ~2 min entre duas
   estações. A partir daí o cartão mostra um quadro em destaque, de fundo neutro
@@ -377,7 +395,8 @@ o Android só usa a forma, e o ícone do app, de fundo cheio, virava um quadrado
   estações pela janela." A notificação fixa ganha
   "sem GPS há N min", e todo aviso baseado na tabela diz isso: a estação vira
   "Provavelmente Parangaba" e o aviso de descida termina com "(pela tabela de
-  horários)". A tabela é a "média" da viagem: os horários programados do
+  horários)"; sem GPS, a chegada diz "presumida", mesmo que a última estação
+  tenha vindo dele. A tabela é a "média" da viagem: os horários programados do
   Metrofor, deslocados pelo atraso que o GPS mediu na última estação vista.
 - **Aviso duas estações antes do destino**, com notificação e vibração:
   "**Benfica: prepare-se para descer** · Faltam 2 estações." O
@@ -588,7 +607,9 @@ versão nova. Vêm das tabelas de acessibilidade por linha do Metrofor (Gerênci
 de Projetos, nov/2015; cópia em `referencias/acessibilidade-2015/`, fora do
 git), conferidas com as notícias: as inaugurações da Linha Sul em 2012 batem na
 maioria das estações, e Maracanaú sem elevador aparece em três notícias
-(2012, 2013, 2017). Três nomes de 2015 foram trocados pelos de hoje (Rodoviária
+(2012, 2013, 2017). **Conferido no local em 04/11/2026:** Maracanaú tem mesmo
+a plataforma elevatória, ligada por um funcionário, e o elevador de Carlito
+Benevides funciona e é usado. Três nomes de 2015 foram trocados pelos de hoje (Rodoviária
 = Borges de Melo, Bezerra de Menezes = Antônio Bezerra, Cruzamento José
 Euclides = José Euclides). Ficaram **sem dado** Padre Cícero, Expedicionários,
 Boulevard do Arco (reconstruída em 2021) e Campo dos Velhos (é a "Coração de
@@ -747,8 +768,12 @@ integrações, passagem, endereços, posições corrigidas, acessibilidade, hor�
 
 **Mudar uma regra não exige versão nova do app.** A tarefa do espelho publica
 uma cópia de `app/src/main/assets/regras.json` no ramo `dados` a cada rodada, e
-o app a baixa sempre que abre (antes da grade, porque a montagem da grade usa
-as integrações) e passa a usá-la na hora; a lite lê a mesma cópia. Então basta
+o app a confere sempre que abre (antes da grade, porque a montagem da grade usa
+as integrações) e passa a usá-la na hora; a lite lê a mesma cópia. Desde a 1.76
+o app só baixa o arquivo (~120 KB) quando ele mudou: guarda a etiqueta de
+versão (ETag) que o GitHub manda e a reenvia; se nada mudou, a resposta é um
+304 sem conteúdo (`regras_sync` no registro de testes). Sem a cópia guardada, ou
+com erro nela, baixa inteiro. Então basta
 editar o arquivo na `main` (pelo próprio site do GitHub, se quiser) e rodar a
 tarefa (Actions → "Dados da versão web" → Run workflow) ou esperar a próxima
 rodada: em minutos ou horas os celulares recebem. Um arquivo com erro no
@@ -862,44 +887,54 @@ os dias:
 | sábado, 03/10 | 5h30 – 17h08, 37 viagens por sentido |
 | domingo, 04/10 (eleição) | 7h30 – 18h10 (operação especial) |
 
-Por isso o feed é baixado pela tarefa do GitHub que também alimenta a versão
-lite ([`dados-web.yml`](.github/workflows/dados-web.yml)), **oito vezes por
-dia**: cinco de madrugada (00:47, 01:17, 01:47, 02:47 e 04:17 de Fortaleza),
-porque o Metrofor publica a grade do dia logo depois da meia-noite e o GitHub
-chega a atrasar ~5 h, e mais 10:00, 15:00 e 20:00. Nada antes das 00:40: o feed
-não diz de que dia é, e o espelho guarda a grade pelo dia em que baixou.
-Desde 02/11, um agendador externo (cron-job.org) também dispara a tarefa pela
-API do GitHub, sem atraso, às 01:10, 05:10, 10:10, 14:10 e 20:10; o agendamento
-do GitHub ficou como reserva. O download do feed tenta três vezes (espera 30 s e
-depois 90 s), porque o site do Metrofor às vezes não responde por alguns minutos.
-Se o site do Metrofor falhar de manhã ou a grade mudar durante o dia, a rodada
-seguinte corrige. Ela guarda o zip original de cada tipo de dia no ramo
-`dados` (`gtfs-dia-util.zip`, `gtfs-sabado.zip`, `gtfs-domingo.zip`), e o
-`indice.json` diz a data, o tamanho e a hora de cada um. O app
-(`data/ScheduleStore.kt`) baixa dali o zip do tipo de hoje — com certificado
-válido, sem falar direto com o site do Metrofor —, monta o banco com o mesmo resultado de
-`tools/build_db.py` (`data/GtfsImporter.kt`, uma tradução direta do script, que
-gera tabelas idênticas para o mesmo feed) e guarda a última grade de cada tipo
-de dia: dia útil, sábado e domingo, com a **data do índice** (não a do
-celular). **Baixa sempre que o app abre ou volta para a frente**, sem comparar
-com a guardada: são ~30 KB (o zip de dia útil tem ~29 KB, o de sábado ~20 KB, e
-o índice 0,5 KB), e assim qualquer mudança chega na abertura seguinte; um
-download cortado (app fechado no meio) é refeito na próxima abertura. Sem
-internet (ou antes de a grade do dia chegar), o app usa a última grade do mesmo
-tipo. O banco do APK fica como último recurso. De onde vêm os horários ("Horários
+Por isso o **app baixa o feed direto do Metrofor**
+(`https://info.metrofor.ce.gov.br/gtfs_file`, em `data/ScheduleStore.kt`),
+**sempre que é aberto ou volta para a frente**, sem comparar com a guardada: são
+~30 KB, e qualquer mudança chega na abertura seguinte. A grade muda também
+**durante o dia**: em 04/11 o Metrofor publicou seis versões da Linha Sul até as
+12h27 (40–50 viagens deslocadas de −2 a +10 min de manhã; às 10h17, 39 viagens
+adiadas ~6 min, desfeito às 12h27). Baixando direto, o app vê cada versão na
+hora; pelo espelho, só quando a tarefa rodava. Antes das **00:40** o app não
+baixa: o feed não diz de que dia é e o Metrofor pode ainda servir a de ontem.
+Não há reserva no espelho: se o Metrofor falhar, o app fica com a última grade
+guardada do mesmo tipo de dia, e o banco do APK é o último recurso. O banco é
+montado com o mesmo resultado de `tools/build_db.py` (`data/GtfsImporter.kt`,
+uma tradução direta do script, que gera tabelas idênticas para o mesmo feed), e
+o app guarda a última grade de cada tipo de dia (dia útil, sábado e domingo) com
+a data do download. Um download cortado (app fechado no meio) é refeito na
+próxima abertura. De onde vêm os horários ("Horários
 de hoje, baixados do Metrofor às 02:42.") fica em **Fonte ›**, na tela da
 estação; no topo da tela inicial só aparece, como **aviso em vermelho**, quando
 importa: a grade do APK, ou dia com operação especial anunciada sem a
 grade do dia ("Hoje tem operação especial e os horários do dia ainda não
-chegaram. Veja a notícia do Metrofor."). A lite segue a mesma regra no rodapé.
+chegaram. Veja a notícia do Metrofor.").
+
+A **versão lite** não consegue baixar do Metrofor (o site não libera acesso de
+outras páginas) e lê o **espelho**: a tarefa do GitHub
+([`dados-web.yml`](.github/workflows/dados-web.yml)) baixa o feed e guarda, no
+ramo `dados`, o zip original e o JSON de cada tipo de dia, com o `indice.json`
+dizendo a data, o tamanho e a hora de cada um. Ela roda de madrugada (00:47,
+01:17, 01:47, 02:47 e 04:17 de Fortaleza, porque o Metrofor publica a grade do
+dia logo depois da meia-noite e o GitHub chega a atrasar ~5 h), às 10:00, 15:00
+e 20:00 e, desde 04/11, a cada 30 min das 05:17 às 23:47, para a lite
+acompanhar as mudanças do dia. Nada entre 00:00 e 00:40. Um agendador externo
+(cron-job.org) dispara a tarefa pela API do GitHub, sem atraso; o agendamento
+do GitHub fica como reserva. O download do feed tenta três vezes (espera 30 s e
+depois 90 s), porque o site do Metrofor às vezes não responde por alguns
+minutos. A lite mostra a origem dos horários no rodapé.
 
 Detalhes que valem saber:
 
-- **Certificado vencido.** O certificado HTTPS de `*.metrofor.ce.gov.br`
-  costuma estar expirado. Quem lida com isso é só a tarefa do GitHub (o script
-  desliga a verificação, são dados públicos); o app fala apenas com
-  `raw.githubusercontent.com`, com a verificação normal do Android — nada que a
-  análise da Play Store possa barrar.
+- **Certificado.** Em out/2026 o certificado de `*.metrofor.ce.gov.br` vinha
+  com a cadeia incompleta, e por isso o app passou um tempo baixando só do
+  espelho. Em 04/11 o de `info.metrofor.ce.gov.br` estava correto (Let's
+  Encrypt, cadeia até a ISRG Root X1), e o app voltou a baixar de lá com a
+  verificação normal do Android, sem aceitar certificado inválido. A ISRG Root
+  X1 só existe no Android a partir do 7.1.1; como o app aceita o 7.0, ela vai
+  junto (`res/raw/isrg_root_x1.pem`), valendo só para esse domínio
+  (`res/xml/network_security_config.xml`). Se o certificado voltar a falhar, o
+  app segue com a última grade guardada (`sync_fail` no registro de testes). A
+  tarefa do espelho desliga a verificação (são dados públicos).
 - **Nada de trava por "grade menor".** Como a grade muda de verdade de um dia
   para outro, o app só recusa um feed que não dá para ler ou que não tem linhas
   nem estações. Zero viagens é aceito: num domingo comum pode ser exatamente a
@@ -919,8 +954,10 @@ Detalhes que valem saber:
   segunda mostra a grade de dia útil. Se amanhã for sábado e essa grade nunca
   tiver sido baixada, o app não inventa horário. A previsão usa a última grade
   de um **dia comum** do mesmo tipo: a de um feriado não serve (a de Finados
-  virou a previsão da terça seguinte). Se a guardada for de um dia especial, o
-  app baixa do espelho a última comum (`normais` no índice) ou usa a do APK.
+  virou a previsão da terça seguinte). Por isso, a cada grade de dia comum
+  baixada, o app guarda uma cópia à parte (`normal_<tipo>.db`); se a guardada
+  for de um dia especial, a previsão usa essa cópia ou a do APK. A lite usa a
+  última comum do espelho (`normais` no índice).
   **Se amanhã tiver operação especial anunciada**, o app não prevê: a grade
   desse dia só sai depois da meia-noite, e o fim do dia diz "amanhã o horário é
   especial e só sai depois da meia-noite" (o widget, "Amanhã: horário
@@ -1090,10 +1127,11 @@ Estas vêm do feed oficial, não do app:
    Nordeste e Sobral dizem "segunda a sábado até 20h/23h", mas a grade de
    sábado acaba à tarde (de 15h a 17h). O app segue a grade, que o Metrofor
    publica para o dia.
-11. O domínio `metrofor.ce.gov.br` está com **certificado HTTPS expirado** e
-   redireciona para `ce.gov.br/metrofor`. Por isso os scripts desligam a
-   verificação de certificado; o app não fala com o Metrofor, baixa o mesmo
-   feed do espelho no GitHub (veja [Horários do dia](#horários-do-dia)).
+11. O domínio `metrofor.ce.gov.br` já teve **certificado HTTPS expirado ou com
+   a cadeia incompleta** e redireciona para `ce.gov.br/metrofor`. Por isso os
+   scripts desligam a verificação de certificado. O app baixa o feed de
+   `info.metrofor.ce.gov.br` com a verificação normal (veja
+   [Horários do dia](#horários-do-dia)).
 
 ## Build
 
@@ -1242,8 +1280,8 @@ mesma ordem padrão do app (Trabalho e Casa, o aviso do Metrofor de hoje, as dua
 estações mais próximas com o tempo que falta grande, o aviso de amanhã, "Para
 onde você vai?" e as linhas),
 sem "Ajustar para mim" nem a escolha da ordem. O navegador não consegue baixar
-o GTFS direto do Metrofor — o certificado costuma estar vencido e o site não
-libera acesso a partir de outras páginas —, então os horários chegam prontos:
+o GTFS direto do Metrofor — o site não libera acesso a partir de outras
+páginas —, então os horários chegam prontos:
 
 - [`tools/build_web_data.py`](tools/build_web_data.py) baixa o feed e gera JSON,
   reaproveitando o tratamento do `build_db.py` (nomes, cores, Bicicletar) e as
@@ -1254,12 +1292,13 @@ libera acesso a partir de outras páginas —, então os horários chegam pronto
   operação especial anunciada, a grade vai para `horarios-<tipo>-especial.json`
   e `gtfs-<tipo>-especial.zip`: `tipos` no índice aponta para ela (é a de hoje,
   e as versões antigas do app seguem certas) e `normais` mantém a última grade
-  comum de cada tipo, que o app e a lite usam para prever amanhã. Cada sentido
+  comum de cada tipo, que a lite usa para prever amanhã. Cada sentido
   traz a ordem das estações e as viagens como listas de minutos alinhadas a
   ela (`null` = não para): a grade de um dia útil inteiro tem ~23 KB. Junto
-  vai o zip original (`gtfs-<tipo>.zip`), que o **app Android** baixa.
+  vai o zip original (`gtfs-<tipo>.zip`), que as versões até a 1.75 do app
+  Android baixam (desde a 1.76 o app baixa do Metrofor).
 - A tarefa [`dados-web.yml`](.github/workflows/dados-web.yml) roda o script
-  oito vezes por dia (00:47, 01:17, 01:47, 02:47, 04:17, 10:00, 15:00 e 20:00 de Fortaleza; ou à mão, em Actions → "Dados da versão
+  de madrugada, às 10:00, 15:00 e 20:00 e a cada 30 min das 05:17 às 23:47 de Fortaleza, disparada pelo cron-job.org (ou à mão, em Actions → "Dados da versão
   web" → Run workflow) e publica o resultado no ramo **`dados`**, fora da
   `main`, para não encher o histórico do app. A web lê de
   `raw.githubusercontent.com/giovanildo/metro-ceara-horarios/dados/…`.
@@ -1359,7 +1398,8 @@ A **política de privacidade** (`docs/privacidade.html`, link no rodapé da pág
 na tela Sobre da versão lite e na tela Sobre do app — a Play Store exige o link
 também dentro do app) cobre o app e a versão lite: nenhum dado
 pessoal é coletado ou enviado; a localização é usada só no aparelho; a internet
-serve só para baixar os horários do espelho no GitHub. É o link exigido pela
+serve só para baixar os horários (do Metrofor, no app; do espelho no GitHub, na
+lite) e as regras do espelho. É o link exigido pela
 Play Store — ao mudar algo que trate dados, atualize a página (e a data) antes.
 
 As capturas em `docs/img/tela-*.jpg` e em `fastlane/…/phoneScreenshots/` são
@@ -1413,8 +1453,8 @@ O material para o Play Console fica em [`tools/play/`](tools/play/):
 
 O pacote da loja é o AAB: `./gradlew bundleRelease` →
 `app/build/outputs/bundle/release/app-release.aab`, assinado com a mesma chave
-do APK. O app já não tem nada que a análise costuma barrar: não fala com o site
-do Metrofor (certificado vencido) e não pede doação.
+do APK. O app não tem nada que a análise costuma barrar: fala com o site do
+Metrofor com a verificação normal de certificado e não pede doação.
 
 ## Publicação no F-Droid
 
