@@ -1,0 +1,4 @@
+• Os horários agora vêm direto do site do Metrofor sempre que você abre o app. Quando o Metrofor muda a grade durante o dia, a mudança aparece na hora.
+• Modo viagem mais certo nas estações subterrâneas (Benfica a Chico da Silva): o aviso de descida chega antes, e não depois, de passar da estação.
+• O modo viagem não avança mais sozinho enquanto o metrô está parado.
+• Gasta menos internet.
