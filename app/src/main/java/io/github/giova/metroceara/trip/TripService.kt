@@ -215,6 +215,8 @@ class TripService : Service() {
 
             launch {
                 LocationSource(this@TripService).updates(GPS_INTERVAL_MILLIS, 0f).collect { location ->
+                    // Idade da posição: o Android às vezes entrega uma guardada.
+                    val ageSeconds = (android.os.SystemClock.elapsedRealtimeNanos() - location.elapsedRealtimeNanos) / 1e9
                     if (DevLog.isEnabled || TripLog.recording) {
                         val nearest = plan.stops.minBy {
                             distanceMeters(location.latitude, location.longitude, it.lat, it.lon)
@@ -225,12 +227,15 @@ class TripService : Service() {
                             "speed" to location.takeIf { it.hasSpeed() }?.speed,
                             "nearest" to nearest.name,
                             "dist_m" to distanceMeters(location.latitude, location.longitude, nearest.lat, nearest.lon).toInt(),
+                            "age_s" to ageSeconds.toInt(),
                         )
                     }
-                    estimator.onLocation(
-                        location.latitude, location.longitude, location.accuracy, nowMinutes(),
-                        fromNetwork = location.provider == LocationManager.NETWORK_PROVIDER,
-                    )
+                    if (ageSeconds <= MAX_LOCATION_AGE_SECONDS) {
+                        estimator.onLocation(
+                            location.latitude, location.longitude, location.accuracy, nowMinutes(),
+                            fromNetwork = location.provider == LocationManager.NETWORK_PROVIDER,
+                        )
+                    }
                     update()
                 }
             }
@@ -335,6 +340,8 @@ class TripService : Service() {
         const val EXTRA_PLAN = "plan"
 
         private const val GPS_INTERVAL_MILLIS = 5_000L
+        /** Posição mais velha que isto (guardada pelo Android) não move a viagem. */
+        private const val MAX_LOCATION_AGE_SECONDS = 30.0
         private const val TICK_MILLIS = 15_000L
         private const val ARRIVED_LINGER_MILLIS = 8_000L
         /** Depois de uma integração: ainda na plataforma tanto tempo depois da partida = perdeu o trem. */

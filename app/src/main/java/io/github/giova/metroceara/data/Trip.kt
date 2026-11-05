@@ -11,6 +11,8 @@ data class TripStop(
     val lon: Double,
     /** Minutos desde a meia-noite, pela grade do dia. */
     val scheduled: Int,
+    /** Debaixo da terra (regras.json "subterranea"): ali o GPS some. */
+    val underground: Boolean = false,
 )
 
 /**
@@ -120,7 +122,7 @@ data class TripPlan(
         .put("stops", JSONArray().apply {
             stops.forEach {
                 put(JSONObject().put("id", it.stopId).put("name", it.name)
-                    .put("lat", it.lat).put("lon", it.lon).put("t", it.scheduled))
+                    .put("lat", it.lat).put("lon", it.lon).put("t", it.scheduled).put("under", it.underground))
             }
         })
         .toString()
@@ -135,7 +137,10 @@ data class TripPlan(
                 headsign = o.getString("headsign"),
                 stops = (0 until array.length()).map { i ->
                     val s = array.getJSONObject(i)
-                    TripStop(s.getString("id"), s.getString("name"), s.getDouble("lat"), s.getDouble("lon"), s.getInt("t"))
+                    TripStop(
+                        s.getString("id"), s.getString("name"), s.getDouble("lat"), s.getDouble("lon"), s.getInt("t"),
+                        underground = s.optBoolean("under"),
+                    )
                 },
                 alertStationsBefore = o.optInt("alert", 2),
                 turnaroundIndex = o.optInt("turn", -1),
@@ -197,6 +202,22 @@ data class TripProgress(
  * estação; quando ele some (dentro do trem, no trecho subterrâneo), a posição
  * sai da grade de horários, corrigida pelo atraso que o GPS mediu da última vez.
  * A posição nunca anda para trás.
+ *
+ * Lições do campo (04/11, Jereissati → Chico da Silva):
+ * - com o satélite respondendo, a grade não anda sozinha: o metrô passou da
+ *   origem, ficou 6 min parado em Carlito (fora da viagem) e a grade já o punha
+ *   em Maracanaú e Virgílio Távora;
+ * - o atraso vale pela chegada à estação, não pela saída: o tempo parado na
+ *   plataforma não é atraso;
+ * - no túnel o metrô recupera tempo (a grade folga entre Padre Cícero e Chico
+ *   da Silva) e a estimativa ficava duas estações atrás; sem satélite, a
+ *   chegada às estações subterrâneas adianta [TUNNEL_EARLY_MINUTES]: o aviso de
+ *   descida tem de vir cedo, nunca tarde;
+ * - no túnel, a rede de celular com até [LOOSE_ACCURACY_METERS] já serve para
+ *   andar para a frente (só para estação subterrânea);
+ * - uma posição de satélite solta, depois de um tempo sem sinal, pode ser velha
+ *   (veio uma de Padre Cícero com o metrô já perto de Chico): só conta a partir
+ *   da segunda seguida.
  */
 class TripEstimator(
     private val plan: TripPlan,
@@ -210,28 +231,46 @@ class TripEstimator(
     private var startedAt: Double? = null
     private var lastGoodGps: Double? = null
     private var lastSatellite: Double? = null
+    /** Posições de satélite seguidas, sem um buraco de [gpsLostMinutes]. */
+    private var satelliteRun = 0
     /** O GPS já pôs a pessoa numa estação da viagem pelo menos uma vez. */
     private var seenAtStation = false
     /** A última estação em que o GPS viu a pessoa, e quando. */
     private var lastStationFix: Pair<Int, Double>? = null
+
+    /** Satélite respondendo agora, com pelo menos duas posições seguidas. */
+    private fun satelliteAlive(nowMinutes: Double): Boolean {
+        val last = lastSatellite ?: return false
+        return satelliteRun >= 2 && nowMinutes - last < gpsLostMinutes
+    }
 
     /**
      * Uma posição. Só conta se for precisa e estiver perto de uma estação da
      * viagem. [fromNetwork]: veio da rede de celular/Wi-Fi, não do satélite.
      */
     fun onLocation(lat: Double, lon: Double, accuracyMeters: Float, nowMinutes: Double, fromNetwork: Boolean = false) {
-        if (plan.simulated || accuracyMeters > MAX_ACCURACY_METERS) return
+        if (plan.simulated) return
+        if (accuracyMeters > MAX_ACCURACY_METERS) {
+            // Sem satélite (túnel), a rede de celular imprecisa ainda serve para
+            // andar para a frente: em Benfica ela acertou a estação com 200 m.
+            if (fromNetwork && accuracyMeters <= LOOSE_ACCURACY_METERS) onLooseNetwork(lat, lon, nowMinutes)
+            return
+        }
         // A posição pela rede erra até ~150 m e já pôs a pessoa na estação
         // errada; com satélite recente, ela é descartada. Sem satélite (túnel),
         // ainda serve.
         if (fromNetwork) {
             val satellite = lastSatellite
             if (satellite != null && nowMinutes - satellite <= PREFER_SATELLITE_MINUTES) return
+            lastGoodGps = nowMinutes
         } else {
+            val previous = lastSatellite
+            satelliteRun = if (previous != null && nowMinutes - previous < gpsLostMinutes) satelliteRun + 1 else 1
             lastSatellite = nowMinutes
+            // Posição boa, mesmo longe de estação: o GPS está alcançável. Uma
+            // posição solta depois de um buraco ainda não prova isso.
+            if (satelliteRun >= 2 || seenAtStation.not()) lastGoodGps = nowMinutes
         }
-        // Posição boa, mesmo longe de estação: o GPS está alcançável.
-        lastGoodGps = nowMinutes
         // Numa viagem pelo terminal a mesma estação aparece duas vezes (ida e
         // volta): das que estão no raio, vale a próxima à frente; só sem
         // nenhuma à frente olhamos para trás.
@@ -241,19 +280,46 @@ class TripEstimator(
         if (inRange.isEmpty()) return
         val (nearest, distance) = inRange.filter { it.first >= index }.minByOrNull { it.first }
             ?: inRange.maxBy { it.first }
-        // Voltar só com GPS muito bom: é o caso de quem ainda espera na estação
-        // um trem atrasado, enquanto a grade já "andou" sozinha.
-        val confident = accuracyMeters <= CONFIDENT_ACCURACY_METERS && distance <= CONFIDENT_RADIUS_METERS
+        // Voltar só com GPS muito bom e firme: é o caso de quem ainda espera na
+        // estação um trem atrasado, enquanto a grade já "andou" sozinha.
+        val confident = accuracyMeters <= CONFIDENT_ACCURACY_METERS && distance <= CONFIDENT_RADIUS_METERS &&
+            (fromNetwork || satelliteRun >= 2)
         if (nearest < index && !confident) return
+        val arriving = nearest != lastStationFix?.first
         index = nearest
         lastFix = TripFix.GPS
         seenAtStation = true
         lastStationFix = nearest to nowMinutes
         // Estar na estação i agora quer dizer atraso de (agora − horário em i).
-        // Na origem, chegar cedo não é adiantamento: o trem ainda vai passar.
-        val measured = nowMinutes - plan.stops[nearest].scheduled
-        val accepted = if (nearest == 0) measured.coerceAtLeast(0.0) else measured
-        if (kotlin.math.abs(accepted) <= MAX_DELAY_MINUTES) delay = accepted
+        // Vale a chegada: o tempo parado na plataforma não é atraso. Na origem é
+        // o contrário: chegar cedo não é adiantamento (o trem ainda vai passar) e
+        // continuar lá depois do horário é atraso da partida.
+        if (nearest == 0) {
+            updateDelay((nowMinutes - plan.stops[0].scheduled).coerceAtLeast(0.0))
+        } else if (arriving) {
+            updateDelay(nowMinutes - plan.stops[nearest].scheduled)
+        }
+    }
+
+    private fun onLooseNetwork(lat: Double, lon: Double, nowMinutes: Double) {
+        if (!seenAtStation) return
+        val satellite = lastSatellite
+        if (satellite != null && nowMinutes - satellite < gpsLostMinutes) return
+        val ahead = plan.stops.withIndex()
+            .filter { (i, stop) ->
+                // Só debaixo da terra: na superfície a antena perto da estação já
+                // a deu 1 min antes do metrô chegar (Conjunto Esperança, 04/11).
+                i > index && stop.underground && distanceMeters(lat, lon, stop.lat, stop.lon) <= STATION_RADIUS_METERS
+            }
+            .minByOrNull { it.index } ?: return
+        index = ahead.index
+        lastFix = TripFix.SCHEDULE
+        lastStationFix = ahead.index to nowMinutes
+        updateDelay(nowMinutes - ahead.value.scheduled)
+    }
+
+    private fun updateDelay(measured: Double) {
+        if (kotlin.math.abs(measured) <= MAX_DELAY_MINUTES) delay = measured
     }
 
     /**
@@ -279,20 +345,38 @@ class TripEstimator(
         // (começou já no túnel) a grade volta a andar. Na simulação não há GPS.
         val gpsAlive = nowMinutes - since < gpsLostMinutes
         val waitingFirstFix = !plan.simulated && !seenAtStation && gpsAlive
-        // Esperando, fica "Aguardando o metrô em X": a pessoa ainda não está na estação.
-        val bySchedule = plan.stops.indexOfLast { it.scheduled + delay <= nowMinutes }
-            .let { if (waitingFirstFix) -1 else it }
+        // Já embarcado e com o satélite respondendo, só o GPS faz a viagem andar:
+        // cada estação aparece no raio dele. Enquanto o metrô não chega à
+        // próxima, o atraso é no mínimo o que já passou do horário dela.
+        val holding = !plan.simulated && seenAtStation && satelliteAlive(nowMinutes)
+        if (holding) {
+            plan.stops.getOrNull(index + 1)?.let { next ->
+                val late = nowMinutes - next.scheduled
+                if (late > delay && late <= MAX_DELAY_MINUTES) delay = late
+            }
+        }
+        // No túnel, sem satélite, depois de o GPS ter visto o metrô andando (já
+        // fora da origem), adianta: o aviso tem de vir cedo, nunca tarde. Na
+        // superfície o GPS falha pouco e o metrô não recupera tempo assim.
+        val moving = (lastStationFix?.first ?: 0) >= 1
+        val early = if (!plan.simulated && moving && !holding) TUNNEL_EARLY_MINUTES else 0.0
+        val bySchedule = when {
+            waitingFirstFix || holding -> -1
+            else -> plan.stops.indexOfLast { it.scheduled + delay - (if (it.underground) early else 0.0) <= nowMinutes }
+        }
         if (bySchedule > index) {
             index = bySchedule
             lastFix = if (plan.simulated) TripFix.SIMULATED else TripFix.SCHEDULE
         }
         val silent = if (plan.simulated) 0.0 else nowMinutes - since
+        val lost = silent >= gpsLostMinutes
         return TripProgress(
             index = index,
-            fix = lastFix,
+            // Sem GPS, a posição é presumida, mesmo que a estação tenha vindo dele.
+            fix = if (lost && lastFix == TripFix.GPS) TripFix.SCHEDULE else lastFix,
             delayMinutes = delay,
             arrivalMinutes = plan.destination.scheduled + delay,
-            gpsSilentMinutes = silent.takeIf { it >= gpsLostMinutes },
+            gpsSilentMinutes = silent.takeIf { lost },
         )
     }
 
@@ -305,6 +389,10 @@ class TripEstimator(
         const val GPS_LOST_MINUTES = 1.0
 
         private const val MAX_ACCURACY_METERS = 150f
+        /** Rede de celular no túnel: até isto ainda serve para andar para a frente. */
+        const val LOOSE_ACCURACY_METERS = 300f
+        /** Sem satélite, a estimativa adianta isto (no túnel o metrô recupera tempo). */
+        const val TUNNEL_EARLY_MINUTES = 1.5
         private const val STATION_RADIUS_METERS = 300.0
         private const val CONFIDENT_ACCURACY_METERS = 40f
         private const val CONFIDENT_RADIUS_METERS = 150.0

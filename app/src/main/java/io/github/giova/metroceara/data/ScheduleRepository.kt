@@ -172,7 +172,8 @@ class ScheduleRepository(context: Context) {
         return path.take(end + 1).map { stop ->
             val station = coords[stop.id] ?: return null
             val time = times[stop.id] ?: return null
-            TripStop(stop.id, stop.name, station.lat, station.lon, time)
+            val underground = Regras.current.station(stop.id, stop.name)?.underground == true
+            TripStop(stop.id, stop.name, station.lat, station.lon, time, underground)
         }
     }
 
