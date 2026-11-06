@@ -101,7 +101,14 @@ padrão, segue o perfil da maioria (quem vai e volta do trabalho ou da escola):
 2. **as duas estações mais próximas** (sempre aparecem: é o motivo do app). Em
    **dia especial** (operação especial, feriado), o aviso de hoje do Metrofor vem
    logo acima delas, porque os horários são outros;
-3. o **aviso do Metrofor para amanhã**;
+3. os **avisos do Metrofor dos próximos dias**: toda operação especial anunciada
+   (ENEM, eleição, feriado) aparece desde o dia em que a notícia sai, não só na
+   véspera, juntando os dias da mesma notícia ("Metrofor, domingo (8/11) e
+   domingo (15/11):"). Com o app fechado, a cada ~3 h o app confere o
+   `regras.json` (só baixa se mudou) e **notifica** a operação nova, uma vez por
+   dia anunciado ([`alerts/`](app/src/main/java/io/github/giova/metroceara/alerts/),
+   WorkManager); se o app estiver aberto, o aviso já está na tela e não há
+   notificação;
 4. **"Para onde você vai?"**;
 5. as **rotinas**;
 6. o **Bicicletar** (só com "Levo bike");
