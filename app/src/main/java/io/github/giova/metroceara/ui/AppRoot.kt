@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
 import androidx.core.content.ContextCompat
+import io.github.giova.metroceara.alerts.OperationAlerts
 import io.github.giova.metroceara.data.Landmark
 import io.github.giova.metroceara.data.near
 import io.github.giova.metroceara.data.walkMinutes
@@ -156,6 +157,8 @@ fun AppRoot() {
         if (result.isSuccess) scheduleVersion++
         // As notícias de operação especial vêm no regras.json, já baixado acima.
         notices = ScheduleStore.notices()
+        // Com o app aberto o aviso está na tela: não precisa de notificação depois.
+        OperationAlerts.markSeen(context)
         StationWidget.update(context)
     }
 

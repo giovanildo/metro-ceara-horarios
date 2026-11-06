@@ -275,20 +275,22 @@ object ScheduleStore {
      * ("AAAA-MM-DD", em ordem): hoje sozinho, ou os próximos dias com a mesma notícia.
      */
     data class Notice(val title: String, val link: String?, val days: List<String>) {
-        val isToday: Boolean get() = days == listOf(today())
+        val isToday: Boolean get() = days.first() == today()
     }
 
     /**
      * As notícias de operação especial (feriado, ENEM, eleição) de hoje em diante, do
      * regras.json baixado: avisadas assim que aparecem, não só na véspera (quem vai
      * fazer o ENEM no domingo quer saber na quinta). Dias com a mesma notícia viram um
-     * aviso só; o de hoje fica separado, porque vai junto com os horários. Sem operação
+     * aviso só; o de hoje fica separado ([splitToday]), porque na tela vai junto com os
+     * horários. [onlySpecial] tira os dias de "funcionamento normal". Sem operação
      * anunciada, nada: notícia sem critério não entra.
      */
-    fun notices(): List<Notice> {
+    fun notices(onlySpecial: Boolean = false, splitToday: Boolean = true): List<Notice> {
         val today = today()
-        return Regras.current.operations.filterKeys { it >= today }.toSortedMap().entries
-            .groupBy { (day, op) -> Triple(day == today, op.title, op.link) }
+        return Regras.current.operations.filter { (day, op) -> day >= today && !(onlySpecial && op.normal) }
+            .toSortedMap().entries
+            .groupBy { (day, op) -> Triple(splitToday && day == today, op.title, op.link) }
             .map { (key, days) -> Notice(key.second, key.third, days.map { it.key }) }
     }
 

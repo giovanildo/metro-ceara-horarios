@@ -37,6 +37,8 @@
     <string name="notice_days_range">de %1$s a %2$s</string>
     <string name="today_word">hoje</string>
     <string name="and_word">e</string>
+    <string name="operations_channel">Operação especial do Metrofor</string>
+    <string name="operations_channel_description">ENEM, eleição, feriado: o horário muda e o Metrofor anunciou</string>
     <string name="widget_wide_label">Estação: próximos horários</string>
     <string name="widget_small_label">Estação: próximo horário</string>
     <string name="widget_wide_desc">Os dois próximos horários de cada sentido da sua estação, e o aviso do dia.</string>
