@@ -1,0 +1,3 @@
+• ENEM, eleição e feriados: o aviso do Metrofor aparece na tela inicial assim que a operação especial é anunciada, não só na véspera.
+• Notificação quando o Metrofor anuncia uma operação especial, mesmo com o app fechado. Tocar abre a notícia.
+• Véspera do ENEM: o sábado com encerramento mais cedo agora também aparece.
