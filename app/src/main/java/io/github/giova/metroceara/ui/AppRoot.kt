@@ -888,6 +888,7 @@ fun AppRoot() {
 
             HomeBlock.NOTICES -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 MetroforNotices(notices.filterNot { it.isToday })
+                OperationNotificationOffer()
             }
 
             // "Para onde você vai?", saindo da estação em destaque.

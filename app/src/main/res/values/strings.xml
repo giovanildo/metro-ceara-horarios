@@ -37,6 +37,9 @@
     <string name="notice_days_range">de %1$s a %2$s</string>
     <string name="today_word">hoje</string>
     <string name="and_word">e</string>
+    <string name="operations_offer">Quer receber uma notificação quando o Metrofor anunciar ENEM, eleição ou feriado, mesmo com o app fechado?</string>
+    <string name="operations_offer_yes">Avisar</string>
+    <string name="operations_offer_no">Agora não</string>
     <string name="operations_channel">Operação especial do Metrofor</string>
     <string name="operations_channel_description">ENEM, eleição, feriado: o horário muda e o Metrofor anunciou</string>
     <string name="widget_wide_label">Estação: próximos horários</string>

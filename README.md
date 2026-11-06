@@ -108,7 +108,9 @@ padrão, segue o perfil da maioria (quem vai e volta do trabalho ou da escola):
    `regras.json` (só baixa se mudou) e **notifica** a operação nova, uma vez por
    dia anunciado ([`alerts/`](app/src/main/java/io/github/giova/metroceara/alerts/),
    WorkManager); se o app estiver aberto, o aviso já está na tela e não há
-   notificação;
+   notificação. No Android 13+, sem a permissão de notificação, debaixo do aviso
+   aparece o convite "Quer receber uma notificação…?" (**Avisar** / **Agora
+   não**); recusado ou negado, não volta;
 4. **"Para onde você vai?"**;
 5. as **rotinas**;
 6. o **Bicicletar** (só com "Levo bike");

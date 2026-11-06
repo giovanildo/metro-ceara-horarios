@@ -27,6 +27,7 @@ object OperationAlerts {
 
     private const val CHANNEL = "metrofor_operations"
     private const val KEY_SEEN = "operations_seen"
+    private const val KEY_OFFER_DISMISSED = "offer_dismissed"
     private const val NOTIFICATION_BASE_ID = 2000
 
     /** "hoje", "amanhã", "sábado (14/11)"; até três dias em lista, mais que isso de um a outro. */
@@ -97,6 +98,11 @@ object OperationAlerts {
                 .apply { description = context.getString(R.string.operations_channel_description) },
         )
     }
+
+    /** O convite para ligar as notificações (tela inicial) já foi recusado. */
+    fun offerDismissed(context: Context): Boolean = prefs(context).getBoolean(KEY_OFFER_DISMISSED, false)
+
+    fun dismissOffer(context: Context) = prefs(context).edit { putBoolean(KEY_OFFER_DISMISSED, true) }
 
     private fun prefs(context: Context) =
         context.applicationContext.getSharedPreferences("metrofor_alerts", Context.MODE_PRIVATE)
