@@ -71,6 +71,9 @@ SEMANA_RE = r"\b(segunda|ter[çc]a|quarta|quinta|sexta|s[áa]bado|domingo)(?:-fe
 # "sexta-feira (7)", "Quarta-feira de Cinzas (18)", "terça-feira de Carnaval (17)", "domingo, dia 5"
 DATA_SEMANA = re.compile(SEMANA_RE + r"(?:\s+(?:de\s+\w+|santa|da paix[ãa]o))?,?\s*(?:\(|dia\s+)(\d{1,2})[º°]?\)?", re.I)
 DIAS_E = re.compile(r"\bdias\s+(\d{1,2})[º°]?\s+e\s+(\d{1,2})[º°]?(?:\s+de\s+(" + "|".join(de.MESES) + r"))?", re.I)
+# "(7 e 14 de novembro)", "6, 7 e 8 de abril": a lista sem "dias" so com o mes no fim
+# (o DATA_EXTENSO so pega o ultimo dia). Sem o mes, "e 14" casaria com qualquer numero.
+LISTA_DE_MES = re.compile(r"\b((?:\d{1,2}[º°]?\s*,\s*)*\d{1,2})[º°]?\s+e\s+\d{1,2}[º°]?\s+de\s+(" + "|".join(de.MESES) + r")\b", re.I)
 
 
 def _perto(publicada, dia, mes, ano=None):
@@ -111,6 +114,9 @@ def datas(texto, publicada):
         mes = de.MESES.get((m.group(3) or "").lower())
         for dia in (m.group(1), m.group(2)):
             achadas.append(_perto(publicada, int(dia), mes) if mes else de._data(int(dia), None, None, publicada))
+    for m in LISTA_DE_MES.finditer(t):
+        for dia in re.findall(r"\d{1,2}", m.group(1)):
+            achadas.append(_perto(publicada, int(dia), de.MESES[m.group(2).lower()]))
     for m in DATA_SEMANA.finditer(t):
         conferidas.append(de._data(int(m.group(2)), None, _semana(m.group(1)), publicada))
     for m in re.finditer(r"\bamanh[ãa]\s*\((\d{1,2})\)", t):  # "não circulam amanhã (30)"
