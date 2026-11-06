@@ -825,8 +825,8 @@ fun AppRoot() {
         layout.shows(b) && when (b) {
             HomeBlock.PLACES, HomeBlock.STATIONS, HomeBlock.SEARCH -> trip == null
             HomeBlock.ROUTINES -> trip == null && !routinesList.isNullOrEmpty()
-            // O de hoje vai com as estações; aqui fica só o de amanhã.
-            HomeBlock.NOTICES -> notices.any { it.tomorrow }
+            // O de hoje vai com as estações; aqui ficam os dos próximos dias.
+            HomeBlock.NOTICES -> notices.any { !it.isToday }
             HomeBlock.BIKE -> homeBike != null
             HomeBlock.LINES -> true
         }
@@ -847,7 +847,7 @@ fun AppRoot() {
             HomeBlock.STATIONS -> Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 // Dia especial: o aviso de hoje vem antes dos horários, que são outros
                 // (mesmo com o bloco de aviso escondido).
-                MetroforNotices(notices.filterNot { it.tomorrow })
+                MetroforNotices(notices.filter { it.isToday })
                 val extras = HomeCardExtras(
                     bike = layout.bike,
                     halfFare = layout.halfFare,
@@ -884,7 +884,7 @@ fun AppRoot() {
             }
 
             HomeBlock.NOTICES -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                MetroforNotices(notices.filter { it.tomorrow })
+                MetroforNotices(notices.filterNot { it.isToday })
             }
 
             // "Para onde você vai?", saindo da estação em destaque.

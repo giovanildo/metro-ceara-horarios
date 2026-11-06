@@ -280,12 +280,12 @@ fun DeparturesScreen(
                 val day = ScheduleStore.today()
                 val operation = Regras.current.operations[day]
                 if (operation != null) {
-                    item { MetroforNotices(listOf(ScheduleStore.Notice(operation.title, operation.link, tomorrow = false))) }
+                    item { MetroforNotices(listOf(ScheduleStore.Notice(operation.title, operation.link, listOf(day)))) }
                 } else if (sunday) {
                     item { SundayNotice() }
                     // Os horários mostrados são os de segunda: vale também a notícia de amanhã.
                     Regras.current.operations[ScheduleStore.tomorrow()]?.let { next ->
-                        item { MetroforNotices(listOf(ScheduleStore.Notice(next.title, next.link, tomorrow = true))) }
+                        item { MetroforNotices(listOf(ScheduleStore.Notice(next.title, next.link, listOf(ScheduleStore.tomorrow())))) }
                     }
                 }
                 if (Regras.current.stopped(day, route.name)) {

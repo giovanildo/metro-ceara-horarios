@@ -159,13 +159,28 @@ function partidasComAmanha(linha, sentido, stopId) {
  * A notícia do Metrofor que explica a operação especial de hoje (e a de amanhã):
  * a manchete; tocar abre a notícia no site deles.
  */
-function avisosMetrofor(soHoje = false, soAmanha = false) {
-  return estado.dados.avisos.filter((n) => (!soHoje || !n.amanha) && (!soAmanha || n.amanha)).map((n) => {
-    const texto = `<strong>Metrofor, ${n.amanha ? "amanhã" : "hoje"}:</strong> ${esc(n.titulo)}`;
+function avisosMetrofor(soHoje = false, soProximos = false) {
+  return estado.dados.avisos.filter((n) => (!soHoje || n.hoje) && (!soProximos || !n.hoje)).map((n) => {
+    const texto = `<strong>Metrofor, ${diasDoAviso(n.dias)}:</strong> ${esc(n.titulo)}`;
     return /^https:\/\//.test(n.link || "")
       ? `<p class="aviso-metrofor"><a href="${esc(n.link)}" target="_blank" rel="noopener">${texto} ›</a></p>`
       : `<p class="aviso-metrofor">${texto}</p>`;
   }).join("");
+}
+
+/** "hoje", "amanhã", "sábado (14/11)"; até três dias em lista, mais que isso de um a outro. */
+function diasDoAviso(dias) {
+  const t = agora();
+  const nomes = ["domingo", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado"];
+  const rotulo = (d) => {
+    if (d === t.data) return "hoje";
+    if (d === somarDias(t.data, 1)) return "amanhã";
+    const [a, m, dia] = d.split("-").map(Number);
+    return `${nomes[new Date(Date.UTC(a, m - 1, dia)).getUTCDay()]} (${dia}/${m})`;
+  };
+  if (dias.length > 3) return `de ${rotulo(dias[0])} a ${rotulo(dias.at(-1))}`;
+  const r = dias.map(rotulo);
+  return r.length === 1 ? r[0] : `${r.slice(0, -1).join(", ")} e ${r.at(-1)}`;
 }
 
 /** "Último de hoje: 17:12 · primeiro de segunda: 05:44", para quando hoje acabou. */

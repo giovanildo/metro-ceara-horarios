@@ -101,9 +101,10 @@ internal fun formatClock(millis: Long): String =
         .format(Date(millis))
 
 /**
- * A notícia do Metrofor que explica por que hoje (ou amanhã) o horário é outro
- * (feriado, ENEM, eleição): a manchete, com a fonte e o dia na frente. Tocar
- * abre a notícia no navegador, no site do Metrofor.
+ * A notícia do Metrofor que explica por que hoje (ou num dos próximos dias) o horário
+ * é outro (feriado, ENEM, eleição): a manchete, com a fonte e os dias na frente
+ * ("Metrofor, domingo (8/11) e domingo (15/11):"). Tocar abre a notícia no
+ * navegador, no site do Metrofor.
  */
 @Composable
 fun MetroforNotices(notices: List<ScheduleStore.Notice>, modifier: Modifier = Modifier) {
@@ -112,7 +113,7 @@ fun MetroforNotices(notices: List<ScheduleStore.Notice>, modifier: Modifier = Mo
         Text(
             text = buildAnnotatedString {
                 withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                    append(stringResource(if (notice.tomorrow) R.string.notice_tomorrow else R.string.notice_today))
+                    append(stringResource(R.string.notice_days, noticeDays(notice.days)))
                 }
                 append(" ")
                 append(notice.title)
@@ -127,5 +128,28 @@ fun MetroforNotices(notices: List<ScheduleStore.Notice>, modifier: Modifier = Mo
                 } ?: Modifier,
             ),
         )
+    }
+}
+
+/** "hoje", "amanhã", "sábado (14/11)"; até três dias em lista, mais que isso de um a outro. */
+@Composable
+private fun noticeDays(days: List<String>): String {
+    val todayWord = stringResource(R.string.today_word)
+    val tomorrowWord = stringResource(R.string.tomorrow)
+    val andWord = stringResource(R.string.and_word)
+    val rangeFormat = stringResource(R.string.notice_days_range)
+    val zone = TimeZone.getTimeZone("America/Fortaleza")
+    fun label(day: String): String = when (day) {
+        ScheduleStore.today() -> todayWord
+        ScheduleStore.tomorrow() -> tomorrowWord
+        else -> runCatching {
+            val parsed = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = zone }.parse(day)!!
+            SimpleDateFormat("EEEE '('d/M')'", Locale("pt", "BR")).apply { timeZone = zone }.format(parsed)
+        }.getOrDefault(day)
+    }
+    return when {
+        days.size > 3 -> rangeFormat.format(label(days.first()), label(days.last()))
+        days.size == 1 -> label(days[0])
+        else -> days.dropLast(1).joinToString(", ") { label(it) } + " $andWord " + label(days.last())
     }
 }

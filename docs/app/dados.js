@@ -102,11 +102,18 @@ export async function carregar() {
   const proximoEspecial = diaEspecial(regras, somarDias(hoje.data, proximoEhSegunda ? 2 : 1));
   return {
     indice, grade, regras, bike, tipo, proximoEhSegunda, proximoEspecial,
-    // A notícia do Metrofor que explica a operação especial de hoje e a de amanhã (feriado,
-    // ENEM, eleição), do regras.json; sem operação anunciada, nenhuma.
-    avisos: [[hoje.data, false], [somarDias(hoje.data, 1), true]]
-      .map(([d, amanha]) => regras?.operacoes?.[d] && { ...regras.operacoes[d], amanha })
-      .filter((o, i, l) => o && l.findIndex((x) => x?.titulo === o.titulo) === i),
+    // As notícias do Metrofor que explicam as operações especiais (feriado, ENEM, eleição)
+    // de hoje em diante, do regras.json: avisadas assim que aparecem, não só na véspera.
+    // Dias com a mesma notícia viram um aviso só ({dias: [...]}); o de hoje fica separado,
+    // porque vai junto com os horários. Sem operação anunciada, nenhuma.
+    avisos: Object.keys(regras?.operacoes || {}).filter((d) => d >= hoje.data).sort()
+      .reduce((l, d) => {
+        const op = regras.operacoes[d];
+        const igual = d !== hoje.data && l.find((x) => !x.hoje && x.titulo === op.titulo && x.link === op.link);
+        if (igual) igual.dias.push(d);
+        else l.push({ ...op, dias: [d], hoje: d === hoje.data });
+        return l;
+      }, []),
     proximoDia: () => (proximoEspecial ? Promise.resolve(null) : carregarGrade(indice, proximoTipo, true)),
   };
 }

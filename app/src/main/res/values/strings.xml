@@ -33,8 +33,10 @@
     <string name="route_not_running_today">não opera hoje</string>
     <string name="line_not_running_today">Esta linha não opera hoje.</string>
     <string name="direction_unpublished">O Metrofor não publicou os horários deste sentido hoje.</string>
-    <string name="notice_today">Metrofor, hoje:</string>
-    <string name="notice_tomorrow">Metrofor, amanhã:</string>
+    <string name="notice_days">Metrofor, %1$s:</string>
+    <string name="notice_days_range">de %1$s a %2$s</string>
+    <string name="today_word">hoje</string>
+    <string name="and_word">e</string>
     <string name="widget_wide_label">Estação: próximos horários</string>
     <string name="widget_small_label">Estação: próximo horário</string>
     <string name="widget_wide_desc">Os dois próximos horários de cada sentido da sua estação, e o aviso do dia.</string>
@@ -519,7 +521,7 @@
     <string name="block_places">Trabalho e Casa</string>
     <string name="block_stations">As duas estações mais próximas</string>
     <string name="block_stations_sub">sempre aparece</string>
-    <string name="block_notices">Aviso do Metrofor para amanhã</string>
+    <string name="block_notices">Avisos do Metrofor dos próximos dias</string>
     <string name="block_notices_sub">o de hoje aparece acima das estações, mesmo escondido</string>
     <string name="block_search">Para onde você vai?</string>
     <string name="block_routines">Rotinas</string>

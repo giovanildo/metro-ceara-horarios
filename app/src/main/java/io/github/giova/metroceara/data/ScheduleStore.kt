@@ -270,17 +270,27 @@ object ScheduleStore {
         }
     }
 
-    /** A notícia do Metrofor que explica a operação especial de hoje ou de amanhã. */
-    data class Notice(val title: String, val link: String?, val tomorrow: Boolean)
+    /**
+     * A notícia do Metrofor que explica a operação especial dos dias [days]
+     * ("AAAA-MM-DD", em ordem): hoje sozinho, ou os próximos dias com a mesma notícia.
+     */
+    data class Notice(val title: String, val link: String?, val days: List<String>) {
+        val isToday: Boolean get() = days == listOf(today())
+    }
 
     /**
-     * As notícias de operação especial (feriado, ENEM, eleição) de hoje e de amanhã,
-     * do regras.json baixado. Sem operação anunciada, nada: notícia sem critério não entra.
+     * As notícias de operação especial (feriado, ENEM, eleição) de hoje em diante, do
+     * regras.json baixado: avisadas assim que aparecem, não só na véspera (quem vai
+     * fazer o ENEM no domingo quer saber na quinta). Dias com a mesma notícia viram um
+     * aviso só; o de hoje fica separado, porque vai junto com os horários. Sem operação
+     * anunciada, nada: notícia sem critério não entra.
      */
-    fun notices(): List<Notice> =
-        listOf(today() to false, tomorrow() to true)
-            .mapNotNull { (day, tomorrow) -> Regras.current.operations[day]?.let { Notice(it.title, it.link, tomorrow) } }
-            .distinctBy { it.title }
+    fun notices(): List<Notice> {
+        val today = today()
+        return Regras.current.operations.filterKeys { it >= today }.toSortedMap().entries
+            .groupBy { (day, op) -> Triple(day == today, op.title, op.link) }
+            .map { (key, days) -> Notice(key.second, key.third, days.map { it.key }) }
+    }
 
     private fun prefs(context: Context) =
         context.applicationContext.getSharedPreferences("metrofor_schedules", Context.MODE_PRIVATE)
