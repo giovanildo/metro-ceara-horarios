@@ -9,8 +9,9 @@ caso, com a grade que vem no APK.
 ## Baixar
 
 **Página do app, para divulgar:** <https://giovanildo.github.io/metro-ceara-horarios/>
-— explica o que o app faz e como instalar, para quem não é programador, e gera
-uma prévia bonita ao colar o link no WhatsApp.
+— o guia das estações e linhas, com a apresentação do app (o que faz e como
+instalar, para quem não é programador); gera uma prévia bonita ao colar o link
+no WhatsApp.
 
 **Na Play Store, em fase de testes:** para ser testador beta, mande o Gmail
 da sua conta da Play Store pelo WhatsApp (85 99761-9295) ou por e-mail para
@@ -1191,6 +1192,7 @@ tools/build_web_data.py              espelho: grade do dia, Bicicletar e regras.
 tools/datas_especiais.py             regra de bike de dias especiais, das notícias do Metrofor
 tools/operacoes.py                   dias de operação especial e linhas paradas, das notícias
 tools/fontes.py                      fontes do regras.json e quais estão com a conferência vencida
+tools/site.py                        site: páginas das estações e linhas, mapas e sitemap em docs/
 app/src/main/assets/metrofor.db      banco gerado (não editar à mão)
 app/src/main/assets/regras.json      regras fora do GTFS: bike, integrações, passagem,
                                      guia da passagem, endereços, acessibilidade, cores,
@@ -1378,12 +1380,48 @@ testes e gravações: `tap "texto"` (toca pelo texto ou content-desc), `txt`,
 `wait_text`, `fix lon lat` (GPS), `at HHMM` (relógio, com `adb root`), `demo
 HHMM` (barra de status limpa) e `shot nome`. Uso: `. tools/emulador/ui.sh`.
 
-## Página de apresentação
+## Site e página de apresentação
 
-`docs/` é a página pública do app (GitHub Pages, publicada a partir de
-`main`/`docs`): `giovanildo.github.io/metro-ceara-horarios`. É um HTML só,
-sem dependências, feito para quem não é programador — o que o app faz, por que
-é seguro, como instalar (com os avisos do Android explicados) e onde baixar.
+`docs/` é o site público (GitHub Pages, publicado a partir de
+`main`/`docs`): `giovanildo.github.io/metro-ceara-horarios`. Desde 07/11 é
+também um **guia das estações e linhas**, o oposto da lite: a lite é enxuta e
+serve a quem está na plataforma; o site é "maximalista", para quem planeja ou
+chega pelo Google ("horário metrô Parangaba"). Tudo no mesmo endereço, que o
+Google já conhece, em pastas próprias — a lite em `docs/app/` não é tocada.
+
+- **Página principal** (`docs/index.html`, feita à mão): busca de estação,
+  mapa de Fortaleza desenhado pelas posições reais das estações (cada ponto
+  leva à página da estação), avisos do Metrofor dos próximos dias (ao vivo),
+  atalhos, mapas do Cariri e de Sobral e, embaixo, a apresentação do app —
+  o que faz, por que é seguro, como instalar, `#baixar`/`#instalar` e apoio.
+- **Uma página por estação** (`docs/estacoes/<estação>/`, 62) e **por linha**
+  (`docs/linhas/<linha>/`, 7), mais as listas `docs/estacoes/` (com filtro;
+  aceita `?q=`) e `docs/linhas/`. A estação traz próximas partidas, primeiro
+  e último horário (dia útil, sábado, domingo), intervalo típico, vizinhas na
+  linha, passagem, integração com a passagem em cada sentido, acessibilidade,
+  lugares a até 1 km a pé e links para a lite e o Google Maps; título,
+  descrição e dados estruturados (`TrainStation`, `BreadcrumbList`) para o
+  Google. Parangaba e Expedicionários (duas linhas na mesma estação) são uma
+  página só; Padre Cícero do Cariri é `padre-cicero-cariri`.
+- **Gerado por [`tools/site.py`](tools/site.py)**, a partir do `regras.json`
+  e da grade comum (`normais`) de dia útil e sábado do ramo `dados`. O que é
+  fixo vai escrito no HTML; as próximas partidas e os avisos cada página busca
+  no navegador ([`docs/site/agora.js`](docs/site/agora.js) e
+  [`docs/site/inicio.js`](docs/site/inicio.js)) com o **mesmo código da lite**
+  (`docs/app/dados.js`) — mudou esse arquivo, confira o site também. Na página
+  principal, o gerador só troca os trechos `<!--gerado:nome-->…<!--/gerado:nome-->`
+  (mapas, lista da busca, número de estações e linhas). Também reescreve o
+  `sitemap.xml`. Rode de novo quando mudar o `regras.json` ou a grade comum:
+
+  ```bash
+  python3 tools/site.py          # baixa a grade do ramo dados
+  python3 tools/site.py /tmp/d   # ou usa uma pasta gerada pelo build_web_data.py
+  ```
+
+  Os nomes que o GTFS escreve sem acento são corrigidos só no site (`NOMES`);
+  quais estações têm o nome escrito no mapa e de que lado ficam `ROTULOS`,
+  `ESQUERDA`, `ACIMA` e `ABAIXO`. O visual mora em
+  [`docs/site/site.css`](docs/site/site.css), com tema escuro.
 
 O endereço antigo, `giovanildo.github.io/metro-fortaleza-horarios/`, é servido
 pelo repositório [`metro-fortaleza-horarios`](https://github.com/giovanildo/metro-fortaleza-horarios),
@@ -1394,8 +1432,8 @@ houver QR codes ou links antigos por aí.
 
 **A versão lite é a porta de entrada.** A instalação de um APK de fora da loja
 mostra avisos que espantam o usuário comum; a versão lite abre na hora, sem
-nenhum. Por isso o botão principal da página é **"Abrir agora no navegador"**
-(`app/`), e o secundário, **"App completo para Android"**, desce até o bloco
+nenhum. Por isso o botão principal da página é **"Horários agora"**
+(`app/`), e o secundário, **"App para Android"**, desce até o bloco
 `#baixar`. A página não oferece mais instalar o APK direto (desde 27/10):
 o bloco `#baixar` da seção "Como instalar o app completo" diz que o app está em
 fase de testes na Play Store e convida a virar testador beta: o botão **"Quero

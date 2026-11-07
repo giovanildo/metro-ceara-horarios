@@ -1,0 +1,182 @@
+/* Site (guia das estações e linhas), gerado por tools/site.py. A lite tem o
+   próprio estilo (docs/app/app.css); este é o "maximalista": cara de guia de cidade. */
+:root {
+  --fundo: #fbf8f4; --papel: #ffffff; --texto: #1b1a1f; --suave: #5d5965; --linha: #e7e1da;
+  --destaque: #CE0F2E; --sombra: 0 1px 2px rgba(0,0,0,.05), 0 8px 24px rgba(40,20,10,.07);
+  --raio: 18px;
+  --titulo: "Avenir Next", "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, Roboto, "Noto Sans", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --fundo: #131216; --papel: #1d1b21; --texto: #efebf0; --suave: #b5afba; --linha: #33303a;
+          --sombra: 0 1px 2px rgba(0,0,0,.4); }
+  /* A cor vem no style="" de cada elemento; !important é o que ganha dele. A faixa
+     do topo fica com a cor do mapa, que segura o texto branco. */
+  .cartao, .trilho, .trilho-mini, main .selo, .bloco-linha .selo { --cor: var(--cor-escuro) !important; }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--fundo); color: var(--texto);
+  font: 17px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+}
+a { color: inherit; text-decoration-color: color-mix(in srgb, currentColor 40%, transparent); text-underline-offset: 3px; }
+a:hover { text-decoration-color: currentColor; }
+h1, h2, h3 { font-family: var(--titulo); line-height: 1.1; letter-spacing: -.015em; }
+h2 { font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2rem); margin: 0 0 16px; }
+h3 { font-size: 1.15rem; margin: 0 0 8px; }
+.largura { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+.dica { color: var(--suave); font-size: .92rem; }
+.pular { position: absolute; left: -999px; }
+.pular:focus { left: 16px; top: 8px; background: var(--papel); padding: 8px 12px; z-index: 10; }
+
+/* ---------- topo */
+.topo { background: var(--papel); border-bottom: 1px solid var(--linha); position: sticky; top: 0; z-index: 5; }
+.topo .largura { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; flex-wrap: wrap; }
+.marca { display: flex; align-items: center; gap: 10px; font-family: var(--titulo); font-weight: 800; font-size: 1.1rem; text-decoration: none; }
+.marca img { border-radius: 8px; }
+.menu { display: flex; gap: 4px; flex-wrap: wrap; }
+.menu a { text-decoration: none; padding: 6px 12px; border-radius: 999px; font-weight: 600; font-size: .95rem; }
+.menu a:hover { background: var(--fundo); }
+.menu .abrir { background: var(--destaque); color: #fff; }
+/* No celular, o menu cabe numa linha: o nome some (fica o ícone) e os links encolhem. */
+@media (max-width: 480px) {
+  .topo .largura { flex-wrap: nowrap; }
+  .marca-nome { position: absolute; left: -999px; }
+  .menu { flex-wrap: nowrap; }
+  .menu a { padding: 6px 9px; font-size: .9rem; white-space: nowrap; }
+  .menu .opcional { display: none; }
+}
+
+/* ---------- faixa colorida do topo da página */
+.faixa {
+  --cor: var(--destaque);
+  background:
+    radial-gradient(circle at 92% -10%, rgba(255,255,255,.22) 0 28%, transparent 28.2%),
+    radial-gradient(circle at 80% 130%, rgba(0,0,0,.14) 0 30%, transparent 30.2%),
+    var(--cor);
+  color: #fff; padding: 20px 0 36px; overflow: hidden;
+}
+.faixa h1 { font-size: clamp(2.4rem, 1.6rem + 4.5vw, 4.8rem); font-weight: 900; margin: 4px 0 14px; text-wrap: balance; }
+.migalhas { font-size: .9rem; opacity: .92; margin: 0 0 18px; }
+.migalhas a { color: #fff; }
+.sobretitulo { text-transform: uppercase; letter-spacing: .12em; font-size: .8rem; font-weight: 700; opacity: .9; margin: 0; }
+.endereco { font-size: 1.1rem; margin: 10px 0 0; opacity: .97; }
+.selos { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
+.faixa .selo { background: #fff; color: var(--cor); }
+.acoes { display: flex; flex-wrap: wrap; gap: 10px; margin: 22px 0 0; }
+.botao {
+  display: inline-block; padding: 12px 20px; border-radius: 999px; font-weight: 700; text-decoration: none;
+  background: var(--destaque); color: #fff; border: 2px solid transparent;
+}
+.botao.claro { background: #fff; color: var(--cor, var(--destaque)); }
+.botao.vazado { border-color: rgba(255,255,255,.8); color: #fff; background: transparent; }
+.botao.vazado-escuro { border-color: currentColor; color: var(--texto); background: transparent; }
+.filtro { width: 100%; max-width: 420px; font: inherit; padding: 12px 18px; border-radius: 999px; border: 0; margin-top: 18px; }
+
+/* ---------- selo de linha */
+.selo {
+  --cor: #777; display: inline-block; padding: 3px 12px; border-radius: 999px; font-size: .85rem; font-weight: 700;
+  background: var(--cor); color: #fff; text-decoration: none; white-space: nowrap;
+}
+
+/* ---------- conteúdo */
+main section { margin: 44px 0 0; }
+.aviso { background: #fff4d6; color: #4a3500; border-radius: var(--raio); padding: 14px 18px; margin: 24px 0 0; }
+@media (prefers-color-scheme: dark) { .aviso { background: #3a2f12; color: #ffe7a8; } }
+
+.agora { background: var(--papel); border-radius: var(--raio); box-shadow: var(--sombra); padding: 22px; margin-top: -18px; position: relative; }
+.agora h2 { font-size: 1.3rem; margin-bottom: 10px; }
+.agora-lista { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px 22px; }
+.agora-sentido { border-left: 5px solid var(--cor); padding-left: 14px; }
+.agora-sentido h3 { font-size: 1rem; margin: 0 0 4px; }
+.agora-sentido .linha-nome { color: var(--suave); font-size: .85rem; font-weight: 600; margin: 0; }
+.partidas { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0 0; padding: 0; list-style: none; }
+.partidas li { background: var(--fundo); border-radius: 12px; padding: 6px 12px; line-height: 1.2; }
+.partidas li strong { display: block; font-family: var(--titulo); font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+.partidas li span { font-size: .8rem; color: var(--suave); }
+.partidas li:first-child { background: var(--cor); color: #fff; }
+.partidas li:first-child span { color: rgba(255,255,255,.9); }
+.aviso-dia { grid-column: 1 / -1; margin: 0; background: var(--fundo); border-radius: 12px; padding: 10px 14px; }
+
+.grade-cartoes { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.cartao {
+  --cor: #777; background: var(--papel); border-radius: var(--raio); box-shadow: var(--sombra);
+  padding: 20px; border-top: 6px solid var(--cor); margin: 0 0 16px;
+}
+.grade-cartoes .cartao { margin: 0; }
+.cartao-link { display: block; text-decoration: none; transition: transform .15s; }
+.cartao-link:hover { transform: translateY(-3px); }
+.cartao-link h3 { font-size: 1.4rem; }
+.cartao-linha { color: var(--cor); font-weight: 800; font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; margin: 0 0 4px; }
+.cartao-linha a { text-decoration: none; }
+.horarios { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.horarios th, .horarios td { text-align: left; padding: 7px 4px; border-bottom: 1px solid var(--linha); }
+.horarios thead th { font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; color: var(--suave); }
+.horarios tbody th { font-weight: 600; }
+.horarios td { font-family: var(--titulo); font-size: 1.15rem; font-weight: 700; }
+.horarios td[colspan] { font-family: inherit; font-size: .9rem; font-weight: 400; color: var(--suave); }
+
+.lista { padding-left: 0; list-style: none; }
+.lista li { margin: 8px 0; }
+
+/* ---------- números grandes (acessibilidade, resumo da linha) */
+.numeros { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
+.numero { background: var(--papel); border-radius: var(--raio); box-shadow: var(--sombra); padding: 16px; margin: 0; display: flex; flex-direction: column; }
+.numero .emoji { font-size: 1.6rem; }
+.numero strong { font-family: var(--titulo); font-size: 2rem; line-height: 1.1; }
+.numero span:last-child { color: var(--suave); font-size: .9rem; }
+.numero.zero strong { font-size: 1.1rem; color: var(--suave); padding: 8px 0 4px; }
+.numeros.claros { margin-top: 26px; }
+.numeros.claros .numero { background: rgba(255,255,255,.15); box-shadow: none; color: #fff; }
+.numeros.claros .numero span:last-child { color: rgba(255,255,255,.9); }
+
+/* ---------- trilho (a linha desenhada com as estações) */
+.trilho { --cor: #777; list-style: none; margin: 10px 0 0; padding: 0 0 0 30px; position: relative; }
+.trilho::before { content: ""; position: absolute; left: 9px; top: 12px; bottom: 12px; width: 6px; border-radius: 3px; background: var(--cor); }
+.trilho li { position: relative; padding: 5px 0; }
+.trilho li::before {
+  content: ""; position: absolute; left: -27px; top: 50%; translate: 0 -50%;
+  width: 12px; height: 12px; border-radius: 50%; background: var(--papel); border: 3px solid var(--cor);
+}
+.trilho li.ponta > a { font-weight: 800; }
+.trilho li.ponta::before { width: 16px; height: 16px; left: -29px; background: var(--cor); }
+.trilho .selo { font-size: .72rem; padding: 1px 8px; margin-left: 4px; }
+.marca-texto { font-size: .78rem; color: var(--suave); margin-left: 4px; }
+.colunas-linhas { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 28px; }
+.bloco-linha .selo { font-size: .95rem; }
+.duas-colunas { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); gap: 40px; align-items: start; }
+@media (max-width: 760px) { .duas-colunas { grid-template-columns: 1fr; gap: 0; } }
+
+.trilho-mini { --cor: #777; background: var(--papel); border-radius: var(--raio); box-shadow: var(--sombra); padding: 18px 20px; margin: 0 0 16px; }
+.trilho-mini ol { list-style: none; display: flex; gap: 0; padding: 26px 0 4px; margin: 0; overflow-x: auto; }
+.trilho-mini li { flex: 1 0 96px; position: relative; text-align: center; font-size: .9rem; padding: 0 4px; }
+.trilho-mini li::before { content: ""; position: absolute; top: -17px; left: 0; right: 0; height: 6px; background: var(--cor); }
+.trilho-mini li:first-child.ponta::before { left: 50%; }
+.trilho-mini li:last-child.ponta::before { right: 50%; }
+.trilho-mini li::after {
+  content: ""; position: absolute; top: -22px; left: 50%; translate: -50% 0; width: 12px; height: 12px;
+  border-radius: 50%; background: var(--papel); border: 3px solid var(--cor);
+}
+.trilho-mini li.aqui::after { width: 20px; height: 20px; top: -26px; background: var(--cor); box-shadow: 0 0 0 4px color-mix(in srgb, var(--cor) 25%, transparent); }
+
+/* ---------- perto da estação */
+.perto { columns: 3 260px; column-gap: 20px; }
+.grupo-perto { break-inside: avoid; background: var(--papel); border-radius: var(--raio); box-shadow: var(--sombra); padding: 16px 18px; margin: 0 0 20px; }
+.grupo-perto ul { list-style: none; padding: 0; margin: 0; }
+.grupo-perto li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-top: 1px solid var(--linha); }
+.grupo-perto li:first-child { border-top: 0; }
+.grupo-perto li .dica { white-space: nowrap; }
+
+/* ---------- chamada para a lite e o app */
+.chamada {
+  margin: 56px 0 0; padding: 28px; border-radius: 28px; background: var(--papel); box-shadow: var(--sombra);
+  display: grid; grid-template-columns: 1fr auto; gap: 16px 28px; align-items: center;
+  border: 3px solid var(--destaque);
+}
+.chamada h2 { margin-bottom: 6px; }
+.chamada p { margin: 0; }
+@media (max-width: 700px) { .chamada { grid-template-columns: 1fr; } }
+
+/* ---------- rodapé */
+.rodape { margin-top: 64px; padding: 28px 0 40px; border-top: 1px solid var(--linha); color: var(--suave); font-size: .92rem; }
+.rodape .gerado { font-size: .82rem; }
