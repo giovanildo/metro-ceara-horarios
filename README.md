@@ -1422,6 +1422,12 @@ Google já conhece, em pastas próprias — a lite em `docs/app/` não é tocada
   quais estações têm o nome escrito no mapa e de que lado ficam `ROTULOS`,
   `ESQUERDA`, `ACIMA` e `ABAIXO`. O visual mora em
   [`docs/site/site.css`](docs/site/site.css), com tema escuro.
+- **Google Search Console** (desde 07/11): propriedade "Prefixo do URL"
+  `https://giovanildo.github.io/metro-ceara-horarios/`, verificada pelo arquivo
+  [`docs/googlee146230595bf6c09.html`](docs/googlee146230595bf6c09.html) —
+  **não apague esse arquivo**: sem ele, o Google desfaz a verificação. O
+  `sitemap.xml` foi enviado lá; o relatório Desempenho mostra por quais
+  pesquisas as pessoas chegam às páginas.
 
 O endereço antigo, `giovanildo.github.io/metro-fortaleza-horarios/`, é servido
 pelo repositório [`metro-fortaleza-horarios`](https://github.com/giovanildo/metro-fortaleza-horarios),
