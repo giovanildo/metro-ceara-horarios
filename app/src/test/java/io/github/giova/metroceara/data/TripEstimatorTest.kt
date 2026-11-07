@@ -77,4 +77,14 @@ class TripEstimatorTest {
         assertEquals(TripFix.SIMULATED, end.fix)
         assertEquals(null, end.gpsSilentMinutes)
     }
+
+    @Test
+    fun `proxima parada so no metro e quando nao e o destino`() {
+        val plan = plan()
+        fun next(index: Int) = TripProgress(index, TripFix.GPS, 0.0, 0.0).nextStop(plan)?.name
+        assertEquals(null, next(-1)) // ainda esperando o metrô
+        assertEquals("Jereissati", next(0))
+        assertEquals(null, next(1)) // a próxima é o destino: "destino em 1 estação"
+        assertEquals(null, next(2))
+    }
 }

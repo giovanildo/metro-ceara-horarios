@@ -105,6 +105,10 @@
     <string name="trip_notification_title">Até %1$s · chegada ~%2$s</string>
     <string name="trip_waiting">Aguardando o %3$s em %1$s, previsto às %2$s.</string>
     <string name="trip_progress_line">Em %1$s · destino em %2$s · chegada ~%3$s (%4$s)</string>
+    <!-- Junto da estação atual, no cartão do modo viagem: "Em Padre Cícero · próxima: Benfica". -->
+    <string name="trip_next_inline">%1$s · próxima: %2$s</string>
+    <!-- Começo do texto da notificação fixa (o título já diz onde está). -->
+    <string name="trip_next_prefix">Próxima: %1$s</string>
     <!-- Notificação fixa no trem: a estação atual no título (o relógio mostra o começo). -->
     <string name="trip_now_title">Em %1$s</string>
     <string name="trip_progress_line_to">Até %1$s em %2$s · chegada ~%3$s (%4$s)</string>

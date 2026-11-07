@@ -195,6 +195,13 @@ data class TripProgress(
     /** A posição é presumida pela tabela de horários, não vista pelo GPS. */
     val presumed: Boolean get() = fix == TripFix.SCHEDULE
     fun stationsLeft(plan: TripPlan): Int = (plan.stops.lastIndex - index.coerceAtLeast(0)).coerceAtLeast(0)
+
+    /**
+     * A próxima parada, já no metrô. `null` antes de embarcar e quando a próxima
+     * é o destino: "destino em 1 estação" já diz isso.
+     */
+    fun nextStop(plan: TripPlan): TripStop? =
+        plan.stops.getOrNull(index + 1)?.takeIf { index >= 0 && stationsLeft(plan) >= 2 }
 }
 
 /**

@@ -312,10 +312,12 @@ internal object TripNotifications {
         // primeiro e corta o resto; o destino e a chegada vêm no texto.
         val here = plan.stops.getOrNull(progress.index)?.takeIf { !trip.arrived }
         if (here != null) {
+            // A próxima parada primeiro: o relógio corta o fim do texto.
+            val next = progress.nextStop(plan)?.let { context.getString(R.string.trip_next_prefix, it.name) }
             val text = if (journey != null) {
-                listOfNotNull(route, journeyThen(context, plan)).joinToString(" · ")
+                listOfNotNull(next, route, journeyThen(context, plan)).joinToString(" · ")
             } else {
-                context.getString(
+                val line = context.getString(
                     R.string.trip_progress_line_to,
                     plan.destination.name,
                     context.resources.getQuantityString(R.plurals.trip_stations_left, left, left),
@@ -324,6 +326,7 @@ internal object TripNotifications {
                 ) + (progress.gpsSilentMinutes?.let {
                     " · " + context.getString(R.string.trip_gps_lost_short, it.toInt().coerceAtLeast(1))
                 } ?: "")
+                listOfNotNull(next, line).joinToString(" · ")
             }
             return ongoingNotification(context, trip, simulated(context, plan, context.getString(R.string.trip_now_title, here.name)), text)
         }

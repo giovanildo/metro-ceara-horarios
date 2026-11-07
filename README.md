@@ -424,10 +424,15 @@ o Android só usa a forma, e o ícone do app, de fundo cheio, virava um quadrado
   começo do texto, então o essencial vem primeiro: a estação no título do aviso
   ("Benfica: prepare-se para descer", "Parangaba: prepare-se para a
   integração"); na notificação fixa, no trem, a estação atual no título ("Em
-  Benfica") e o destino no texto ("Até Parangaba em 5 estações · chegada ~07:43
-  (pelo GPS)"); antes de embarcar, o destino e a chegada no título ("Até
+  Benfica") e, no texto, a próxima parada e o destino ("Próxima: Couto
+  Fernandes · Até Parangaba em 5 estações · chegada ~07:43 (pelo GPS)"); antes de embarcar, o destino e a chegada no título ("Até
   Parangaba · chegada ~08:01"); e "(simulação)" e "(pela tabela de horários)"
   no fim. A voz continua com a frase completa.
+- **Próxima parada.** Desde a 1.79 (pedido de uma anotação de campo), o cartão
+  diz onde o metrô está e qual é a próxima: "Em Padre Cícero · próxima: Benfica
+  · destino em 4 estações · chegada ~15:58". Quando a próxima já é o destino,
+  ela não se repete ("destino em 1 estação" diz isso). Sem GPS, vale o mesmo
+  "presumida" da estação atual.
 - **Distância até a partida.** Se a pessoa está a mais de **1 km** da estação de
   partida (ajustável), o app pergunta antes de iniciar: **Simular a viagem**,
   **Esperar o GPS** ou Cancelar.

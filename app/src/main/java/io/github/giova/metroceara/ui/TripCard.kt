@@ -146,7 +146,9 @@ fun TripCard(
                     )
                     else -> stringResource(
                         R.string.trip_progress_line,
-                        plan.stops[progress.index].name,
+                        progress.nextStop(plan)?.let { next ->
+                            stringResource(R.string.trip_next_inline, plan.stops[progress.index].name, next.name)
+                        } ?: plan.stops[progress.index].name,
                         pluralStringResource(R.plurals.trip_stations_left, left, left),
                         formatTime(progress.arrivalMinutes.roundToInt()),
                         stringResource(fixLabel(progress.fix)),
