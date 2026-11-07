@@ -316,7 +316,7 @@
     <string name="transfer_free">Integração gratuita: não paga outra passagem</string>
     <string name="transfer_paid">Integração paga: é preciso pagar outra passagem</string>
     <string name="settings_seated">Oferecer ir sentado pelo terminal até</string>
-    <string name="settings_seated_desc">Nos horários de pico (6h às 8h e 16h às 19h), se você estiver perto de um terminal e for no sentido contrário, o modo viagem oferece ir até o terminal e voltar sentado no mesmo metrô ou VLT. Leva um pouco mais de tempo.</string>
+    <string name="settings_seated_desc">Se você estiver perto de um terminal e for no sentido contrário, o modo viagem oferece ir até o terminal e voltar sentado no mesmo metrô ou VLT. Leva um pouco mais de tempo.</string>
     <string name="trip_choice_title">Como você quer ir?</string>
     <string name="trip_choice_direct">Direto</string>
     <string name="trip_choice_direct_desc">Embarca aqui às %1$s e chega às %2$s.</string>

@@ -458,11 +458,13 @@ o Android só usa a forma, e o ícone do app, de fundo cheio, virava um quadrado
   trem, ele volta às HH:MM"; na volta, as estações repetidas são reconhecidas
   como volta (o GPS sempre casa com a próxima ocorrência à frente). O trem não
   sai do terminal antes do horário: adiantamento medido na ida é descartado ali.
-  **Só no horário de pico**: a pergunta aparece quando a partida cai das 6h às
-  8h ou das 16h às 19h, faixas que concentram ~45% dos passageiros segundo o
-  Relatório de Demanda do Metrofor (3º tri/2025); fora delas a viagem começa
-  direto. As faixas ficam em `regras.json` (`pico`), junto das outras regras do
-  Metrofor.
+  **Em qualquer horário**, com "direto" como primeira opção. Até a 1.78 a
+  pergunta só aparecia no pico (6h às 8h e 16h às 19h, ~45% dos passageiros
+  segundo o Relatório de Demanda do Metrofor, 3º tri/2025), mas em 04/11 ele
+  embarcou em Maracanaú às 15h para voltar sentado e o app não ofereceu: a
+  viagem começou direto, sem Carlito, e o app não soube acompanhar o metrô
+  parado lá. As faixas continuam em `regras.json` (`pico`) e aparecem na
+  pergunta como explicação.
 - Durante a viagem, o cartão da estação em destaque some da tela inicial: o da
   viagem já diz onde a pessoa está.
 - **Lembrete dos pertences** (ligado por padrão; desliga nas Configurações): o
