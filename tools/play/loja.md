@@ -42,6 +42,7 @@ Que horas passa o próximo metrô? Abra o app e veja a estação mais perto de v
 • Passagem, meia e gratuidade: quanto custa cada linha, quem paga meia ou não paga, onde tirar o cartão e o que levar, conforme o site do Metrofor.
 • Bike no metrô: se dá para embarcar com bicicleta agora, pelas regras do Metrofor, e a estação do Bicicletar mais perto.
 • Horários do dia: a grade do próprio dia, inclusive sábado e operação especial. Sem internet, usa a última guardada.
+• ENEM, eleição e feriado: o aviso do Metrofor aparece assim que a operação especial é anunciada, com notificação mesmo com o app fechado.
 
 Transparência: cada informação diz de onde vem e quando foi conferida, com o link para conferir. O que é estimativa do app aparece como estimativa.
 
