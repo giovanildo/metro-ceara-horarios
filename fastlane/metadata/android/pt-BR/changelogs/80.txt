@@ -1,0 +1,2 @@
+• Modo viagem: agora mostra o nome da próxima parada, na tela e na notificação.
+• "Ir sentado pelo terminal" passa a ser oferecido em qualquer horário, não só no pico: perto do terminal, dá para ir até ele e voltar sentado no mesmo metrô ou VLT.
