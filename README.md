@@ -1286,7 +1286,8 @@ web instalável (PWA), a **versão lite**, neste mesmo repositório. Fica de
 fora de propósito o que depende do celular em segundo plano: modo viagem, voz,
 registro de testes — esses ficam só no app de Android. A tela inicial segue a
 mesma ordem padrão do app (Trabalho e Casa, o aviso do Metrofor de hoje, as duas
-estações mais próximas com o tempo que falta grande, o aviso de amanhã, "Para
+estações mais próximas com o tempo que falta grande, os avisos dos próximos
+dias — toda operação anunciada, desde o dia em que a notícia sai —, "Para
 onde você vai?" e as linhas),
 sem "Ajustar para mim" nem a escolha da ordem. O navegador não consegue baixar
 o GTFS direto do Metrofor — o site não libera acesso a partir de outras
