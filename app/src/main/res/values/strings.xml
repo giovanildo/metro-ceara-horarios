@@ -212,6 +212,10 @@
     <string name="commute_is_last">Este é o último %1$s de hoje</string>
     <string name="commute_arrives_late">chega %1$s · atrasa</string>
     <string name="commute_recent_title">Sua última viagem</string>
+    <string name="commute_recent_back">Sua viagem de volta</string>
+    <string name="commute_recent_flip">Inverter</string>
+    <string name="settings_recent_return">Mostrar a volta da última viagem depois de</string>
+    <string name="settings_recent_return_desc">Sem saber onde você está, a tela inicial passa a mostrar o caminho de volta quando a última viagem foi vista há esse tempo, no mesmo dia.</string>
     <string name="commute_recent_times">sai %1$s · chega %2$s</string>
     <string name="place_define">Definir %1$s</string>
     <string name="place_here">você está aqui</string>

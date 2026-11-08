@@ -124,19 +124,7 @@ fun CommuteCard(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f),
                 )
-                Surface(
-                    shape = RoundedCornerShape(18.dp),
-                    color = MaterialTheme.colorScheme.surface,
-                    contentColor = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.clip(RoundedCornerShape(18.dp)).clickable(onClick = onFlip),
-                ) {
-                    Text(
-                        text = "⇄ " + commuteTitle(other, view.kind),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                    )
-                }
+                FlipPill(commuteTitle(other, view.kind), onFlip)
             }
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
                 view.lineColors.forEach { color ->
@@ -200,6 +188,23 @@ fun CommuteCard(
 }
 
 @Composable
+private fun FlipPill(label: String, onClick: () -> Unit) {
+    Surface(
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.clip(RoundedCornerShape(18.dp)).clickable(onClick = onClick),
+    ) {
+        Text(
+            text = "⇄ $label",
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+        )
+    }
+}
+
+@Composable
 private fun CommuteOption(option: Itinerary, view: CommuteView, modifier: Modifier) {
     val late = view.destination == Place.WORK && view.target != null && option.arrival > view.target
     Surface(shape = RoundedCornerShape(10.dp), color = Color.White.copy(alpha = 0.55f), modifier = modifier) {
@@ -215,9 +220,19 @@ private fun CommuteOption(option: Itinerary, view: CommuteView, modifier: Modifi
     }
 }
 
-/** Para quem não definiu Casa nem Trabalho: a viagem mais recente, com o próximo horário. */
+/**
+ * Para quem não definiu Casa nem Trabalho: a viagem mais recente com o próximo
+ * horário, ou o caminho de volta ([reversed]) quando a pessoa já foi. ⇄ inverte.
+ */
 @Composable
-fun RecentTripCard(row: RecentRow, times: Pair<Int, Int>?, now: Int, onOpen: () -> Unit) {
+fun RecentTripCard(
+    row: RecentRow,
+    times: Pair<Int, Int>?,
+    reversed: Boolean,
+    now: Int,
+    onOpen: () -> Unit,
+    onFlip: () -> Unit,
+) {
     Card(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -226,7 +241,14 @@ fun RecentTripCard(row: RecentRow, times: Pair<Int, Int>?, now: Int, onOpen: () 
         modifier = Modifier.fillMaxWidth().clickable(onClick = onOpen),
     ) {
         Column(Modifier.padding(16.dp)) {
-            Text("🕘 " + stringResource(R.string.commute_recent_title), style = MaterialTheme.typography.labelLarge)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "🕘 " + stringResource(if (reversed) R.string.commute_recent_back else R.string.commute_recent_title),
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.weight(1f),
+                )
+                FlipPill(stringResource(R.string.commute_recent_flip), onFlip)
+            }
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
                 row.lines.forEach { (_, color) ->
                     Spacer(Modifier.padding(end = 5.dp).size(9.dp).clip(CircleShape).background(routeColor(color)))

@@ -97,6 +97,7 @@ import io.github.giova.metroceara.data.CommuteSchedule
 import io.github.giova.metroceara.data.CommuteStore
 import io.github.giova.metroceara.data.commuteDestination
 import io.github.giova.metroceara.data.pickCommute
+import io.github.giova.metroceara.data.shouldReverseRecent
 import io.github.giova.metroceara.data.vehicleName
 import io.github.giova.metroceara.data.HomeBlock
 import io.github.giova.metroceara.data.HomeLayout
@@ -765,36 +766,62 @@ fun AppRoot() {
     // As últimas viagens vistas em "Planeje sua viagem" (até 3), sem repetir Casa ou
     // Trabalho saindo da estação de agora, que já têm atalho.
     val recentTrips by RecentTrips.all(context).collectAsState()
+    fun recentRow(t: RecentTrip): RecentRow? {
+        val from = repo.stop(t.originStop)?.name ?: return null
+        val to = repo.stop(t.destStop)?.name ?: return null
+        val a = repo.route(t.originRoute) ?: return null
+        val b = repo.route(t.destRoute) ?: return null
+        return RecentRow(
+            trip = t,
+            title = "${JourneyPlanner.plainName(from)} → ${t.landmark ?: JourneyPlanner.plainName(to)}",
+            lines = listOf(a.name to a.colorHex) + if (b.id != a.id) listOf(b.name to b.colorHex) else emptyList(),
+            walk = t.landmark != null,
+        )
+    }
+
     val recentRows = remember(recentTrips, places, homeState.station) {
         val here = homeState.station
         recentTrips.orEmpty().filterNot { t ->
             here != null && t.landmark == null && t.originStop == here.stopId && t.originRoute == here.routeId &&
                 places?.values?.any { it.first == t.destStop && it.second == t.destRoute } == true
-        }.mapNotNull { t ->
-            val from = repo.stop(t.originStop)?.name ?: return@mapNotNull null
-            val to = repo.stop(t.destStop)?.name ?: return@mapNotNull null
-            val a = repo.route(t.originRoute) ?: return@mapNotNull null
-            val b = repo.route(t.destRoute) ?: return@mapNotNull null
-            RecentRow(
-                trip = t,
-                title = "${JourneyPlanner.plainName(from)} → ${t.landmark ?: JourneyPlanner.plainName(to)}",
-                lines = listOf(a.name to a.colorHex) + if (b.id != a.id) listOf(b.name to b.colorHex) else emptyList(),
-                walk = t.landmark != null,
-            )
-        }
+        }.mapNotNull(::recentRow)
+    }
+
+    // Saída e chegada de quem sai agora; sem metrô hoje, nada.
+    fun recentTimesOf(t: RecentTrip): Pair<Int, Int>? {
+        val origin = repo.station(t.originStop, t.originRoute) ?: return null
+        val plan = planJourney(origin, RoutePoint(t.destRoute, t.destStop), null).options.firstOrNull()?.itinerary ?: return null
+        val walk = t.landmark?.let { name -> Regras.current.landmarks.firstOrNull { it.name == name } }
+            ?.let(::landmarkWalkMinutes) ?: 0
+        return plan.departure to plan.arrival + walk
     }
     // Saída e chegada de quem sai agora, em cada recente, calculadas fora da tela.
     val recentTimes by produceState(emptyMap<RecentTrip, Pair<Int, Int>>(), recentRows, now, sundayOff, stoppedRoutes) {
         value = withContext(Dispatchers.IO) {
-            recentRows.mapNotNull { row ->
-                val t = row.trip
-                val origin = repo.station(t.originStop, t.originRoute) ?: return@mapNotNull null
-                val plan = planJourney(origin, RoutePoint(t.destRoute, t.destStop), null).options.firstOrNull()?.itinerary
-                    ?: return@mapNotNull null
-                val walk = t.landmark?.let { name -> Regras.current.landmarks.firstOrNull { it.name == name } }
-                    ?.let(::landmarkWalkMinutes) ?: 0
-                t to (plan.departure to plan.arrival + walk)
-            }.toMap()
+            recentRows.mapNotNull { row -> recentTimesOf(row.trip)?.let { row.trip to it } }.toMap()
+        }
+    }
+
+    // A viagem do alto da tela inicial, para quem não guardou Casa nem Trabalho: a
+    // mais recente ou, quando a pessoa já foi, o caminho de volta. ⇄ vale enquanto
+    // o app continuar achando o mesmo para a mesma viagem.
+    var latestFlippedFrom by remember { mutableStateOf<Pair<RecentTrip, Boolean>?>(null) }
+    val latestTrip by produceState<LatestTrip?>(null, recentTrips, latestFlippedFrom, homeState, now, sundayOff, stoppedRoutes, settings) {
+        value = withContext(Dispatchers.IO) {
+            val trip = recentTrips.orEmpty().firstOrNull() ?: return@withContext null
+            val origin = repo.station(trip.originStop, trip.originRoute) ?: return@withContext null
+            val destination = repo.station(trip.destStop, trip.destRoute) ?: return@withContext null
+            val automatic = shouldReverseRecent(
+                userDistanceTo(origin.lat, origin.lon),
+                userDistanceTo(destination.lat, destination.lon),
+                settings.walkToStationMeters.toDouble(),
+                trip.at,
+                System.currentTimeMillis(),
+                settings.recentReturnHours,
+            )
+            val reversed = automatic != (latestFlippedFrom == (trip to automatic))
+            val shown = if (reversed) trip.reversed() else trip
+            recentRow(shown)?.let { LatestTrip(it, recentTimesOf(shown), reversed, trip, automatic) }
         }
     }
     fun openRecent(trip: RecentTrip) {
@@ -993,7 +1020,7 @@ fun AppRoot() {
         when (block) {
             HomeBlock.PLACES -> Column {
                 val view = commuteView
-                val latest = recentRows.firstOrNull()
+                val latest = latestTrip
                 when {
                     !inRoutes && commuteReady -> view?.let {
                         CommuteCard(
@@ -1012,7 +1039,17 @@ fun AppRoot() {
                     }
                     // Sem Casa nem Trabalho: a viagem mais recente, logo abaixo dos avisos.
                     !inRoutes && places.isNullOrEmpty() && latest != null ->
-                        RecentTripCard(latest, recentTimes[latest.trip], now, onOpen = { openRecent(latest.trip) })
+                        RecentTripCard(
+                            row = latest.row,
+                            times = latest.times,
+                            reversed = latest.reversed,
+                            now = now,
+                            onOpen = { openRecent(latest.row.trip) },
+                            onFlip = {
+                                val key = latest.source to latest.automatic
+                                latestFlippedFrom = if (latestFlippedFrom == key) null else key
+                            },
+                        )
                     else -> PlaceShortcuts(
                         shortcuts = placeShortcuts,
                         kind = commuteKind,

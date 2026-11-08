@@ -43,6 +43,16 @@ data class RecentRow(
     val walk: Boolean,
 )
 
+/** A viagem do alto da tela inicial, já no sentido em que aparece. */
+data class LatestTrip(
+    val row: RecentRow,
+    val times: Pair<Int, Int>?,
+    val reversed: Boolean,
+    /** A viagem guardada e o que o app decidiu sobre ela, para saber até quando vale o ⇄. */
+    val source: RecentTrip,
+    val automatic: Boolean,
+)
+
 /** "Recentes", debaixo de Casa e Trabalho: um toque repete, tocar e segurar remove. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
