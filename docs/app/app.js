@@ -380,14 +380,22 @@ function guardarRecente(r) {
 }
 
 function blocoRecentes() {
-  const { grade } = estado.dados;
+  const { grade, regras } = estado.dados;
+  const t = agora();
+  const dia = diaDaViagem(t);
+  // Saída e chegada de quem sai agora; num domingo sem metrô, nenhum horário.
+  const r2 = dia && !dia.domingo ? new Roteador(grade, regras, perfilGuardado()) : null;
   const itens = lerRecentes().map((r, i) => {
     const [lo, eo] = r.origem.split("|"), [ld, ed] = r.destino.split("|");
     const a = grade.linha(lo), b = grade.linha(ld);
     if (!a || !b || !grade.estacoes[eo] || !grade.estacoes[ed]) return "";
     const linhas = [a, ...(b.id !== a.id ? [b] : [])];
+    const parada = linhas.some((l) => linhaParada(regras, dia?.data ?? t.data, l.nome));
+    const o = r2 && !parada ? r2.planejar({ linha: lo, est: eo }, { linha: ld, est: ed }, t.minutos - 2, 1, dia.evitar)[0] : null;
+    const lugar = r.lugar ? buscarLugares(regras, r.lugar, 50).find((x) => x.nome === r.lugar) : null;
+    const horas = o ? `<span class="recente-horas"><b>chega ${hora(o.chega + (lugar ? minutosAPe(lugar, fatorPerfil()) : 0))}</b><small>sai ${hora(o.sai)}</small></span>` : "";
     return `<div class="recente"><button class="recente-abrir" data-r="${i}">🕘 <span><strong>${esc(semSufixo(grade.nome(eo)))} → ${esc(r.lugar || semSufixo(grade.nome(ed)))}</strong>
-      <small>${linhas.map((l) => `<span class="ponto" style="background:${cor(l)}"></span>`).join("")} ${linhas.map((l) => esc(l.nome)).join(" → ")}${r.lugar ? " · a pé no fim" : ""}</small></span></button>
+      <small>${linhas.map((l) => `<span class="ponto" style="background:${cor(l)}"></span>`).join("")} ${linhas.map((l) => esc(l.nome)).join(" → ")}${r.lugar ? " · a pé no fim" : ""}</small></span>${horas}</button>
       <button class="recente-tirar" data-tirar="${i}" aria-label="Remover dos recentes">✕</button></div>`;
   }).join("");
   return itens ? `<p class="grupo">Recentes</p>${itens}` : "";
@@ -968,6 +976,27 @@ function listaDestinos(lo, eo, busca, t) {
   const topo = lugares.length ? `<p class="grupo">Seus lugares</p>${lugares.map((l) =>
     `<button class="destino" ${l.aqui ? "disabled" : `data-dest="${l.valor}"`}><span>${l.emoji} ${l.nome} · ${esc(l.estacao)}</span>
       <small>${l.aqui ? "você está aqui" : l.chega != null ? `chega ${hora(l.chega)}` : ""}</small></button>`).join("")}` : "";
+  // Os destinos das viagens recentes, sem repetir, sem a origem e sem Casa e Trabalho.
+  const salvos = Object.values(lerLugares());
+  const vistos = new Set();
+  const recentes = agulha || !lo ? "" : lerRecentes().filter((x) => {
+    const chaveR = `${x.destino}|${x.lugar || ""}`;
+    if (vistos.has(chaveR)) return false;
+    vistos.add(chaveR);
+    const [ld, ed] = x.destino.split("|");
+    if (!grade.linha(ld) || !grade.estacoes[ed] || (alcance && !alcance.has(ld))) return false;
+    return x.lugar || (semSufixo(grade.nome(ed)) !== semSufixo(grade.nome(eo)) && !salvos.includes(x.destino));
+  }).map((x) => {
+    const [ld, ed] = x.destino.split("|");
+    const l = grade.linha(ld);
+    const parada = linhaParada(regras, dia?.data ?? t.data, l.nome);
+    const o = !parada && rotas?.planejar({ linha: lo, est: eo }, { linha: ld, est: ed }, t.minutos - 2, 1, dia.evitar)[0];
+    const lugar = x.lugar ? buscarLugares(regras, x.lugar, 50).find((y) => y.nome === x.lugar) : null;
+    return `<button class="destino" data-dest="${x.destino}" ${x.lugar ? `data-lugar="${esc(x.lugar)}"` : ""} ${parada ? "disabled" : ""}>
+      <span>🕘 ${esc(x.lugar || semSufixo(grade.nome(ed)))}<small class="recente-via">${x.lugar ? "a pé no fim" : esc(l.nome)}</small></span>
+      ${o ? `<small>chega ${hora(o.chega + (lugar ? minutosAPe(lugar, fatorPerfil()) : 0))}</small>` : ""}</button>`;
+  }).join("");
+  const blocoRec = recentes ? `<p class="grupo">Recentes</p>${recentes}` : "";
   const achados = lugaresAchados(lo, eo, busca, t, r, alcance, rotas, dia);
   const blocoLugares = achados.length ? `<p class="grupo">Lugares</p>${achados.map(({ l, alvo, aqui, chega }) => {
     const fator = fatorPerfil();
@@ -979,7 +1008,7 @@ function listaDestinos(lo, eo, busca, t) {
     return `<button class="destino lugar-achado" ${acao}><span>${emojiLugar(l)} ${esc(l.nome)}
       <small class="${longe(l) || l.a_pe_m > 1000 ? "alerta" : ""}">${detalhe}</small></span><small>${direita}</small></button>`;
   }).join("")}` : "";
-  return topo + (grupos || blocoLugares ? grupos + blocoLugares : `<p class="vazio">Nenhuma estação ou lugar com esse nome.</p>`);
+  return topo + blocoRec + (grupos || blocoLugares ? grupos + blocoLugares : `<p class="vazio">Nenhuma estação ou lugar com esse nome.</p>`);
 }
 
 /**

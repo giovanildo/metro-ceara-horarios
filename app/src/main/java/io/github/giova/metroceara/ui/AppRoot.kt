@@ -695,6 +695,20 @@ fun AppRoot() {
             )
         }
     }
+    // Saída e chegada de quem sai agora, em cada recente, calculadas fora da tela.
+    val recentTimes by produceState(emptyMap<RecentTrip, Pair<Int, Int>>(), recentRows, now, sundayOff, stoppedRoutes) {
+        value = withContext(Dispatchers.IO) {
+            recentRows.mapNotNull { row ->
+                val t = row.trip
+                val origin = repo.station(t.originStop, t.originRoute) ?: return@mapNotNull null
+                val plan = planJourney(origin, RoutePoint(t.destRoute, t.destStop), null).options.firstOrNull()?.itinerary
+                    ?: return@mapNotNull null
+                val walk = t.landmark?.let { name -> Regras.current.landmarks.firstOrNull { it.name == name } }
+                    ?.let(::landmarkWalkMinutes) ?: 0
+                t to (plan.departure to plan.arrival + walk)
+            }.toMap()
+        }
+    }
     fun openRecent(trip: RecentTrip) {
         journeyFrom = repo.station(trip.originStop, trip.originRoute) ?: return
         journeyDest = trip.destRoute to trip.destStop
@@ -1162,6 +1176,7 @@ fun AppRoot() {
                     landmarks = Regras.current.landmarks,
                     walkMinutes = ::landmarkWalkMinutes,
                     initialLandmark = journeyLandmark,
+                    recents = recentTrips.orEmpty(),
                     onResult = { origin, line, dest, place ->
                         RecentTrips.add(context, RecentTrip(origin.stopId, origin.routeId, dest.id, line.routeId, place?.name))
                     },
@@ -1258,7 +1273,7 @@ fun AppRoot() {
             onTab = { homeTab = it },
             routeBlocks = routeBlocks(homeLayout),
             routesExtra = {
-                RecentTripsBlock(recentRows, onOpen = ::openRecent, onRemove = { RecentTrips.remove(context, it) })
+                RecentTripsBlock(recentRows, recentTimes, onOpen = ::openRecent, onRemove = { RecentTrips.remove(context, it) })
             },
             menu = HomeMenuActions(
                 onFareGuide = Regras.current.fareGuide?.let { { fareGuideOpen = true } },

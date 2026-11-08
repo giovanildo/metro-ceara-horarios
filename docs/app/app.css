@@ -312,3 +312,6 @@ dialog.folha[open] { animation: sobe .25s ease-out; }
 .convite-android { display: flex; align-items: center; gap: 8px; padding-right: 4px; }
 .convite-android a { flex: 1; color: inherit; text-decoration: none; }
 .convite-android button { flex: none; width: 44px; height: 44px; background: none; border: 0; color: inherit; font-size: 1rem; cursor: pointer; }
+.recente-horas { margin-left: auto; text-align: right; white-space: nowrap; }
+.recente-horas b { display: block; color: var(--cartao-texto); font-weight: 700; font-size: .95rem; }
+.recente-via { display: block; color: var(--texto-2); }

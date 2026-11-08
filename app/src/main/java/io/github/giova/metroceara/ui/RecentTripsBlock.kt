@@ -31,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.giova.metroceara.R
 import io.github.giova.metroceara.data.RecentTrip
+import io.github.giova.metroceara.data.formatTime
 import io.github.giova.metroceara.ui.theme.routeColor
 
 /** Uma viagem recente pronta para a tela: "Benfica → Papicu" e as linhas na cor de cada uma. */
@@ -45,7 +46,13 @@ data class RecentRow(
 /** "Recentes", debaixo de Casa e Trabalho: um toque repete, tocar e segurar remove. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun RecentTripsBlock(rows: List<RecentRow>, onOpen: (RecentTrip) -> Unit, onRemove: (RecentTrip) -> Unit) {
+fun RecentTripsBlock(
+    rows: List<RecentRow>,
+    /** Saída e chegada de quem sai agora; sem metrô hoje (domingo, linha parada), fica sem horário. */
+    times: Map<RecentTrip, Pair<Int, Int>>,
+    onOpen: (RecentTrip) -> Unit,
+    onRemove: (RecentTrip) -> Unit,
+) {
     if (rows.isEmpty()) return
     var removing by remember { mutableStateOf<RecentRow?>(null) }
     Column {
@@ -89,6 +96,21 @@ fun RecentTripsBlock(rows: List<RecentRow>, onOpen: (RecentTrip) -> Unit, onRemo
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(start = 2.dp),
+                        )
+                    }
+                }
+                times[row.trip]?.let { (leaves, arrives) ->
+                    Column(horizontalAlignment = Alignment.End, modifier = Modifier.padding(start = 8.dp)) {
+                        Text(
+                            text = stringResource(R.string.dest_arrives, formatTime(arrives)),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                        Text(
+                            text = stringResource(R.string.recent_leaves, formatTime(leaves)),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }

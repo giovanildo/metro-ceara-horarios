@@ -19,6 +19,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Alarm
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SwapVert
@@ -57,6 +58,7 @@ import android.widget.Toast
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
+import io.github.giova.metroceara.data.RecentTrip
 import io.github.giova.metroceara.data.LeaveStore
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -126,6 +128,8 @@ fun JourneyScreen(
     walkMinutes: (Landmark) -> Int = { 0 },
     /** Vindo de uma viagem recente para um lugar: o nome dele, com a caminhada no fim. */
     initialLandmark: String? = null,
+    /** As viagens recentes: os destinos delas ficam debaixo de "Seus lugares". */
+    recents: List<RecentTrip> = emptyList(),
     /** O resultado apareceu (origem, linha e estação de destino, lugar): vira viagem recente. */
     onResult: (Station, JourneyLine, Stop, Landmark?) -> Unit = { _, _, _, _ -> },
 ) {
@@ -177,6 +181,19 @@ fun JourneyScreen(
             LandmarkHit(l, if (here) null else target, here,
                 target?.let { (line, stop) -> arrivals["${line.routeId}:${stop.id}"] }?.let { it + walkMinutes(l) })
         }.sortedBy { it.target == null && !it.here } // os de outra cidade no fim
+    }
+
+    // Os destinos das viagens recentes, saindo da origem de agora: sem repetir, sem a
+    // própria origem e sem Casa e Trabalho, que já estão logo acima.
+    val recentDests = remember(recents, lines, origin, places, landmarks) {
+        recents.distinctBy { Triple(it.destStop, it.destRoute, it.landmark) }.mapNotNull { t ->
+            val line = lines.firstOrNull { it.routeId == t.destRoute } ?: return@mapNotNull null
+            val stop = line.stops.firstOrNull { it.id == t.destStop } ?: return@mapNotNull null
+            val place = t.landmark?.let { name -> landmarks.firstOrNull { it.name == name } ?: return@mapNotNull null }
+            val isOrigin = plainName(stop.name) == origin?.let { plainName(it.stopName) }
+            val isPlace = place == null && places.any { (_, saved) -> saved == (stop.id to line.routeId) }
+            if ((place == null && isOrigin) || isPlace) null else RecentDest(line, stop, place)
+        }
     }
 
     Scaffold(
@@ -241,6 +258,16 @@ fun JourneyScreen(
                 originName = origin?.let { plainName(it.stopName) },
                 landmarks = landmarkRows,
                 walkMinutes = walkMinutes,
+                recents = recentDests,
+                recentDetail = { row ->
+                    if (row.line.stopped) stringResource(R.string.dest_stopped)
+                    else arrivals["${row.line.routeId}:${row.stop.id}"]
+                        ?.let { stringResource(R.string.dest_arrives, formatTime(it + (row.landmark?.let(walkMinutes) ?: 0))) }
+                },
+                onPickRecent = { row ->
+                    landmark = row.landmark
+                    destination = row.line to row.stop
+                },
                 onPickLandmark = { row ->
                     val target = row.target
                     if (target == null || row.landmark.far) {
@@ -312,6 +339,9 @@ fun JourneyScreen(
     }
 }
 
+/** O destino de uma viagem recente, na lista do "Para". */
+data class RecentDest(val line: JourneyLine, val stop: Stop, val landmark: Landmark?)
+
 /** Um lugar achado pela busca, com a estação de destino ([target]) e a chegada a pé. */
 data class LandmarkHit(
     val landmark: Landmark,
@@ -371,6 +401,10 @@ private fun StationList(
     landmarks: List<LandmarkHit> = emptyList(),
     onPickLandmark: (LandmarkHit) -> Unit = {},
     walkMinutes: (Landmark) -> Int = { 0 },
+    /** Os destinos das viagens recentes, debaixo de "Seus lugares", com a busca vazia. */
+    recents: List<RecentDest> = emptyList(),
+    recentDetail: @Composable (RecentDest) -> String? = { null },
+    onPickRecent: (RecentDest) -> Unit = {},
 ) {
     val needle = plainText(query)
     val shown = lines.map { line -> line to line.stops.filter { needle.isEmpty() || plainText(it.name).contains(needle) } }
@@ -412,6 +446,41 @@ private fun StationList(
                     )
                     (if (pick == null) stringResource(R.string.place_here) else detail(pick.first, pick.second))?.let {
                         Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+                HorizontalDivider()
+            }
+        }
+        if (needle.isEmpty() && recents.isNotEmpty()) {
+            item(key = "recents") {
+                Text(
+                    text = stringResource(R.string.recent_title),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(top = 16.dp, bottom = 2.dp),
+                )
+            }
+            items(recents, key = { "recent-${it.line.routeId}-${it.stop.id}-${it.landmark?.name}" }) { row ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(enabled = !row.line.stopped) { onPickRecent(row) }
+                        .padding(vertical = 10.dp),
+                ) {
+                    Icon(Icons.Filled.History, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(end = 10.dp).size(20.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(row.landmark?.name ?: plainName(row.stop.name), style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            text = if (row.landmark != null) stringResource(R.string.recent_walk) else header(row.line),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    recentDetail(row)?.let {
+                        Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 8.dp))
                     }
                 }
                 HorizontalDivider()
