@@ -229,11 +229,10 @@ mesma tela saindo dali.
     de ir sentado pelo terminal); com integração, o roteiro inteiro.
   - no horário escolhido: **Avisar a hora de sair** (o aviso do app), para a
     partida do roteiro.
-- **Domingo sem operação anunciada:** sem modo viagem (não há metrô para
-  acompanhar). O resultado avisa "Hoje é domingo, sem metrô e VLT. Este é o
-  roteiro de segunda", calcula pela grade de segunda (sem as linhas que o
-  Metrofor avisou que param amanhã), começa no **Primeiro horário** e termina
-  em **Avisar a hora de sair na segunda (05:30)**.
+- **Domingo sem operação anunciada:** nenhum roteiro nem modo viagem. O
+  resultado mostra só o aviso "Hoje é domingo: metrô e VLT não circulam.
+  Voltam segunda, a partir das 05:30." (o primeiro horário de segunda na
+  estação de partida).
 
 **Como o roteiro é calculado** ([`data/Router.kt`](app/src/main/java/io/github/giova/metroceara/data/Router.kt),
 Kotlin puro, com testes em `app/src/test`). A rede é pequena, com até três
@@ -247,8 +246,7 @@ da pessoa até a estação de partida (até 3 min, ela já está lá). Também
 conta como integração a estação que serve duas linhas (Campo dos Velhos, em
 Sobral), com 1 min. Uma linha que o Metrofor avisou que não circula hoje fica
 de fora. Sem roteiro possível: "Sem metrô ou VLT para Papicu hoje depois das
-22:19". Num domingo sem operação, o mesmo `Router` roda sobre a grade de amanhã
-(`ScheduleRepository.timetableTomorrow`).
+22:19".
 
 **Tempo de troca de linha**
 ([`data/TransferTime.kt`](app/src/main/java/io/github/giova/metroceara/data/TransferTime.kt)).
@@ -346,7 +344,8 @@ localização agora."); sem permissão, o ↻ abre o app, que pede.
 Depois do último horário do dia, mostra o primeiro de amanhã ("05:47
 amanhã") ou de segunda. O aviso do dia é a notícia da operação especial, "O
 Metrofor avisou que esta linha não circula hoje." ou, num domingo sem
-operação, "Domingo: metrô e VLT normalmente não circulam." Tocar abre a tela
+operação, "Domingo: metrô e VLT não circulam. Voltam segunda às 05:30.", sem
+as linhas de horário. Tocar abre a tela
 da estação no app. Segue o tema do celular, claro ou escuro.
 
 O widget ([`widget/StationWidget.kt`](app/src/main/java/io/github/giova/metroceara/widget/StationWidget.kt),
@@ -913,6 +912,11 @@ Por isso o **app baixa o feed direto do Metrofor**
 adiadas ~6 min, desfeito às 12h27). Baixando direto, o app vê cada versão na
 hora; pelo espelho, só quando a tarefa rodava. Antes das **00:40** o app não
 baixa: o feed não diz de que dia é e o Metrofor pode ainda servir a de ontem.
+Nesse intervalo, sem a grade de hoje, a tela diz "O Metrofor publica os
+horários de hoje depois da meia-noite e quarenta. Até lá, o app mostra os que
+já tem." (em cinza, e não "Conecte-se à internet"); com o app aberto, ele
+baixa sozinho às 00:40. Num **domingo sem operação anunciada** o app não baixa:
+a grade desses dias é cópia da de dia útil e não mostraria nada.
 Não há reserva no espelho: se o Metrofor falhar, o app fica com a última grade
 guardada do mesmo tipo de dia, e o banco do APK é o último recurso. O banco é
 montado com o mesmo resultado de `tools/build_db.py` (`data/GtfsImporter.kt`,
@@ -956,16 +960,20 @@ Detalhes que valem saber:
   para outro, o app só recusa um feed que não dá para ler ou que não tem linhas
   nem estações. Zero viagens é aceito: num domingo comum pode ser exatamente a
   verdade.
-- **Domingo.** O aviso de domingo ("normalmente não circulam") aparece a não ser
+- **Domingo.** O aviso de domingo ("não circulam") aparece a não ser
   que o Metrofor tenha anunciado operação especial para o dia (veja
   **Operação especial**, abaixo). A grade do dia não serve de sinal: num domingo
   comum (18/10/2026) o feed trouxe a grade de dia útil inteira, e no da eleição
   (25/10) uma grade própria. Por isso, num domingo **sem operação anunciada**,
-  hoje fica sem partidas (`isSundayWithoutService`, em `data/Clock.kt`): as
-  próximas partidas são as de segunda ("05:30 amanhã"), "Todos os horários"
-  vira **"Horários de segunda"** (o lembrete vai para amanhã), o aviso diz "Os
-  horários mostrados são os de segunda", a tela da estação traz também a notícia
-  de amanhã (feriado na segunda) e o modo viagem some. A lite faz o mesmo.
+  **nenhum horário aparece** (`isSundayWithoutService`, em `data/Clock.kt`):
+  hora na tela dá a impressão de que hoje tem metrô, e a pessoa vai à estação
+  à toa. Tela inicial, widget, tela da estação e roteiro mostram só "Hoje é
+  domingo: metrô e VLT não circulam. Voltam segunda, a partir das 05:30." (sem
+  a grade de segunda conhecida, "Só há operação aos domingos quando o Metrofor
+  anuncia"). Saem as próximas partidas, os horários de segunda, o próximo da
+  integração, o roteiro e o modo viagem; a tela da estação traz também a
+  notícia de amanhã (feriado na segunda). Até a v1.79 a tela mostrava os
+  horários de segunda. A lite e a página da estação no site fazem o mesmo.
 - **Depois da última viagem do dia**, as partidas de "amanhã" vêm da grade do
   tipo de dia de amanhã, e não da de hoje repetida: num domingo de eleição,
   segunda mostra a grade de dia útil. Se amanhã for sábado e essa grade nunca
@@ -1107,8 +1115,8 @@ Estas vêm do feed oficial, não do app:
    **Domingo é o caso mais grave:** metrô e VLTs normalmente não circulam, a
    não ser em operação especial (eleição, ENEM, eventos), mas o feed diz que
    sim. Por isso, aos domingos, o app põe um aviso em destaque na tela inicial
-   e na de partidas e, sem operação anunciada pelo Metrofor, mostra os horários
-   de segunda no lugar dos de hoje.
+   e na de partidas e, sem operação anunciada pelo Metrofor, não mostra horário
+   nenhum, só quando o metrô volta na segunda.
 2. **O `calendar_dates.txt` está desatualizado**: lista feriados de 2025,
    enquanto o feed diz valer até 2027. O app ignora esse arquivo.
 3. **Não há `transfers.txt`.** As três baldeações reais foram derivadas por
