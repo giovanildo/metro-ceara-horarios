@@ -1,6 +1,16 @@
 package io.github.giova.metroceara.ui
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.outlined.Repeat
+import androidx.compose.material.icons.outlined.SwapVert
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -15,11 +25,9 @@ import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.TravelExplore
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -42,7 +50,9 @@ class HomeMenuActions(
     val onFareGuide: (() -> Unit)? = null,
     /** Abre direto o WhatsApp da Super NINA. */
     val onNina: (() -> Unit)? = null,
+    val onRoutines: () -> Unit = {},
     val onAdjust: () -> Unit = {},
+    val onOrder: () -> Unit = {},
     val onSettings: () -> Unit = {},
     val onSources: () -> Unit = {},
     val onAbout: () -> Unit = {},
@@ -73,13 +83,16 @@ fun HomeMoreSheet(actions: HomeMenuActions, onDismiss: () -> Unit) {
             Text(
                 text = stringResource(R.string.tab_more),
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(start = 16.dp, bottom = 8.dp),
+                modifier = Modifier.padding(start = 16.dp, bottom = 4.dp),
             )
-            actions.onFareGuide?.let { MenuItem(Icons.Outlined.ConfirmationNumber, R.string.menu_fare) { go(it) } }
+            MenuGroup(R.string.menu_group_trip)
+            actions.onFareGuide?.let {
+                MenuRow(Icons.Outlined.ConfirmationNumber, R.string.menu_fare, R.string.menu_fare_sub) { go(it) }
+            }
             actions.onNina?.let { onNina ->
+                // Só o nome, de propósito: a explicação fica para quem usa leitor de tela.
                 val description = stringResource(R.string.menu_nina_desc)
-                NavigationDrawerItem(
-                    label = { Text(stringResource(R.string.menu_nina)) },
+                MenuRowContent(
                     icon = {
                         // Cores próprias do desenho: sem tingir.
                         Image(
@@ -88,27 +101,66 @@ fun HomeMoreSheet(actions: HomeMenuActions, onDismiss: () -> Unit) {
                             modifier = Modifier.size(24.dp),
                         )
                     },
-                    selected = false,
-                    onClick = { go(onNina) },
+                    title = R.string.menu_nina,
                     modifier = Modifier.semantics { contentDescription = description },
+                    onClick = { go(onNina) },
                 )
             }
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
-            MenuItem(Icons.Outlined.Tune, R.string.menu_adjust) { go(actions.onAdjust) }
-            MenuItem(Icons.Outlined.Settings, R.string.settings_title) { go(actions.onSettings) }
-            MenuItem(Icons.Outlined.TravelExplore, R.string.sources_title) { go(actions.onSources) }
-            MenuItem(Icons.Outlined.Info, R.string.menu_about) { go(actions.onAbout) }
-            MenuItem(Icons.Outlined.Share, R.string.menu_share) { go(actions.onShare) }
+            MenuRow(Icons.Outlined.Repeat, R.string.routines_title, R.string.menu_routines_sub) { go(actions.onRoutines) }
+            MenuGroup(R.string.menu_group_mine)
+            MenuRow(Icons.Outlined.Tune, R.string.menu_adjust, R.string.menu_adjust_sub) { go(actions.onAdjust) }
+            MenuRow(Icons.Outlined.SwapVert, R.string.adjust_order, R.string.menu_order_sub) { go(actions.onOrder) }
+            MenuRow(Icons.Outlined.Settings, R.string.settings_title, R.string.menu_settings_sub) { go(actions.onSettings) }
+            MenuGroup(R.string.menu_group_app)
+            MenuRow(Icons.Outlined.TravelExplore, R.string.sources_title) { go(actions.onSources) }
+            MenuRow(Icons.Outlined.Info, R.string.menu_about) { go(actions.onAbout) }
+            MenuRow(Icons.Outlined.Share, R.string.menu_share) { go(actions.onShare) }
         }
     }
 }
 
 @Composable
-private fun MenuItem(icon: ImageVector, label: Int, onClick: () -> Unit) {
-    NavigationDrawerItem(
-        label = { Text(stringResource(label)) },
-        icon = { Icon(icon, contentDescription = null) },
-        selected = false,
-        onClick = onClick,
+private fun MenuGroup(title: Int) {
+    Text(
+        text = stringResource(title),
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(start = 16.dp, top = 12.dp, bottom = 2.dp),
     )
+}
+
+@Composable
+private fun MenuRow(icon: ImageVector, title: Int, subtitle: Int? = null, onClick: () -> Unit) =
+    MenuRowContent(icon = { Icon(icon, contentDescription = null) }, title = title, subtitle = subtitle, onClick = onClick)
+
+@Composable
+private fun MenuRowContent(
+    icon: @Composable () -> Unit,
+    title: Int,
+    modifier: Modifier = Modifier,
+    subtitle: Int? = null,
+    onClick: () -> Unit,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(min = 52.dp)
+            .clip(RoundedCornerShape(26.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+    ) {
+        icon()
+        Column {
+            Text(stringResource(title), style = MaterialTheme.typography.bodyLarge)
+            subtitle?.let {
+                Text(
+                    stringResource(it),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
 }

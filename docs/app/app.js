@@ -7,6 +7,8 @@ import { aoLado, buscarLugares, caminhada, emojiLugar, longe, metrosAPe, minutos
 
 const PERTO_METROS = 3000; // a segunda estação mais perto aparece até esta distância (padrão do app)
 const LINK = "https://giovanildo.github.io/metro-ceara-horarios/app/";
+/** O texto de "Compartilhar o app": o link vem logo depois (o mesmo texto do app). */
+const TEXTO_DIVULGAR = "🚇 Quando passa o próximo metrô?\n\nO Metrô Ceará responde na hora: abra o link e veja os próximos metrôs e VLTs da estação mais perto de você, em Fortaleza, no Cariri e em Sobral.\n\n📍 Diga para onde vai, até o nome de um lugar, como Mercado Central, e veja o roteiro com as integrações\n⚠️ Fique sabendo das operações especiais do Metrofor, como no ENEM\n🏠 Guarde Casa e Trabalho e confira o horário com um toque\n\nFunciona no navegador, sem instalar nada. Grátis, sem anúncios e sem cadastro. App não oficial.\n\n📲 Tem Android? Seja testador beta do app completo, que avisa a hora de descer até com a tela desligada. O convite está no link.\n\n👉";
 const PAGINA_INSTALAR = "../#baixar"; // direto no convite para testar pela Play Store
 // O convite da lite abre o WhatsApp com a mensagem pronta (o mesmo botão da página, em #baixar).
 const WHATSAPP_TESTADOR = "https://wa.me/5585997619295?text=Ol%C3%A1%21%20Quero%20ser%20testador%20beta%20do%20app%20Metr%C3%B4%20Cear%C3%A1.%20Meu%20Gmail%20da%20Play%20Store%20%C3%A9%3A%20";
@@ -475,20 +477,20 @@ function abrirMais() {
   const nina = linkNina();
   const passagem = estado.dados.regras?.guia_passagem;
   folha.innerHTML = `<div class="alca"></div><h3>Mais</h3>
-    ${passagem ? `<a href="#/passagem"><span class="ic">🎫</span>Passagem</a>` : ""}
+    ${passagem || nina ? `<h4>Para a viagem</h4>` : ""}
+    ${passagem ? `<a href="#/passagem"><span class="ic">🎫</span><span>Passagem<small>valores, meia e gratuidade</small></span></a>` : ""}
     ${nina ? `<a href="${nina}" target="_blank" rel="noopener" aria-label="Nina: abre o WhatsApp da Super NINA"><span class="ic">${ROSTO_NINA}</span>Nina</a>` : ""}
-    <hr>
+    <h4>O app</h4>
     <a href="#/fontes"><span class="ic">🔎</span>De onde vem cada informação</a>
     <a href="#/sobre"><span class="ic">ⓘ</span>Sobre o app</a>
     <button type="button" class="item" id="mais-divulgar"><span class="ic">↗️</span>Compartilhar o app</button>`;
   folha.querySelectorAll("a").forEach((a) => a.addEventListener("click", () => folha.close()));
   folha.querySelector("#mais-divulgar").addEventListener("click", async () => {
     folha.close();
-    const texto = "🚇 Metrô Ceará: horários do metrô e do VLT no celular. Abra no navegador e use na hora, sem instalar nada. Grátis, sem anúncios, não oficial:";
     if (navigator.share) {
-      try { await navigator.share({ title: "Metrô Ceará", text: texto, url: LINK }); } catch { /* cancelou */ }
+      try { await navigator.share({ title: "Metrô Ceará", text: TEXTO_DIVULGAR, url: LINK }); } catch { /* cancelou */ }
     } else {
-      navigator.clipboard?.writeText(`${texto} ${LINK}`).catch(() => {});
+      navigator.clipboard?.writeText(`${TEXTO_DIVULGAR} ${LINK}`).catch(() => {});
     }
   });
   // Toque no fundo escuro (fora da folha) fecha.
@@ -1307,11 +1309,10 @@ function telaSobre() {
   document.getElementById("copiar-pix").addEventListener("click", () =>
     navigator.clipboard?.writeText(PIX).then(() => avisar("Chave Pix copiada")).catch(() => avisar(PIX)));
   document.getElementById("divulgar").addEventListener("click", async () => {
-    const texto = "🚇 Metrô Ceará: horários do metrô e do VLT no celular. Abra no navegador e use na hora, sem instalar nada. Grátis, sem anúncios, não oficial:";
     if (navigator.share) {
-      try { await navigator.share({ title: "Metrô Ceará", text: texto, url: LINK }); } catch { /* cancelou */ }
+      try { await navigator.share({ title: "Metrô Ceará", text: TEXTO_DIVULGAR, url: LINK }); } catch { /* cancelou */ }
     } else {
-      navigator.clipboard?.writeText(`${texto} ${LINK}`).then(() => avisar("Link copiado")).catch(() => avisar(LINK));
+      navigator.clipboard?.writeText(`${TEXTO_DIVULGAR} ${LINK}`).then(() => avisar("Link copiado")).catch(() => avisar(LINK));
     }
   });
 }

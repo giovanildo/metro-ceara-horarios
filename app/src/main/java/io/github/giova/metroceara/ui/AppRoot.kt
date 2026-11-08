@@ -1315,7 +1315,9 @@ fun AppRoot() {
                 onFareGuide = Regras.current.fareGuide?.let { { fareGuideOpen = true } },
 
                 onNina = ninaOpener(homeState.station?.routeName),
+                onRoutines = { routinesOpen = true },
                 onAdjust = { adjustOpen = true },
+                onOrder = { orderOpen = true },
                 onSettings = { showSettings = true },
                 onSources = { sourcesOpen = true },
                 onAbout = { showAbout = true },
