@@ -19,7 +19,8 @@
     <string name="home_invite">Veja de uma vez a próxima partida da estação mais próxima de você.</string>
     <string name="home_use_location">Usar minha localização</string>
     <string name="home_locating">Procurando sua localização…</string>
-    <string name="home_distance">%1$s de você</string>
+    <string name="home_distance">%1$s em linha reta, sem contar ruas nem trânsito</string>
+    <string name="distance_straight">%1$s em linha reta</string>
     <string name="home_your_station">Sua estação</string>
     <string name="home_denied">Sem permissão de localização. Você ainda pode abrir uma estação e tocar na estrela para fixá-la aqui.</string>
     <string name="home_no_fix">Não consegui obter sua localização. Tente de novo em um lugar aberto, ou fixe uma estação pela estrela.</string>
@@ -295,6 +296,8 @@
     <string name="settings_give_up_desc">Se passar esse tempo da chegada prevista sem você chegar ao destino, a viagem é encerrada.</string>
     <string name="settings_home_gps">Atualizar sua posição a cada</string>
     <string name="settings_home_gps_desc">Com a tela inicial aberta, de quanto em quanto tempo o app confere onde você está. Menos tempo gasta um pouco mais de bateria.</string>
+    <string name="settings_home_fix_hold">Segurar a posição mais certa por</string>
+    <string name="settings_home_fix_hold_desc">Às vezes o celular manda uma localização menos certa, e a distância pula. O app continua com a melhor por esse tempo; depois, só troca se a nova mostrar mesmo que você está em outro lugar.</string>
     <string name="settings_reset">Restaurar padrões</string>
     <string name="settings_section_trip_log">Registro das viagens</string>
     <string name="settings_trip_log">Guardar como foram minhas viagens</string>

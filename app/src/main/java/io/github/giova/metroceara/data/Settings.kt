@@ -27,6 +27,8 @@ data class AppSettings(
     val gpsLostSeconds: Int = 60,
     /** De quanto em quanto tempo a tela inicial pede posição ao GPS. */
     val homeGpsSeconds: Int = 10,
+    /** Por quanto tempo a tela inicial segura a posição precisa contra uma menos precisa. */
+    val homeFixHoldSeconds: Int = 120,
     /** O modo viagem ainda pega o trem que saiu há até este tempo. */
     val lateBoardingMinutes: Int = 2,
     /** A viagem encerra sozinha se passar tanto assim da chegada prevista. */
@@ -78,6 +80,7 @@ object SettingsStore {
             putInt("alert_stations_before", settings.alertStationsBefore)
             putInt("gps_lost_s", settings.gpsLostSeconds)
             putInt("home_gps_s", settings.homeGpsSeconds)
+            putInt("home_fix_hold_s", settings.homeFixHoldSeconds)
             putInt("late_boarding_min", settings.lateBoardingMinutes)
             putInt("trip_give_up_min", settings.tripGiveUpMinutes)
             putInt("seated_max_stations", settings.seatedMaxStations)
@@ -108,6 +111,7 @@ object SettingsStore {
             alertStationsBefore = p.getInt("alert_stations_before", d.alertStationsBefore),
             gpsLostSeconds = p.getInt("gps_lost_s", d.gpsLostSeconds),
             homeGpsSeconds = p.getInt("home_gps_s", d.homeGpsSeconds),
+            homeFixHoldSeconds = p.getInt("home_fix_hold_s", d.homeFixHoldSeconds),
             lateBoardingMinutes = p.getInt("late_boarding_min", d.lateBoardingMinutes),
             tripGiveUpMinutes = p.getInt("trip_give_up_min", d.tripGiveUpMinutes),
             seatedMaxStations = p.getInt("seated_max_stations", d.seatedMaxStations),

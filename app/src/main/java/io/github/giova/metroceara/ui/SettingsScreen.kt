@@ -307,6 +307,11 @@ fun SettingsScreen(
                 description = R.string.settings_home_gps_desc,
                 value = settings.homeGpsSeconds, range = 5..60, step = 5, format = ::formatSeconds,
             ) { onChange(settings.copy(homeGpsSeconds = it)) }
+            SettingSlider(
+                title = R.string.settings_home_fix_hold,
+                description = R.string.settings_home_fix_hold_desc,
+                value = settings.homeFixHoldSeconds, range = 30..300, step = 30, format = ::formatSeconds,
+            ) { onChange(settings.copy(homeFixHoldSeconds = it)) }
 
             TripLogSection()
 

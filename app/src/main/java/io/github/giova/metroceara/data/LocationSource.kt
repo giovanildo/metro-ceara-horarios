@@ -17,6 +17,20 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.resume
 
+/** Satélites usados nesta posição, quando o aparelho informa. */
+fun Location.satellites(): Int? = extras?.getInt("satellites", -1)?.takeIf { it >= 0 }
+
+/** Os dados de uma posição para o registro de testes. */
+fun Location.logFields(): Array<Pair<String, Any?>> = arrayOf(
+    "provider" to provider,
+    "lat" to latitude,
+    "lon" to longitude,
+    "acc" to accuracy,
+    "age_s" to (android.os.SystemClock.elapsedRealtimeNanos() - elapsedRealtimeNanos) / 1_000_000_000,
+    "speed" to takeIf { it.hasSpeed() }?.speed,
+    "sats" to satellites(),
+)
+
 /**
  * Posição atual do aparelho, via [LocationManager] do próprio Android.
  *

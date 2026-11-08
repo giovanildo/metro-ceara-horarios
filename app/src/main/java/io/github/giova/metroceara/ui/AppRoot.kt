@@ -78,6 +78,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import io.github.giova.metroceara.data.DevLog
 import io.github.giova.metroceara.data.LocationSource
+import io.github.giova.metroceara.data.ShownFix
+import io.github.giova.metroceara.data.keepsOver
+import io.github.giova.metroceara.data.logFields
 import io.github.giova.metroceara.data.MetroforDatabase
 import io.github.giova.metroceara.data.PinnedStation
 import io.github.giova.metroceara.data.Place
@@ -241,11 +244,16 @@ fun AppRoot() {
         return HomeStation.Nearby(main, distance, lat, lon, nearest.drop(1))
     }
 
-    suspend fun locate() {
+    // A posição que está na tela, para uma menos precisa não tomar o lugar dela.
+    var shownFix by remember { mutableStateOf<ShownFix?>(null) }
+
+    suspend fun locate(trigger: String = "start") {
         homeState = HomeStation.Locating
+        shownFix = null
         val started = android.os.SystemClock.elapsedRealtime()
         DevLog.log(
             "loc_request",
+            "trigger" to trigger,
             "fine" to locationSource.hasFinePermission(),
             "providers" to locationSource.enabledProviders(),
         )
@@ -256,10 +264,9 @@ fun AppRoot() {
             homeState = HomeStation.Unavailable(HomeStation.Reason.NO_FIX)
             return
         }
-        DevLog.log(
-            "loc_ok", "ms" to elapsed, "provider" to position.provider,
-            "lat" to position.latitude, "lon" to position.longitude, "acc" to position.accuracy,
-            "age_s" to (System.currentTimeMillis() - position.time) / 1000,
+        DevLog.log("loc_ok", "ms" to elapsed, *position.logFields())
+        shownFix = ShownFix(
+            position.latitude, position.longitude, position.accuracy, android.os.SystemClock.elapsedRealtime(),
         )
         val stations = withContext(Dispatchers.IO) { repo.stations() }
         homeState = nearbyState(stations, position.latitude, position.longitude)
@@ -325,12 +332,26 @@ fun AppRoot() {
         if (!followGps) return@LaunchedEffect
         val stations = withContext(Dispatchers.IO) { repo.stations() }
         locationSource.updates(settings.homeGpsSeconds * 1000L, HOME_GPS_MIN_METERS).collect { position ->
+            val receivedAt = android.os.SystemClock.elapsedRealtime()
+            val shown = shownFix
+            if (shown.keepsOver(
+                    position.latitude, position.longitude, position.accuracy,
+                    receivedAt, settings.homeFixHoldSeconds * 1000L,
+                )
+            ) {
+                DevLog.log(
+                    "home_gps_skip", *position.logFields(),
+                    "kept_acc" to shown?.accuracyMeters,
+                    "kept_age_s" to shown?.let { (receivedAt - it.atMillis) / 1000 },
+                )
+                return@collect
+            }
             nearbyState(stations, position.latitude, position.longitude)?.let {
                 DevLog.log(
-                    "home_gps", "provider" to position.provider, "lat" to position.latitude,
-                    "lon" to position.longitude, "acc" to position.accuracy,
+                    "home_gps", *position.logFields(),
                     "station" to it.station.stopName, "dist_m" to it.distanceMeters.toInt(),
                 )
+                shownFix = ShownFix(position.latitude, position.longitude, position.accuracy, receivedAt)
                 homeState = it
             }
         }
@@ -928,7 +949,7 @@ fun AppRoot() {
                     onExpand = { expandedStation = null },
                     onUseLocation = {
                         if (locationSource.hasPermission()) {
-                            scope.launch { locate() }
+                            scope.launch { locate("tap") }
                         } else {
                             permissionLauncher.launch(LocationSource.PERMISSIONS)
                         }

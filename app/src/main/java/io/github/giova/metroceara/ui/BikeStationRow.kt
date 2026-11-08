@@ -67,7 +67,7 @@ fun BikeStationRow(
             // Só a distância: o número de vagas é a capacidade da estação, não
             // quantas bicicletas há agora, e confundia.
             Text(
-                text = formatWalk(bike.distanceMeters),
+                text = stringResource(R.string.distance_straight, formatWalk(bike.distanceMeters)),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

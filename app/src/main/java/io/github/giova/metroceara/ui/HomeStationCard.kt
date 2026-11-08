@@ -87,7 +87,10 @@ fun HomeStationCard(
 
             is HomeStation.Nearby -> StationSummary(
                 station = state.station,
-                subtitle = stringResource(R.string.home_distance, formatDistance(state.distanceMeters)),
+                subtitle = stringResource(
+                    if (compact) R.string.distance_straight else R.string.home_distance,
+                    formatDistance(state.distanceMeters),
+                ),
                 icon = Icons.Filled.MyLocation,
                 departures = departures,
                 now = now,
@@ -346,7 +349,7 @@ private fun CompactSummary(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.weight(1f),
-                maxLines = 1,
+                maxLines = 2,
                 overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
             )
             if (onRefresh != null) {

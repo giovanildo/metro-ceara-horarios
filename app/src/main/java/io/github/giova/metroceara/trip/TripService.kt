@@ -13,6 +13,7 @@ import io.github.giova.metroceara.data.LocationSource
 import kotlin.math.roundToInt
 import io.github.giova.metroceara.data.formatTime
 import io.github.giova.metroceara.data.distanceMeters
+import io.github.giova.metroceara.data.satellites
 import io.github.giova.metroceara.data.TripFix
 import io.github.giova.metroceara.data.DevLog
 import io.github.giova.metroceara.data.TripLog
@@ -226,6 +227,7 @@ class TripService : Service() {
                             "trip_gps", "provider" to location.provider, "lat" to location.latitude,
                             "lon" to location.longitude, "acc" to location.accuracy,
                             "speed" to location.takeIf { it.hasSpeed() }?.speed,
+                            "sats" to location.satellites(),
                             "nearest" to nearest.name,
                             "dist_m" to distanceMeters(location.latitude, location.longitude, nearest.lat, nearest.lon).toInt(),
                             "age_s" to ageSeconds.toInt(),

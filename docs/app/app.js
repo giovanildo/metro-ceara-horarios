@@ -100,6 +100,16 @@ function ocupado() {
 
 // ---------- localização
 
+/**
+ * A mesma regra do app: a posição nova fica de fora se for menos precisa que a atual,
+ * enquanto a atual for recente; depois disso, só entra se mostrar outro lugar.
+ */
+function posicaoPior(atual, nova) {
+  if (nova.precisao <= Math.max(atual.precisao, 30)) return false;
+  if (nova.em - atual.em <= 120000) return true;
+  return distancia(atual.lat, atual.lon, nova.lat, nova.lon) <= nova.precisao * 2;
+}
+
 function localizar() {
   if (!("geolocation" in navigator)) {
     estado.erroLocal = "Este navegador não informa a localização.";
@@ -111,10 +121,11 @@ function localizar() {
   render();
   navigator.geolocation.watchPosition(
     (p) => {
-      const nova = { lat: p.coords.latitude, lon: p.coords.longitude };
+      const nova = { lat: p.coords.latitude, lon: p.coords.longitude, precisao: p.coords.accuracy, em: Date.now() };
       const antes = estado.pos;
-      estado.pos = nova;
       estado.localizando = false;
+      if (antes && posicaoPior(antes, nova)) return;
+      estado.pos = nova;
       try { localStorage.setItem("localizacao", "sim"); } catch { /* segue */ }
       // Redesenhar no meio de uma escolha fecharia a lista: só se andou de verdade.
       const andou = !antes || distancia(antes.lat, antes.lon, nova.lat, nova.lon) > 20;
@@ -324,7 +335,7 @@ function telaInicio() {
         // Compacta: nome, linha e distância numa linha; cada sentido numa linha curta.
         html += `<div class="cartao compacto"><button class="cabeca-compacta" data-abrir="${linha.id}|${id}">
           <span class="topo-compacto"><strong>${esc(grade.nome(id))}</strong> <span class="ponto" style="background:${cor(linha)}"></span>
-            <span class="linha-nome">${esc(linha.nome)} · ${metros(d)} de você</span></span>
+            <span class="linha-nome">${esc(linha.nome)} · ${metros(d)} em linha reta</span></span>
           ${domingoSemOperacao(t) ? `<span class="dica">Hoje não circula</span>` : linhaParada(estado.dados.regras, t.data, linha.nome) ? `<span class="dica">Não circula hoje</span>` : sentidos.map((s) => {
             const { hoje, amanha } = partidasComAmanha(linha, s, id);
             const p = proximas(hoje, t.minutos, 1, amanha)[0];
@@ -336,7 +347,7 @@ function telaInicio() {
         <a class="cabeca" href="#/estacao/${linha.id}/${id}">
           <h3>${esc(grade.nome(id))} <span class="ponto" style="background:${cor(linha)}"></span>
             <span class="linha-nome">${esc(linha.nome)}</span></h3>
-          <span class="distancia">${metros(d)} de você</span>
+          <span class="distancia">${metros(d)} em linha reta, sem contar ruas nem trânsito</span>
           ${avisoParada(linha, t)}
           ${domingoSemOperacao(t) ? `<p class="dica fim-do-dia">${textoVoltaSegunda(primeiroDeSegunda(linha.id, id))}</p>` : sentidos.map((s) => {
             const { hoje, amanha } = partidasComAmanha(linha, s, id);
