@@ -93,6 +93,7 @@
     <string name="day_type_weekday">dia útil</string>
     <string name="day_type_saturday">sábado</string>
     <string name="day_type_sunday">domingo</string>
+    <string name="schedule_before_feed">O Metrofor publica os horários de hoje depois da meia-noite e quarenta. Até lá, o app mostra os que já tem.</string>
     <string name="schedule_bundled">Horários de dia útil que vieram com o app. Conecte-se à internet para baixar os de hoje.</string>
 
     <string name="trip_no_trip_today">Não há mais viagens hoje neste sentido.</string>

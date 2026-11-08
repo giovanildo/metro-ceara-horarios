@@ -41,6 +41,7 @@ import java.util.TimeZone
 fun scheduleStatusText(source: ScheduleSource, syncing: Boolean): String = when {
     syncing -> stringResource(R.string.schedule_syncing)
     isSundayWithoutService() -> stringResource(R.string.schedule_day_type, stringResource(R.string.day_type_weekday))
+    scheduleStatusIsEarly(source) -> stringResource(R.string.schedule_before_feed)
     source.kind == ScheduleSource.Kind.TODAY ->
         stringResource(R.string.schedule_today, formatClock(source.syncedAt))
     source.kind == ScheduleSource.Kind.SAME_DAY_TYPE && specialToday() -> stringResource(R.string.schedule_special_missing)
@@ -64,6 +65,10 @@ internal fun scheduleStatusIsWarning(source: ScheduleSource): Boolean = !isSunda
     else -> true
 }
 
+/** Antes das 00:40, sem a grade de hoje: é só esperar, não é falta de internet. */
+internal fun scheduleStatusIsEarly(source: ScheduleSource): Boolean =
+    source.kind != ScheduleSource.Kind.TODAY && ScheduleStore.beforeFeedTime()
+
 private fun specialToday(): Boolean = Regras.current.operations[ScheduleStore.today()] != null
 
 /**
@@ -80,7 +85,7 @@ fun ScheduleStatus(
         Text(
             text = scheduleStatusText(source, syncing),
             style = MaterialTheme.typography.bodySmall,
-            color = if (syncing || !scheduleStatusIsWarning(source)) {
+            color = if (syncing || !scheduleStatusIsWarning(source) || scheduleStatusIsEarly(source)) {
                 MaterialTheme.colorScheme.onSurfaceVariant
             } else {
                 MaterialTheme.colorScheme.error

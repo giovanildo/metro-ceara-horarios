@@ -140,8 +140,10 @@ fun AppRoot() {
     // Cada vez que o app abre ou volta para a frente, baixa a grade do dia do
     // Metrofor (é pequena). Um download cortado ao fechar o app é refeito aqui.
     var opened by remember { mutableIntStateOf(0) }
+    // Com o app aberto na virada das 00:40, baixa a grade do dia sem esperar reabrir.
+    var feedReady by remember { mutableStateOf(!ScheduleStore.beforeFeedTime()) }
     var notices by remember { mutableStateOf(ScheduleStore.notices()) }
-    LaunchedEffect(today, opened) {
+    LaunchedEffect(today, opened, feedReady) {
         scheduleSyncing = true
         DevLog.log("sync_start")
         // As regras vêm antes: a montagem da grade usa as integrações delas.
@@ -213,6 +215,7 @@ fun AppRoot() {
             delay(TICK_MILLIS)
             now = nowMinutes()
             today = ScheduleStore.today()
+            feedReady = !ScheduleStore.beforeFeedTime()
         }
     }
 

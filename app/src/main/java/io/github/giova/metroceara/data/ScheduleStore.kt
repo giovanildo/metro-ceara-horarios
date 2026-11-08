@@ -69,6 +69,15 @@ object ScheduleStore {
         .apply { timeZone = zone }
         .format(Date())
 
+    /**
+     * Antes das 00:40 o app não baixa a grade (o Metrofor pode ainda servir a de
+     * ontem): a tela diz isso, em vez de pedir internet.
+     */
+    fun beforeFeedTime(): Boolean {
+        val now = Calendar.getInstance(zone)
+        return now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE) < DIRECT_AFTER_MINUTES
+    }
+
     fun todayType(): DayType = typeOf(Calendar.getInstance(zone))
 
     fun tomorrow(): String = SimpleDateFormat("yyyy-MM-dd", Locale.US)
@@ -129,9 +138,7 @@ object ScheduleStore {
      */
     fun sync(context: Context, bikeSource: File?) {
         val type = todayType()
-        val now = Calendar.getInstance(zone)
-        val minutes = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE)
-        check(minutes >= DIRECT_AFTER_MINUTES) { "antes de 00:40 o Metrofor pode servir a grade de ontem" }
+        check(!beforeFeedTime()) { "antes de 00:40 o Metrofor pode servir a grade de ontem" }
         val zip = fetch(FEED_URL, connectTimeout = 8_000, readTimeout = 15_000)
         val target = file(context, type)
         installZip(zip, target, bikeSource, FEED_URL)
