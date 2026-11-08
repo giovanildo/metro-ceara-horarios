@@ -1,0 +1,2 @@
+• Sua ida e volta, no Mais: diga suas estações e horários, de trabalho ou faculdade, e a tela inicial mostra o sentido certo e qual metrô pegar, até sem sinal.
+• Quem não guardou Casa nem Trabalho vê a viagem mais recente no topo, com o próximo horário.
