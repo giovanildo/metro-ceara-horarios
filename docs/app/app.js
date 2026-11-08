@@ -829,6 +829,13 @@ function telaViagem(linhaId, estId) {
       mostrarResultado();
     }));
     resultado.querySelector("#v-agora")?.addEventListener("click", () => { v.hora = null; v.escolhido = 0; mostrarResultado(); });
+    // O destino vira a partida, e a partida o destino.
+    resultado.querySelector("#v-inverter")?.addEventListener("click", () => {
+      const [ld, ed] = v.destino.split("|");
+      v.destino = `${lo}|${eo}`;
+      v.escolhido = 0;
+      location.replace(`#/viagem/${ld}/${ed}`);
+    });
     resultado.querySelector("#v-hora")?.addEventListener("change", (e) => {
       const [h, m] = e.target.value.split(":").map(Number);
       v.hora = Number.isFinite(h) ? h * 60 + m : null;
@@ -981,24 +988,52 @@ function resultadoViagem(lo, eo, v, t) {
       : `Sem metrô ou VLT para ${esc(nomeDestino)} ${quando} depois das ${hora(ultimo)}.`}</p>`;
     return html;
   }
+  // Cada horário um cartão (como nos apps de ônibus); o tocado abre com o roteiro.
   const i = Math.min(v.escolhido, opcoes.length - 1);
-  const o = opcoes[i];
-  html += cartaoRoteiro(o, grade, dia, perfil, ape);
-  if (opcoes.length > 1) {
-    html += `<div class="chips"><span class="dica">Outros horários:</span>${opcoes.map((x, k) =>
-      `<button class="chip ${k === i ? "sel" : ""}" data-i="${k}">${hora(x.sai)} → ${hora(x.chega + (ape?.min || 0))}</button>`).join("")}</div>`;
-  }
-  // No lugar do modo viagem: o lembrete da partida, para quem ainda não saiu.
-  if (o.sai >= t.minutos) {
-    const p = o.pernas[0];
-    const dados = esc(JSON.stringify({ linha: p.linha, sentido: p.sentido.id, est: p.de, m: o.sai, amanha: false }));
-    html += `<button class="botao secundario largo" id="v-lembrete" data-p="${dados}">⏰ Lembrete na agenda</button>`;
-  }
+  if (!ape) html += `<p><button class="botao secundario" id="v-inverter">⇅ Inverter ida e volta</button></p>`;
+  html += opcoes.map((x, k) => cartaoOpcao(x, k, k === i, v.hora == null && k === 0, grade, dia, perfil, ape, t)).join("");
   html += `<label class="campo">Como você se desloca<select id="perfil">${PERFIS.map((x) =>
     `<option value="${x.chave}" ${x.chave === perfil ? "selected" : ""}>${esc(x.nome)}</option>`).join("")}</select></label>`;
   html += `<p class="dica">${ANDROID ? "No" : "Tem Android? No"} app completo, o <strong>modo viagem</strong> avisa antes da sua estação,
     com a tela desligada. <a href="${WHATSAPP_TESTADOR}" target="_blank" rel="noopener">Seja testador ›</a></p>`;
   return html;
+}
+
+/** Um horário da viagem como cartão: número, duração, saída → chegada, integrações e linhas. */
+function cartaoOpcao(o, k, aberto, proximo, grade, dia, perfil, ape, t) {
+  const { regras } = estado.dados;
+  const chega = o.chega + (ape?.min || 0);
+  const dur = chega - o.sai;
+  const duracao = dur < 60 ? `${dur} min` : `${Math.floor(dur / 60)}h${String(dur % 60).padStart(2, "0")}`;
+  // A maior espera entre um trem e o próximo, numa integração.
+  const espera = Math.max(0, ...o.pernas.slice(1).map((p, j) => p.sai - o.pernas[j].chega));
+  const trocas = o.trocas.filter(Boolean);
+  let integ = "Direto";
+  if (trocas.length === 1) {
+    const x = trocas[0];
+    const tarifa = passagem(regras, grade.nome(x.lig.deEst), grade.nome(x.lig.paraEst));
+    integ = `1 em ${esc(semSufixo(grade.nome(x.lig.deEst)))}${tarifa.tipo === "gratis" ? " · passagem grátis" : tarifa.tipo === "paga" ? " · passagem paga" : ""}`;
+  } else if (trocas.length > 1) {
+    integ = `${trocas.length}: ${trocas.map((x) => esc(semSufixo(grade.nome(x.lig.deEst)))).join(", ")}`;
+  }
+  const linhas = o.pernas.map((p) => { const l = grade.linha(p.linha); return `<span class="chip-linha" style="background:${cor(l)}">${esc(l.nome)}</span>`; })
+    .join(`<span class="seta">→</span>`);
+  let html = `<div class="opcao ${aberto ? "aberta" : ""}"><button class="opcao-topo" data-i="${k}" aria-expanded="${aberto}">
+    <span class="opcao-linha1"><span class="num">${k + 1}</span><strong class="dur">${duracao}</strong>
+      ${proximo ? `<span class="selo-op">Próximo</span>` : ""}${espera >= 10 ? `<span class="selo-op espera">espera ${espera} min</span>` : ""}</span>
+    <span class="horas">${hora(o.sai)} → ${hora(chega)}</span>
+    <span class="dica">Integrações: ${integ}</span>
+    <span class="linhas-op">${linhas}</span></button>`;
+  if (aberto) {
+    html += cartaoRoteiro(o, grade, dia, perfil, ape);
+    // No lugar do modo viagem: o lembrete da partida, para quem ainda não saiu.
+    if (o.sai >= t.minutos) {
+      const p = o.pernas[0];
+      const dados = esc(JSON.stringify({ linha: p.linha, sentido: p.sentido.id, est: p.de, m: o.sai, amanha: false }));
+      html += `<button class="botao secundario largo" id="v-lembrete" data-p="${dados}">⏰ Lembrete na agenda</button>`;
+    }
+  }
+  return html + `</div>`;
 }
 
 /** O cartão do roteiro: cada trecho na cor da linha, a integração com tempo e passagem, a chegada. */

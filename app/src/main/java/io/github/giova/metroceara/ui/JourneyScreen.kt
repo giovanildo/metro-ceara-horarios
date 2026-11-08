@@ -21,6 +21,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Alarm
 import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,6 +42,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -267,6 +269,8 @@ fun JourneyScreen(
                 },
                 sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
             ) {
+                // Inverteu ida e volta: outro resultado, do zero (horário, cartão aberto).
+                key(from.stopId, from.routeId, line.routeId, stop.id) {
                 JourneyResultSheet(
                     origin = from,
                     destinationName = landmark?.name ?: plainName(stop.name),
@@ -276,7 +280,19 @@ fun JourneyScreen(
                     onStartTrip = { onStartTrip(from, it) },
                     destination = line to stop,
                     onRepeat = { view -> onRepeat(from, line, stop, view) },
+                    onSwap = if (landmark != null) null else ({
+                        // O destino vira a partida, e a partida o destino.
+                        stations.firstOrNull { it.stopId == stop.id && it.routeId == line.routeId }?.let { back ->
+                            linesFor(back).firstOrNull { it.routeId == from.routeId }
+                                ?.let { l -> l.stops.firstOrNull { it.id == from.stopId }?.let { l to it } }
+                                ?.let { target ->
+                                    origin = back
+                                    destination = target
+                                }
+                        }
+                    }),
                 )
+                }
             }
         }
     }
@@ -519,8 +535,9 @@ fun StationPickerDialog(
 }
 
 /**
- * O resultado: o horário (agora ou escolhido), o cartão do roteiro, os outros
- * horários e o modo viagem (saindo agora) ou o lembrete na agenda.
+ * O resultado: o horário (agora ou escolhido) e cada horário possível como um
+ * cartão; o aberto mostra o roteiro e o modo viagem (saindo agora) ou o aviso
+ * da hora de sair.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -534,6 +551,7 @@ private fun JourneyResultSheet(
     onStartTrip: (RouteView) -> Unit,
     destination: Pair<JourneyLine, Stop>,
     onRepeat: (RouteView?) -> Unit,
+    onSwap: (() -> Unit)? = null,
 ) {
     var time by remember { mutableStateOf<Int?>(null) }
     var selected by remember { mutableStateOf(0) }
@@ -553,10 +571,19 @@ private fun JourneyResultSheet(
             .verticalScroll(rememberScrollState())
             .padding(start = 18.dp, end = 18.dp, bottom = 24.dp),
     ) {
-        Text(
-            text = stringResource(R.string.route_title, plainName(origin.stopName), destinationName),
-            style = MaterialTheme.typography.titleLarge,
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = stringResource(R.string.route_title, plainName(origin.stopName), destinationName),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.weight(1f),
+            )
+            // Inverte ida e volta (não vale para um lugar, que não é estação de partida).
+            onSwap?.let {
+                IconButton(onClick = it) {
+                    Icon(Icons.Filled.SwapVert, contentDescription = stringResource(R.string.journey_swap))
+                }
+            }
+        }
         // Domingo sem metrô: só o aviso, sem horário nenhum.
         if (result.monday) {
             SundayNotice(text = result.message.orEmpty())
@@ -579,59 +606,51 @@ private fun JourneyResultSheet(
         if (view == null) {
             Text(result.message.orEmpty(), color = MaterialTheme.colorScheme.onSurfaceVariant)
         } else {
-            RouteCard(view, finalWalk = finalWalk)
-            // Horários do Metrofor; chegada, integração e caminhada são conta do app.
-            SourceLine("tempo_a_pe")
-            if (result.options.size > 1) {
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                    itemVerticalAlignment = Alignment.CenterVertically,
+            // Cada horário um cartão; o tocado abre com o roteiro e os botões.
+            result.options.forEachIndexed { i, option ->
+                JourneyOptionCard(
+                    number = i + 1,
+                    view = option,
+                    finalWalk = finalWalk,
+                    next = i == 0 && time == null,
+                    expanded = option === view,
+                    onClick = { selected = i },
                 ) {
-                    Text(stringResource(R.string.journey_other_times), style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    result.options.forEachIndexed { i, option ->
-                        FilterChip(
-                            selected = option === view,
-                            onClick = { selected = i },
-                            label = {
-                                Text("${formatTime(option.itinerary.departure)} → ${formatTime(option.itinerary.arrival + (finalWalk?.minutes ?: 0))}")
-                            },
+                    // Horários do Metrofor; chegada, integração e caminhada são conta do app.
+                    SourceLine("tempo_a_pe")
+                    val first = option.legs.first()
+                    // Saindo agora, o roteiro vira viagem; no horário escolhido, lembrete.
+                    if (time == null && canStartTrip) {
+                        Button(onClick = { onStartTrip(option) }, modifier = Modifier.fillMaxWidth()) {
+                            Icon(Icons.Filled.Navigation, contentDescription = null)
+                            Text(stringResource(R.string.journey_start), modifier = Modifier.padding(start = 8.dp))
+                        }
+                        Text(stringResource(R.string.journey_trip_hint), style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    } else if (first.departure >= nowMinutes()) {
+                        val leg = option.itinerary.legs.first()
+                        val leave = LeaveReminder(
+                            Departure(first.departure, tomorrow = false), first.fromName,
+                            first.routeName, first.headsign, vehicleName(first.routeName),
+                            stopId = leg.fromStop, routeId = leg.routeId, directionId = leg.directionId,
+                            destStopId = destination.second.id, destRouteId = destination.first.routeId,
+                            destName = destinationName, arrival = option.itinerary.arrival,
                         )
+                        val marked = leaveAlerts?.let { leaveAlertsAt(context, leave).firstOrNull() }
+                        OutlinedButton(
+                            onClick = { scope.launch { leaveToggle.toggle(context, leave) } },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Icon(Icons.Filled.Alarm, contentDescription = null)
+                            Text(
+                                text = when {
+                                    marked != null -> stringResource(R.string.journey_reminder_marked, formatTime(marked.departure - marked.before))
+                                    else -> stringResource(R.string.journey_reminder)
+                                },
+                                modifier = Modifier.padding(start = 8.dp),
+                            )
+                        }
                     }
-                }
-            }
-            val first = view.legs.first()
-            // Saindo agora, o roteiro vira viagem; no horário escolhido, lembrete.
-            if (time == null && canStartTrip) {
-                Button(onClick = { onStartTrip(view) }, modifier = Modifier.fillMaxWidth()) {
-                    Icon(Icons.Filled.Navigation, contentDescription = null)
-                    Text(stringResource(R.string.journey_start), modifier = Modifier.padding(start = 8.dp))
-                }
-                Text(stringResource(R.string.journey_trip_hint), style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-            } else if (first.departure >= nowMinutes()) {
-                val leg = view.itinerary.legs.first()
-                val leave = LeaveReminder(
-                    Departure(first.departure, tomorrow = false), first.fromName,
-                    first.routeName, first.headsign, vehicleName(first.routeName),
-                    stopId = leg.fromStop, routeId = leg.routeId, directionId = leg.directionId,
-                    destStopId = destination.second.id, destRouteId = destination.first.routeId,
-                    destName = destinationName, arrival = view.itinerary.arrival,
-                )
-                val marked = leaveAlerts?.let { leaveAlertsAt(context, leave).firstOrNull() }
-                OutlinedButton(
-                    onClick = { scope.launch { leaveToggle.toggle(context, leave) } },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Icon(Icons.Filled.Alarm, contentDescription = null)
-                    Text(
-                        text = when {
-                            marked != null -> stringResource(R.string.journey_reminder_marked, formatTime(marked.departure - marked.before))
-                            else -> stringResource(R.string.journey_reminder)
-                        },
-                        modifier = Modifier.padding(start = 8.dp),
-                    )
                 }
             }
         }

@@ -157,7 +157,14 @@
     <string name="journey_now">Sair agora</string>
     <string name="journey_pick_time">Escolher horário</string>
     <string name="journey_at">Sair às %1$s</string>
-    <string name="journey_other_times">Outros horários:</string>
+    <!-- Cada horário da viagem como cartão. -->
+    <string name="option_next">Próximo</string>
+    <string name="option_wait">espera %1$d min</string>
+    <string name="option_transfers">Integrações: %1$s</string>
+    <string name="option_direct">Direto</string>
+    <string name="option_transfer_one">1 em %1$s</string>
+    <string name="option_transfer_many">%1$d: %2$s</string>
+    <string name="journey_swap">Inverter ida e volta</string>
     <string name="journey_start">Iniciar modo viagem</string>
     <string name="journey_trip_hint">Guarde o celular: ele avisa antes da sua estação, mesmo com a tela desligada.</string>
     <string name="journey_reminder">Avisar a hora de sair</string>
