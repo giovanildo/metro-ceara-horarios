@@ -1,0 +1,4 @@
+• Modo viagem novo: a tela inteira vira um trilho, com a estação em que você está, as próximas e o horário de cada uma. A cada estação, o trilho desliza.
+• Na integração, as duas linhas e o trecho a pé no mesmo trilho.
+• Se você buscou um lugar, a estação final lembra para onde está indo.
+• Ao chegar, um resumo da viagem.
