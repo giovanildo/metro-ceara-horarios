@@ -159,7 +159,8 @@ padrão, segue o perfil da maioria (quem vai e volta do trabalho ou da escola):
    não**); recusado ou negado, não volta;
 2. **Sua ida e volta**, para quem configurou; só com as estações, os atalhos
    **Trabalho e Casa** (também debaixo da busca, em Planeje sua viagem); sem Casa
-   nem Trabalho, **Sua última viagem**, com o próximo horário;
+   nem Trabalho, **Sua última viagem**, com o próximo horário, ou **Sua viagem de
+   volta** quando a pessoa já foi;
 3. **as duas estações mais próximas** (sempre aparecem: é o motivo do app);
 4. as **rotinas**;
 5. o **Bicicletar** (só com "Levo bike").
@@ -285,6 +286,14 @@ mesma tela saindo dali.
     sem operação, nenhum horário, só quando o metrô volta. As contas usam a grade
     do aparelho, então funciona sem sinal e no subterrâneo. Só as estações e os
     horários ficam guardados, neste celular.
+- **Sua última viagem** (`RecentTripCard`, `shouldReverseRecent`; na lite,
+  `blocoUltimaViagem`, `deveInverterRecente`): quem não guardou Casa nem Trabalho
+  vê no topo a viagem mais recente, com o próximo horário. Ela vira **Sua viagem
+  de volta** quando a pessoa está perto do destino (a mais perto das duas
+  estações, até o limite de caminhada) ou, sem localização ou longe das duas,
+  quando foi vista hoje há pelo menos 3 h (**Configurações**, de 1 a 8 h; fixo
+  na lite). O **⇄ Inverter** corrige um erro e vale até o app mudar de ideia ou
+  entrar outra viagem. Por isso cada recente guarda quando foi vista.
 - **Resultado**, numa folha que sobe por baixo:
   - **Sair agora** ou **Escolher horário** (relógio de 24 h; "Sair às 17:30");
   - **cada horário um cartão**, como nos apps de ônibus
