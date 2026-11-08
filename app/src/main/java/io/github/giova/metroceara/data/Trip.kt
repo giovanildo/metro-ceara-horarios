@@ -30,7 +30,10 @@ data class TripTransfer(
     val free: Boolean? = null,
 )
 
-/** Um trecho do roteiro, para a linha do tempo da viagem. */
+/** Uma estação de um trecho do roteiro, para o trilho da viagem. */
+data class LegStation(val name: String, val scheduled: Int)
+
+/** Um trecho do roteiro, para o trilho da viagem. */
 data class JourneyLeg(
     val routeName: String,
     val colorHex: String,
@@ -39,6 +42,8 @@ data class JourneyLeg(
     val toName: String,
     val departure: Int,
     val arrival: Int,
+    /** As estações do trecho; vazio numa viagem salva antes de existir o trilho. */
+    val stations: List<LegStation> = emptyList(),
 )
 
 /**
@@ -83,6 +88,8 @@ data class TripPlan(
     val simulated: Boolean = false,
     /** Num roteiro com integração, o roteiro inteiro; este plano é o trecho [TripJourney.current]. */
     val journey: TripJourney? = null,
+    /** O lugar que a pessoa buscou ("Buscar lugares"), quando o destino veio dele. */
+    val placeName: String? = null,
 ) {
     val viaTerminal get() = turnaroundIndex in 0 until stops.lastIndex
     val terminal get() = stops.getOrNull(turnaroundIndex)
@@ -100,6 +107,7 @@ data class TripPlan(
         .put("alert", alertStationsBefore)
         .put("turn", turnaroundIndex)
         .put("sim", simulated)
+        .put("place", placeName ?: JSONObject.NULL)
         .apply {
             journey?.let { j ->
                 put("journey", JSONObject().put("route", j.destRouteId).put("stop", j.destStopId)
@@ -107,7 +115,10 @@ data class TripPlan(
                     .put("legs", JSONArray().apply {
                         j.legs.forEach {
                             put(JSONObject().put("route", it.routeName).put("color", it.colorHex).put("headsign", it.headsign)
-                                .put("from", it.fromName).put("to", it.toName).put("dep", it.departure).put("arr", it.arrival))
+                                .put("from", it.fromName).put("to", it.toName).put("dep", it.departure).put("arr", it.arrival)
+                                .put("st", JSONArray().apply {
+                                    it.stations.forEach { s -> put(JSONObject().put("n", s.name).put("t", s.scheduled)) }
+                                }))
                         }
                     }))
             }
@@ -145,6 +156,7 @@ data class TripPlan(
                 alertStationsBefore = o.optInt("alert", 2),
                 turnaroundIndex = o.optInt("turn", -1),
                 simulated = o.optBoolean("sim"),
+                placeName = if (o.isNull("place")) null else o.getString("place"),
                 journey = o.optJSONObject("journey")?.let { j ->
                     val legs = j.getJSONArray("legs")
                     TripJourney(
@@ -154,8 +166,12 @@ data class TripPlan(
                         current = j.getInt("current"),
                         legs = (0 until legs.length()).map { i ->
                             val l = legs.getJSONObject(i)
+                            val st = l.optJSONArray("st")
                             JourneyLeg(l.getString("route"), l.getString("color"), l.getString("headsign"),
-                                l.getString("from"), l.getString("to"), l.getInt("dep"), l.getInt("arr"))
+                                l.getString("from"), l.getString("to"), l.getInt("dep"), l.getInt("arr"),
+                                stations = (0 until (st?.length() ?: 0)).map { k ->
+                                    st!!.getJSONObject(k).let { LegStation(it.getString("n"), it.getInt("t")) }
+                                })
                         },
                     )
                 },

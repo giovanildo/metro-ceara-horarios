@@ -123,6 +123,7 @@ class TripService : Service() {
                 val itinerary = router.plan(from, RoutePoint(journey.destRouteId, journey.destStopId),
                     nowMinutes().toInt(), limit = 1).firstOrNull() ?: return null
                 return JourneyPlanner.plan(repo, itinerary, settings, plan.simulated, done = journey.legs.take(doneLegs))
+                    ?.copy(placeName = plan.placeName)
             }
 
             fun update() {

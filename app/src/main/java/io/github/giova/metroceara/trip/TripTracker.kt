@@ -5,8 +5,11 @@ import android.content.Intent
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import io.github.giova.metroceara.data.DevLog
+import io.github.giova.metroceara.data.JourneyPlanner
+import io.github.giova.metroceara.data.TripRail
 import io.github.giova.metroceara.data.TripPlan
 import io.github.giova.metroceara.data.TripProgress
+import io.github.giova.metroceara.data.nowMinutes
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,6 +22,41 @@ data class ActiveTrip(
     val arrived: Boolean,
 )
 
+/** A viagem que acabou de chegar ao destino, para a tela de chegada. */
+data class TripArrival(
+    val routeId: String,
+    val origin: String,
+    val destination: String,
+    val departure: Int,
+    val arrival: Int,
+    val stations: Int,
+    val simulated: Boolean,
+    val atMillis: Long,
+) {
+    val durationMinutes: Int get() = (arrival - departure + 24 * 60) % (24 * 60)
+
+    /** Quem abre o app horas depois de chegar não precisa do resumo. */
+    fun isRecent(nowMillis: Long): Boolean = nowMillis - atMillis < SHOWN_MILLIS
+
+    companion object {
+        private const val SHOWN_MILLIS = 30 * 60_000L
+
+        fun from(trip: ActiveTrip, now: Int, nowMillis: Long): TripArrival {
+            val plan = trip.plan
+            return TripArrival(
+                routeId = plan.routeId,
+                origin = plan.journey?.originName ?: JourneyPlanner.plainName(plan.origin.name),
+                destination = JourneyPlanner.plainName(plan.destination.name),
+                departure = plan.journey?.legs?.first()?.departure ?: plan.origin.scheduled,
+                arrival = now,
+                stations = TripRail.build(plan, trip.progress, lineHex = "").stationsRidden,
+                simulated = plan.simulated,
+                atMillis = nowMillis,
+            )
+        }
+    }
+}
+
 /**
  * Ponte entre o [TripService] e a interface: o serviço publica o estado aqui,
  * as telas observam. Também guarda a preferência do aviso sonoro.
@@ -28,14 +66,27 @@ object TripTracker {
     private val _active = MutableStateFlow<ActiveTrip?>(null)
     val active: StateFlow<ActiveTrip?> = _active.asStateFlow()
 
+    private val _arrival = MutableStateFlow<TripArrival?>(null)
+    /** A última chegada, até a pessoa sair da tela de chegada ou começar outra viagem. */
+    val arrival: StateFlow<TripArrival?> = _arrival.asStateFlow()
+
     private val _soundEnabled = MutableStateFlow<Boolean?>(null)
     private val _stationAlerts = MutableStateFlow<Boolean?>(null)
 
     internal fun publish(trip: ActiveTrip?) {
+        // Só na passagem para "chegou": depois disso o serviço ainda publica por alguns segundos.
+        if (trip?.arrived == true && _active.value?.arrived != true) {
+            _arrival.value = TripArrival.from(trip, nowMinutes(), System.currentTimeMillis())
+        }
         _active.value = trip
     }
 
+    fun dismissArrival() {
+        _arrival.value = null
+    }
+
     fun start(context: Context, plan: TripPlan) {
+        _arrival.value = null
         val intent = Intent(context, TripService::class.java)
             .setAction(TripService.ACTION_START)
             .putExtra(TripService.EXTRA_PLAN, plan.toJson())
