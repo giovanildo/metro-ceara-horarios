@@ -92,6 +92,12 @@ import io.github.giova.metroceara.data.Station
 import io.github.giova.metroceara.data.nearestBikeTo
 import io.github.giova.metroceara.data.SettingsStore
 import io.github.giova.metroceara.data.nearestStations
+import io.github.giova.metroceara.data.CommuteKind
+import io.github.giova.metroceara.data.CommuteSchedule
+import io.github.giova.metroceara.data.CommuteStore
+import io.github.giova.metroceara.data.commuteDestination
+import io.github.giova.metroceara.data.pickCommute
+import io.github.giova.metroceara.data.vehicleName
 import io.github.giova.metroceara.data.HomeBlock
 import io.github.giova.metroceara.data.HomeLayout
 import io.github.giova.metroceara.data.HomeLayoutStore
@@ -674,6 +680,9 @@ fun AppRoot() {
     // quem sai agora da estação em destaque, ou "você está aqui".
     val places by Places.all(context).collectAsState()
     var placeEditing by remember { mutableStateOf<Place?>(null) }
+    val commute by CommuteStore.flow(context).collectAsState()
+    val commuteKind = commute?.kind ?: CommuteKind.WORK
+    var commuteOpen by remember { mutableStateOf(false) }
     fun placeName(saved: Pair<String, String>) = repo.stop(saved.first)?.name?.let(JourneyPlanner::plainName)
     val placeOrigin = homeState.station
     val placeShortcuts by produceState(emptyList<PlaceShortcut>(), places, placeOrigin, now, sundayOff, stoppedRoutes) {
@@ -693,6 +702,63 @@ fun AppRoot() {
                     },
                     here)
             }
+        }
+    }
+
+    // Sua ida e volta: com as duas estações e os dois horários, o bloco do alto da
+    // tela inicial mostra o sentido de agora e qual metrô pegar. ⇄ vale enquanto o
+    // app continuar achando o mesmo sentido: quando ele muda, a inversão acaba.
+    var commuteFlippedFrom by remember { mutableStateOf<Place?>(null) }
+    val commuteReady = places?.get(Place.HOME) != null && places?.get(Place.WORK) != null &&
+        commute?.arriveBy != null && commute?.leaveAt != null
+    val commuteView by produceState<CommuteView?>(null, places, commute, commuteFlippedFrom, homeState, now, sundayOff, stoppedRoutes) {
+        value = withContext(Dispatchers.IO) {
+            val schedule = commute ?: return@withContext null
+            val arriveBy = schedule.arriveBy ?: return@withContext null
+            val leaveAt = schedule.leaveAt ?: return@withContext null
+            val homeStation = places?.get(Place.HOME)?.let { repo.station(it.first, it.second) } ?: return@withContext null
+            val workStation = places?.get(Place.WORK)?.let { repo.station(it.first, it.second) } ?: return@withContext null
+            val nearMeters = settings.walkToStationMeters.toDouble()
+            val toHome = userDistanceTo(homeStation.lat, homeStation.lon)
+            val toWork = userDistanceTo(workStation.lat, workStation.lon)
+            val automatic = commuteDestination(now, arriveBy, leaveAt, toHome, toWork, nearMeters)
+            val flipped = commuteFlippedFrom == automatic
+            val destination = if (flipped) { if (automatic == Place.HOME) Place.WORK else Place.HOME } else automatic
+            val target = if (destination == Place.HOME) homeStation else workStation
+            // Longe das duas, sai da estação mais perto, como o atalho sempre fez.
+            val farFromBoth = toHome != null && toWork != null && minOf(toHome, toWork) > nearMeters
+            val nearest = (homeState as? HomeStation.Nearby)?.station
+            val origin = when {
+                !flipped && farFromBoth && nearest != null -> nearest
+                destination == Place.HOME -> workStation
+                else -> homeStation
+            }
+            val point = RoutePoint(target.routeId, target.stopId)
+            val hour = when {
+                flipped || nowDayOfWeek() !in schedule.days -> null
+                destination == Place.WORK -> arriveBy
+                else -> leaveAt
+            }
+            val options = if (sundayOff) emptyList() else
+                router.plan(RoutePoint(origin.routeId, origin.stopId), point, leaveNow(origin), Int.MAX_VALUE, stoppedRoutes)
+            val pick = pickCommute(options, destination == Place.WORK, hour, now)
+            CommuteView(
+                destination = destination,
+                automatic = automatic,
+                kind = schedule.kind,
+                origin = origin,
+                originName = JourneyPlanner.plainName(origin.stopName),
+                destinationName = JourneyPlanner.plainName(target.stopName),
+                destinationRoute = target.routeId,
+                destinationStop = target.stopId,
+                lineColors = pick?.main?.legs?.mapNotNull { repo.route(it.routeId)?.colorHex }?.distinct()
+                    ?: listOf(origin.routeColor),
+                pick = pick,
+                route = pick?.let { routeView(it.main, walk = walkTo(origin)) },
+                message = if (pick != null) null else planJourney(origin, point, null).message,
+                target = hour,
+                vehicle = repo.route(origin.routeId)?.let { vehicleName(it.name) }.orEmpty(),
+            )
         }
     }
 
@@ -881,7 +947,13 @@ fun AppRoot() {
     placeEditing?.let { place ->
         StationPickerDialog(
             stations = remember(repo) { repo.stations() },
-            title = stringResource(if (place == Place.HOME) R.string.place_pick_home else R.string.place_pick_work),
+            title = stringResource(
+                when {
+                    place == Place.HOME -> R.string.place_pick_home
+                    commuteKind == CommuteKind.SCHOOL -> R.string.place_pick_school
+                    else -> R.string.place_pick_work
+                },
+            ),
             note = stringResource(R.string.place_pick_note),
             onPick = {
                 Places.set(context, place, it.stopId to it.routeId)
@@ -917,14 +989,37 @@ fun AppRoot() {
         listOf(HomeBlock.SEARCH, HomeBlock.PLACES).filter { layout.shows(it) }
 
     @Composable
-    fun HomeBlockContent(block: HomeBlock, layout: HomeLayout) {
+    fun HomeBlockContent(block: HomeBlock, layout: HomeLayout, inRoutes: Boolean = false) {
         when (block) {
             HomeBlock.PLACES -> Column {
-                PlaceShortcuts(
-                    shortcuts = placeShortcuts,
-                    onOpen = ::openPlace,
-                    onEdit = { placeEditing = it },
-                )
+                val view = commuteView
+                val latest = recentRows.firstOrNull()
+                when {
+                    !inRoutes && commuteReady -> view?.let {
+                        CommuteCard(
+                            view = it,
+                            now = now,
+                            canStart = !sundayOff && tripAllowedFrom(it.origin.lat, it.origin.lon),
+                            onOpen = {
+                                journeyLandmark = null
+                                journeyFrom = it.origin
+                                journeyDest = it.destinationRoute to it.destinationStop
+                                journeyOpen = true
+                            },
+                            onFlip = { commuteFlippedFrom = if (commuteFlippedFrom == it.automatic) null else it.automatic },
+                            onStart = { it.route?.let { route -> startJourney(it.origin, route, null) } },
+                        )
+                    }
+                    // Sem Casa nem Trabalho: a viagem mais recente, logo abaixo dos avisos.
+                    !inRoutes && places.isNullOrEmpty() && latest != null ->
+                        RecentTripCard(latest, recentTimes[latest.trip], now, onOpen = { openRecent(latest.trip) })
+                    else -> PlaceShortcuts(
+                        shortcuts = placeShortcuts,
+                        kind = commuteKind,
+                        onOpen = ::openPlace,
+                        onEdit = { placeEditing = it },
+                    )
+                }
             }
 
             HomeBlock.STATIONS -> Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -1094,6 +1189,7 @@ fun AppRoot() {
                     }
                 },
                 onEditPlace = { placeEditing = it },
+                commuteKind = commuteKind,
                 recentCount = recentTrips.orEmpty().size,
                 onClearRecent = { RecentTrips.clear(context) },
                 onOpenAdjust = { adjustOpen = true },
@@ -1148,6 +1244,18 @@ fun AppRoot() {
                     routineEditing = null
                 },
                 onBack = { routineEditing = null },
+            )
+        }
+
+        commuteOpen -> {
+            BackHandler { commuteOpen = false }
+            CommuteScreen(
+                schedule = commute ?: CommuteSchedule(),
+                homeName = places?.get(Place.HOME)?.let(::placeName),
+                workName = places?.get(Place.WORK)?.let(::placeName),
+                onChange = { CommuteStore.save(context, it) },
+                onPickStation = { placeEditing = it },
+                onBack = { commuteOpen = false },
             )
         }
 
@@ -1308,6 +1416,7 @@ fun AppRoot() {
             tab = homeTab,
             onTab = { homeTab = it },
             routeBlocks = routeBlocks(homeLayout),
+            routeBlock = { HomeBlockContent(it, homeLayout, inRoutes = true) },
             routesExtra = {
                 RecentTripsBlock(recentRows, recentTimes, onOpen = ::openRecent, onRemove = { RecentTrips.remove(context, it) })
             },
@@ -1316,6 +1425,7 @@ fun AppRoot() {
 
                 onNina = ninaOpener(homeState.station?.routeName),
                 onRoutines = { routinesOpen = true },
+                onCommute = { commuteOpen = true },
                 onAdjust = { adjustOpen = true },
                 onOrder = { orderOpen = true },
                 onSettings = { showSettings = true },

@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.github.giova.metroceara.R
+import io.github.giova.metroceara.data.CommuteKind
 import io.github.giova.metroceara.data.Place
 
 /**
@@ -26,14 +27,16 @@ import io.github.giova.metroceara.data.Place
  */
 data class PlaceShortcut(val place: Place, val name: String?, val detail: String?, val here: Boolean)
 
-fun placeEmoji(place: Place) = when (place) {
-    Place.HOME -> "🏠"
-    Place.WORK -> "💼"
+fun placeEmoji(place: Place, kind: CommuteKind = CommuteKind.WORK) = when {
+    place == Place.HOME -> "🏠"
+    kind == CommuteKind.SCHOOL -> "🎓"
+    else -> "💼"
 }
 
-fun placeLabel(place: Place) = when (place) {
-    Place.HOME -> R.string.place_home
-    Place.WORK -> R.string.place_work
+fun placeLabel(place: Place, kind: CommuteKind = CommuteKind.WORK) = when {
+    place == Place.HOME -> R.string.place_home
+    kind == CommuteKind.SCHOOL -> R.string.place_school
+    else -> R.string.place_work
 }
 
 /**
@@ -44,6 +47,7 @@ fun placeLabel(place: Place) = when (place) {
 @Composable
 fun PlaceShortcuts(
     shortcuts: List<PlaceShortcut>,
+    kind: CommuteKind = CommuteKind.WORK,
     onOpen: (Place) -> Unit,
     onEdit: (Place) -> Unit,
     modifier: Modifier = Modifier,
@@ -54,7 +58,7 @@ fun PlaceShortcuts(
         modifier = modifier.fillMaxWidth(),
     ) {
         shortcuts.sortedBy { it.here }.forEach { shortcut ->
-            val label = stringResource(placeLabel(shortcut.place))
+            val label = stringResource(placeLabel(shortcut.place, kind))
             val filled = shortcut.name != null && !shortcut.here
             Surface(
                 shape = RoundedCornerShape(12.dp),
@@ -72,7 +76,7 @@ fun PlaceShortcuts(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
                 ) {
-                    Text(placeEmoji(shortcut.place), style = MaterialTheme.typography.titleLarge)
+                    Text(placeEmoji(shortcut.place, kind), style = MaterialTheme.typography.titleLarge)
                     if (shortcut.name == null) {
                         Text(
                             text = stringResource(R.string.place_define, label),

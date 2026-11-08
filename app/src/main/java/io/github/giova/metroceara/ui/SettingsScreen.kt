@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import io.github.giova.metroceara.R
 import io.github.giova.metroceara.data.AppSettings
 import io.github.giova.metroceara.data.Mobility
+import io.github.giova.metroceara.data.CommuteKind
 import io.github.giova.metroceara.data.Place
 import io.github.giova.metroceara.data.TripLog
 import kotlin.math.roundToInt
@@ -57,6 +58,7 @@ fun SettingsScreen(
     /** Casa e Trabalho, com o nome da estação guardada (ou `null`). */
     places: List<Pair<Place, String?>> = emptyList(),
     onEditPlace: (Place) -> Unit = {},
+    commuteKind: CommuteKind = CommuteKind.WORK,
     /** Quantas viagens recentes há e o botão que apaga todas. */
     recentCount: Int = 0,
     onClearRecent: () -> Unit = {},
@@ -163,7 +165,7 @@ fun SettingsScreen(
                         .clickable { onEditPlace(place) }
                         .padding(vertical = 10.dp),
                 ) {
-                    Text("${placeEmoji(place)} ${stringResource(placeLabel(place))}", style = MaterialTheme.typography.bodyLarge)
+                    Text("${placeEmoji(place, commuteKind)} ${stringResource(placeLabel(place, commuteKind))}", style = MaterialTheme.typography.bodyLarge)
                     Text(
                         text = name ?: stringResource(R.string.settings_place_unset),
                         style = MaterialTheme.typography.bodyMedium,

@@ -68,6 +68,8 @@ fun RoutesScreen(
     routeBlocks: List<HomeBlock> = emptyList(),
     /** Desenha um bloco. */
     block: @Composable (HomeBlock) -> Unit = {},
+    /** Desenha um bloco da aba "Planeje sua viagem" (Trabalho e Casa sempre como atalhos). */
+    routeBlock: @Composable (HomeBlock) -> Unit = block,
     /** Por cima de tudo: o modo viagem em andamento e o aviso de horários antigos. */
     header: (@Composable () -> Unit)? = null,
     /** O que a lista do Mais abre. */
@@ -133,7 +135,7 @@ fun RoutesScreen(
                     // Durante a viagem a busca some (não se começa outra por cima): fica o
                     // cartão da viagem em andamento, em vez de uma tela vazia.
                     if (routeBlocks.isEmpty()) header?.let { h -> item(key = "topo") { h() } }
-                    routeBlocks.forEach { b -> item(key = b.key) { block(b) } }
+                    routeBlocks.forEach { b -> item(key = b.key) { routeBlock(b) } }
                     if (routeBlocks.isNotEmpty()) routesExtra?.let { extra -> item(key = "recentes") { extra() } }
                 }
                 HomeTab.LINES -> items(routes, key = { it.id }) { route ->
