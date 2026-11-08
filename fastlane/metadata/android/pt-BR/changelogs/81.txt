@@ -1,0 +1,2 @@
+• Domingo sem operação: o app não mostra mais horário nenhum, só "Hoje é domingo: metrô e VLT não circulam. Voltam segunda, a partir das 05:30". Vale para a tela inicial, o widget, a estação e o roteiro.
+• De madrugada, antes da 00:40, o app explica que os horários de hoje ainda não saíram (antes pedia para conectar à internet) e baixa sozinho às 00:40.
