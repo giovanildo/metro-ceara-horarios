@@ -109,9 +109,8 @@ Passagem (o guia), Nina, Ajustar para mim, Configurações, De onde vem cada
 informação, Sobre o app e Compartilhar o app. Ícone sem nome não serve para
 todo mundo, por isso cada botão diz o que faz; com letra grande, "Planeje sua
 viagem" quebra em duas linhas. A aba aberta volta depois de abrir uma linha.
-Ao começar o modo viagem, o app vai para o Início, onde está o andamento;
-durante a viagem, "Planeje sua viagem" mostra o cartão dela no lugar da busca
-(não se começa outra viagem por cima).
+Durante o modo viagem, a barra e as abas dão lugar à tela do trilho; ao terminar
+ou encerrar a viagem, o app volta ao Início.
 
 ### Nina (Super NINA)
 
@@ -336,7 +335,8 @@ e `TripService`):
 - **No trecho:** a notificação fixa mostra "Benfica → Papicu · chegada 08:40 ·
   Agora: Linha Sul, em Couto Fernandes · Integração em Parangaba às 08:01 ·
   Linha Nordeste às 08:10", com uma barra de progresso da viagem inteira. O
-  cartão no app tem a **linha do tempo** dos trechos ("feito", "agora").
+  **trilho** no app mostra as estações de todos os trechos, cada um na cor da
+  sua linha, com a caminhada da integração no meio.
 - **Antes da integração:** "Prepare-se: integração em Parangaba · Faltam 2
   estações para Parangaba. Depois, Linha Nordeste às 08:10."
 - **Na integração:** "Desça em Parangaba e vá para a Linha Nordeste, 2 min a pé.
@@ -421,10 +421,39 @@ navegadores não permitem.
 O modo viagem começa pelo resultado da busca **"Para onde você vai?"**
 ([acima](#para-onde-você-vai-roteiro-na-mesma-linha-ou-com-integração)): escolhido
 o destino e saindo agora, o botão **Iniciar modo viagem**. Durante a viagem, a
-barra do topo dá lugar ao cartão com o andamento, e um serviço em
+tela inteira vira o **trilho** e um serviço em
 primeiro plano, com notificação fixa, segue a viagem com a tela desligada (o
 ícone pequeno das notificações é a silhueta do trem, `drawable/ic_notification.xml`:
-o Android só usa a forma, e o ícone do app, de fundo cheio, virava um quadrado):
+o Android só usa a forma, e o ícone do app, de fundo cheio, virava um quadrado).
+
+**O trilho** ([`ui/TripRailScreen.kt`](app/src/main/java/io/github/giova/metroceara/ui/TripRailScreen.kt),
+montado por [`data/TripRail.kt`](app/src/main/java/io/github/giova/metroceara/data/TripRail.kt)):
+o destino fica em cima, as estações que já passaram embaixo, apagadas, e quem
+viaja fica sempre na mesma altura, em letra grande. A cada estação confirmada o
+trilho desliza (0,7 s), e só aí: uma bolinha andando pelo relógio mentiria no
+túnel. Correção do GPS para trás não dá ré na frente da pessoa, troca direto.
+Com as animações do Android desligadas, a troca também é direta; para o TalkBack,
+o trilho inteiro é uma frase só, a mesma "Em X · próxima: Y · destino em N
+estações · chegada ~H".
+
+- Cada estação à frente traz o horário previsto; o **sino** marca onde sai o
+  aviso de descida; "mais N estações até X" aparece no topo quando o trajeto
+  não cabe.
+- **Sem posição confirmada**, a linha à frente e o trem ficam tracejados.
+- **Antes de embarcar**, ou andando na integração, o trilho fica parado e um
+  quadro diz "Metrô às 13:40, em 6 min · sentido X".
+- **Lugar buscado:** se o destino veio de "Buscar lugares", a estação final diz
+  "desce aqui · para Mercado Central". Lugares nas outras estações não: a tela
+  serve para bater o olho, e entre duas estações o app não sabe onde o metrô está.
+- **Na tela só fica o essencial:** o som do aviso de chegada (começa ligado),
+  o menu ⋮ com "Avisar cada estação", a Nina (rostinho e nome, só onde ela
+  atende; o toque não é registrado) e "Encerrar viagem", com confirmação. O
+  voltar do celular só tira o app da frente; a viagem continua.
+- **Ao chegar**, uma tela curta com o horário, o tempo de viagem e as estações
+  (`TripArrival`). Quem encerra antes vai direto ao Início, e quem abre o app
+  mais de 30 min depois de chegar não vê o resumo.
+
+Por trás da tela, o serviço segue a viagem assim:
 
 - **Onde o trem está.** Pelo GPS, quando a posição é precisa (≤150 m) e está a
   até 300 m de uma estação do caminho. Cada estação confirmada mede o atraso
@@ -458,7 +487,7 @@ o Android só usa a forma, e o ícone do app, de fundo cheio, virava um quadrado
   as repassa ao estimador.
 - **Quando o GPS é dado como perdido.** Depois de **1 minuto** sem nenhuma
   posição boa (12 tentativas, uma a cada 5 s) — menos que os ~2 min entre duas
-  estações. A partir daí o cartão mostra um quadro em destaque, de fundo neutro
+  estações. A partir daí a tela mostra um quadro em destaque, de fundo neutro
   e letra legível (ícone vermelho só para chamar atenção): "**Sem GPS há N
   min** — Posição estimada pela tabela de horários. Confira o nome das
   estações pela janela." A notificação fixa ganha
@@ -469,7 +498,7 @@ o Android só usa a forma, e o ícone do app, de fundo cheio, virava um quadrado
   Metrofor, deslocados pelo atraso que o GPS mediu na última estação vista.
 - **Aviso duas estações antes do destino**, com notificação e vibração:
   "**Benfica: prepare-se para descer** · Faltam 2 estações." O
-  botão de alto-falante no cartão da viagem liga ou desliga o **som**; com som,
+  botão de alto-falante na tela da viagem liga ou desliga o **som**; com som,
   o aviso usa o áudio de alarme, que toca mesmo com o celular no vibrar.
 - **Avisar cada estação (voz)**, opcional e desligado por padrão: a cada
   estação alcançada, uma notificação curta e a voz do sistema (o "Conversão de
