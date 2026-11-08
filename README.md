@@ -89,7 +89,14 @@ estação em destaque pode vir de duas fontes:
 - **A mais próxima de você**, o que exige `ACCESS_FINE_LOCATION`. A permissão só
   é pedida quando você toca no botão, nunca ao abrir o app, e as features de
   localização estão declaradas com `required="false"` — o app instala e funciona
-  em aparelho sem GPS.
+  em aparelho sem GPS. A distância mostrada é **em linha reta** e a tela diz isso
+  ("1,5 km em linha reta, sem contar ruas nem trânsito"; na lite também), para
+  ninguém achar que o app considera ruas, mão de direção ou trânsito. Uma posição
+  menos precisa não substitui a atual por 2 minutos (ajustável); depois disso, só
+  entra se contradisser a atual, pelo dobro da margem de erro informada
+  ([`data/HomeFix.kt`](app/src/main/java/io/github/giova/metroceara/data/HomeFix.kt)).
+  Os registros de campo mostravam a rede, com 600 m ou mais de incerteza, tomando o
+  lugar de uma posição de 5 m, e a distância pulava de 1,5 km para 765 m.
 - **Uma estação fixada à mão**, pela estrela na tela de partidas. Não exige
   permissão nenhuma, e ganha da localização quando existe, porque é uma escolha
   explícita.
@@ -105,8 +112,10 @@ Embaixo, uma barra com ícone e nome em cada botão
 você vai?" e Casa e Trabalho), **Linhas** (a lista das linhas; tocar abre as
 estações) e **Mais**, uma lista que sobe de baixo por cima da tela
 ([`ui/HomeMenu.kt`](app/src/main/java/io/github/giova/metroceara/ui/HomeMenu.kt)):
-Passagem (o guia), Nina, Ajustar para mim, Configurações, De onde vem cada
-informação, Sobre o app e Compartilhar o app. Ícone sem nome não serve para
+em três grupos: **Para a viagem** (Passagem, Nina, Suas rotinas), **Do seu
+jeito** (Ajustar para mim, Ordem da tela inicial, Configurações) e **O app** (De
+onde vem cada informação, Sobre o app, Compartilhar o app). Na lite, só os que
+ela tem. Ícone sem nome não serve para
 todo mundo, por isso cada botão diz o que faz; com letra grande, "Planeje sua
 viagem" quebra em duas linhas. A aba aberta volta depois de abrir uma linha.
 Durante o modo viagem, a barra e as abas dão lugar à tela do trilho; ao terminar
@@ -135,11 +144,10 @@ O app faz muita coisa, mas o propósito é simples: a pessoa ver logo quando
 passa o próximo metrô. Por isso a tela inicial é uma lista de blocos e, no
 padrão, segue o perfil da maioria (quem vai e volta do trabalho ou da escola):
 
-1. **Trabalho e Casa** (também debaixo da busca, em Planeje sua viagem);
-2. **as duas estações mais próximas** (sempre aparecem: é o motivo do app). Em
-   **dia especial** (operação especial, feriado), o aviso de hoje do Metrofor vem
-   logo acima delas, porque os horários são outros;
-3. os **avisos do Metrofor dos próximos dias**: toda operação especial anunciada
+1. os **avisos do Metrofor**, todos juntos e acima de tudo, de hoje e dos
+   próximos dias (na lite também; só no app dá para mover o bloco). Se a pessoa
+   esconder o bloco, o aviso de hoje continua acima das estações, porque os
+   horários do dia são outros. Toda operação especial anunciada
    (ENEM, eleição, feriado) aparece desde o dia em que a notícia sai, não só na
    véspera, juntando os dias da mesma notícia ("Metrofor, domingo (8/11) e
    domingo (15/11):"). Com o app fechado, a cada ~3 h o app confere o
@@ -149,6 +157,8 @@ padrão, segue o perfil da maioria (quem vai e volta do trabalho ou da escola):
    notificação. No Android 13+, sem a permissão de notificação, debaixo do aviso
    aparece o convite "Quer receber uma notificação…?" (**Avisar** / **Agora
    não**); recusado ou negado, não volta;
+2. **Trabalho e Casa** (também debaixo da busca, em Planeje sua viagem);
+3. **as duas estações mais próximas** (sempre aparecem: é o motivo do app);
 4. as **rotinas**;
 5. o **Bicicletar** (só com "Levo bike").
 
@@ -540,8 +550,9 @@ Por trás da tela, o serviço segue a viagem assim:
     "andar" pela tabela e o app dizer "Você chegou" (log de 25/10, a 1,4 km da
     Carlito Benevides, com testes em `TripEstimatorTest`).
 
-  A mais de **3 km** (ajustável), a opção some,
-  na tela inicial e na de partidas. A distância vem do GPS da tela inicial ou,
+  A mais de **1 km** (ajustável), a opção some,
+  na tela inicial e na de partidas; no roteiro, o botão vira "Avisar a hora de
+  sair", com a frase "O modo viagem aparece quando você estiver perto de…". A distância vem do GPS da tela inicial ou,
   com estação fixada, da última posição guardada no aparelho; sem posição
   conhecida, o app deixa iniciar.
 - **Ir sentado pelo terminal.** Perto de um terminal (até 3 estações,
@@ -901,12 +912,14 @@ próprias cores, em vermelho). Nas outras seções:
 | Bicicletar perto da estação até | 600 m | 200 m – 1,5 km |
 | Avisar antes do destino | 2 estações | 1 – 4 |
 | Perguntar antes de começar a viagem a partir de | 1 km | 500 m – 3 km |
-| Esconder o modo viagem a partir de | 3 km | 1 – 10 km |
+| Esconder o modo viagem a partir de | 1 km | 1 – 10 km |
+| Somar a caminhada até a estação até | 3 km | 1 – 10 km |
 | Considerar o GPS perdido depois de | 1 min | 30 s – 5 min |
 | Contar o trem que saiu há até | 2 min | 0 – 10 min |
 | Encerrar a viagem sozinho depois de | 30 min | 10 – 60 min |
 | Oferecer ir sentado pelo terminal até | 3 estações | 0 (não oferecer) – 5 |
 | Atualizar sua posição (tela inicial) a cada | 10 s | 5 – 60 s |
+| Segurar a posição mais certa por | 2 min | 30 s – 5 min |
 
 **Avisar a hora de sair:** em qualquer estação, **tocar num horário** que ainda
 não passou (nas próximas partidas ou em "Todos os horários") marca o aviso do
@@ -958,7 +971,7 @@ uma com a chave de ligar e o aviso já marcado ("Aviso marcado: sair às 11:44
 para o metrô das 12:14").
 
 A caminhada até a estação só entra no "Sair agora" quando a pessoa está a até o
-limite do modo viagem (Configurações, 3 km): mais longe, ela está planejando, e
+limite de caminhada (Configurações, 3 km, separado do limite do modo viagem): mais longe, ela está planejando, e
 somar 2 h a pé deixaria o roteiro vazio.
 
 O aviso de distância nunca fica maior que o limite em que o modo viagem some
@@ -1375,8 +1388,9 @@ não tem o `app_start`); é por ela que se sabe o que cada evento grava. Até a
 aparelho), `schedule_source`
 (de onde veio a grade em uso), `sync_start`/`sync_ok`/`sync_fail` (download dos
 horários; o `sync_ok` resume viagens e horários por linha), `loc_request`/
-`loc_ok`/`loc_fail` (pedido de localização, provedor, tempo, precisão),
+`loc_ok`/`loc_fail` (pedido de localização, se veio de toque ou da abertura, provedor, tempo, precisão),
 `home_gps` (posição exata e estação mais próxima na tela inicial),
+`home_gps_skip` (posição recusada por ser menos precisa, com a mantida),
 `trip_start` (linha, paradas e horários previstos, aviso), `trip_gps` (cada
 posição durante a viagem), `trip_progress` (mudança de estação, se veio do GPS
 ou da tabela, atraso, GPS sem sinal), `trip_alert`, `trip_station`,
