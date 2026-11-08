@@ -126,8 +126,9 @@ fun DeparturesScreen(
     val tomorrow = remember(direction) { direction?.let(tomorrowFor) }
     val next = remember(all, tomorrow, now) { nextDepartures(all, now, NEXT_COUNT, tomorrow) }
     val sunday = remember(now) { isSundayToday() }
-    // Domingo comum: a lista é a de segunda ("Horários de segunda", lembrete para amanhã).
+    // Domingo comum: nenhum horário na tela, só o aviso e a hora em que o metrô volta.
     val sundayOff = remember(now) { isSundayWithoutService() }
+    val mondayFirst = remember(directions) { directions.mapNotNull { tomorrowFor(it)?.firstOrNull() }.minOrNull() }
     // Tocar num horário: o aviso do app, num toque só depois da primeira vez.
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -282,8 +283,8 @@ fun DeparturesScreen(
                 if (operation != null) {
                     item { MetroforNotices(listOf(ScheduleStore.Notice(operation.title, operation.link, listOf(day)))) }
                 } else if (sunday) {
-                    item { SundayNotice() }
-                    // Os horários mostrados são os de segunda: vale também a notícia de amanhã.
+                    item { SundayNotice(text = sundayOffText(mondayFirst)) }
+                    // O metrô volta na segunda: vale também a notícia de amanhã.
                     Regras.current.operations[ScheduleStore.tomorrow()]?.let { next ->
                         item { MetroforNotices(listOf(ScheduleStore.Notice(next.title, next.link, listOf(ScheduleStore.tomorrow())))) }
                     }
@@ -292,6 +293,9 @@ fun DeparturesScreen(
                     item { SundayNotice(text = stringResource(R.string.line_stopped_today)) }
                 }
 
+                if (sundayOff) {
+                    // Sem horário nenhum: qualquer hora na tela daria a impressão de que hoje tem.
+                } else {
                 item {
                     Text(
                         text = stringResource(R.string.next_departures),
@@ -306,7 +310,6 @@ fun DeparturesScreen(
                                 stringResource(
                                     when {
                                         direction?.published == false -> R.string.direction_unpublished
-                                        sundayOff -> R.string.no_departures_today
                                         else -> R.string.no_more_today
                                     },
                                 ),
@@ -344,14 +347,12 @@ fun DeparturesScreen(
                     }
                     item {
                         Text(
-                            text = stringResource(
-                                if (sundayOff) R.string.leave_hint_monday else R.string.leave_hint,
-                                SettingsStore.get(context).leaveBeforeMinutes,
-                            ),
+                            text = stringResource(R.string.leave_hint, SettingsStore.get(context).leaveBeforeMinutes),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
+                }
                 }
 
                 // Daqui para qualquer estação, na mesma linha ou com integração (e daí o modo viagem).
@@ -395,7 +396,7 @@ fun DeparturesScreen(
                 }
 
                 // Baldeação: o primeiro trem da outra linha que ainda dá para pegar a pé.
-                if (transfers.isNotEmpty()) {
+                if (transfers.isNotEmpty() && !sundayOff) {
                     item {
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             TransferBlock(
@@ -448,28 +449,21 @@ fun DeparturesScreen(
                     }
                 }
 
-                val monday = if (sundayOff) tomorrow.orEmpty() else emptyList()
-                if (!sundayOff || monday.isNotEmpty()) {
+                if (!sundayOff) {
                     item {
                         Text(
-                            text = stringResource(if (sundayOff) R.string.monday_departures else R.string.all_departures),
+                            text = stringResource(R.string.all_departures),
                             style = MaterialTheme.typography.titleSmall,
                             modifier = Modifier.padding(top = 8.dp),
                         )
                     }
                     item {
-                        if (sundayOff) {
-                            // Todos de amanhã, nenhum passou: o "agora" é a meia-noite.
-                            AllDepartures(monday, now = 0, marked = { alertAt(Departure(it, tomorrow = true)) != null },
-                                onPick = { m: Int -> onPick(Departure(m, tomorrow = true)) })
-                        } else {
-                            AllDepartures(all, now, marked = { alertAt(Departure(it, tomorrow = false)) != null },
-                                onPick = { m: Int -> onPick(Departure(m, tomorrow = false)) })
-                        }
+                        AllDepartures(all, now, marked = { alertAt(Departure(it, tomorrow = false)) != null },
+                            onPick = { m: Int -> onPick(Departure(m, tomorrow = false)) })
                     }
                 }
 
-                item {
+                if (!sundayOff) item {
                     Text(
                         text = scheduleStatusText(schedule, syncing = false),
                         style = MaterialTheme.typography.bodySmall,

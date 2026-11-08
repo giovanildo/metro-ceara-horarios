@@ -151,12 +151,20 @@ fun AppRoot() {
             runCatching { ScheduleStore.syncRules(context) }
                 .onFailure { DevLog.log("regras_sync_fail", "reason" to (it.message ?: it.javaClass.simpleName)) }
         }
-        val result = withContext(Dispatchers.IO) {
-            runCatching { ScheduleStore.sync(context, MetroforDatabase.bundledFile(context)) }
+        // Domingo sem operação anunciada não tem metrô: a grade que o Metrofor serve
+        // nesses dias é cópia da de dia útil e não deve ser guardada como "domingo".
+        // As regras acabaram de chegar, então uma operação anunciada já conta.
+        val result = if (isSundayWithoutService()) {
+            DevLog.log("sync_skip", "reason" to "domingo sem operação")
+            null
+        } else {
+            withContext(Dispatchers.IO) {
+                runCatching { ScheduleStore.sync(context, MetroforDatabase.bundledFile(context)) }
+            }
         }
-        result.exceptionOrNull()?.let { DevLog.log("sync_fail", "reason" to (it.message ?: it.javaClass.simpleName)) }
+        result?.exceptionOrNull()?.let { DevLog.log("sync_fail", "reason" to (it.message ?: it.javaClass.simpleName)) }
         scheduleSyncing = false
-        if (result.isSuccess) scheduleVersion++
+        if (result?.isSuccess == true) scheduleVersion++
         // As notícias de operação especial vêm no regras.json, já baixado acima.
         notices = ScheduleStore.notices()
         // Com o app aberto o aviso está na tela: não precisa de notificação depois.
@@ -513,14 +521,9 @@ fun AppRoot() {
         repo.routes().filter { Regras.current.stopped(today, it.name) }.map { it.id }.toSet()
     }
 
-    // Domingo sem operação anunciada: sem modo viagem, e o roteiro é o de segunda,
-    // pela grade de amanhã, só para consulta (vira lembrete).
+    // Domingo sem operação anunciada: sem modo viagem e sem roteiro (nenhum horário
+    // na tela), só o aviso com a hora em que o metrô volta na segunda.
     val sundayOff = remember(now, today) { isSundayWithoutService() }
-    val mondayRouter = remember(repo, settings) {
-        repo.timetableTomorrow?.let { tt ->
-            Router(tt, repo.transferLinks()) { link, arrival -> transferMinutes(link.baseMinutes, arrival, settings) }
-        }
-    }
     val stoppedTomorrow = remember(repo, today) {
         repo.routes().filter { Regras.current.stopped(ScheduleStore.tomorrow(), it.name) }.map { it.id }.toSet()
     }
@@ -557,7 +560,7 @@ fun AppRoot() {
     // De onde a pessoa sai agora: com a caminhada até a estação, ou já nela.
     fun leaveNow(origin: Station): Int = walkTo(origin).let { if (it > 0) nowMinutes() + it else nowMinutes() - settings.lateBoardingMinutes }
 
-    fun routeView(itinerary: Itinerary, monday: Boolean = false, walk: Int = 0): RouteView {
+    fun routeView(itinerary: Itinerary, walk: Int = 0): RouteView {
         fun stopName(id: String) = JourneyPlanner.plainName(repo.stop(id)?.name ?: id)
         fun headsign(routeId: String, direction: Int) =
             repo.directions(routeId).firstOrNull { it.id == direction }?.headsign.orEmpty()
@@ -576,7 +579,7 @@ fun AppRoot() {
             val rule = bikeRuleFor(leg.fromName, leg.routeName)
             when {
                 rule == null -> context.getString(R.string.route_bike_no_line, leg.routeName)
-                !bikeBoarding(rule, if (monday) Calendar.MONDAY else nowDayOfWeek(), leg.departure).allowed ->
+                !bikeBoarding(rule, nowDayOfWeek(), leg.departure).allowed ->
                     context.getString(R.string.route_bike_not_now, leg.routeName, formatTime(leg.departure))
                 else -> null
             }
@@ -604,19 +607,16 @@ fun AppRoot() {
     }
 
     // Os roteiros de [origin] até [target]: saindo agora ([from] null) ou no horário
-    // escolhido; num domingo sem metrô, os de segunda, desde o primeiro horário.
+    // escolhido; num domingo sem metrô, nenhum: só o aviso de quando o metrô volta.
     fun planJourney(origin: Station, target: RoutePoint, from: Int?): JourneyResult {
         val start = RoutePoint(origin.routeId, origin.stopId)
         val name = JourneyPlanner.plainName(repo.stop(target.stopId)?.name.orEmpty())
         if (sundayOff) {
-            val plans = mondayRouter?.plan(start, target, from ?: 0, 4, stoppedTomorrow).orEmpty()
-            return JourneyResult(plans.map { routeView(it, monday = true) }, monday = true,
-                when {
-                    plans.isNotEmpty() -> null
-                    // Segunda de operação especial: a grade dela só sai depois da meia-noite.
-                    ScheduleStore.isSpecial(ScheduleStore.tomorrow()) -> context.getString(R.string.route_special_monday)
-                    else -> context.getString(R.string.route_none_monday, name)
-                })
+            val mondayFirst = repo.boardingDirections(origin.stopId, origin.routeId)
+                .mapNotNull { repo.departuresTomorrow(origin.stopId, origin.routeId, it.id)?.firstOrNull() }.minOrNull()
+            return JourneyResult(emptyList(), monday = true,
+                mondayFirst?.let { context.getString(R.string.sunday_off_back, formatTime(it)) }
+                    ?: context.getString(R.string.sunday_warning))
         }
         val walk = if (from == null) walkTo(origin) else 0
         val plans = router.plan(start, target, from ?: leaveNow(origin), 4, stoppedRoutes)

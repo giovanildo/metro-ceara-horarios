@@ -92,7 +92,7 @@ data class JourneyLine(
     val stopped: Boolean,
 )
 
-/** Os roteiros até o destino; [monday]: num domingo sem metrô, são os de segunda. */
+/** Os roteiros até o destino; [monday]: domingo sem metrô, nenhum roteiro e [message] é o aviso. */
 data class JourneyResult(val options: List<RouteView>, val monday: Boolean, val message: String?)
 
 /**
@@ -557,12 +557,16 @@ private fun JourneyResultSheet(
             text = stringResource(R.string.route_title, plainName(origin.stopName), destinationName),
             style = MaterialTheme.typography.titleLarge,
         )
-        if (result.monday) SundayNotice(text = stringResource(R.string.journey_monday_note))
+        // Domingo sem metrô: só o aviso, sem horário nenhum.
+        if (result.monday) {
+            SundayNotice(text = result.message.orEmpty())
+            return@Column
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FilterChip(
                 selected = time == null,
                 onClick = { time = null; selected = 0 },
-                label = { Text(stringResource(if (result.monday) R.string.journey_first else R.string.journey_now)) },
+                label = { Text(stringResource(R.string.journey_now)) },
             )
             FilterChip(
                 selected = time != null,
@@ -598,18 +602,18 @@ private fun JourneyResultSheet(
                 }
             }
             val first = view.legs.first()
-            // Saindo agora, o roteiro vira viagem; no horário escolhido ou na segunda, lembrete.
-            if (time == null && !result.monday && canStartTrip) {
+            // Saindo agora, o roteiro vira viagem; no horário escolhido, lembrete.
+            if (time == null && canStartTrip) {
                 Button(onClick = { onStartTrip(view) }, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.Filled.Navigation, contentDescription = null)
                     Text(stringResource(R.string.journey_start), modifier = Modifier.padding(start = 8.dp))
                 }
                 Text(stringResource(R.string.journey_trip_hint), style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
-            } else if (result.monday || first.departure >= nowMinutes()) {
+            } else if (first.departure >= nowMinutes()) {
                 val leg = view.itinerary.legs.first()
                 val leave = LeaveReminder(
-                    Departure(first.departure, tomorrow = result.monday), first.fromName,
+                    Departure(first.departure, tomorrow = false), first.fromName,
                     first.routeName, first.headsign, vehicleName(first.routeName),
                     stopId = leg.fromStop, routeId = leg.routeId, directionId = leg.directionId,
                     destStopId = destination.second.id, destRouteId = destination.first.routeId,
@@ -624,7 +628,6 @@ private fun JourneyResultSheet(
                     Text(
                         text = when {
                             marked != null -> stringResource(R.string.journey_reminder_marked, formatTime(marked.departure - marked.before))
-                            result.monday -> stringResource(R.string.journey_reminder_monday, formatTime(first.departure))
                             else -> stringResource(R.string.journey_reminder)
                         },
                         modifier = Modifier.padding(start = 8.dp),
@@ -644,7 +647,7 @@ private fun JourneyResultSheet(
         )
         AlertDialog(
             onDismissRequest = { pickingTime = false },
-            title = { Text(stringResource(if (result.monday) R.string.journey_pick_time_monday else R.string.journey_pick_time)) },
+            title = { Text(stringResource(R.string.journey_pick_time)) },
             text = { TimePicker(state) },
             confirmButton = {
                 TextButton(onClick = {

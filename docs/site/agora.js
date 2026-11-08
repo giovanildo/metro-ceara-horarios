@@ -26,25 +26,36 @@ function desenhar() {
     html += /^https:\/\//.test(aviso.link || "")
       ? `<p class="aviso-dia"><a href="${esc(aviso.link)}" target="_blank" rel="noopener">${texto} ›</a></p>` : `<p class="aviso-dia">${texto}</p>`;
   }
-  if (domingo) html += `<p class="aviso-dia">Hoje é domingo: o metrô e o VLT não circulam. Abaixo, os primeiros de segunda.</p>`;
-  else if (semGradeDeHoje) html += `<p class="aviso-dia">Hoje tem operação especial e os horários do dia ainda não chegaram.</p>`;
+  // Domingo sem operação: nenhum horário (hora na tela dá a impressão de que hoje tem
+  // metrô), só o aviso e a hora em que volta na segunda.
+  if (domingo) {
+    const primeiros = paradas.flatMap((p) => p.sentidos.map((sp) => {
+      const sa = amanha?.linha(p.linha)?.sentidos.find((x) => x.id === sp.id);
+      return sa ? amanha.partidas(sa, p.stop)[0] : undefined;
+    })).filter((m) => m !== undefined);
+    html += `<p class="aviso-dia"><strong>Hoje é domingo: metrô e VLT não circulam.</strong> ${primeiros.length
+      ? `Voltam segunda, a partir das ${hora(Math.min(...primeiros))}.`
+      : "Só há operação aos domingos quando o Metrofor anuncia (eleição, ENEM, eventos)."}</p>`;
+    lista.innerHTML = html;
+    return;
+  }
+  if (semGradeDeHoje) html += `<p class="aviso-dia">Hoje tem operação especial e os horários do dia ainda não chegaram.</p>`;
 
   for (const p of paradas) {
     const linha = grade.linha(p.linha);
     for (const sp of p.sentidos) {
       const s = linha?.sentidos.find((x) => x.id === sp.id);
       const parada = linha && linhaParada(regras, t.data, linha.nome);
-      const hoje = s && !domingo && !parada ? grade.partidas(s, p.stop) : [];
-      const sa = !dados.proximoEhSegunda || domingo ? amanha?.linha(p.linha)?.sentidos.find((x) => x.id === sp.id) : null;
+      const hoje = s && !parada ? grade.partidas(s, p.stop) : [];
+      const sa = !dados.proximoEhSegunda ? amanha?.linha(p.linha)?.sentidos.find((x) => x.id === sp.id) : null;
       const deAmanha = sa ? amanha.partidas(sa, p.stop) : null;
-      const prox = domingo ? (deAmanha || []).slice(0, 3).map((m) => ({ m, amanha: false, seg: true }))
-        : proximas(hoje, t.minutos, 3, deAmanha);
+      const prox = proximas(hoje, t.minutos, 3, deAmanha);
       let corpo;
       if (parada) corpo = `<p class="dica">O Metrofor avisou que esta linha não circula hoje.</p>`;
       else if (!prox.length) corpo = `<p class="dica">Sem mais partidas hoje${hoje.length ? ` (a última foi às ${hora(hoje.at(-1))})` : ""}.</p>`;
       else {
         corpo = `<ul class="partidas">${prox.map((x) => `<li><strong>${hora(x.m)}</strong><span>${
-          x.seg ? "segunda" : x.amanha ? proximo : falta(minutosAte(x, t.minutos))}</span></li>`).join("")}</ul>`;
+          x.amanha ? proximo : falta(minutosAte(x, t.minutos))}</span></li>`).join("")}</ul>`;
       }
       html += `<div class="agora-sentido" style="--cor:${esc(p.cor)}"><p class="linha-nome">${esc(p.nome)}</p>
         <h3>Sentido ${esc(sp.destino)}</h3>${corpo}</div>`;

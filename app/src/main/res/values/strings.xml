@@ -7,8 +7,6 @@
     <string name="next_departures">Próximas partidas</string>
     <string name="all_departures">Todos os horários</string>
     <string name="no_more_today">Sem mais partidas hoje neste sentido.</string>
-    <string name="no_departures_today">Sem partidas hoje neste sentido.</string>
-    <string name="monday_departures">Horários de segunda</string>
     <string name="tomorrow">amanhã</string>
     <string name="now">agora</string>
     <string name="in_minutes">em %1$d min</string>
@@ -55,12 +53,12 @@
     <string name="widget_locate_failed">Não achei sua localização.</string>
     <string name="widget_locate_channel">Estação mais perto (widget)</string>
     <string name="widget_operation">Hoje: %1$s ›</string>
-    <string name="widget_sunday">Domingo: metrô e VLT normalmente não circulam.</string>
+    <string name="widget_sunday">Domingo: metrô e VLT não circulam.</string>
+    <string name="widget_sunday_back">Domingo: metrô e VLT não circulam. Voltam segunda às %1$s.</string>
     <string name="line_stopped_today">O Metrofor avisou que esta linha não circula hoje.</string>
     <string name="day_end_last">Último de hoje: %1$s</string>
     <string name="day_end_next_tomorrow">primeiro de amanhã: %1$s</string>
     <string name="day_end_next_monday">primeiro de segunda: %1$s (domingo, só em operação especial)</string>
-    <string name="route_special_monday">Segunda o horário é especial e só sai depois da meia-noite.</string>
     <string name="day_end_special_tomorrow">amanhã o horário é especial e só sai depois da meia-noite</string>
     <string name="day_end_special_monday">segunda o horário é especial e só sai depois da meia-noite de domingo</string>
     <string name="widget_tomorrow_special">Amanhã: horário especial</string>
@@ -84,7 +82,8 @@
     <string name="bike_boarding_not_today">Hoje não há embarque com bike no %1$s</string>
     <string name="bike_boarding_no_more_today">Não há mais horário hoje para embarcar com bike no %1$s</string>
 
-    <string name="sunday_warning">Aos domingos o metrô e os VLTs normalmente não circulam, só em operação especial (eleição, ENEM, eventos). Os horários mostrados são os de segunda. Se houver operação especial hoje, o Metrofor publica os horários nas notícias.</string>
+    <string name="sunday_warning">Hoje é domingo: metrô e VLT não circulam. Só há operação aos domingos quando o Metrofor anuncia (eleição, ENEM, eventos).</string>
+    <string name="sunday_off_back">Hoje é domingo: metrô e VLT não circulam. Voltam segunda, a partir das %1$s.</string>
 
     <string name="schedule_syncing">Baixando os horários de hoje do Metrofor…</string>
     <string name="schedule_today">Horários de hoje, baixados do Metrofor às %1$s.</string>
@@ -147,7 +146,6 @@
     <string name="route_tip_same_arrival">O %1$s das %2$s chega no mesmo horário, mas espera mais na integração.</string>
     <string name="route_none_today">Hoje não há como chegar a %1$s saindo daqui.</string>
     <string name="route_none_after">Sem metrô ou VLT para %1$s hoje depois das %2$s.</string>
-    <string name="route_none_monday">Na segunda não há como chegar a %1$s saindo daqui.</string>
     <string name="journey_search_hint">Para onde você vai?</string>
     <string name="journey_title">Sua viagem</string>
     <string name="journey_from">De</string>
@@ -157,17 +155,13 @@
     <string name="journey_via_one">integração em %1$s</string>
     <string name="journey_via_many">%1$d integrações</string>
     <string name="journey_now">Sair agora</string>
-    <string name="journey_first">Primeiro horário</string>
     <string name="journey_pick_time">Escolher horário</string>
-    <string name="journey_pick_time_monday">Horário de saída na segunda</string>
     <string name="journey_at">Sair às %1$s</string>
     <string name="journey_other_times">Outros horários:</string>
     <string name="journey_start">Iniciar modo viagem</string>
     <string name="journey_trip_hint">Guarde o celular: ele avisa antes da sua estação, mesmo com a tela desligada.</string>
     <string name="journey_reminder">Avisar a hora de sair</string>
     <string name="journey_reminder_marked">🔔 Aviso às %1$s (toque para tirar)</string>
-    <string name="journey_reminder_monday">Avisar a hora de sair na segunda (%1$s)</string>
-    <string name="journey_monday_note">Hoje é domingo, sem metrô e VLT. Este é o roteiro de segunda.</string>
     <string name="journey_from_here">Ir daqui para outra estação</string>
     <string name="route_walk_to_origin">Saindo de %1$s, a uns %2$d min a pé de você.</string>
     <string name="route_bike_no_line">Com bicicleta: a %1$s não aceita bike.</string>
@@ -378,7 +372,6 @@
     <string name="dev_cloud_sending">Copiando para a pasta…</string>
     <string name="dev_cloud_stop">Parar de copiar</string>
     <string name="leave_hint">Toque num horário para ser avisado %1$d min antes de sair. Toque de novo para tirar o aviso.</string>
-    <string name="leave_hint_monday">Toque num horário (aqui ou em \"Horários de segunda\", mais abaixo) para ser avisado %1$d min antes de sair. Toque de novo para tirar o aviso.</string>
     <string name="leave_minutes">%1$d min</string>
     <string name="leave_too_late">Faltam só %1$d min para a partida: não dá para avisar antes.</string>
     <string name="leave_quick_done">Aviso às %1$s (%2$d min antes) para o %3$s das %4$s.</string>

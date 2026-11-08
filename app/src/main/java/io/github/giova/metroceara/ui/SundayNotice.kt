@@ -17,11 +17,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.github.giova.metroceara.R
+import io.github.giova.metroceara.data.formatTime
 
 /**
- * Aviso de domingo (ou de linha parada, com outro [text]). As partidas continuam
- * visíveis porque, se o aviso estiver errado, ainda servem de referência.
+ * O aviso de domingo sem operação, com a hora em que o metrô volta na segunda
+ * ([mondayFirst], minutos), se a grade de segunda for conhecida. Nenhum horário
+ * aparece no domingo comum: hora na tela dá a impressão de que hoje tem metrô.
  */
+@Composable
+fun sundayOffText(mondayFirst: Int?): String =
+    if (mondayFirst != null) stringResource(R.string.sunday_off_back, formatTime(mondayFirst))
+    else stringResource(R.string.sunday_warning)
+
+/** Aviso de domingo (ou de linha parada, com outro [text]). */
 @Composable
 fun SundayNotice(modifier: Modifier = Modifier, text: String = stringResource(R.string.sunday_warning)) {
     Card(

@@ -188,14 +188,17 @@ private fun StationSummary(
             val sunday = remember(now) { isSundayToday() }
             val day = remember(now) { ScheduleStore.today() }
             // Domingo com operação anunciada pelo Metrofor: a notícia dela, no topo, já explica.
-            if (sunday && Regras.current.operations[day] == null) {
-                SundayNotice(modifier = Modifier.padding(bottom = 6.dp))
+            // Sem ela, nenhum horário: só o aviso e a hora em que o metrô volta na segunda.
+            val sundayOff = sunday && Regras.current.operations[day] == null
+            if (sundayOff) {
+                val mondayFirst = departures.mapNotNull { it.departure?.takeIf { d -> d.tomorrow }?.minutes }.minOrNull()
+                SundayNotice(modifier = Modifier.padding(bottom = 6.dp), text = sundayOffText(mondayFirst))
             }
             val stopped = Regras.current.stopped(day, station.routeName)
             if (stopped) {
                 SundayNotice(modifier = Modifier.padding(bottom = 6.dp), text = stringResource(R.string.line_stopped_today))
             }
-            departures.forEach { item ->
+            if (!sundayOff) departures.forEach { item ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,

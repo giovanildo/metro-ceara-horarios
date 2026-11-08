@@ -134,12 +134,21 @@ function localizar() {
 // ---------- partidas
 
 /**
- * Domingo sem operação anunciada pelo Metrofor: metrô e VLT normalmente não circulam,
- * embora o GTFS traga a grade de dia útil. As partidas de hoje ficam de fora e valem as
- * de segunda; com operação anunciada, vale a grade do dia.
+ * Domingo sem operação anunciada pelo Metrofor: metrô e VLT não circulam, embora o
+ * GTFS traga a grade de dia útil. Nenhum horário aparece (hora na tela dá a impressão
+ * de que hoje tem metrô): só o aviso e a hora em que volta na segunda.
  */
 function domingoSemOperacao(t = agora()) {
   return t.diaSemana === 0 && !estado.dados.regras?.operacoes?.[t.data];
+}
+
+/** O primeiro horário de segunda na estação (minutos), para o aviso de domingo; undefined se não se sabe. */
+function primeiroDeSegunda(linhaId, stopId) {
+  const g = estado.proximo;
+  const linha = g?.linha(linhaId);
+  if (!linha || !g.estacoes[stopId]) return undefined;
+  const v = g.sentidosDePartida(linha, stopId).map((s) => g.partidas(s, stopId)[0]).filter((m) => m !== undefined);
+  return v.length ? Math.min(...v) : undefined;
 }
 
 function partidasComAmanha(linha, sentido, stopId) {
@@ -307,7 +316,7 @@ function telaInicio() {
             <span class="linha-nome">${esc(linha.nome)}</span></h3>
           <span class="distancia">${metros(d)} de você</span>
           ${avisoParada(linha, t)}
-          ${sentidos.map((s) => {
+          ${domingoSemOperacao(t) ? `<p class="dica fim-do-dia">${textoVoltaSegunda(primeiroDeSegunda(linha.id, id))}</p>` : sentidos.map((s) => {
             const { hoje, amanha } = partidasComAmanha(linha, s, id);
             const p = proximas(hoje, t.minutos, 1, amanha)[0];
             const fim = p ? "" : fimDoDia(linha, s, id);
@@ -490,13 +499,19 @@ function telaEstacao(linhaId, stopId, sentidoId) {
   html += trilhoDeSentidos(linha, stopId, sentidos, sentido);
   const via = viaDoSentido(sentido, stopId);
   if (via) html += `<p class="dica via">${via}</p>`;
-  // Domingo comum: a lista é a de segunda, então vale também a notícia de amanhã.
-  html += avisoDomingo(t) + avisosMetrofor(!domingo) + avisoParada(linha, t);
+  // Domingo comum: nenhum horário; o metrô volta na segunda, então vale também a notícia de amanhã.
+  html += avisoDomingo(t, primeiroDeSegunda(linha.id, stopId)) + avisosMetrofor(!domingo) + avisoParada(linha, t);
+  if (domingo) {
+    html += avisoBike(linha, stopId, t);
+    html += `<a class="botao secundario largo" href="#/viagem/${linha.id}/${stopId}">${LUPA} Ir daqui para outra estação</a>`;
+    html += blocoPerto(stopId);
+    tela.innerHTML = html;
+    return;
+  }
   html += `<h2>Próximas partidas</h2>`;
   if (!lista.length) {
     const fim = fimDoDia(linha, sentido, stopId);
-    const vazio = sentido.naoPublicado ? "O Metrofor não publicou os horários deste sentido hoje."
-      : domingo ? "Sem partidas hoje." : "Sem mais partidas hoje.";
+    const vazio = sentido.naoPublicado ? "O Metrofor não publicou os horários deste sentido hoje." : "Sem mais partidas hoje.";
     html += `<p class="vazio">${vazio}</p>${fim ? `<p class="dica">${fim}</p>` : ""}`;
   } else {
     html += `<div class="cartao proximas" style="padding:4px 0">${lista.map((p, i) =>
@@ -504,23 +519,15 @@ function telaEstacao(linhaId, stopId, sentidoId) {
         <span><span class="hora">${hora(p.m)}</span>${p.amanha ? "<small>amanhã</small>" : ""}</span>
         <span>${falta(minutosAte(p, t.minutos))}</span></button>`).join("")}</div>`;
   }
-  html += domingo
-    ? `<p class="dica">Toque em qualquer horário (aqui ou em "Horários de segunda", mais abaixo) para criar um lembrete na agenda.</p>`
-    : `<p class="dica">Toque em qualquer horário de hoje (aqui ou em "Todos os horários", mais abaixo) para criar um lembrete na agenda.</p>`;
+  html += `<p class="dica">Toque em qualquer horário de hoje (aqui ou em "Todos os horários", mais abaixo) para criar um lembrete na agenda.</p>`;
   html += avisoBike(linha, stopId, t);
   html += blocoIntegracao(stopId, t);
   html += `<a class="botao secundario largo" href="#/viagem/${linha.id}/${stopId}">${LUPA} Ir daqui para outra estação</a>`;
   html += blocoPerto(stopId);
-  if (domingo) {
-    // Domingo comum: a grade de segunda, toda futura (o lembrete vai para amanhã).
-    html += amanha?.length ? `<h2>Horários de segunda</h2><div class="todos">${amanha.map((m) =>
-      `<button data-m="${m}" data-amanha="true">${hora(m)}</button>`).join("")}</div>` : "";
-  } else {
-    html += `<h2>Todos os horários</h2><div class="todos">${hoje.map((m) => {
-      const passou = m < t.minutos;
-      return `<button data-m="${m}" data-amanha="false" class="${passou ? "passou" : ""}" ${passou ? "disabled" : ""}>${hora(m)}</button>`;
-    }).join("")}</div>`;
-  }
+  html += `<h2>Todos os horários</h2><div class="todos">${hoje.map((m) => {
+    const passou = m < t.minutos;
+    return `<button data-m="${m}" data-amanha="false" class="${passou ? "passou" : ""}" ${passou ? "disabled" : ""}>${hora(m)}</button>`;
+  }).join("")}</div>`;
   tela.innerHTML = html;
 
   tela.querySelectorAll("button[data-m]:not([disabled])").forEach((b) => b.addEventListener("click", () =>
@@ -861,6 +868,8 @@ function notaLugar(nome, eo) {
 /** O roteiro escolhido: horário (agora ou escolhido), o cartão, os outros horários e o lembrete. */
 function resultadoViagem(lo, eo, v, t) {
   const { regras } = estado.dados;
+  // Domingo sem metrô: nenhum roteiro, só o aviso de quando volta.
+  if (domingoSemOperacao(t)) return avisoDomingo(t, primeiroDeSegunda(lo, eo));
   const dia = diaDaViagem(t);
   if (!dia) {
     return estado.dados.proximoEspecial
@@ -871,20 +880,19 @@ function resultadoViagem(lo, eo, v, t) {
   const [ld, ed] = v.destino.split("|");
   const perfil = perfilGuardado();
   const r = new Roteador(grade, regras, perfil);
-  const apos = v.hora ?? (dia.domingo ? 0 : t.minutos - 2);
+  const apos = v.hora ?? t.minutos - 2;
   const opcoes = r.planejar({ linha: lo, est: eo }, { linha: ld, est: ed }, apos, 4, dia.evitar);
   const lugar = v.lugar ? buscarLugares(regras, v.lugar, 50).find((x) => x.nome === v.lugar) : null;
   const ape = lugar ? { nome: lugar.nome, metros: lugar.a_pe_m, min: minutosAPe(lugar, fatorPerfil()), aoLado: aoLado(lugar) } : null;
   const nomeDestino = lugar?.nome || semSufixo(grade.nome(ed));
   const horaValor = v.hora != null ? hora(v.hora) : "";
-  let html = dia.domingo ? `<p class="aviso"><strong>Hoje é domingo, sem metrô e VLT.</strong> Este é o roteiro de segunda.</p>` : "";
-  html += `<div class="chips">
-    <button class="chip ${v.hora == null ? "sel" : ""}" id="v-agora">${dia.domingo ? "Primeiro horário" : "Sair agora"}</button>
+  let html = `<div class="chips">
+    <button class="chip ${v.hora == null ? "sel" : ""}" id="v-agora">Sair agora</button>
     <label class="chip ${v.hora != null ? "sel" : ""}">${v.hora != null ? "Sair às" : "Escolher horário"}
       <input type="time" id="v-hora" value="${horaValor}"></label></div>`;
   if (!opcoes.length) {
     const ultimo = r.planejar({ linha: lo, est: eo }, { linha: ld, est: ed }, 0, 99, dia.evitar).map((o) => o.sai).sort((a, b) => b - a)[0];
-    const quando = dia.domingo ? "na segunda" : "hoje";
+    const quando = "hoje";
     html += `<p class="vazio">${ultimo == null ? `Não há como chegar a ${esc(nomeDestino)} ${quando} saindo daqui.`
       : `Sem metrô ou VLT para ${esc(nomeDestino)} ${quando} depois das ${hora(ultimo)}.`}</p>`;
     return html;
@@ -897,10 +905,10 @@ function resultadoViagem(lo, eo, v, t) {
       `<button class="chip ${k === i ? "sel" : ""}" data-i="${k}">${hora(x.sai)} → ${hora(x.chega + (ape?.min || 0))}</button>`).join("")}</div>`;
   }
   // No lugar do modo viagem: o lembrete da partida, para quem ainda não saiu.
-  if (dia.domingo || o.sai >= t.minutos) {
+  if (o.sai >= t.minutos) {
     const p = o.pernas[0];
-    const dados = esc(JSON.stringify({ linha: p.linha, sentido: p.sentido.id, est: p.de, m: o.sai, amanha: dia.domingo }));
-    html += `<button class="botao secundario largo" id="v-lembrete" data-p="${dados}">⏰ Lembrete na agenda${dia.domingo ? `, segunda ${hora(o.sai)}` : ""}</button>`;
+    const dados = esc(JSON.stringify({ linha: p.linha, sentido: p.sentido.id, est: p.de, m: o.sai, amanha: false }));
+    html += `<button class="botao secundario largo" id="v-lembrete" data-p="${dados}">⏰ Lembrete na agenda</button>`;
   }
   html += `<label class="campo">Como você se desloca<select id="perfil">${PERFIS.map((x) =>
     `<option value="${x.chave}" ${x.chave === perfil ? "selected" : ""}>${esc(x.nome)}</option>`).join("")}</select></label>`;
@@ -1174,12 +1182,17 @@ function telaNaoAchei() {
   tela.innerHTML = `<p class="vazio">Não achei essa tela. <a href="#/">Voltar ao início</a></p>`;
 }
 
-function avisoDomingo(t) {
+function avisoDomingo(t, primeiro) {
   // Domingo com operação anunciada pelo Metrofor: a notícia dela explica.
   if (!domingoSemOperacao(t)) return "";
-  return `<div class="aviso"><strong>Hoje é domingo.</strong> Metrô e VLT normalmente não funcionam aos domingos,
-    só em operação especial (eleição, ENEM, eventos). Os horários mostrados são os de segunda. Se houver operação especial
-    hoje, o Metrofor publica os horários nas notícias.</div>`;
+  return `<div class="aviso"><strong>Hoje é domingo: metrô e VLT não circulam.</strong> ${primeiro !== undefined
+    ? `Voltam segunda, a partir das ${hora(primeiro)}.`
+    : "Só há operação aos domingos quando o Metrofor anuncia (eleição, ENEM, eventos)."}</div>`;
+}
+
+/** No cartão da estação, num domingo sem operação: no lugar dos horários. */
+function textoVoltaSegunda(primeiro) {
+  return primeiro !== undefined ? `Hoje não circula. Volta segunda, a partir das ${hora(primeiro)}.` : "Hoje não circula.";
 }
 
 /** "O Metrofor avisou que esta linha não circula hoje", se for o caso. */
@@ -1272,7 +1285,7 @@ function status() {
   const el = document.getElementById("status");
   // A grade de um dia útil comum é igual à do dia útil anterior: a de outro dia do
   // mesmo tipo só preocupa (e vira aviso) quando o Metrofor anunciou operação para
-  // hoje. Num domingo sem operação, a tela mostra a grade de segunda.
+  // hoje. Num domingo sem operação, nenhum horário na tela (nem esta linha).
   const especial = !domingoSemOperacao(t) && grade.data !== t.data && regras?.operacoes?.[t.data];
   el.classList.toggle("alerta", Boolean(especial));
   if (especial) {
@@ -1280,8 +1293,10 @@ function status() {
   } else if (!domingoSemOperacao(t) && grade.data === t.data) {
     const hora = indice.tipos?.[grade.tipo]?.atualizado?.slice(11, 16);
     el.textContent = `Horários de hoje, baixados do Metrofor${hora ? ` às ${hora}` : ""}.`;
+  } else if (domingoSemOperacao(t)) {
+    el.textContent = "";
   } else {
-    el.textContent = `Horários de ${domingoSemOperacao(t) ? "dia útil" : nomes[grade.tipo]}, publicados pelo Metrofor.`;
+    el.textContent = `Horários de ${nomes[grade.tipo]}, publicados pelo Metrofor.`;
   }
 }
 
