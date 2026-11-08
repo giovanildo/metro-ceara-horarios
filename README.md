@@ -76,8 +76,13 @@ GPS, aparecem **duas estações**: a mais próxima e a mais próxima de **outra
 linha**, até 3 km (ajustável); sem outra linha por perto, a segunda mais próxima
 da mesma linha (`nearestTwo`, em `data/Geo.kt`). Perto de São Benedito, São
 Benedito e Moura Brasil (Oeste); em Parangaba, a Sul e a Nordeste; em Mondubim,
-Mondubim e Manoel Sátiro. No cartão, o tempo que falta ("em 7
-min") vem grande e a hora embaixo. A busca **"Para onde você vai?"** fica na
+Mondubim e Manoel Sátiro. Uma **terceira** entra quando há outra estação até a
+mesma distância (primeiro de uma linha que ainda não apareceu;
+`nearestStations`). Como os cartões da viagem, **só uma fica aberta** (no
+começo, a mais perto), com o tempo que falta ("em 7 min") grande e a hora
+embaixo; as outras ficam **compactas**, com nome, linha e distância numa linha
+e cada sentido numa linha curta ("Caucaia · em 50 min"). Tocar numa compacta
+abre ela; tocar na aberta leva à estação. No app e na lite. A busca **"Para onde você vai?"** fica na
 aba **Planeje sua viagem** e sai da estação em destaque ([abaixo](#para-onde-você-vai-roteiro-na-mesma-linha-ou-com-integração)). A
 estação em destaque pode vir de duas fontes:
 

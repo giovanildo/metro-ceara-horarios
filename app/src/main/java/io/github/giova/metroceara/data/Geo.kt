@@ -35,20 +35,31 @@ fun List<Station>.nearestPerRoute(lat: Double, lon: Double): List<Pair<Station, 
         .sortedBy { it.second }
 
 /**
- * As duas estações da tela inicial: a mais próxima e, até [maxMeters], a mais
- * próxima de **outra linha**; sem outra linha por perto, a segunda mais próxima
- * da mesma linha. A mesma parada em duas linhas (Parangaba na Sul e na
- * Nordeste) conta como duas estações.
+ * As estações da tela inicial: a mais próxima e, até [maxMeters], a mais próxima
+ * de **outra linha** (sem outra linha por perto, a segunda mais próxima da mesma);
+ * depois, até [count], as seguintes, primeiro de uma linha que ainda não apareceu.
+ * A mesma parada em duas linhas (Parangaba na Sul e na Nordeste) conta como duas
+ * estações.
  */
-fun List<Station>.nearestTwo(lat: Double, lon: Double, maxMeters: Double): List<Pair<Station, Double>> {
+fun List<Station>.nearestStations(lat: Double, lon: Double, maxMeters: Double, count: Int = 3): List<Pair<Station, Double>> {
     val sorted = map { it to distanceMeters(lat, lon, it.lat, it.lon) }
         .distinctBy { (station, _) -> station.stopId to station.routeId }
         .sortedBy { it.second }
     val first = sorted.firstOrNull() ?: return emptyList()
-    val rest = sorted.drop(1).filter { it.second <= maxMeters }
-    val second = rest.firstOrNull { it.first.routeId != first.first.routeId } ?: rest.firstOrNull()
-    return listOfNotNull(first, second)
+    val chosen = mutableListOf(first)
+    val rest = sorted.drop(1).filter { it.second <= maxMeters }.toMutableList()
+    while (chosen.size < count && rest.isNotEmpty()) {
+        val lines = chosen.map { it.first.routeId }.toSet()
+        val next = rest.firstOrNull { it.first.routeId !in lines } ?: rest.first()
+        chosen += next
+        rest -= next
+    }
+    return chosen
 }
+
+/** As duas primeiras de [nearestStations]. */
+fun List<Station>.nearestTwo(lat: Double, lon: Double, maxMeters: Double): List<Pair<Station, Double>> =
+    nearestStations(lat, lon, maxMeters, count = 2)
 
 /**
  * Padrão da distância a pé que ainda vale a pena para pegar uma bicicleta perto

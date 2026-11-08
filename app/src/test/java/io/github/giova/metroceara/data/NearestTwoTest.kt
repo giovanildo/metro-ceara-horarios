@@ -34,4 +34,10 @@ class NearestTwoTest {
         val two = stations.nearestTwo(-3.8080, -38.5780, 500.0)
         assertEquals(listOf("MON"), two.map { it.first.stopId })
     }
+
+    @Test
+    fun `a terceira é a seguinte mais perto, preferindo outra linha`() {
+        val three = stations.nearestStations(-3.7330, -38.5352, 3_000.0)
+        assertEquals(listOf("SBE", "MBR", "JAL"), three.map { it.first.stopId })
+    }
 }

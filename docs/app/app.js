@@ -305,12 +305,33 @@ function telaInicio() {
       const e = grade.estacoes[id];
       return { linha, id, d: distancia(estado.pos.lat, estado.pos.lon, e.lat, e.lon) };
     })).sort((a, b) => a.d - b.d);
-    const [primeira, ...resto] = todas;
-    const segunda = resto.find((x) => x.linha.id !== primeira?.linha.id && x.d <= PERTO_METROS)
-      ?? resto.find((x) => x.d <= PERTO_METROS);
-    const perto = [primeira, segunda].filter(Boolean);
+    // Até 3 estações: a mais perto, a de outra linha até 3 km e a seguinte (primeiro
+    // de uma linha que ainda não apareceu). Como os cartões da viagem, uma fica aberta
+    // (no começo, a mais perto) e as outras compactas; tocar numa compacta abre ela.
+    const perto = todas.length ? [todas[0]] : [];
+    let resto = todas.slice(1).filter((x) => x.d <= PERTO_METROS && !(x.id === todas[0].id && x.linha.id === todas[0].linha.id));
+    while (perto.length < 3 && resto.length) {
+      const linhas = new Set(perto.map((x) => x.linha.id));
+      const prox = resto.find((x) => !linhas.has(x.linha.id)) ?? resto[0];
+      perto.push(prox);
+      resto = resto.filter((x) => x !== prox && !(x.id === prox.id && x.linha.id === prox.linha.id));
+    }
+    const chave = (x) => `${x.linha.id}|${x.id}`;
+    const aberta = perto.some((x) => chave(x) === estado.aberta) ? estado.aberta : perto[0] && chave(perto[0]);
     for (const { linha, id, d } of perto) {
       const sentidos = grade.sentidosDePartida(linha, id);
+      if (`${linha.id}|${id}` !== aberta) {
+        // Compacta: nome, linha e distância numa linha; cada sentido numa linha curta.
+        html += `<div class="cartao compacto"><button class="cabeca-compacta" data-abrir="${linha.id}|${id}">
+          <span class="topo-compacto"><strong>${esc(grade.nome(id))}</strong> <span class="ponto" style="background:${cor(linha)}"></span>
+            <span class="linha-nome">${esc(linha.nome)} · ${metros(d)} de você</span></span>
+          ${domingoSemOperacao(t) ? `<span class="dica">Hoje não circula</span>` : linhaParada(estado.dados.regras, t.data, linha.nome) ? `<span class="dica">Não circula hoje</span>` : sentidos.map((s) => {
+            const { hoje, amanha } = partidasComAmanha(linha, s, id);
+            const p = proximas(hoje, t.minutos, 1, amanha)[0];
+            return `<span class="sentido-compacto"><span>${esc(s.destino)}</span><strong>${p ? falta(minutosAte(p, t.minutos)) : "—"}</strong></span>`;
+          }).join("")}</button></div>`;
+        continue;
+      }
       html += `<div class="cartao">
         <a class="cabeca" href="#/estacao/${linha.id}/${id}">
           <h3>${esc(grade.nome(id))} <span class="ponto" style="background:${cor(linha)}"></span>
@@ -335,6 +356,7 @@ function telaInicio() {
   tela.innerHTML = html;
   document.getElementById("localizar")?.addEventListener("click", localizar);
   document.getElementById("instalar")?.addEventListener("click", instalar);
+  tela.querySelectorAll("[data-abrir]").forEach((b) => b.addEventListener("click", () => { estado.aberta = b.dataset.abrir; render(); }));
 }
 
 /** Aba "Planeje sua viagem": "Para onde você vai?" e os atalhos de Casa e Trabalho. */

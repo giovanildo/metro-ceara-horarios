@@ -86,7 +86,7 @@ import io.github.giova.metroceara.data.isSundayWithoutService
 import io.github.giova.metroceara.data.Station
 import io.github.giova.metroceara.data.nearestBikeTo
 import io.github.giova.metroceara.data.SettingsStore
-import io.github.giova.metroceara.data.nearestTwo
+import io.github.giova.metroceara.data.nearestStations
 import io.github.giova.metroceara.data.HomeBlock
 import io.github.giova.metroceara.data.HomeLayout
 import io.github.giova.metroceara.data.HomeLayoutStore
@@ -201,6 +201,8 @@ fun AppRoot() {
     var orderOpen by rememberSaveable { mutableStateOf(false) }
     // Aba da barra de baixo (Início, Rotas, Linhas): volta a ela depois de abrir uma linha.
     var homeTab by rememberSaveable { mutableStateOf(HomeTab.HOME) }
+    // Na tela inicial, a estação aberta além da mais perto ("stopId+routeId"); null = a mais perto.
+    var expandedStation by rememberSaveable { mutableStateOf<String?>(null) }
     val homeLayout = HomeLayoutStore.flow(context).collectAsState().value ?: HomeLayout()
     // Sentido em que a tela de horários deve abrir (vindo de uma baldeação).
     var openDirectionId by rememberSaveable { mutableStateOf<Int?>(null) }
@@ -229,10 +231,10 @@ fun AppRoot() {
         }
     }
 
-    // As duas estações da tela inicial: a mais próxima e a de outra linha até a
-    // distância das configurações (3 km no padrão); sem outra linha, a 2ª da mesma.
+    // As estações da tela inicial (até 3): a mais próxima, a de outra linha até a
+    // distância das configurações (3 km no padrão) e a seguinte.
     fun nearbyState(stations: List<Station>, lat: Double, lon: Double): HomeStation.Nearby? {
-        val nearest = stations.nearestTwo(lat, lon, settings.nearbyLinesMeters.toDouble())
+        val nearest = stations.nearestStations(lat, lon, settings.nearbyLinesMeters.toDouble())
         val (main, distance) = nearest.firstOrNull() ?: return null
         return HomeStation.Nearby(main, distance, lat, lon, nearest.drop(1))
     }
@@ -870,10 +872,15 @@ fun AppRoot() {
                     access = layout.access,
                     onOpenFareGuide = { fareGuideOpen = true },
                 )
+                // Como os cartões da viagem: uma estação aberta (no começo, a mais perto)
+                // e as outras compactas; tocar numa compacta abre ela.
+                val expandedKey = expandedStation?.takeIf { key -> otherLines.any { it.first.stopId + it.first.routeId == key } }
                 HomeStationCard(
                     state = homeState,
                     departures = homeDepartures,
                     now = now,
+                    compact = expandedKey != null,
+                    onExpand = { expandedStation = null },
                     onUseLocation = {
                         if (locationSource.hasPermission()) {
                             scope.launch { locate() }
@@ -893,6 +900,8 @@ fun AppRoot() {
                         onUseLocation = {},
                         onOpenStation = ::openStation,
                         showRefresh = false,
+                        compact = expandedKey != station.stopId + station.routeId,
+                        onExpand = { expandedStation = station.stopId + station.routeId },
                         // A passagem é por linha: na mesma linha do primeiro cartão, não repete.
                         extras = extras.copy(halfFare = extras.halfFare && station.routeName != homeState.station?.routeName),
                     )

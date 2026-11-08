@@ -56,6 +56,9 @@ fun HomeStationCard(
     showRefresh: Boolean = true,
     /** O que a pessoa ligou em "Ajustar para mim": bike, meia, acessibilidade. */
     extras: HomeCardExtras = HomeCardExtras(),
+    /** Compacto: nome, linha, distância e uma linha curta por sentido; tocar abre ([onExpand]). */
+    compact: Boolean = false,
+    onExpand: () -> Unit = {},
 ) {
     Card(
         colors = CardDefaults.cardColors(
@@ -89,8 +92,9 @@ fun HomeStationCard(
                 departures = departures,
                 now = now,
                 onRefresh = onUseLocation.takeIf { showRefresh },
-                onClick = { onOpenStation(state.station) },
+                onClick = { if (compact) onExpand() else onOpenStation(state.station) },
                 extras = extras,
+                compact = compact,
             )
 
             is HomeStation.Pinned -> StationSummary(
@@ -100,8 +104,9 @@ fun HomeStationCard(
                 departures = departures,
                 now = now,
                 onRefresh = null,
-                onClick = { onOpenStation(state.station) },
+                onClick = { if (compact) onExpand() else onOpenStation(state.station) },
                 extras = extras,
+                compact = compact,
             )
 
             is HomeStation.Unavailable -> Invitation(
@@ -140,7 +145,12 @@ private fun StationSummary(
     onRefresh: (() -> Unit)?,
     onClick: () -> Unit,
     extras: HomeCardExtras,
+    compact: Boolean = false,
 ) {
+    if (compact) {
+        CompactSummary(station, subtitle, icon, departures, now, onRefresh, onClick)
+        return
+    }
     Column(
         modifier = Modifier
             .clickable(onClick = onClick)
@@ -290,6 +300,97 @@ private fun StationSummary(
                     wheelchair = true,
                     onOpen = onClick,
                 )
+            }
+        }
+    }
+}
+
+/**
+ * A estação compacta (2ª e 3ª da tela inicial): nome, linha e distância numa linha,
+ * e cada sentido numa linha curta com o tempo que falta. Domingo sem operação,
+ * nenhum horário: só "Voltam segunda às HH:MM".
+ */
+@Composable
+private fun CompactSummary(
+    station: Station,
+    subtitle: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    departures: List<HomeDeparture>,
+    now: Int,
+    onRefresh: (() -> Unit)?,
+    onClick: () -> Unit,
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(16.dp))
+            Text(
+                text = station.stopName,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(start = 8.dp),
+            )
+            Spacer(
+                Modifier
+                    .padding(horizontal = 6.dp)
+                    .size(8.dp)
+                    .clip(CircleShape)
+                    .background(routeColor(station.routeColor)),
+            )
+            Text(
+                text = "${station.routeName} · $subtitle",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f),
+                maxLines = 1,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+            )
+            if (onRefresh != null) {
+                IconButton(onClick = onRefresh, modifier = Modifier.size(32.dp)) {
+                    Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.home_try_again), modifier = Modifier.size(20.dp))
+                }
+            }
+        }
+        val sunday = remember(now) { isSundayToday() }
+        val day = remember(now) { ScheduleStore.today() }
+        val sundayOff = sunday && Regras.current.operations[day] == null
+        when {
+            sundayOff -> {
+                val mondayFirst = departures.mapNotNull { it.departure?.takeIf { d -> d.tomorrow }?.minutes }.minOrNull()
+                Text(
+                    text = mondayFirst?.let { stringResource(R.string.home_compact_monday, formatTime(it)) }
+                        ?: stringResource(R.string.home_compact_sunday),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+            Regras.current.stopped(day, station.routeName) ->
+                Text(stringResource(R.string.line_stopped_today), style = MaterialTheme.typography.bodySmall)
+            else -> departures.forEach { item ->
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                    DirectionTurn(
+                        toLeft = item.directionId == 0,
+                        color = routeColor(station.routeColor),
+                        modifier = Modifier.padding(end = 8.dp),
+                        width = 28.dp,
+                    )
+                    Text(
+                        text = item.headsign,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f),
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        text = item.departure?.let { relativeLabel(minutesUntil(it, now)) }
+                            ?: stringResource(if (item.published) R.string.home_no_departures else R.string.home_unpublished),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
             }
         }
     }

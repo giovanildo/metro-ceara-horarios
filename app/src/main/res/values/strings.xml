@@ -553,4 +553,7 @@
     <string name="menu_nina">Nina</string>
     <!-- Só o TalkBack lê. -->
     <string name="menu_nina_desc">Nina: abre o WhatsApp da Super NINA</string>
+    <!-- Estação compacta da tela inicial, num domingo sem operação. -->
+    <string name="home_compact_monday">Hoje não circula · volta segunda às %1$s</string>
+    <string name="home_compact_sunday">Hoje não circula</string>
 </resources>
