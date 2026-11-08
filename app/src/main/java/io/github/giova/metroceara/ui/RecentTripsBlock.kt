@@ -38,6 +38,8 @@ import io.github.giova.metroceara.ui.theme.routeColor
 data class RecentRow(
     val trip: RecentTrip,
     val title: String,
+    /** Onde a viagem termina: a estação ou o lugar procurado. */
+    val destination: String,
     /** (nome, cor) da linha de partida e, se for outra, da de chegada. */
     val lines: List<Pair<String, String>>,
     val walk: Boolean,

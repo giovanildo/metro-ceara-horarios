@@ -18,7 +18,7 @@ import io.github.giova.metroceara.data.Regras
 private val MetroRed = Color(0xFFED1C24)
 
 /** O app está no tema escuro (o do celular ou o escolhido nas configurações)? */
-private val LocalDarkTheme = staticCompositionLocalOf { false }
+val LocalDarkTheme = staticCompositionLocalOf { false }
 
 private val LightColors = lightColorScheme(
     primary = MetroRed,

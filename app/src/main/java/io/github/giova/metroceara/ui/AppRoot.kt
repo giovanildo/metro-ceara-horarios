@@ -774,6 +774,7 @@ fun AppRoot() {
         return RecentRow(
             trip = t,
             title = "${JourneyPlanner.plainName(from)} → ${t.landmark ?: JourneyPlanner.plainName(to)}",
+            destination = t.landmark ?: JourneyPlanner.plainName(to),
             lines = listOf(a.name to a.colorHex) + if (b.id != a.id) listOf(b.name to b.colorHex) else emptyList(),
             walk = t.landmark != null,
         )

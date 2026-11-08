@@ -216,7 +216,8 @@
     <string name="commute_recent_flip">Inverter</string>
     <string name="settings_recent_return">Mostrar a volta da última viagem depois de</string>
     <string name="settings_recent_return_desc">Sem saber onde você está, a tela inicial passa a mostrar o caminho de volta quando a última viagem foi vista há esse tempo, no mesmo dia.</string>
-    <string name="commute_recent_times">sai %1$s · chega %2$s</string>
+    <string name="commute_recent_leaves">sai %1$s</string>
+    <string name="commute_recent_arrival">Chega a %1$s às %2$s</string>
     <string name="place_define">Definir %1$s</string>
     <string name="place_here">você está aqui</string>
     <string name="place_open">ver o roteiro até %1$s</string>
@@ -600,8 +601,6 @@
     <!-- Só o TalkBack lê. -->
     <string name="menu_nina_desc">Nina: abre o WhatsApp da Super NINA</string>
     <!-- Estação compacta da tela inicial, num domingo sem operação. -->
-    <string name="home_compact_monday">Hoje não circula · volta segunda às %1$s</string>
-    <string name="home_compact_sunday">Hoje não circula</string>
     <!-- Viagens recentes (as 3 últimas vistas em "Planeje sua viagem"). -->
     <string name="recent_title">Recentes</string>
     <string name="recent_hint">toque para repetir</string>
