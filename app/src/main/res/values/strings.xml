@@ -521,8 +521,8 @@
     <string name="block_places">Trabalho e Casa</string>
     <string name="block_stations">As duas estações mais próximas</string>
     <string name="block_stations_sub">sempre aparece</string>
-    <string name="block_notices">Avisos do Metrofor dos próximos dias</string>
-    <string name="block_notices_sub">o de hoje aparece acima das estações, mesmo escondido</string>
+    <string name="block_notices">Avisos do Metrofor</string>
+    <string name="block_notices_sub">se esconder, o de hoje continua acima das estações</string>
     <string name="block_search">Para onde você vai?</string>
     <string name="block_routines">Rotinas</string>
     <string name="block_bike">Bicicletar</string>

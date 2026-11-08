@@ -10,7 +10,7 @@ class HomeLayoutTest {
     @Test
     fun `tela inicial tem trabalho e casa e horário, busca e linhas ficam nas abas`() {
         assertEquals(
-            listOf(HomeBlock.PLACES, HomeBlock.STATIONS, HomeBlock.NOTICES, HomeBlock.ROUTINES, HomeBlock.BIKE),
+            listOf(HomeBlock.NOTICES, HomeBlock.PLACES, HomeBlock.STATIONS, HomeBlock.ROUTINES, HomeBlock.BIKE),
             HomeLayout().homeOrder,
         )
         assertTrue(HomeBlock.SEARCH.inRoutes && HomeBlock.LINES.inRoutes)
@@ -19,19 +19,33 @@ class HomeLayoutTest {
 
     @Test
     fun `ordem antiga guardada perde a busca e as linhas na tela inicial`() {
-        val old = HomeLayout(order = listOf(HomeBlock.PLACES, HomeBlock.STATIONS, HomeBlock.NOTICES, HomeBlock.SEARCH,
+        val old = HomeLayout(order = listOf(HomeBlock.NOTICES, HomeBlock.PLACES, HomeBlock.STATIONS, HomeBlock.SEARCH,
             HomeBlock.ROUTINES, HomeBlock.BIKE, HomeBlock.LINES))
-        assertEquals(listOf(HomeBlock.PLACES, HomeBlock.STATIONS, HomeBlock.NOTICES, HomeBlock.ROUTINES, HomeBlock.BIKE), old.homeOrder)
+        assertEquals(listOf(HomeBlock.NOTICES, HomeBlock.PLACES, HomeBlock.STATIONS, HomeBlock.ROUTINES, HomeBlock.BIKE), old.homeOrder)
         assertTrue(old.isDefaultOrder)
+    }
+
+    @Test
+    fun `quem nunca mudou a ordem fica com os avisos em cima`() {
+        val old = listOf(HomeBlock.PLACES, HomeBlock.STATIONS, HomeBlock.NOTICES, HomeBlock.SEARCH,
+            HomeBlock.ROUTINES, HomeBlock.BIKE, HomeBlock.LINES)
+        assertEquals(HomeLayout.DEFAULT_ORDER, HomeLayout.withNoticesOnTop(old))
+    }
+
+    @Test
+    fun `ordem escolhida pela pessoa não muda`() {
+        val mine = listOf(HomeBlock.STATIONS, HomeBlock.PLACES, HomeBlock.NOTICES, HomeBlock.ROUTINES, HomeBlock.BIKE,
+            HomeBlock.SEARCH, HomeBlock.LINES)
+        assertEquals(mine, HomeLayout.withNoticesOnTop(mine))
     }
 
     @Test
     fun `subir e descer não passam das pontas`() {
         val l = HomeLayout()
-        assertEquals(l, l.moved(HomeBlock.PLACES, -1))
+        assertEquals(l, l.moved(HomeBlock.NOTICES, -1))
         assertEquals(l, l.moved(HomeBlock.BIKE, 1))
         assertEquals(l, l.moved(HomeBlock.LINES, -1))
-        assertEquals(HomeBlock.STATIONS, l.moved(HomeBlock.STATIONS, -1).homeOrder.first())
+        assertEquals(HomeBlock.PLACES, l.moved(HomeBlock.PLACES, -1).homeOrder.first())
     }
 
     @Test

@@ -896,8 +896,8 @@ fun AppRoot() {
     }
 
     // ------------------------------------------------- blocos da tela inicial --
-    // Cada bloco na ordem que a pessoa escolheu (padrão: Trabalho e Casa, as duas
-    // estações, aviso, busca, rotinas, Bicicletar, linhas).
+    // Cada bloco na ordem que a pessoa escolheu (padrão: avisos, Trabalho e Casa,
+    // as duas estações, rotinas, Bicicletar).
     val trip = activeTrip
     // Terminada a viagem, volta-se ao Início, seja de onde ela tenha começado.
     LaunchedEffect(trip != null) { if (trip != null) homeTab = HomeTab.HOME }
@@ -905,8 +905,7 @@ fun AppRoot() {
         layout.shows(b) && when (b) {
             HomeBlock.PLACES, HomeBlock.STATIONS, HomeBlock.SEARCH -> true
             HomeBlock.ROUTINES -> !routinesList.isNullOrEmpty()
-            // O de hoje vai com as estações; aqui ficam os dos próximos dias.
-            HomeBlock.NOTICES -> notices.any { !it.isToday }
+            HomeBlock.NOTICES -> notices.isNotEmpty()
             HomeBlock.BIKE -> homeBike != null
             HomeBlock.LINES -> false
         }
@@ -929,9 +928,8 @@ fun AppRoot() {
             }
 
             HomeBlock.STATIONS -> Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                // Dia especial: o aviso de hoje vem antes dos horários, que são outros
-                // (mesmo com o bloco de aviso escondido).
-                MetroforNotices(notices.filter { it.isToday })
+                // Com os avisos escondidos, o de hoje continua: os horários do dia são outros.
+                if (!layout.shows(HomeBlock.NOTICES)) MetroforNotices(notices.filter { it.isToday })
                 val extras = HomeCardExtras(
                     bike = layout.bike,
                     halfFare = layout.halfFare,
@@ -975,7 +973,7 @@ fun AppRoot() {
             }
 
             HomeBlock.NOTICES -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                MetroforNotices(notices.filterNot { it.isToday })
+                MetroforNotices(notices)
                 OperationNotificationOffer()
             }
 

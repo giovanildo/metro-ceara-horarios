@@ -88,14 +88,25 @@ data class HomeLayout(
     companion object {
         /** O perfil da maioria: ver logo o próximo metrô das estações perto. */
         val DEFAULT_ORDER = listOf(
-            HomeBlock.PLACES, HomeBlock.STATIONS, HomeBlock.NOTICES, HomeBlock.ROUTINES, HomeBlock.BIKE,
+            HomeBlock.NOTICES, HomeBlock.PLACES, HomeBlock.STATIONS, HomeBlock.ROUTINES, HomeBlock.BIKE,
             HomeBlock.SEARCH, HomeBlock.LINES,
         )
+
+        /** O padrão até a v1.86, com os avisos depois das estações. */
+        private val OLD_HOME_ORDER = listOf(
+            HomeBlock.PLACES, HomeBlock.STATIONS, HomeBlock.NOTICES, HomeBlock.ROUTINES, HomeBlock.BIKE,
+        )
+
+        /** Quem nunca mudou a ordem passa para o padrão novo; uma ordem escolhida fica como está. */
+        fun withNoticesOnTop(order: List<HomeBlock>): List<HomeBlock> =
+            if (order.filterNot { it.inRoutes } == OLD_HOME_ORDER) DEFAULT_ORDER else order
     }
 }
 
 /** Guarda o [HomeLayout] no aparelho e avisa a interface quando muda. */
 object HomeLayoutStore {
+
+    private const val KEY_NOTICES_ON_TOP = "notices_on_top"
 
     private val state = MutableStateFlow<HomeLayout?>(null)
 
@@ -126,8 +137,11 @@ object HomeLayoutStore {
                 acc.toMutableList().apply { add(at, missing) }
             }
         }
+        // Uma vez só: depois disso, pôr os avisos de volta embaixo tem de ficar valendo.
+        val migrate = !p.getBoolean(KEY_NOTICES_ON_TOP, false)
+        if (migrate) p.edit { putBoolean(KEY_NOTICES_ON_TOP, true) }
         return HomeLayout(
-            order = order,
+            order = if (migrate) HomeLayout.withNoticesOnTop(order) else order,
             hidden = blocks(p.getString("hidden", null)).filterNot { it.fixed }.toSet(),
             bike = p.getBoolean("bike", false),
             halfFare = p.getBoolean("half_fare", false),

@@ -115,8 +115,11 @@ fun RoutesScreen(
         ) {
             when (tab) {
                 HomeTab.HOME -> {
+                    // Os avisos do Metrofor, quando são o primeiro bloco, vêm antes de tudo.
+                    val noticesFirst = blocks.firstOrNull() == HomeBlock.NOTICES
+                    if (noticesFirst) item(key = HomeBlock.NOTICES.key) { block(HomeBlock.NOTICES) }
                     header?.let { h -> item(key = "topo") { h() } }
-                    blocks.forEach { b -> item(key = b.key) { block(b) } }
+                    blocks.drop(if (noticesFirst) 1 else 0).forEach { b -> item(key = b.key) { block(b) } }
                     item {
                         Text(
                             text = stringResource(R.string.unofficial),

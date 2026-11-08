@@ -296,11 +296,9 @@ function telaInicio() {
   // Como no app: Casa e Trabalho, as duas estações mais perto e os avisos do
   // Metrofor. "Para onde você vai?" fica em "Planeje sua viagem" (com Casa e
   // Trabalho de novo) e as linhas em Linhas, na barra de baixo. Domingo fica no topo.
-  // Dia especial: o aviso de hoje vem antes das estações (os horários são outros);
-  // o de amanhã fica no lugar dele, depois das estações.
-  let html = convite() + avisoDomingo(t);
+  // Os avisos do Metrofor ficam juntos, no topo, antes de tudo.
+  let html = avisosMetrofor() + convite() + avisoDomingo(t);
   html += atalhosLugares(t);
-  html += avisosMetrofor(true);
 
   if (!estado.pos) {
     html += `<div class="cartao">
@@ -360,7 +358,6 @@ function telaInicio() {
     }
   }
 
-  html += avisosMetrofor(false, true);
   if (pedidoInstalar && !INSTALADA) {
     html += `<p><button class="botao secundario" id="instalar">📲 Adicionar à tela inicial</button></p>`;
   }
