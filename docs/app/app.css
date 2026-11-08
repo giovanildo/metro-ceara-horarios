@@ -316,3 +316,34 @@ dialog.folha[open] { animation: sobe .25s ease-out; }
 .recente-horas { margin-left: auto; text-align: right; white-space: nowrap; }
 .recente-horas b { display: block; color: var(--cartao-texto); font-weight: 700; font-size: .95rem; }
 .recente-via { display: block; color: var(--texto-2); }
+
+/* Sua ida e volta */
+.iv p { margin: 0; }
+.iv-topo { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.iv-topo strong { font-size: 1.1rem; }
+.iv-inverter { font: inherit; font-size: .82rem; font-weight: 700; color: var(--cartao-texto); background: var(--fundo); border: 0; border-radius: 18px; padding: 8px 12px; white-space: nowrap; cursor: pointer; }
+.iv-rota { font-size: .92rem; margin-top: 2px !important; }
+.iv-rota .ponto, .iv-titulo .ponto { margin-right: 3px; }
+.iv-abrir { display: block; color: inherit; text-decoration: none; }
+.iv-meta { font-size: .82rem; margin-top: 10px !important; opacity: .85; }
+.iv-recente { display: block; text-decoration: none; color: var(--cartao-texto); }
+.iv-recente .iv-meta { margin-top: 0 !important; }
+.iv-titulo { font-size: 1.08rem; font-weight: 700; margin-top: 4px !important; }
+.iv-hora { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; margin-top: 2px; }
+.iv-hora > b:first-child { font-size: 1.5rem; }
+.iv-falta { font-size: 1.75rem; font-weight: 700; line-height: 1.1; }
+.iv-chega { font-size: .92rem; }
+.iv-mini { font-size: .82rem; margin-top: 6px !important; }
+.iv-ultimo { font-weight: 700; font-size: .92rem; margin-top: 8px !important; }
+.iv-sem { margin-top: 12px !important; font-weight: 500; }
+.iv-opcoes { display: flex; gap: 8px; margin-top: 10px; }
+.iv-opcao { flex: 1; background: var(--fundo); opacity: .85; border-radius: 10px; padding: 7px 10px; }
+.iv-opcao b { display: block; font-size: .95rem; }
+.iv-opcao small { font-size: .78rem; }
+.iv-atrasa { color: #a12b1c; font-weight: 600; }
+.iv-alerta { background: #ffe1d6; color: #6a2a12; }
+@media (prefers-color-scheme: dark) { .iv-alerta { background: #5a2c1b; color: #ffdbcf; } .iv-atrasa { color: #ffb4a8; } }
+.iv-marcado { background: var(--cartao); border-color: var(--cartao); color: var(--cartao-texto); font-weight: 700; }
+.iv-linha { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 13px 14px; margin: 8px 0; background: var(--neutro); color: var(--texto); border-radius: 14px; text-decoration: none; }
+.iv-linha b { color: var(--cartao-texto); }
+.iv-linha input { font: inherit; color: var(--texto); background: var(--fundo); border: 1px solid var(--borda); border-radius: 8px; padding: 4px 8px; }

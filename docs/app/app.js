@@ -3,8 +3,10 @@ import {
   linhaParada, passagemDaLinha, fonteLinha, proximas, somarDias, veiculo,
 } from "./dados.js";
 import { PERFIS, Roteador } from "./roteiro.js";
+import { destinoIdaVolta, escolherMetro } from "./idavolta.js";
 import { aoLado, buscarLugares, caminhada, emojiLugar, longe, metrosAPe, minutosAPe, pertoDaEstacao, serve } from "./lugares.js";
 
+const PERTO_A_PE = 3000; // "Sua ida e volta": até aqui, a pessoa está na estação de casa ou do trabalho (padrão do app)
 const PERTO_METROS = 3000; // a segunda estação mais perto aparece até esta distância (padrão do app)
 const LINK = "https://giovanildo.github.io/metro-ceara-horarios/app/";
 /** O texto de "Compartilhar o app": o link vem logo depois (o mesmo texto do app). */
@@ -300,7 +302,8 @@ function telaInicio() {
   // Trabalho de novo) e as linhas em Linhas, na barra de baixo. Domingo fica no topo.
   // Os avisos do Metrofor ficam juntos, no topo, antes de tudo.
   let html = avisosMetrofor() + convite() + avisoDomingo(t);
-  html += atalhosLugares(t);
+  // Com a ida e volta pronta, o bloco dela; sem Casa nem Trabalho, a viagem mais recente.
+  html += blocoIdaVolta(t) ?? blocoUltimaViagem(t) ?? atalhosLugares(t);
 
   if (!estado.pos) {
     html += `<div class="cartao">
@@ -371,6 +374,161 @@ function telaInicio() {
     render();
   });
   tela.querySelectorAll("[data-abrir]").forEach((b) => b.addEventListener("click", () => { estado.aberta = b.dataset.abrir; render(); }));
+  document.getElementById("iv-inverter")?.addEventListener("click", (e) => {
+    const auto = e.currentTarget.dataset.auto;
+    estado.ivInvertido = estado.ivInvertido === auto ? null : auto;
+    render();
+  });
+  document.getElementById("iv-abrir")?.addEventListener("click", (e) => {
+    estado.viagem = { destino: e.currentTarget.dataset.destino, busca: "", hora: null, escolhido: 0 };
+  });
+  document.getElementById("ultima-viagem")?.addEventListener("click", (e) => { e.preventDefault(); abrirRecente(0); });
+}
+
+// ---------- sua ida e volta (como no app; só neste navegador)
+
+function lerIdaVolta() {
+  const padrao = { tipo: "trabalho", chegar: null, sair: null, dias: [1, 2, 3, 4, 5] };
+  try { return { ...padrao, ...JSON.parse(localStorage.getItem("ida-volta") || "{}") }; } catch { return padrao; }
+}
+
+function salvarIdaVolta(iv) {
+  try { localStorage.setItem("ida-volta", JSON.stringify(iv)); } catch { /* segue */ }
+}
+
+const paraOnde = (destino, tipo) => (destino === "casa" ? "Para Casa" : tipo === "faculdade" ? "Para a Faculdade" : "Para o Trabalho");
+
+/** O bloco do alto da tela inicial: o sentido de agora e qual metrô pegar. null até estar configurada. */
+function blocoIdaVolta(t) {
+  const { grade, regras } = estado.dados;
+  const iv = lerIdaVolta();
+  const salvos = lerLugares();
+  if (iv.chegar == null || iv.sair == null || !salvos.casa || !salvos.trabalho) return null;
+  const [lc, ec] = salvos.casa.split("|"), [lt, et] = salvos.trabalho.split("|");
+  if (!grade.linha(lc) || !grade.estacoes[ec] || !grade.linha(lt) || !grade.estacoes[et]) return null;
+
+  const ate = (id) => (estado.pos ? distancia(estado.pos.lat, estado.pos.lon, grade.estacoes[id].lat, grade.estacoes[id].lon) : null);
+  const dc = ate(ec), dt = ate(et);
+  const auto = destinoIdaVolta(t.minutos, iv.chegar, iv.sair, dc, dt, PERTO_A_PE);
+  const invertido = estado.ivInvertido === auto;
+  const destino = invertido ? (auto === "casa" ? "trabalho" : "casa") : auto;
+  const outro = destino === "casa" ? "trabalho" : "casa";
+  const alvoValor = salvos[destino];
+  // Longe das duas, sai da estação mais perto, como o atalho sempre fez.
+  const longeDasDuas = dc != null && Math.min(dc, dt) > PERTO_A_PE;
+  const origemValor = (!invertido && longeDasDuas && origemPadrao()) || salvos[outro];
+  const [lo, eo] = origemValor.split("|"), [ld, ed] = alvoValor.split("|");
+
+  const ida = destino === "trabalho";
+  const hoje = !invertido && iv.dias.includes(t.diaSemana);
+  const alvo = !hoje ? null : ida ? iv.chegar : iv.sair;
+  const dia = diaDaViagem(t);
+  const opcoes = dia && !dia.domingo
+    ? new Roteador(grade, regras, perfilGuardado()).planejar({ linha: lo, est: eo }, { linha: ld, est: ed }, t.minutos - 2, Infinity, dia.evitar) : [];
+  const e = escolherMetro(opcoes, ida, alvo, t.minutos);
+  const v = veiculo(grade.linha(lo).nome);
+  const cedo = e?.motivo === "cedo";
+  const titulo = cedo ? "⚠️ Volte mais cedo hoje"
+    : `${destino === "casa" ? "🏠" : iv.tipo === "faculdade" ? "🎓" : "💼"} ${paraOnde(destino, iv.tipo)}`;
+  const cores = e ? [...new Set(e.principal.pernas.map((p) => p.linha))].map((id) => grade.linha(id)) : [grade.linha(lo)];
+  const topo = `<div class="iv-topo"><strong>${titulo}</strong>
+      <button class="iv-inverter" id="iv-inverter" data-auto="${auto}">⇄ ${paraOnde(outro, iv.tipo)}</button></div>
+    <p class="iv-rota">${cores.map((l) => `<span class="ponto" style="background:${cor(l)}"></span>`).join("")}
+      ${esc(semSufixo(grade.nome(eo)))} → ${esc(semSufixo(grade.nome(ed)))}</p>`;
+  if (!e) {
+    const texto = dia?.domingo ? textoVoltaSegunda(primeiroDeSegunda(lo, eo)) : `Não há mais ${v} para lá hoje.`;
+    return `<div class="cartao iv">${topo}<p class="iv-sem">${texto}</p></div>`;
+  }
+  const a = alvo != null ? hora(alvo) : "";
+  const faculdade = iv.tipo === "faculdade";
+  const meta = {
+    proximo: `Próximo ${v}`,
+    chegar: `Para chegar até ${a}, pegue o das`,
+    tarde: `Já não dá para chegar até ${a}. Próximo ${v}`,
+    sair: faculdade ? `Sua aula termina às ${a}. Pegue o das` : `Você costuma sair às ${a}. Pegue o das`,
+    cedo: `Você costuma sair às ${a}, mas hoje o último ${v} é o das`,
+  }[e.motivo];
+  const p = e.principal;
+  const integracao = p.pernas.length > 1
+    ? `<p class="iv-mini">${p.pernas.map((x) => `${hora(x.sai)} ${esc(semSufixo(grade.nome(x.de)))}`).join(" → ")}</p>
+       ${p.trocas.map((x) => `<p class="iv-mini">Integração em ${esc(semSufixo(grade.nome(x.lig.deEst)))} · ${x.precisa} min para trocar de linha</p>`).join("")}` : "";
+  const ultimo = e.ultimo == null ? "" : `<p class="iv-ultimo">🌙 ${e.ultimo === p.sai ? `Este é o último ${v} de hoje`
+    : `Último ${v} ${paraOnde(destino, iv.tipo).replace("Para", "para")}: ${hora(e.ultimo)}`}</p>`;
+  const outras = e.outras.map((o) => {
+    const atrasa = ida && alvo != null && o.chega > alvo;
+    return `<span class="iv-opcao"><b>${hora(o.sai)}</b><small class="${atrasa ? "iv-atrasa" : ""}">chega ${hora(o.chega)}${atrasa ? " · atrasa" : ""}</small></span>`;
+  }).join("");
+  return `<div class="cartao iv ${cedo ? "iv-alerta" : ""}">${topo}
+    <a class="iv-abrir" id="iv-abrir" href="#/viagem/${lo}/${eo}" data-destino="${alvoValor}">
+      <p class="iv-meta">${meta}</p>
+      <div class="iv-hora"><b>${hora(p.sai)}</b><b class="iv-falta">${falta(p.sai - t.minutos)}</b></div>
+      <p class="iv-chega">chega ${hora(p.chega)}</p>${integracao}${ultimo}
+      ${outras ? `<div class="iv-opcoes">${outras}</div>` : ""}
+    </a></div>`;
+}
+
+/** Sem Casa nem Trabalho: a viagem mais recente, com o próximo horário. null sem nenhuma. */
+function blocoUltimaViagem(t) {
+  const salvos = lerLugares();
+  if (salvos.casa || salvos.trabalho) return null;
+  const r = lerRecentes()[0];
+  if (!r) return null;
+  const { grade, regras } = estado.dados;
+  const [lo, eo] = r.origem.split("|"), [ld, ed] = r.destino.split("|");
+  const a = grade.linha(lo), b = grade.linha(ld);
+  if (!a || !b || !grade.estacoes[eo] || !grade.estacoes[ed]) return null;
+  const dia = diaDaViagem(t);
+  const o = dia && !dia.domingo
+    ? new Roteador(grade, regras, perfilGuardado()).planejar({ linha: lo, est: eo }, { linha: ld, est: ed }, t.minutos - 2, 1, dia.evitar)[0] : null;
+  const pontos = [a, ...(b.id !== a.id ? [b] : [])].map((l) => `<span class="ponto" style="background:${cor(l)}"></span>`).join("");
+  return `<a class="cartao iv iv-recente" id="ultima-viagem" href="#/rotas">
+    <p class="iv-meta">🕘 Sua última viagem</p>
+    <p class="iv-titulo">${pontos} ${esc(semSufixo(grade.nome(eo)))} → ${esc(r.lugar || semSufixo(grade.nome(ed)))}</p>
+    ${o ? `<div class="iv-hora"><span>sai ${hora(o.sai)} · chega ${hora(o.chega)}</span><b class="iv-falta">${falta(o.sai - t.minutos)}</b></div>` : ""}
+  </a>`;
+}
+
+/** Item do Mais: as estações, os horários e os dias. Grava a cada mudança. */
+function telaIdaVolta() {
+  const { grade } = estado.dados;
+  const iv = lerIdaVolta();
+  const salvos = lerLugares();
+  const nome = (v) => {
+    const [, e] = (v || "").split("|");
+    return e && grade.estacoes[e] ? esc(semSufixo(grade.nome(e))) : "Escolher";
+  };
+  const faculdade = iv.tipo === "faculdade";
+  const hm = (m) => (m == null ? "" : hora(m));
+  const DIAS = [[1, "Seg"], [2, "Ter"], [3, "Qua"], [4, "Qui"], [5, "Sex"], [6, "Sáb"]];
+  tela.innerHTML = `<h2 style="font-size:1.4rem">Sua ida e volta</h2>
+    <p class="dica">O caminho que você faz quase todo dia. Fica só neste navegador.</p>
+    <p class="grupo">Você vai para</p>
+    <div class="chips"><button class="chip ${faculdade ? "" : "iv-marcado"}" data-tipo="trabalho">💼 Trabalho</button>
+      <button class="chip ${faculdade ? "iv-marcado" : ""}" data-tipo="faculdade">🎓 Faculdade</button></div>
+    <a class="iv-linha" href="#/lugar/casa/ida-volta"><span>🏠 Casa</span><b>${nome(salvos.casa)} ›</b></a>
+    <a class="iv-linha" href="#/lugar/trabalho/ida-volta"><span>${faculdade ? "🎓 Faculdade" : "💼 Trabalho"}</span><b>${nome(salvos.trabalho)} ›</b></a>
+    <p class="grupo">Seus horários</p>
+    <label class="iv-linha"><span>Preciso chegar até</span><input type="time" id="iv-chegar" value="${hm(iv.chegar)}"></label>
+    <label class="iv-linha"><span>${faculdade ? "Minha aula termina às" : "Costumo sair de lá às"}</span><input type="time" id="iv-sair" value="${hm(iv.sair)}"></label>
+    <p class="grupo">Nos dias</p>
+    <div class="chips">${DIAS.map(([d, n]) => `<button class="chip ${iv.dias.includes(d) ? "iv-marcado" : ""}" data-dia="${d}">${n}</button>`).join("")}</div>
+    <p><a class="botao largo" href="#/">Salvar</a></p>`;
+  const paraMinutos = (texto) => {
+    const [h, m] = texto.split(":").map(Number);
+    return Number.isNaN(h) || Number.isNaN(m) ? null : h * 60 + m;
+  };
+  tela.querySelectorAll("[data-tipo]").forEach((b) => b.addEventListener("click", () => {
+    salvarIdaVolta({ ...lerIdaVolta(), tipo: b.dataset.tipo });
+    telaIdaVolta();
+  }));
+  tela.querySelectorAll("[data-dia]").forEach((b) => b.addEventListener("click", () => {
+    const atual = lerIdaVolta(), d = +b.dataset.dia;
+    salvarIdaVolta({ ...atual, dias: atual.dias.includes(d) ? atual.dias.filter((x) => x !== d) : [...atual.dias, d] });
+    telaIdaVolta();
+  }));
+  for (const [id, campo] of [["iv-chegar", "chegar"], ["iv-sair", "sair"]]) {
+    document.getElementById(id).addEventListener("change", (e) => salvarIdaVolta({ ...lerIdaVolta(), [campo]: e.target.value ? paraMinutos(e.target.value) : null }));
+  }
 }
 
 // ---------- viagens recentes (as 3 últimas vistas, como no app; só neste navegador)
@@ -411,18 +569,21 @@ function blocoRecentes() {
   return itens ? `<p class="grupo">Recentes</p>${itens}` : "";
 }
 
+/** Abre o roteiro de uma viagem recente. */
+function abrirRecente(i) {
+  const r = lerRecentes()[i];
+  if (!r) return;
+  estado.viagem = { destino: r.destino, lugar: r.lugar || null, nota: null, busca: "", hora: null, escolhido: 0 };
+  const [lo, eo] = r.origem.split("|");
+  location.hash = `#/viagem/${lo}/${eo}`;
+}
+
 /** Aba "Planeje sua viagem": "Para onde você vai?", os atalhos de Casa e Trabalho e as viagens recentes. */
 function telaRotas() {
   tela.innerHTML = `<h2 class="titulo-aba">Planeje sua viagem</h2>
     <a class="para-onde" href="#/viagem">${LUPA} Para onde você vai?</a>
     ${atalhosLugares(agora())}${blocoRecentes()}`;
-  tela.querySelectorAll("[data-r]").forEach((b) => b.addEventListener("click", () => {
-    const r = lerRecentes()[+b.dataset.r];
-    if (!r) return;
-    estado.viagem = { destino: r.destino, lugar: r.lugar || null, nota: null, busca: "", hora: null, escolhido: 0 };
-    const [lo, eo] = r.origem.split("|");
-    location.hash = `#/viagem/${lo}/${eo}`;
-  }));
+  tela.querySelectorAll("[data-r]").forEach((b) => b.addEventListener("click", () => abrirRecente(+b.dataset.r)));
   tela.querySelectorAll("[data-tirar]").forEach((b) => b.addEventListener("click", () => {
     salvarRecentes(lerRecentes().filter((_, i) => i !== +b.dataset.tirar));
     telaRotas();
@@ -480,6 +641,8 @@ function abrirMais() {
     ${passagem || nina ? `<h4>Para a viagem</h4>` : ""}
     ${passagem ? `<a href="#/passagem"><span class="ic">🎫</span><span>Passagem<small>valores, meia e gratuidade</small></span></a>` : ""}
     ${nina ? `<a href="${nina}" target="_blank" rel="noopener" aria-label="Nina: abre o WhatsApp da Super NINA"><span class="ic">${ROSTO_NINA}</span>Nina</a>` : ""}
+    <h4>Do seu jeito</h4>
+    <a href="#/ida-volta"><span class="ic">⇄</span><span>Sua ida e volta<small>casa, trabalho ou faculdade e seus horários</small></span></a>
     <h4>O app</h4>
     <a href="#/fontes"><span class="ic">🔎</span>De onde vem cada informação</a>
     <a href="#/sobre"><span class="ic">ⓘ</span>Sobre o app</a>
@@ -516,6 +679,13 @@ const LUGARES = [
   { chave: "trabalho", nome: "Trabalho", emoji: "💼", pergunta: "Qual estação fica perto do seu trabalho?" },
 ];
 
+/** Casa e Trabalho, ou Casa e Faculdade, conforme "Sua ida e volta". */
+function lugaresAtuais() {
+  const faculdade = lerIdaVolta().tipo === "faculdade";
+  return LUGARES.map((l) => (l.chave === "trabalho" && faculdade
+    ? { ...l, nome: "Faculdade", emoji: "🎓", pergunta: "Qual estação fica perto da sua faculdade?" } : l));
+}
+
 /** { casa: "linha|estação", trabalho: … }: só a estação, guardada neste navegador. */
 function lerLugares() {
   try { return JSON.parse(localStorage.getItem("lugares") || "{}"); } catch { return {}; }
@@ -537,7 +707,7 @@ function infoLugares(t, origem = origemPadrao()) {
   const [lo, eo] = origem ? origem.split("|") : [];
   const dia = diaDaViagem(t);
   const r = lo && dia && !dia.domingo ? new Roteador(grade, regras, perfilGuardado()) : null;
-  return LUGARES.map((lugar) => {
+  return lugaresAtuais().map((lugar) => {
     const [ld, ed] = (salvos[lugar.chave] || "").split("|");
     if (!grade.linha(ld) || !grade.estacoes[ed]) return { ...lugar, valor: null };
     const nome = semSufixo(grade.nome(ed));
@@ -570,16 +740,17 @@ function irParaLugar(chave) {
 }
 
 /** Escolher (ou apagar) a estação de Casa ou de Trabalho. */
-function telaLugar(chave) {
+function telaLugar(chave, de) {
+  const depois = de === "ida-volta" ? "#/ida-volta" : "#/";
   const { grade } = estado.dados;
-  const lugar = LUGARES.find((l) => l.chave === chave) || LUGARES[0];
+  const lugar = lugaresAtuais().find((l) => l.chave === chave) || LUGARES[0];
   const atual = lerLugares()[lugar.chave];
-  const outro = LUGARES.find((l) => l.chave !== lugar.chave);
+  const outro = lugaresAtuais().find((l) => l.chave !== lugar.chave);
   tela.innerHTML = `<h2 style="font-size:1.4rem">${lugar.emoji} ${lugar.pergunta}</h2>
     <p class="dica">O app guarda só a estação, não o seu endereço. Fica só neste navegador.</p>
     <div class="chips">${atual ? `<button class="chip" id="l-nenhuma">Nenhuma</button>` : ""}
       <a class="chip" href="#/lugar/${outro.chave}">${outro.emoji} Trocar ${outro.nome}</a>
-      <a class="chip" href="#/">Voltar</a></div>
+      <a class="chip" href="${depois}">Voltar</a></div>
     <label class="campo"><input id="l-busca" type="search" autocomplete="off" placeholder="Digite o nome da estação" style="width:100%"></label>
     <div id="l-lista"></div>`;
   const lista = document.getElementById("l-lista");
@@ -593,14 +764,14 @@ function telaLugar(chave) {
     }).join("") || `<p class="vazio">Nenhuma estação com esse nome.</p>`;
     lista.querySelectorAll("button[data-v]").forEach((b) => b.addEventListener("click", () => {
       salvarLugar(lugar.chave, b.dataset.v);
-      location.replace("#/");
+      location.replace(depois);
     }));
   };
   const busca = document.getElementById("l-busca");
   busca.addEventListener("input", () => mostrar(busca.value));
   document.getElementById("l-nenhuma")?.addEventListener("click", () => {
     salvarLugar(lugar.chave, null);
-    location.replace("#/");
+    location.replace(depois);
   });
   mostrar("");
 }
@@ -1501,7 +1672,8 @@ function render() {
   else if (partes[0] === "fontes") telaFontes();
   else if (partes[0] === "acesso") telaAcesso(partes[1], partes[2]);
   else if (partes[0] === "viagem") telaViagem(partes[1], partes[2]);
-  else if (partes[0] === "lugar") telaLugar(partes[1]);
+  else if (partes[0] === "lugar") telaLugar(partes[1], partes[2]);
+  else if (partes[0] === "ida-volta") telaIdaVolta();
   else if (partes[0] === "ir") irParaLugar(partes[1]);
   else if (partes[0] === "rotas") telaRotas();
   else if (partes[0] === "linhas") telaLinhas();
