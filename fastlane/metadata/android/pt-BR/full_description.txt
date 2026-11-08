@@ -12,6 +12,7 @@
 <li><b>Procure o lugar, não só a estação:</b> digite "Rodoviária", "HGF" ou "UFC" e veja a estação mais perto, a caminhada até a porta e a hora de chegar. Na tela de cada estação, o que tem perto: hospitais, universidades, shoppings.</li>
 <li><b>Elevador e rampa:</b> veja se a estação tem elevador, rampa ou plataforma elevatória. Com "cadeira de rodas", o roteiro avisa onde não tem elevador e onde pedir ajuda.</li>
 <li><b>Casa e Trabalho:</b> guarde a estação perto de casa e a do trabalho; um toque mostra a hora de chegada e o roteiro, como num app de corrida.</li>
+<li><b>Sua ida e volta:</b> diga suas estações e horários, de trabalho ou faculdade, e a tela inicial já mostra o sentido certo e qual metrô pegar, até sem sinal.</li>
 <li><b>Modo viagem:</b> escolha o destino e o app acompanha a viagem com a tela desligada, pelo GPS e, sem sinal, pela tabela de horários (avisando quando a posição é presumida). Avisa duas estações antes do destino, com som opcional e voz dizendo o nome de cada estação.</li>
 <li><b>Hora de sair:</b> toque num horário e o app avisa na hora certa, mesmo com a tela bloqueada, mostrando quanto falta para a partida.</li>
 <li><b>Rotinas:</b> salve o trajeto do dia a dia e o app avisa sozinho nos dias marcados, com os horários do dia.</li>

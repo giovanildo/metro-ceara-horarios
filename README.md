@@ -113,7 +113,7 @@ você vai?" e Casa e Trabalho), **Linhas** (a lista das linhas; tocar abre as
 estações) e **Mais**, uma lista que sobe de baixo por cima da tela
 ([`ui/HomeMenu.kt`](app/src/main/java/io/github/giova/metroceara/ui/HomeMenu.kt)):
 em três grupos: **Para a viagem** (Passagem, Nina, Suas rotinas), **Do seu
-jeito** (Ajustar para mim, Ordem da tela inicial, Configurações) e **O app** (De
+jeito** (Sua ida e volta, Ajustar para mim, Ordem da tela inicial, Configurações) e **O app** (De
 onde vem cada informação, Sobre o app, Compartilhar o app). Na lite, só os que
 ela tem. Ícone sem nome não serve para
 todo mundo, por isso cada botão diz o que faz; com letra grande, "Planeje sua
@@ -157,7 +157,9 @@ padrão, segue o perfil da maioria (quem vai e volta do trabalho ou da escola):
    notificação. No Android 13+, sem a permissão de notificação, debaixo do aviso
    aparece o convite "Quer receber uma notificação…?" (**Avisar** / **Agora
    não**); recusado ou negado, não volta;
-2. **Trabalho e Casa** (também debaixo da busca, em Planeje sua viagem);
+2. **Sua ida e volta**, para quem configurou; só com as estações, os atalhos
+   **Trabalho e Casa** (também debaixo da busca, em Planeje sua viagem); sem Casa
+   nem Trabalho, **Sua última viagem**, com o próximo horário;
 3. **as duas estações mais próximas** (sempre aparecem: é o motivo do app);
 4. as **rotinas**;
 5. o **Bicicletar** (só com "Levo bike").
@@ -264,6 +266,25 @@ mesma tela saindo dali.
   **Configurações → Casa e Trabalho** também. Na lista do **Para**, os dois
   aparecem no topo, em "Seus lugares", enquanto a busca está vazia. Guardados
   só no aparelho (`data/Places.kt`, estação e linha).
+- **Sua ida e volta** (no Mais; `data/Commute.kt`, `ui/CommuteScreen.kt`,
+  `ui/CommuteCard.kt`; na lite, `idavolta.js` e `#/ida-volta`): Trabalho ou
+  Faculdade, as duas estações, "preciso chegar até", "costumo sair de lá às" (ou
+  "minha aula termina às") e os dias. Com tudo preenchido, um bloco no topo da
+  tela inicial troca os atalhos e mostra o sentido de agora e qual metrô pegar:
+  - **o sentido** vem da localização: perto de uma das duas estações (até o
+    limite de caminhada das Configurações), vai para a outra. Sem localização, ou
+    longe das duas, vem do relógio: entre a saída e a próxima chegada, a primeira
+    metade ainda é a volta e a segunda já é a ida, o que serve também para
+    faculdade à noite e para quem trabalha de madrugada. Longe das duas, sai da
+    estação mais perto. O **⇄** inverte até o app mudar de sentido sozinho;
+  - **o metrô em destaque**: na ida, o último que chega até a hora marcada, com
+    "atrasa" no seguinte; na volta, o primeiro depois da hora de sair. Invertido
+    ou fora dos dias marcados, o próximo. Se o dia acaba antes da hora de sair
+    (operação especial), **Volte mais cedo hoje**, com o último;
+  - nas últimas partidas do dia, **Último metrô para Casa: 23:25**; no domingo
+    sem operação, nenhum horário, só quando o metrô volta. As contas usam a grade
+    do aparelho, então funciona sem sinal e no subterrâneo. Só as estações e os
+    horários ficam guardados, neste celular.
 - **Resultado**, numa folha que sobe por baixo:
   - **Sair agora** ou **Escolher horário** (relógio de 24 h; "Sair às 17:30");
   - **cada horário um cartão**, como nos apps de ônibus
@@ -1411,7 +1432,7 @@ mesma ordem padrão do app (Trabalho e Casa, o aviso do Metrofor de hoje, as dua
 estações mais próximas com o tempo que falta grande, os avisos dos próximos
 dias — toda operação anunciada, desde o dia em que a notícia sai),
 sem "Ajustar para mim" nem a escolha da ordem. A mesma barra de baixo do app:
-Início, Planeje sua viagem (`#/rotas`), Linhas (`#/linhas`) e Mais (Passagem,
+Início, Planeje sua viagem (`#/rotas`), Linhas (`#/linhas`) e Mais (Passagem, Sua ida e volta,
 Nina, De onde vem cada informação, Sobre, Compartilhar; um `<dialog>` que sobe
 de baixo). O navegador não consegue baixar
 o GTFS direto do Metrofor — o site não libera acesso a partir de outras
