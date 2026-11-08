@@ -1,0 +1,2 @@
+• Sua última viagem ganhou cor própria e mostra a hora de chegada ao destino final.
+• Tela inicial mais limpa: a estação mais perto aberta e as outras só com nome, linha e distância. Toque para ver os horários.
