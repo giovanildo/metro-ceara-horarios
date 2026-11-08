@@ -273,6 +273,14 @@ mesma tela saindo dali.
     bike;
   - **⇅** ao lado do título inverte ida e volta (não aparece quando o destino
     é um lugar);
+- **Recentes:** em "Planeje sua viagem", debaixo de Casa e Trabalho, as 3
+  últimas viagens vistas ("São Benedito → Papicu", com as linhas na cor de
+  cada uma; lugar com "a pé no fim"). Entra quando o resultado aparece, o mesmo
+  trajeto sobe em vez de repetir, e Casa ou Trabalho saindo da estação de
+  agora não aparecem (já têm atalho). Um toque abre o resultado; tocar e
+  segurar remove; **Configurações → Viagens recentes → Limpar** apaga todas.
+  Só no aparelho (`data/RecentTrips.kt`, preferências `metrofor_recent_trips`;
+  na lite, `localStorage` "recentes", com ✕ para remover).
   - saindo agora: **Iniciar modo viagem** (perto da estação, até o limite das
     Configurações). Num trecho só, a viagem começa como sempre (com a oferta
     de ir sentado pelo terminal); com integração, o roteiro inteiro.

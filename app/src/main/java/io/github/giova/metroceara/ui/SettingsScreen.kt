@@ -57,6 +57,9 @@ fun SettingsScreen(
     /** Casa e Trabalho, com o nome da estação guardada (ou `null`). */
     places: List<Pair<Place, String?>> = emptyList(),
     onEditPlace: (Place) -> Unit = {},
+    /** Quantas viagens recentes há e o botão que apaga todas. */
+    recentCount: Int = 0,
+    onClearRecent: () -> Unit = {},
     onOpenAdjust: () -> Unit = {},
 ) {
     Scaffold(
@@ -166,6 +169,23 @@ fun SettingsScreen(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                }
+            }
+            // As viagens recentes de "Planeje sua viagem": só neste celular, com um toque para apagar.
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(R.string.settings_recent), style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        text = stringResource(R.string.settings_recent_desc),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                androidx.compose.material3.TextButton(onClick = onClearRecent, enabled = recentCount > 0) {
+                    Text(stringResource(R.string.settings_recent_clear))
                 }
             }
             HorizontalDivider(modifier = Modifier.padding(top = 4.dp))

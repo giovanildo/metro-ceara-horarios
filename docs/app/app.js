@@ -359,11 +359,52 @@ function telaInicio() {
   tela.querySelectorAll("[data-abrir]").forEach((b) => b.addEventListener("click", () => { estado.aberta = b.dataset.abrir; render(); }));
 }
 
-/** Aba "Planeje sua viagem": "Para onde você vai?" e os atalhos de Casa e Trabalho. */
+// ---------- viagens recentes (as 3 últimas vistas, como no app; só neste navegador)
+
+function lerRecentes() {
+  try { return JSON.parse(localStorage.getItem("recentes") || "[]"); } catch { return []; }
+}
+
+function salvarRecentes(l) {
+  try { localStorage.setItem("recentes", JSON.stringify(l.slice(0, 3))); } catch { /* segue */ }
+}
+
+/** A viagem vista vai para o topo, sem repetir o mesmo trajeto. */
+function guardarRecente(r) {
+  const igual = (x) => x.origem === r.origem && x.destino === r.destino && (x.lugar || null) === (r.lugar || null);
+  salvarRecentes([r, ...lerRecentes().filter((x) => !igual(x))]);
+}
+
+function blocoRecentes() {
+  const { grade } = estado.dados;
+  const itens = lerRecentes().map((r, i) => {
+    const [lo, eo] = r.origem.split("|"), [ld, ed] = r.destino.split("|");
+    const a = grade.linha(lo), b = grade.linha(ld);
+    if (!a || !b || !grade.estacoes[eo] || !grade.estacoes[ed]) return "";
+    const linhas = [a, ...(b.id !== a.id ? [b] : [])];
+    return `<div class="recente"><button class="recente-abrir" data-r="${i}">🕘 <span><strong>${esc(semSufixo(grade.nome(eo)))} → ${esc(r.lugar || semSufixo(grade.nome(ed)))}</strong>
+      <small>${linhas.map((l) => `<span class="ponto" style="background:${cor(l)}"></span>`).join("")} ${linhas.map((l) => esc(l.nome)).join(" → ")}${r.lugar ? " · a pé no fim" : ""}</small></span></button>
+      <button class="recente-tirar" data-tirar="${i}" aria-label="Remover dos recentes">✕</button></div>`;
+  }).join("");
+  return itens ? `<p class="grupo">Recentes</p>${itens}` : "";
+}
+
+/** Aba "Planeje sua viagem": "Para onde você vai?", os atalhos de Casa e Trabalho e as viagens recentes. */
 function telaRotas() {
   tela.innerHTML = `<h2 class="titulo-aba">Planeje sua viagem</h2>
     <a class="para-onde" href="#/viagem">${LUPA} Para onde você vai?</a>
-    ${atalhosLugares(agora())}`;
+    ${atalhosLugares(agora())}${blocoRecentes()}`;
+  tela.querySelectorAll("[data-r]").forEach((b) => b.addEventListener("click", () => {
+    const r = lerRecentes()[+b.dataset.r];
+    if (!r) return;
+    estado.viagem = { destino: r.destino, lugar: r.lugar || null, nota: null, busca: "", hora: null, escolhido: 0 };
+    const [lo, eo] = r.origem.split("|");
+    location.hash = `#/viagem/${lo}/${eo}`;
+  }));
+  tela.querySelectorAll("[data-tirar]").forEach((b) => b.addEventListener("click", () => {
+    salvarRecentes(lerRecentes().filter((_, i) => i !== +b.dataset.tirar));
+    telaRotas();
+  }));
 }
 
 /** Aba Linhas: toque numa linha para ver as estações. */
@@ -845,6 +886,7 @@ function telaViagem(linhaId, estId) {
   };
   const mostrarResultado = () => {
     lista.innerHTML = "";
+    guardarRecente({ origem: `${lo}|${eo}`, destino: v.destino, lugar: v.lugar || null });
     resultado.innerHTML = resultadoViagem(lo, eo, v, t);
     resultado.querySelectorAll("button[data-i]").forEach((b) => b.addEventListener("click", () => {
       v.escolhido = +b.dataset.i;

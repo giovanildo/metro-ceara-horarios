@@ -72,6 +72,8 @@ fun RoutesScreen(
     header: (@Composable () -> Unit)? = null,
     /** O que a lista do Mais abre. */
     menu: HomeMenuActions = HomeMenuActions(),
+    /** Debaixo da busca e de Casa e Trabalho, em "Planeje sua viagem": as viagens recentes. */
+    routesExtra: (@Composable () -> Unit)? = null,
 ) {
     var moreOpen by rememberSaveable { mutableStateOf(false) }
     if (moreOpen) HomeMoreSheet(actions = menu, onDismiss = { moreOpen = false })
@@ -129,6 +131,7 @@ fun RoutesScreen(
                     // cartão da viagem em andamento, em vez de uma tela vazia.
                     if (routeBlocks.isEmpty()) header?.let { h -> item(key = "topo") { h() } }
                     routeBlocks.forEach { b -> item(key = b.key) { block(b) } }
+                    if (routeBlocks.isNotEmpty()) routesExtra?.let { extra -> item(key = "recentes") { extra() } }
                 }
                 HomeTab.LINES -> items(routes, key = { it.id }) { route ->
                     RouteCard(

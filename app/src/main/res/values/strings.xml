@@ -556,4 +556,12 @@
     <!-- Estação compacta da tela inicial, num domingo sem operação. -->
     <string name="home_compact_monday">Hoje não circula · volta segunda às %1$s</string>
     <string name="home_compact_sunday">Hoje não circula</string>
+    <!-- Viagens recentes (as 3 últimas vistas em "Planeje sua viagem"). -->
+    <string name="recent_title">Recentes</string>
+    <string name="recent_hint">toque para repetir</string>
+    <string name="recent_remove">Remover dos recentes</string>
+    <string name="recent_walk">a pé no fim</string>
+    <string name="settings_recent">Viagens recentes</string>
+    <string name="settings_recent_desc">As 3 últimas ficam só neste celular</string>
+    <string name="settings_recent_clear">Limpar</string>
 </resources>

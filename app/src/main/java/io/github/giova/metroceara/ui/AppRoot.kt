@@ -29,6 +29,8 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.res.stringResource
 import io.github.giova.metroceara.data.Regras
+import io.github.giova.metroceara.data.RecentTrip
+import io.github.giova.metroceara.data.RecentTrips
 import io.github.giova.metroceara.data.JourneyPlanner
 import io.github.giova.metroceara.data.AccessWay
 import io.github.giova.metroceara.data.transferRule
@@ -479,6 +481,8 @@ fun AppRoot() {
     }
     // Destino já escolhido (linha, estação), quando vem do aviso da hora de sair.
     var journeyDest by remember { mutableStateOf<Pair<String, String>?>(null) }
+    // Vindo de uma viagem recente para um lugar ("Rodoviária"): o nome dele.
+    var journeyLandmark by remember { mutableStateOf<String?>(null) }
     val journeyRequest by JourneyRequest.collectAsState()
     LaunchedEffect(journeyRequest) {
         journeyRequest?.let { (originStop, originRoute, destStop, destRoute) ->
@@ -670,8 +674,37 @@ fun AppRoot() {
         }
     }
 
+    // As últimas viagens vistas em "Planeje sua viagem" (até 3), sem repetir Casa ou
+    // Trabalho saindo da estação de agora, que já têm atalho.
+    val recentTrips by RecentTrips.all(context).collectAsState()
+    val recentRows = remember(recentTrips, places, homeState.station) {
+        val here = homeState.station
+        recentTrips.orEmpty().filterNot { t ->
+            here != null && t.landmark == null && t.originStop == here.stopId && t.originRoute == here.routeId &&
+                places?.values?.any { it.first == t.destStop && it.second == t.destRoute } == true
+        }.mapNotNull { t ->
+            val from = repo.stop(t.originStop)?.name ?: return@mapNotNull null
+            val to = repo.stop(t.destStop)?.name ?: return@mapNotNull null
+            val a = repo.route(t.originRoute) ?: return@mapNotNull null
+            val b = repo.route(t.destRoute) ?: return@mapNotNull null
+            RecentRow(
+                trip = t,
+                title = "${JourneyPlanner.plainName(from)} → ${t.landmark ?: JourneyPlanner.plainName(to)}",
+                lines = listOf(a.name to a.colorHex) + if (b.id != a.id) listOf(b.name to b.colorHex) else emptyList(),
+                walk = t.landmark != null,
+            )
+        }
+    }
+    fun openRecent(trip: RecentTrip) {
+        journeyFrom = repo.station(trip.originStop, trip.originRoute) ?: return
+        journeyDest = trip.destRoute to trip.destStop
+        journeyLandmark = trip.landmark
+        journeyOpen = true
+    }
+
     fun openPlace(place: Place) {
         val saved = places?.get(place) ?: return
+        journeyLandmark = null
         journeyFrom = homeState.station
         // Já na estação do lugar: abre a lista, para escolher outro destino.
         journeyDest = (saved.second to saved.first).takeUnless { placeShortcuts.firstOrNull { it.place == place }?.here == true }
@@ -917,6 +950,7 @@ fun AppRoot() {
             HomeBlock.SEARCH -> JourneySearchBar(onClick = {
                 journeyFrom = homeState.station
                 journeyDest = null
+                journeyLandmark = null
                 journeyOpen = true
             })
 
@@ -1010,6 +1044,8 @@ fun AppRoot() {
                     }
                 },
                 onEditPlace = { placeEditing = it },
+                recentCount = recentTrips.orEmpty().size,
+                onClearRecent = { RecentTrips.clear(context) },
                 onOpenAdjust = { adjustOpen = true },
             )
         }
@@ -1095,7 +1131,7 @@ fun AppRoot() {
                 journeyOpen = false
                 journeyDest = null
             }
-            key(journeyFrom, journeyDest) {
+            key(journeyFrom, journeyDest, journeyLandmark) {
                 JourneyScreen(
                     initialOrigin = journeyFrom,
                     stations = remember(repo) { repo.stations() },
@@ -1125,6 +1161,10 @@ fun AppRoot() {
                     places = Place.entries.mapNotNull { place -> places?.get(place)?.let { place to it } },
                     landmarks = Regras.current.landmarks,
                     walkMinutes = ::landmarkWalkMinutes,
+                    initialLandmark = journeyLandmark,
+                    onResult = { origin, line, dest, place ->
+                        RecentTrips.add(context, RecentTrip(origin.stopId, origin.routeId, dest.id, line.routeId, place?.name))
+                    },
                 )
             }
         }
@@ -1217,6 +1257,9 @@ fun AppRoot() {
             tab = homeTab,
             onTab = { homeTab = it },
             routeBlocks = routeBlocks(homeLayout),
+            routesExtra = {
+                RecentTripsBlock(recentRows, onOpen = ::openRecent, onRemove = { RecentTrips.remove(context, it) })
+            },
             menu = HomeMenuActions(
                 onFareGuide = Regras.current.fareGuide?.let { { fareGuideOpen = true } },
 

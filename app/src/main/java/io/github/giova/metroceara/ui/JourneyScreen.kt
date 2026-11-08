@@ -124,6 +124,10 @@ fun JourneyScreen(
     landmarks: List<Landmark> = emptyList(),
     /** Os minutos a pé da estação até o lugar, no passo da pessoa. */
     walkMinutes: (Landmark) -> Int = { 0 },
+    /** Vindo de uma viagem recente para um lugar: o nome dele, com a caminhada no fim. */
+    initialLandmark: String? = null,
+    /** O resultado apareceu (origem, linha e estação de destino, lugar): vira viagem recente. */
+    onResult: (Station, JourneyLine, Stop, Landmark?) -> Unit = { _, _, _, _ -> },
 ) {
     var origin by remember { mutableStateOf(initialOrigin) }
     var query by rememberSaveable { mutableStateOf("") }
@@ -137,8 +141,18 @@ fun JourneyScreen(
     LaunchedEffect(lines) {
         initialDestination?.let { (routeId, stopId) ->
             val line = lines.firstOrNull { it.routeId == routeId }
-            line?.stops?.firstOrNull { it.id == stopId }?.let { if (destination == null) destination = line to it }
+            line?.stops?.firstOrNull { it.id == stopId }?.let {
+                if (destination == null) {
+                    destination = line to it
+                    landmark = initialLandmark?.let { name -> landmarks.firstOrNull { l -> l.name == name } }
+                }
+            }
         }
+    }
+    // Cada resultado visto vira viagem recente.
+    LaunchedEffect(origin, destination, landmark) {
+        val o = origin
+        destination?.let { (line, stop) -> if (o != null) onResult(o, line, stop, landmark) }
     }
     // A chegada de quem sai agora, calculada fora da tela.
     val arrivals by produceState(emptyMap<String, Int>(), origin) {

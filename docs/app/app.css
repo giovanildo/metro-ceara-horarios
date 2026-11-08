@@ -298,3 +298,12 @@ dialog.folha[open] { animation: sobe .25s ease-out; }
 .topo-compacto .linha-nome { font-size: .85rem; }
 .sentido-compacto { display: flex; justify-content: space-between; gap: 8px; }
 .sentido-compacto strong { white-space: nowrap; }
+
+/* Viagens recentes, em "Planeje sua viagem". */
+.recente { display: flex; align-items: center; border-bottom: 1px solid var(--borda); }
+.recente-abrir { flex: 1; display: flex; gap: 12px; align-items: center; text-align: left; background: none; border: 0;
+  font: inherit; color: inherit; padding: 12px 4px; cursor: pointer; }
+.recente-abrir strong { display: block; font-weight: 500; }
+.recente-abrir small { color: var(--texto-2); font-size: .85rem; }
+.recente-tirar { background: none; border: 0; color: var(--texto-2); font-size: 1rem; width: 44px; height: 44px; cursor: pointer; }
+.recente-abrir small .ponto { margin-right: 3px; }
