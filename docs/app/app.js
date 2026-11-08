@@ -356,6 +356,10 @@ function telaInicio() {
   tela.innerHTML = html;
   document.getElementById("localizar")?.addEventListener("click", localizar);
   document.getElementById("instalar")?.addEventListener("click", instalar);
+  document.getElementById("fechar-convite")?.addEventListener("click", () => {
+    try { localStorage.setItem("convite-fechado", "1"); } catch { /* segue */ }
+    render();
+  });
   tela.querySelectorAll("[data-abrir]").forEach((b) => b.addEventListener("click", () => { estado.aberta = b.dataset.abrir; render(); }));
 }
 
@@ -586,11 +590,15 @@ function telaLugar(chave) {
 /**
  * A versão lite é a porta de entrada: uma linha fixa no topo convida a ser
  * testador do app completo, com o WhatsApp e a mensagem pronta. Fora do
- * Android, pergunta antes se a pessoa tem Android.
+ * Android, pergunta antes se a pessoa tem Android; no Android, diz o que a lite
+ * não faz e pode ser fechada.
  */
 function convite() {
-  const texto = ANDROID ? "Seja testador do app completo" : "Tem Android? Seja testador do app completo";
-  return `<a class="convite" href="${WHATSAPP_TESTADOR}" target="_blank" rel="noopener">📲 ${texto} ›</a>`;
+  if (!ANDROID) return `<a class="convite" href="${WHATSAPP_TESTADOR}" target="_blank" rel="noopener">📲 Tem Android? Seja testador beta do app completo ›</a>`;
+  // No Android, o que a lite não faz, e dá para fechar (fica fechado neste navegador).
+  try { if (localStorage.getItem("convite-fechado")) return ""; } catch { /* segue */ }
+  return `<div class="convite convite-android"><a href="${WHATSAPP_TESTADOR}" target="_blank" rel="noopener">📲 No app completo, o celular avisa a hora de descer. Seja testador beta ›</a>
+    <button id="fechar-convite" aria-label="Fechar o convite">✕</button></div>`;
 }
 
 async function instalar() {
@@ -1059,7 +1067,7 @@ function resultadoViagem(lo, eo, v, t) {
   html += `<label class="campo">Como você se desloca<select id="perfil">${PERFIS.map((x) =>
     `<option value="${x.chave}" ${x.chave === perfil ? "selected" : ""}>${esc(x.nome)}</option>`).join("")}</select></label>`;
   html += `<p class="dica">${ANDROID ? "No" : "Tem Android? No"} app completo, o <strong>modo viagem</strong> avisa antes da sua estação,
-    com a tela desligada. <a href="${WHATSAPP_TESTADOR}" target="_blank" rel="noopener">Seja testador ›</a></p>`;
+    com a tela desligada. <a href="${WHATSAPP_TESTADOR}" target="_blank" rel="noopener">Seja testador beta ›</a></p>`;
   return html;
 }
 

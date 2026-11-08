@@ -1540,9 +1540,10 @@ pronta pedindo o Gmail da Play Store (é ele que entra na lista de testadores do
 Console), e o e-mail fica como alternativa.
 O vídeo de instalação do Android saiu da página; o do iPhone ficou. O QR e o "Divulgar o app" do app Android também levam à
 versão lite. Dentro dela, uma linha fixa no topo da tela inicial convida a ser
-testador ("Seja testador do app completo ›" no Android; "Tem Android? Seja
-testador do app completo ›" nos outros aparelhos) e abre o WhatsApp com a mesma
-mensagem pronta do `#baixar`. Tem
+testador ("No app completo, o celular avisa a hora de descer. Seja testador beta ›"
+no Android, com ✕ para fechar; "Tem Android? Seja testador beta do app completo ›"
+nos outros aparelhos, sem ✕) e abre o WhatsApp com a mesma mensagem pronta do
+`#baixar`. Tem
 as marcações que o Google e as redes sociais leem (título, descrição, Open
 Graph com `img/previa.png` de 1200×630 para a prévia do link no WhatsApp,
 dados estruturados `SoftwareApplication`, `robots.txt` e `sitemap.xml`).
