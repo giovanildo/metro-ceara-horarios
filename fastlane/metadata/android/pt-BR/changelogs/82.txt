@@ -1,0 +1,3 @@
+• Barra embaixo: Início, Planeje sua viagem, Linhas e Mais. A tela inicial fica com o horário; Configurações, Sobre e o guia da passagem estão no Mais.
+• Planeje sua viagem: cada horário vira um cartão, com a duração, as integrações e as linhas. Avisa quando a troca de linha demora, e ⇅ inverte ida e volta.
+• Nina, no Mais: abre o WhatsApp da Super NINA (metrô e VLT de Fortaleza e região).
