@@ -77,8 +77,8 @@ linha**, até 3 km (ajustável); sem outra linha por perto, a segunda mais próx
 da mesma linha (`nearestTwo`, em `data/Geo.kt`). Perto de São Benedito, São
 Benedito e Moura Brasil (Oeste); em Parangaba, a Sul e a Nordeste; em Mondubim,
 Mondubim e Manoel Sátiro. No cartão, o tempo que falta ("em 7
-min") vem grande e a hora embaixo. A busca **"Para onde você vai?"** sai da
-estação em destaque ([abaixo](#para-onde-você-vai-roteiro-na-mesma-linha-ou-com-integração)). A
+min") vem grande e a hora embaixo. A busca **"Para onde você vai?"** fica na
+aba **Planeje sua viagem** e sai da estação em destaque ([abaixo](#para-onde-você-vai-roteiro-na-mesma-linha-ou-com-integração)). A
 estação em destaque pode vir de duas fontes:
 
 - **A mais próxima de você**, o que exige `ACCESS_FINE_LOCATION`. A permissão só
@@ -92,13 +92,43 @@ estação em destaque pode vir de duas fontes:
 Sem permissão e sem estação fixada, o app continua inteiro: o cartão vira um
 convite e o resto funciona igual.
 
+### Barra de baixo e o Mais
+
+Embaixo, uma barra com ícone e nome em cada botão
+([`ui/RoutesScreen.kt`](app/src/main/java/io/github/giova/metroceara/ui/RoutesScreen.kt)):
+**Início** (a tela inicial, só horário), **Planeje sua viagem** ("Para onde
+você vai?" e Casa e Trabalho), **Linhas** (a lista das linhas; tocar abre as
+estações) e **Mais**, uma lista que sobe de baixo por cima da tela
+([`ui/HomeMenu.kt`](app/src/main/java/io/github/giova/metroceara/ui/HomeMenu.kt)):
+Passagem (o guia), Nina, Ajustar para mim, Configurações, De onde vem cada
+informação, Sobre o app e Compartilhar o app. Ícone sem nome não serve para
+todo mundo, por isso cada botão diz o que faz; com letra grande, "Planeje sua
+viagem" quebra em duas linhas. A aba aberta volta depois de abrir uma linha.
+
+### Nina (Super NINA)
+
+A **Super NINA** é o canal de denúncia de importunação sexual pelo WhatsApp
+((85) 93300-7001), do Metrofor com a Etufor e a Secretaria das Mulheres; desde
+dez/2025 vale no metrô e nos VLTs de Fortaleza, Caucaia, Maracanaú e Pacatuba
+(não em Sobral e no Cariri). No Mais, o item é só um **rostinho** (desenho do
+app, `res/drawable/ic_nina.xml`, não a personagem da campanha) e o nome
+**Nina**: nenhuma palavra que chame atenção de quem olha a tela. O toque abre
+direto a conversa (`wa.me`); o TalkBack lê "Nina: abre o WhatsApp da Super
+NINA". O toque não fica registrado em lugar nenhum. O número e as linhas
+atendidas vêm do `regras.json` ("nina", com a fonte), então mudam sem versão
+nova; perto de uma estação de Sobral ou do Cariri, o item some. A Super NINA
+registra a denúncia mas não manda ajuda na hora (com a importunação
+acontecendo, o Metrofor orienta procurar um funcionário); isso fica na fonte,
+em "De onde vem cada informação", e não no menu, a pedido, para não alarmar
+quem olha a tela.
+
 ### Ordem da tela inicial e "Ajustar para mim"
 
 O app faz muita coisa, mas o propósito é simples: a pessoa ver logo quando
 passa o próximo metrô. Por isso a tela inicial é uma lista de blocos e, no
 padrão, segue o perfil da maioria (quem vai e volta do trabalho ou da escola):
 
-1. **Trabalho e Casa**, com a faixa **"Ajustar para mim ›"** logo abaixo;
+1. **Trabalho e Casa** (também debaixo da busca, em Planeje sua viagem);
 2. **as duas estações mais próximas** (sempre aparecem: é o motivo do app). Em
    **dia especial** (operação especial, feriado), o aviso de hoje do Metrofor vem
    logo acima delas, porque os horários são outros;
@@ -112,18 +142,20 @@ padrão, segue o perfil da maioria (quem vai e volta do trabalho ou da escola):
    notificação. No Android 13+, sem a permissão de notificação, debaixo do aviso
    aparece o convite "Quer receber uma notificação…?" (**Avisar** / **Agora
    não**); recusado ou negado, não volta;
-4. **"Para onde você vai?"**;
-5. as **rotinas**;
-6. o **Bicicletar** (só com "Levo bike");
-7. as **linhas**.
+4. as **rotinas**;
+5. o **Bicicletar** (só com "Levo bike").
 
-**Ajustar para mim** (pela faixa ou no topo das Configurações; `ui/HomeLayoutScreens.kt`)
+"Para onde você vai?" e as linhas ficam nas abas da barra de baixo, não na
+tela inicial (`HomeBlock.inRoutes`); uma ordem guardada antes disso continua
+valendo para os outros blocos.
+
+**Ajustar para mim** (no Mais ou no topo das Configurações; `ui/HomeLayoutScreens.kt`)
 são interruptores, sem cadastro e sem "perfil" (que lembra login): **Vou ao
 trabalho ou à escola** (Trabalho e Casa aparecem), **Levo bike** (a regra da
 bike no cartão e o Bicicletar; desligado no padrão), **Pago meia ou tenho
 gratuidade** (a passagem e o guia da meia no cartão), **Preciso de elevador ou
-rampa** (a acessibilidade da estação no cartão) e **Ainda não conheço o metrô**
-(a busca vai para o topo). A tela da estação continua mostrando tudo.
+rampa** (a acessibilidade da estação no cartão). A tela da estação continua
+mostrando tudo.
 
 **Ordem da tela inicial** tem a prévia da tela inicial em cima, na largura toda
 e sem receber toques, e embaixo cada bloco com liga/desliga à esquerda e **↑ ↓**
@@ -184,8 +216,8 @@ Quando a Nordeste ou o VLT Aeroporto começarem a cobrar, basta trocar as entrad
 
 ### "Para onde você vai?" (roteiro na mesma linha ou com integração)
 
-O jeito de ir de uma estação a outra é um só, como num app de corrida: uma barra
-**"Para onde você vai?"** na tela inicial abre a tela **Sua viagem**
+O jeito de ir de uma estação a outra é um só, como num app de corrida: a barra
+**"Para onde você vai?"**, na aba **Planeje sua viagem**, abre a tela **Sua viagem**
 ([`ui/JourneyScreen.kt`](app/src/main/java/io/github/giova/metroceara/ui/JourneyScreen.kt)).
 A tela de cada estação tem o botão **"Ir daqui para outra estação"**, que abre a
 mesma tela saindo dali.
@@ -217,13 +249,22 @@ mesma tela saindo dali.
   só no aparelho (`data/Places.kt`, estação e linha).
 - **Resultado**, numa folha que sobe por baixo:
   - **Sair agora** ou **Escolher horário** (relógio de 24 h; "Sair às 17:30");
-  - o **roteiro**: cada trecho na cor da linha ("13:02 Carlito Benevides · Metrô
-    da Linha Sul, sentido Chico da Silva. Desça em Parangaba às 13:26."), a
-    integração com o tempo de troca da pessoa, a passagem e um selo (**Dá
-    tempo** ou **Integração justa**, com o próximo caso perca), a chegada, a
-    dica "o metrô das 07:32 chega no mesmo horário, mas espera mais na
-    integração", a caminhada até a estação e os avisos de bike;
-  - **Outros horários**, um roteiro por horário de chegada, em botões;
+  - **cada horário um cartão**, como nos apps de ônibus
+    ([`ui/JourneyOptions.kt`](app/src/main/java/io/github/giova/metroceara/ui/JourneyOptions.kt)):
+    número, duração ("11 min", "1h06"), saída → chegada, integrações ("Direto",
+    "1 em Parangaba · passagem grátis") e as linhas na cor de cada uma, com os
+    selos **Próximo** (o primeiro, saindo agora) e **espera N min** (troca de
+    linha de 10 min ou mais). Sem filtros nem km: nos trilhos quase sempre há
+    um caminho só e as opções diferem no horário;
+  - o cartão tocado abre com o **roteiro**: cada trecho na cor da linha ("13:02
+    Carlito Benevides · Metrô da Linha Sul, sentido Chico da Silva. Desça em
+    Parangaba às 13:26."), a integração com o tempo de troca da pessoa, a
+    passagem e um selo (**Dá tempo** ou **Integração justa**, com o próximo
+    caso perca), a chegada, a dica "o metrô das 07:32 chega no mesmo horário,
+    mas espera mais na integração", a caminhada até a estação e os avisos de
+    bike;
+  - **⇅** ao lado do título inverte ida e volta (não aparece quando o destino
+    é um lugar);
   - saindo agora: **Iniciar modo viagem** (perto da estação, até o limite das
     Configurações). Num trecho só, a viagem começa como sempre (com a oferta
     de ir sentado pelo terminal); com integração, o roteiro inteiro.
@@ -296,11 +337,11 @@ e `TripService`):
 Os textos usam o artigo certo da linha ("vá para a Linha Nordeste", "o VLT
 Aeroporto") e o singular ("Falta 1 estação").
 
-**Versão lite.** A mesma barra **"Para onde você vai?"** na tela inicial e o
+**Versão lite.** A mesma barra **"Para onde você vai?"** (aba Planeje sua viagem, `#/rotas`) e o
 botão **"Ir daqui para outra estação"** na estação abrem a tela **Sua viagem**
 (`#/viagem`): "De" (a estação mais perto, com localização, ou a última usada),
 "Para" com a busca sem acento e a lista por linha, e o mesmo resultado (Sair
-agora / Escolher horário, roteiro, outros horários), calculado por
+agora / Escolher horário, um cartão por horário, ⇅ Inverter ida e volta), calculado por
 [`docs/app/roteiro.js`](docs/app/roteiro.js) com a mesma regra. "Como você se
 desloca" fica nessa tela e o navegador lembra. Na lite não há modo viagem: no
 lugar do botão, o **lembrete na agenda** e o convite para o app completo.
@@ -796,7 +837,7 @@ rodada: em minutos ou horas os celulares recebem. Um arquivo com erro no
 espelho é ignorado: o app segue com a última cópia boa e, sem nenhuma, com a do
 APK. Com tudo ilegível, segue sem avisos de bike e de passagem, em vez de fechar.
 
-Um ícone de **engrenagem** no topo abre as **Configurações**, com as distâncias
+**Mais → Configurações** abre as distâncias
 e os tempos que antes eram fixos no código (`data/Settings.kt`; padrões entre
 parênteses):
 
@@ -1306,9 +1347,11 @@ fora de propósito o que depende do celular em segundo plano: modo viagem, voz,
 registro de testes — esses ficam só no app de Android. A tela inicial segue a
 mesma ordem padrão do app (Trabalho e Casa, o aviso do Metrofor de hoje, as duas
 estações mais próximas com o tempo que falta grande, os avisos dos próximos
-dias — toda operação anunciada, desde o dia em que a notícia sai —, "Para
-onde você vai?" e as linhas),
-sem "Ajustar para mim" nem a escolha da ordem. O navegador não consegue baixar
+dias — toda operação anunciada, desde o dia em que a notícia sai),
+sem "Ajustar para mim" nem a escolha da ordem. A mesma barra de baixo do app:
+Início, Planeje sua viagem (`#/rotas`), Linhas (`#/linhas`) e Mais (Passagem,
+Nina, De onde vem cada informação, Sobre, Compartilhar; um `<dialog>` que sobe
+de baixo). O navegador não consegue baixar
 o GTFS direto do Metrofor — o site não libera acesso a partir de outras
 páginas —, então os horários chegam prontos:
 
