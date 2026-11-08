@@ -28,6 +28,13 @@ enum class HomeBlock(val key: String) {
 
     /** Este bloco não pode ser escondido. */
     val fixed: Boolean get() = this == STATIONS
+
+    /**
+     * Fica só nas abas "Planeje sua viagem" (a busca) e Linhas, não na tela inicial.
+     * Trabalho e Casa ficam nas duas: no topo da tela inicial, com a hora de chegada,
+     * e debaixo da busca.
+     */
+    val inRoutes: Boolean get() = this == SEARCH || this == LINES
 }
 
 /**
@@ -54,41 +61,35 @@ data class HomeLayout(
     /** "Vou ao trabalho ou à escola": Trabalho e Casa aparecem. */
     val commute: Boolean get() = HomeBlock.PLACES !in hidden
 
-    /** "Ainda não conheço o metrô": a busca vem primeiro. */
-    val newcomer: Boolean get() = order.firstOrNull() == HomeBlock.SEARCH
+    /** Os blocos da tela inicial, na ordem da pessoa (sem os da aba Rotas). */
+    val homeOrder: List<HomeBlock> get() = order.filterNot { it.inRoutes }
 
     fun withVisible(block: HomeBlock, visible: Boolean): HomeLayout =
         if (block.fixed) this else copy(hidden = if (visible) hidden - block else hidden + block)
 
-    /** Sobe ([delta] = -1) ou desce (+1) um bloco. */
+    /** Sobe ([delta] = -1) ou desce (+1) um bloco da tela inicial. */
     fun moved(block: HomeBlock, delta: Int): HomeLayout {
-        val i = order.indexOf(block)
+        val home = homeOrder
+        val i = home.indexOf(block)
         val j = i + delta
-        if (i < 0 || j !in order.indices) return this
-        return copy(order = order.toMutableList().apply { add(j, removeAt(i)) })
+        if (i < 0 || j !in home.indices) return this
+        return copy(order = home.toMutableList().apply { add(j, removeAt(i)) } + order.filter { it.inRoutes })
     }
 
-    /** Liga: a busca vai para o topo. Desliga: volta ao lugar dela no padrão. */
-    fun withNewcomer(on: Boolean): HomeLayout {
-        val rest = order - HomeBlock.SEARCH
-        if (on) return copy(order = listOf(HomeBlock.SEARCH) + rest, hidden = hidden - HomeBlock.SEARCH)
-        if (!newcomer) return this
-        // Volta para depois do bloco que vem antes dela na ordem padrão.
-        val before = DEFAULT_ORDER.subList(0, DEFAULT_ORDER.indexOf(HomeBlock.SEARCH)).lastOrNull { it in rest }
-        val at = before?.let { rest.indexOf(it) + 1 } ?: rest.size
-        return copy(order = rest.toMutableList().apply { add(at, HomeBlock.SEARCH) })
-    }
-
-    /** Só a ordem e o que aparece: os ajustes de bike, meia e acessibilidade ficam. */
+    /**
+     * Só a ordem e o que aparece na tela inicial: os ajustes de bike, meia e
+     * acessibilidade ficam.
+     */
     fun resetOrder(): HomeLayout = copy(order = DEFAULT_ORDER, hidden = emptySet())
 
-    val isDefaultOrder: Boolean get() = order == DEFAULT_ORDER && hidden.isEmpty()
+    val isDefaultOrder: Boolean
+        get() = homeOrder == DEFAULT_ORDER.filterNot { it.inRoutes } && hidden.isEmpty()
 
     companion object {
         /** O perfil da maioria: ver logo o próximo metrô das estações perto. */
         val DEFAULT_ORDER = listOf(
-            HomeBlock.PLACES, HomeBlock.STATIONS, HomeBlock.NOTICES, HomeBlock.SEARCH,
-            HomeBlock.ROUTINES, HomeBlock.BIKE, HomeBlock.LINES,
+            HomeBlock.PLACES, HomeBlock.STATIONS, HomeBlock.NOTICES, HomeBlock.ROUTINES, HomeBlock.BIKE,
+            HomeBlock.SEARCH, HomeBlock.LINES,
         )
     }
 }

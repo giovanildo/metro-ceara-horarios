@@ -494,9 +494,8 @@
 
     <!-- Ajustar para mim e ordem da tela inicial (v1.74) -->
     <string name="adjust_title">Ajustar para mim</string>
-    <string name="adjust_home_link">Ajustar para mim ›</string>
-    <string name="adjust_home_link_sub">bike, meia, acessibilidade</string>
     <string name="adjust_intro">Ligue só o que serve para você. A tela inicial mostra mais ou menos coisas conforme o que estiver ligado.</string>
+    <string name="adjust_home_link_sub">bike, meia, acessibilidade</string>
     <string name="adjust_commute">Vou ao trabalho ou à escola</string>
     <string name="adjust_commute_desc">Casa e Trabalho no topo, com a hora de chegada</string>
     <string name="adjust_bike">Levo bike</string>
@@ -505,8 +504,6 @@
     <string name="adjust_half_fare_desc">Valor da passagem e onde tirar a carteira, no cartão da estação</string>
     <string name="adjust_access">Preciso de elevador ou rampa</string>
     <string name="adjust_access_desc">Se a estação tem elevador, rampa ou escada rolante</string>
-    <string name="adjust_newcomer">Ainda não conheço o metrô</string>
-    <string name="adjust_newcomer_desc">“Para onde você vai?” no topo da tela</string>
     <string name="adjust_order">Ordem da tela inicial</string>
     <string name="adjust_order_desc">Escolha o que vem primeiro e o que aparece</string>
     <string name="adjust_private">🔒 Fica só neste celular. Não tem cadastro.</string>
@@ -531,4 +528,22 @@
     <string name="block_bike">Bicicletar</string>
     <string name="block_bike_sub">só com “Levo bike” ligado</string>
     <string name="block_lines">Linhas</string>
+    <!-- Barra de baixo (Início, Rotas, Mais) e a lista do Mais. -->
+    <string name="unofficial_short">app não oficial</string>
+    <string name="menu_home">Início</string>
+    <string name="menu_fare">Passagem</string>
+    <string name="menu_about">Sobre o app</string>
+    <string name="menu_adjust">Ajustar para mim</string>
+    <string name="tab_home">Início</string>
+    <string name="tab_routes">Planeje sua viagem</string>
+    <string name="tab_more">Mais</string>
+    <string name="routes_title">Planeje sua viagem</string>
+    <string name="routes_subtitle">Para onde você vai?</string>
+    <string name="routes_lines">Linhas</string>
+    <string name="lines_subtitle">Toque numa linha para ver as estações</string>
+    <string name="menu_share">Compartilhar o app</string>
+    <!-- Super NINA (regras.json "nina"): só o nome, sem palavra que chame atenção de quem olha a tela. -->
+    <string name="menu_nina">Nina</string>
+    <!-- Só o TalkBack lê. -->
+    <string name="menu_nina_desc">Nina: abre o WhatsApp da Super NINA</string>
 </resources>

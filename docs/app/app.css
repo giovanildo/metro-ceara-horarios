@@ -233,3 +233,42 @@ a.cartao.tema .seta { position: absolute; right: 16px; top: 50%; transform: tran
 .fontes-linha { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 8px; }
 .fonte-item { border-top: 1px solid var(--borda); padding: 10px 0; }
 .fonte-item p { margin: 4px 0; }
+
+/* Barra de baixo (Início, Planeje sua viagem, Linhas, Mais), como no app. */
+body { padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
+.barra {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; display: flex;
+  background: var(--fundo); border-top: 1px solid var(--borda);
+  padding: 6px 4px calc(8px + env(safe-area-inset-bottom));
+}
+.barra a, .barra button {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  text-decoration: none; color: var(--texto-2); font: inherit; font-size: .8rem;
+  background: none; border: 0; padding: 0; cursor: pointer; min-height: 52px;
+  text-align: center; line-height: 1.15; /* "Planeje sua viagem" quebra em duas linhas */
+}
+.barra svg { width: 24px; height: 24px; fill: currentColor; padding: 4px 20px; box-sizing: content-box; border-radius: 16px; }
+.barra .ativa { color: var(--cartao-texto); font-weight: 700; }
+.barra .ativa svg { background: var(--destaque); }
+
+/* O Mais: sobe de baixo por cima da tela, que escurece. */
+dialog.folha {
+  margin: auto 0 0; width: 100%; max-width: 100%; border-radius: 24px 24px 0 0;
+  padding: 8px 12px calc(16px + env(safe-area-inset-bottom));
+}
+dialog.folha[open] { animation: sobe .25s ease-out; }
+@keyframes sobe { from { transform: translateY(100%); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) { dialog.folha[open] { animation: none; } }
+.folha .alca { width: 36px; height: 4px; border-radius: 2px; background: var(--borda); margin: 4px auto 12px; }
+.folha h3 { margin: 0 16px 8px; font-size: 1.05rem; font-weight: 600; }
+.folha a, .folha button.item {
+  display: flex; align-items: center; gap: 16px; min-height: 52px; padding: 0 16px; border-radius: 26px;
+  text-decoration: none; color: var(--texto); font: inherit; background: none; border: 0; width: 100%; text-align: left; cursor: pointer;
+}
+.folha a:active, .folha button.item:active { background: var(--neutro); }
+.folha .ic { width: 24px; text-align: center; font-size: 1.2rem; }
+.folha .ic img { width: 24px; height: 24px; display: block; }
+.folha hr { border: 0; border-top: 1px solid var(--borda); margin: 8px 16px; }
+.titulo-aba { font-size: 1.4rem; font-weight: 500; margin: 4px 0 12px; }
+.folha .ic svg { width: 24px; height: 24px; display: block; }
+

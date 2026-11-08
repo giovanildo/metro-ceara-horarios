@@ -8,20 +8,30 @@ import org.junit.Test
 class HomeLayoutTest {
 
     @Test
-    fun `padrão é o do perfil da maioria`() {
+    fun `tela inicial tem trabalho e casa e horário, busca e linhas ficam nas abas`() {
         assertEquals(
-            listOf(HomeBlock.PLACES, HomeBlock.STATIONS, HomeBlock.NOTICES, HomeBlock.SEARCH,
-                HomeBlock.ROUTINES, HomeBlock.BIKE, HomeBlock.LINES),
-            HomeLayout().order,
+            listOf(HomeBlock.PLACES, HomeBlock.STATIONS, HomeBlock.NOTICES, HomeBlock.ROUTINES, HomeBlock.BIKE),
+            HomeLayout().homeOrder,
         )
+        assertTrue(HomeBlock.SEARCH.inRoutes && HomeBlock.LINES.inRoutes)
+        assertFalse(HomeBlock.PLACES.inRoutes)
+    }
+
+    @Test
+    fun `ordem antiga guardada perde a busca e as linhas na tela inicial`() {
+        val old = HomeLayout(order = listOf(HomeBlock.PLACES, HomeBlock.STATIONS, HomeBlock.NOTICES, HomeBlock.SEARCH,
+            HomeBlock.ROUTINES, HomeBlock.BIKE, HomeBlock.LINES))
+        assertEquals(listOf(HomeBlock.PLACES, HomeBlock.STATIONS, HomeBlock.NOTICES, HomeBlock.ROUTINES, HomeBlock.BIKE), old.homeOrder)
+        assertTrue(old.isDefaultOrder)
     }
 
     @Test
     fun `subir e descer não passam das pontas`() {
         val l = HomeLayout()
         assertEquals(l, l.moved(HomeBlock.PLACES, -1))
-        assertEquals(l, l.moved(HomeBlock.LINES, 1))
-        assertEquals(HomeBlock.STATIONS, l.moved(HomeBlock.STATIONS, -1).order.first())
+        assertEquals(l, l.moved(HomeBlock.BIKE, 1))
+        assertEquals(l, l.moved(HomeBlock.LINES, -1))
+        assertEquals(HomeBlock.STATIONS, l.moved(HomeBlock.STATIONS, -1).homeOrder.first())
     }
 
     @Test
@@ -38,17 +48,10 @@ class HomeLayoutTest {
     }
 
     @Test
-    fun `não conheço o metrô leva a busca ao topo e desligar devolve`() {
-        val on = HomeLayout().withNewcomer(true)
-        assertEquals(HomeBlock.SEARCH, on.order.first())
-        assertTrue(on.newcomer)
-        assertEquals(HomeLayout.DEFAULT_ORDER, on.withNewcomer(false).order)
-    }
-
-    @Test
     fun `voltar ao padrão mantém bike meia e acessibilidade`() {
         val l = HomeLayout(bike = true, halfFare = true, access = true)
-            .moved(HomeBlock.LINES, -3).withVisible(HomeBlock.NOTICES, false)
+            .moved(HomeBlock.BIKE, -3).withVisible(HomeBlock.NOTICES, false)
+        assertFalse(l.isDefaultOrder)
         val r = l.resetOrder()
         assertTrue(r.isDefaultOrder)
         assertTrue(r.bike && r.halfFare && r.access)

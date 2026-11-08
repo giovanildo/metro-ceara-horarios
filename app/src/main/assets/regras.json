@@ -309,6 +309,12 @@
     }
   },
 
+  "nina": {
+    "_sobre": "Super NINA: canal de denúncia de importunação sexual pelo WhatsApp, do Metrofor com a Etufor e a Secretaria das Mulheres. No menu do app e da versão lite, o item \"Nina\" (só o rostinho e o nome, sem palavra que chame atenção) abre direto a conversa. \"whatsapp\": o número com DDI e DDD, só dígitos. \"linhas\": onde a Super NINA atende; quem está perto de estação de outra linha (Sobral, Cariri) não vê o item. Sem este bloco, o item some.",
+    "whatsapp": "5585933007001",
+    "linhas": ["Linha Sul", "Linha Nordeste", "Linha Oeste", "VLT Aeroporto"]
+  },
+
   "lugares": {
     "_sobre": "Lugares que a pessoa procura na barra \"Para onde você vai?\" (hospital, universidade, rodoviária, shopping...) e que aparecem na tela da estação, em \"Perto desta estação\". \"busca\": apelidos, sem acento, que também acham o lugar. \"estacao\" (a mais perto a pé), \"a_pe_m\" (metros andando pelas ruas), \"bairro\" e \"cidade\" saem do tools/lugares.py; para acrescentar um lugar, basta nome, tipo e posição, e rodar o script. Tipos: onibus, aviao, hospital, universidade, escola, shopping, mercado, teatro, museu, cultura, igreja, praca, parque, praia, estadio, governo, justica. Muda sem versão nova do app.",
     "_fonte": "Posições, bairros e rotas a pé: OpenStreetMap (© colaboradores do OpenStreetMap, ODbL), nov/2026. Seleção conferida com os pontos de referência das páginas das estações do Metrofor (2011 e 2015). Hospital Geral de Maracanaú: nome da página da Linha Sul (\"próximo à estação Maracanaú\"), posição do hospital sem nome no OpenStreetMap a 250 m dela.",
@@ -832,6 +838,16 @@
       "link": "https://dados.fortaleza.ce.gov.br/",
       "conferido": "2026-11",
       "revisar_em_meses": 6
+    },
+    "nina": {
+      "titulo": "Nina (Super NINA, denúncia pelo WhatsApp)",
+      "tipo": "metrofor",
+      "fonte": "notícias do Metrofor",
+      "link": "https://www.ce.gov.br/metrofor/2026/06/02/saiba-como-denunciar-e-pedir-apoio-em-casos-de-importunacao-sexual/",
+      "desde": "no metrô e no VLT desde dez/2025",
+      "conferido": "2026-11",
+      "revisar_em_meses": 6,
+      "detalhe": "Número (85) 93300-7001 e linhas atendidas (Sul, Nordeste, Oeste e VLT de Fortaleza; Sobral e Cariri não), nas notícias de 22/12/2025 e 02/06/2026. A Super NINA registra a denúncia, mas não manda ajuda na hora: com a importunação acontecendo, o Metrofor orienta procurar um funcionário do trem ou da estação."
     }
   }
 }

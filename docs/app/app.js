@@ -95,7 +95,7 @@ document.addEventListener("click", (e) => {
 
 /** A pessoa está escolhendo algo (janela aberta ou campo em uso): não redesenhar agora. */
 function ocupado() {
-  return janela.open || document.activeElement?.matches("select, input");
+  return janela.open || document.getElementById("mais")?.open || document.activeElement?.matches("select, input");
 }
 
 // ---------- localização
@@ -282,8 +282,9 @@ function textoPartida(p, minutos, sentido) {
 function telaInicio() {
   const { grade } = estado.dados;
   const t = agora();
-  // A mesma ordem do app: Trabalho e Casa, as duas estações mais perto, o aviso
-  // do Metrofor, "Para onde você vai?" e as linhas. Domingo fica no topo.
+  // Como no app: Casa e Trabalho, as duas estações mais perto e os avisos do
+  // Metrofor. "Para onde você vai?" fica em "Planeje sua viagem" (com Casa e
+  // Trabalho de novo) e as linhas em Linhas, na barra de baixo. Domingo fica no topo.
   // Dia especial: o aviso de hoje vem antes das estações (os horários são outros);
   // o de amanhã fica no lugar dele, depois das estações.
   let html = convite() + avisoDomingo(t);
@@ -328,16 +329,99 @@ function telaInicio() {
   }
 
   html += avisosMetrofor(false, true);
-  html += `<a class="para-onde" href="#/viagem">${LUPA} Para onde você vai?</a>`;
   if (pedidoInstalar && !INSTALADA) {
     html += `<p><button class="botao secundario" id="instalar">📲 Adicionar à tela inicial</button></p>`;
   }
-  html += `<h2>Linhas</h2><div class="lista-linhas">${grade.linhas.map((l) =>
-    `<a href="#/linha/${l.id}" style="--cor:${cor(l)}"><strong>${esc(l.nome)}</strong>
-      <small>${esc(l.descricao)} · ${grade.estacoesDaLinha(l).length ? `${grade.estacoesDaLinha(l).length} estações` : "não opera hoje"}</small></a>`).join("")}</div>`;
   tela.innerHTML = html;
   document.getElementById("localizar")?.addEventListener("click", localizar);
   document.getElementById("instalar")?.addEventListener("click", instalar);
+}
+
+/** Aba "Planeje sua viagem": "Para onde você vai?" e os atalhos de Casa e Trabalho. */
+function telaRotas() {
+  tela.innerHTML = `<h2 class="titulo-aba">Planeje sua viagem</h2>
+    <a class="para-onde" href="#/viagem">${LUPA} Para onde você vai?</a>
+    ${atalhosLugares(agora())}`;
+}
+
+/** Aba Linhas: toque numa linha para ver as estações. */
+function telaLinhas() {
+  const { grade } = estado.dados;
+  tela.innerHTML = `<h2 class="titulo-aba">Linhas</h2>
+    <p class="dica">Toque numa linha para ver as estações.</p>
+    <div class="lista-linhas">${grade.linhas.map((l) =>
+    `<a href="#/linha/${l.id}" style="--cor:${cor(l)}"><strong>${esc(l.nome)}</strong>
+      <small>${esc(l.descricao)} · ${grade.estacoesDaLinha(l).length ? `${grade.estacoesDaLinha(l).length} estações` : "não opera hoje"}</small></a>`).join("")}</div>`;
+}
+
+/** A linha da estação mais perto de quem liberou a localização (para a Nina). */
+function linhaMaisPerto() {
+  const { grade } = estado.dados;
+  if (!estado.pos) return null;
+  let melhor = null;
+  for (const linha of grade.linhas) {
+    for (const id of grade.estacoesDaLinha(linha)) {
+      const e = grade.estacoes[id];
+      const d = distancia(estado.pos.lat, estado.pos.lon, e.lat, e.lon);
+      if (!melhor || d < melhor.d) melhor = { d, nome: linha.nome };
+    }
+  }
+  return melhor?.nome ?? null;
+}
+
+/**
+ * Super NINA (regras.json "nina"): denúncia de importunação pelo WhatsApp. No
+ * Mais, só o rostinho e "Nina", sem palavra que chame atenção de quem olha a
+ * tela; o toque abre a conversa. Some perto de Sobral e do Cariri, onde ela não
+ * atende. Nada aqui fica registrado.
+ */
+function linkNina() {
+  const n = estado.dados.regras?.nina;
+  const numero = String(n?.whatsapp || "").replace(/\D/g, "");
+  if (numero.length < 12) return null;
+  const linha = linhaMaisPerto()?.trim().toLowerCase();
+  const linhas = (n.linhas || []).map((l) => l.trim().toLowerCase());
+  return !linha || linhas.includes(linha) ? `https://wa.me/${numero}` : null;
+}
+
+const ROSTO_NINA = `<svg viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="12" fill="#6b4a9e"/><g fill="#2b1d40"><circle cx="17" cy="17" r="6"/><circle cx="24" cy="13" r="6.5"/><circle cx="31" cy="17" r="6"/><circle cx="14" cy="24" r="5"/><circle cx="34" cy="24" r="5"/></g><circle cx="24" cy="24" r="8" fill="#c68a5e"/><path d="M12 44c1-8 6-11 12-11s11 3 12 11z" fill="#fff"/><path d="M33 6h9a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-5l-3 3v-3h-1a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" fill="#fff"/><rect x="37.2" y="7.5" width="1.6" height="3.6" rx=".8" fill="#6b4a9e"/><circle cx="38" cy="12.8" r=".9" fill="#6b4a9e"/></svg>`;
+
+/** O Mais da barra de baixo: sobe de baixo; fecha tocando fora, num item ou no voltar. */
+function abrirMais() {
+  const folha = document.getElementById("mais");
+  const nina = linkNina();
+  const passagem = estado.dados.regras?.guia_passagem;
+  folha.innerHTML = `<div class="alca"></div><h3>Mais</h3>
+    ${passagem ? `<a href="#/passagem"><span class="ic">🎫</span>Passagem</a>` : ""}
+    ${nina ? `<a href="${nina}" target="_blank" rel="noopener" aria-label="Nina: abre o WhatsApp da Super NINA"><span class="ic">${ROSTO_NINA}</span>Nina</a>` : ""}
+    <hr>
+    <a href="#/fontes"><span class="ic">🔎</span>De onde vem cada informação</a>
+    <a href="#/sobre"><span class="ic">ⓘ</span>Sobre o app</a>
+    <button type="button" class="item" id="mais-divulgar"><span class="ic">↗️</span>Compartilhar o app</button>`;
+  folha.querySelectorAll("a").forEach((a) => a.addEventListener("click", () => folha.close()));
+  folha.querySelector("#mais-divulgar").addEventListener("click", async () => {
+    folha.close();
+    const texto = "🚇 Metrô Ceará: horários do metrô e do VLT no celular. Abra no navegador e use na hora, sem instalar nada. Grátis, sem anúncios, não oficial:";
+    if (navigator.share) {
+      try { await navigator.share({ title: "Metrô Ceará", text: texto, url: LINK }); } catch { /* cancelou */ }
+    } else {
+      navigator.clipboard?.writeText(`${texto} ${LINK}`).catch(() => {});
+    }
+  });
+  // Toque no fundo escuro (fora da folha) fecha.
+  folha.onclick = (e) => { if (e.target === folha) folha.close(); };
+  folha.showModal();
+}
+document.getElementById("abrir-mais").addEventListener("click", () => estado.dados && abrirMais());
+
+/** Marca na barra de baixo a aba da tela aberta. */
+function marcarAba(parte) {
+  const aba = { "": "inicio", rotas: "rotas", viagem: "rotas", lugar: "rotas", ir: "rotas",
+    linhas: "linhas", linha: "linhas" }[parte] ?? "";
+  document.querySelectorAll(".barra [data-aba]").forEach((el) => {
+    el.classList.toggle("ativa", el.dataset.aba === aba);
+    if (el.tagName === "A") el.toggleAttribute("aria-current", el.dataset.aba === aba);
+  });
 }
 
 // ---------- Casa e Trabalho (a mesma ideia do app)
@@ -1274,7 +1358,10 @@ function render() {
   else if (partes[0] === "viagem") telaViagem(partes[1], partes[2]);
   else if (partes[0] === "lugar") telaLugar(partes[1]);
   else if (partes[0] === "ir") irParaLugar(partes[1]);
+  else if (partes[0] === "rotas") telaRotas();
+  else if (partes[0] === "linhas") telaLinhas();
   else telaInicio();
+  marcarAba(partes[0]);
   status();
 }
 

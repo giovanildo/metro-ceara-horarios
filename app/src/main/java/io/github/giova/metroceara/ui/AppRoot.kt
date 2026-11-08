@@ -199,6 +199,8 @@ fun AppRoot() {
     // "Ajustar para mim" e "Ordem da tela inicial".
     var adjustOpen by rememberSaveable { mutableStateOf(false) }
     var orderOpen by rememberSaveable { mutableStateOf(false) }
+    // Aba da barra de baixo (Início, Rotas, Linhas): volta a ela depois de abrir uma linha.
+    var homeTab by rememberSaveable { mutableStateOf(HomeTab.HOME) }
     val homeLayout = HomeLayoutStore.flow(context).collectAsState().value ?: HomeLayout()
     // Sentido em que a tela de horários deve abrir (vindo de uma baldeação).
     var openDirectionId by rememberSaveable { mutableStateOf<Int?>(null) }
@@ -827,16 +829,22 @@ fun AppRoot() {
     // estações, aviso, busca, rotinas, Bicicletar, linhas). Durante a viagem, o
     // cartão dela ocupa o lugar de Casa/Trabalho, estações, busca e rotinas.
     val trip = activeTrip
-    fun homeBlocks(layout: HomeLayout): List<HomeBlock> = layout.order.filter { b ->
+    fun homeBlocks(layout: HomeLayout): List<HomeBlock> = layout.homeOrder.filter { b ->
         layout.shows(b) && when (b) {
             HomeBlock.PLACES, HomeBlock.STATIONS, HomeBlock.SEARCH -> trip == null
             HomeBlock.ROUTINES -> trip == null && !routinesList.isNullOrEmpty()
             // O de hoje vai com as estações; aqui ficam os dos próximos dias.
             HomeBlock.NOTICES -> notices.any { !it.isToday }
             HomeBlock.BIKE -> homeBike != null
-            HomeBlock.LINES -> true
+            HomeBlock.LINES -> false
         }
     }
+
+    // A aba "Planeje sua viagem": "Para onde você vai?" e, com "Vou ao trabalho",
+    // Trabalho e Casa (que também ficam no topo da tela inicial).
+    // Durante a viagem, o cartão dela fica no Início e aqui não se começa outra.
+    fun routeBlocks(layout: HomeLayout): List<HomeBlock> =
+        listOf(HomeBlock.SEARCH, HomeBlock.PLACES).filter { layout.shows(it) && trip == null }
 
     @Composable
     fun HomeBlockContent(block: HomeBlock, layout: HomeLayout) {
@@ -847,7 +855,6 @@ fun AppRoot() {
                     onOpen = ::openPlace,
                     onEdit = { placeEditing = it },
                 )
-                AdjustLink(onClick = { adjustOpen = true }, modifier = Modifier.padding(top = 4.dp))
             }
 
             HomeBlock.STATIONS -> Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -1195,8 +1202,26 @@ fun AppRoot() {
             routes = routes,
             stationCount = { repo.stationCount(it.id) },
             onRouteClick = { routeId = it.id },
-            onAbout = { showAbout = true },
-            onSettings = { showSettings = true },
+            tab = homeTab,
+            onTab = { homeTab = it },
+            routeBlocks = routeBlocks(homeLayout),
+            menu = HomeMenuActions(
+                onFareGuide = Regras.current.fareGuide?.let { { fareGuideOpen = true } },
+
+                // Nada de DevLog aqui: o toque na Nina não fica registrado em lugar nenhum.
+                onNina = Regras.current.nina
+                    ?.takeIf { nina -> nina.serves(homeState.station?.routeName) }
+                    ?.let { nina ->
+                        {
+                            runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(nina.link))) }
+                        }
+                    },
+                onAdjust = { adjustOpen = true },
+                onSettings = { showSettings = true },
+                onSources = { sourcesOpen = true },
+                onAbout = { showAbout = true },
+                onShare = { shareApp(context) },
+            ),
             blocks = homeBlocks(homeLayout),
             block = { HomeBlockContent(it, homeLayout) },
             header = homeHeader,

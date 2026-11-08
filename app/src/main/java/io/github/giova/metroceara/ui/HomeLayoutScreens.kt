@@ -76,32 +76,6 @@ fun homeBlockName(block: HomeBlock): String = stringResource(
     },
 )
 
-/** A faixa "Ajustar para mim ›" da tela inicial, debaixo de Trabalho e Casa. */
-@Composable
-fun AdjustLink(onClick: () -> Unit, modifier: Modifier = Modifier) {
-    androidx.compose.foundation.layout.FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.Center,
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 4.dp, vertical = 6.dp),
-    ) {
-        Text(
-            text = stringResource(R.string.adjust_home_link),
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-        )
-        Text(
-            text = stringResource(R.string.adjust_home_link_sub),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.align(Alignment.CenterVertically),
-        )
-    }
-}
-
 /** "Ajustar para mim": interruptores que deixam a tela inicial com a cara da pessoa. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -147,9 +121,6 @@ fun AdjustScreen(
             }
             AdjustSwitch("♿", R.string.adjust_access, R.string.adjust_access_desc, layout.access) {
                 onChange(layout.copy(access = it))
-            }
-            AdjustSwitch("🧭", R.string.adjust_newcomer, R.string.adjust_newcomer_desc, layout.newcomer) {
-                onChange(layout.withNewcomer(it))
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -228,7 +199,7 @@ fun HomeOrderScreen(
         val after = layout.moved(block, delta)
         if (after == before) return
         onChange(after)
-        val position = after.order.indexOf(block) + 1
+        val position = after.homeOrder.indexOf(block) + 1
         val message = if (position == 1) context.getString(R.string.order_moved_first, name)
         else context.getString(R.string.order_moved, name, position)
         scope.launch {
@@ -266,15 +237,17 @@ fun HomeOrderScreen(
             )
             // Com letra grande a lista rola e a prévia fica parada em cima.
             Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
-                layout.order.forEachIndexed { i, block ->
+                layout.homeOrder.let { home ->
+                home.forEachIndexed { i, block ->
                     OrderRow(
                         block = block,
                         layout = layout,
                         first = i == 0,
-                        last = i == layout.order.lastIndex,
+                        last = i == home.lastIndex,
                         onVisible = { onChange(layout.withVisible(block, it)) },
                         onMove = { delta, name -> move(block, delta, name) },
                     )
+                }
                 }
                 TextButton(
                     onClick = { confirmReset = true },

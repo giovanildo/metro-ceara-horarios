@@ -60,6 +60,17 @@ enum class AccessWay {
  */
 data class SpecialOperation(val title: String, val link: String?, val normal: Boolean, val stopped: Set<String>)
 
+/**
+ * Super NINA (regras.json "nina"): denúncia de importunação pelo WhatsApp. O menu
+ * mostra só o rostinho e "Nina", e o toque abre a conversa direto.
+ */
+data class Nina(val whatsapp: String, val lines: Set<String>) {
+    val link: String get() = "https://wa.me/$whatsapp"
+
+    /** Atende quem usa [routeName]? Sem linha conhecida, mostra (melhor sobrar que faltar). */
+    fun serves(routeName: String?): Boolean = routeName == null || routeName.trim().lowercase() in lines
+}
+
 /** Cor de uma linha ("ce0f2e") no tema claro e no tema escuro. */
 data class LineColor(val light: String, val dark: String)
 
@@ -113,6 +124,8 @@ class Regras(
     val landmarks: List<Landmark> = emptyList(),
     /** De onde vem cada informação e quando foi conferida, na ordem do arquivo. */
     val sources: Map<String, InfoSource> = emptyMap(),
+    /** Super NINA; sem o bloco no arquivo, o item do menu some. */
+    val nina: Nina? = null,
 ) {
     fun source(id: String?): InfoSource? = id?.let { sources[it] }
 
@@ -297,6 +310,12 @@ class Regras(
                         .onFailure { DevLog.log("fontes_erro", "erro" to it.toString()) }
                         .getOrNull()
                 }.orEmpty(),
+                nina = root.optJSONObject("nina")?.let { o ->
+                    val number = o.optString("whatsapp").filter(Char::isDigit)
+                    val lines = o.optJSONArray("linhas") ?: JSONArray()
+                    Nina(number, (0 until lines.length()).map { lines.getString(it).trim().lowercase() }.toSet())
+                        .takeIf { number.length >= 12 }
+                },
             )
         }
 

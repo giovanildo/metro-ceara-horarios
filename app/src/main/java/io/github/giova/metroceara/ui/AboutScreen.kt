@@ -386,6 +386,13 @@ private fun copy(context: Context, label: String, text: String, toast: Int) {
     Toast.makeText(context, toast, Toast.LENGTH_SHORT).show()
 }
 
+/** Divulga o app pelo link da versão lite (botão do Sobre e item do menu). */
+internal fun shareApp(context: Context) = share(
+    context,
+    context.getString(R.string.about_share_message, SITE_URL),
+    context.getString(R.string.about_share_button),
+)
+
 private fun share(context: Context, message: String, chooserTitle: String) {
     val send = Intent(Intent.ACTION_SEND)
         .setType("text/plain")
