@@ -80,9 +80,9 @@ Mondubim e Manoel Sátiro. Uma **terceira** entra quando há outra estação at�
 mesma distância (primeiro de uma linha que ainda não apareceu;
 `nearestStations`). Como os cartões da viagem, **só uma fica aberta** (no
 começo, a mais perto), com o tempo que falta ("em 7 min") grande e a hora
-embaixo; as outras ficam **compactas**, com nome, linha e distância numa linha
-e cada sentido numa linha curta ("Caucaia · em 50 min"). Tocar numa compacta
-abre ela; tocar na aberta leva à estação. No app e na lite. A busca **"Para onde você vai?"** fica na
+embaixo; as outras ficam **compactas**, só com nome, linha e distância
+("Jereissati · Linha Sul · 2,3 km em linha reta"). Tocar numa compacta
+abre ela, com os horários; tocar na aberta leva à estação. No app e na lite. A busca **"Para onde você vai?"** fica na
 aba **Planeje sua viagem** e sai da estação em destaque ([abaixo](#para-onde-você-vai-roteiro-na-mesma-linha-ou-com-integração)). A
 estação em destaque pode vir de duas fontes:
 
@@ -288,7 +288,8 @@ mesma tela saindo dali.
     horários ficam guardados, neste celular.
 - **Sua última viagem** (`RecentTripCard`, `shouldReverseRecent`; na lite,
   `blocoUltimaViagem`, `deveInverterRecente`): quem não guardou Casa nem Trabalho
-  vê no topo a viagem mais recente, com o próximo horário. Ela vira **Sua viagem
+  vê no topo, num cartão de outra cor, a viagem mais recente, com a próxima
+  saída e a chegada ao destino final ("Chega a Papicu às 08:40"). Ela vira **Sua viagem
   de volta** quando a pessoa está perto do destino (a mais perto das duas
   estações, até o limite de caminhada) ou, sem localização ou longe das duas,
   quando foi vista hoje há pelo menos 3 h (**Configurações**, de 1 a 8 h; fixo
