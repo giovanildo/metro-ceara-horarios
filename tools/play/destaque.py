@@ -1,6 +1,5 @@
-"""Imagens com o nome e o ícone: o gráfico de recursos da Play Store (1024x500,
-ícone, nome e o app num celular) e a prévia de link do site (docs/img/previa.png,
-1200x630, a que aparece ao mandar o link no WhatsApp).
+"""Gráfico de recursos da Play Store (1024x500: ícone, nome e o app num celular).
+A prévia de link do site (docs/img/previa.png) agora sai de tools/site_previa.py, com o mapa.
 
 Uso: python3 tools/play/destaque.py  (depois de tools/icone/icone.py e das capturas em imagens/)
 """
@@ -47,25 +46,7 @@ def main():
     destino = os.path.join(IMG, "destaque-1024x500.png")
     im.save(destino, optimize=True)
     print(os.path.relpath(destino, fr.ROOT))
-    previa()
 
-
-def previa():
-    im = Image.new("RGB", (1200, 630), fr.RED)
-    d = ImageDraw.Draw(im)
-    ic = Image.open(fr.ICON).convert("RGB").resize((240, 240))
-    im.paste(ic, (80, 195), arredondar(ic, 54))
-    d.text((372, 180), "Metrô Ceará", font=fr.font(fr.BOLD, 92), fill=fr.WHITE)
-    d.text((375, 300), "Horários de metrô e VLT no celular", font=fr.font(fr.REG, 40), fill=fr.WHITE)
-    d.text((375, 356), "Fortaleza · Cariri · Sobral", font=fr.font(fr.BOLD, 34), fill=fr.WHITE)
-    f = fr.font(fr.BOLD, 26)
-    t = "grátis · sem anúncios · não oficial"
-    w = d.textlength(t, font=f)
-    d.rounded_rectangle((372, 420, 372 + w + 52, 478), radius=29, fill=fr.WHITE)
-    d.text((398, 431), t, font=f, fill=fr.RED)
-    destino = os.path.join(fr.ROOT, "docs", "img", "previa.png")
-    im.save(destino, optimize=True)
-    print(os.path.relpath(destino, fr.ROOT))
 
 
 if __name__ == "__main__":

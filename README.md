@@ -1193,6 +1193,7 @@ tools/datas_especiais.py             regra de bike de dias especiais, das notíc
 tools/operacoes.py                   dias de operação especial e linhas paradas, das notícias
 tools/fontes.py                      fontes do regras.json e quais estão com a conferência vencida
 tools/site.py                        site: páginas das estações e linhas, mapas e sitemap em docs/
+tools/site_previa.py                 prévia de link do site (docs/img/previa.png) com o mapa
 app/src/main/assets/metrofor.db      banco gerado (não editar à mão)
 app/src/main/assets/regras.json      regras fora do GTFS: bike, integrações, passagem,
                                      guia da passagem, endereços, acessibilidade, cores,
@@ -1422,6 +1423,12 @@ Google já conhece, em pastas próprias — a lite em `docs/app/` não é tocada
   quais estações têm o nome escrito no mapa e de que lado ficam `ROTULOS`,
   `ESQUERDA`, `ACIMA` e `ABAIXO`. O visual mora em
   [`docs/site/site.css`](docs/site/site.css), com tema escuro.
+- **Prévia de link** (a imagem que aparece ao mandar o endereço no WhatsApp):
+  `docs/img/previa.png`, 1200×630, com o nome e o mapa de Fortaleza. Sai de
+  [`tools/site_previa.py`](tools/site_previa.py), que monta a página com o
+  mesmo mapa do `tools/site.py` e tira o print com o Chrome sem janela
+  (`python3 tools/site_previa.py`). O WhatsApp guarda a prévia antiga por um
+  tempo; para ver a nova logo, mande o link com algo no fim (`?v=2`).
 - **Google Search Console** (desde 07/11): propriedade "Prefixo do URL"
   `https://giovanildo.github.io/metro-ceara-horarios/`, verificada pelo arquivo
   [`docs/googlee146230595bf6c09.html`](docs/googlee146230595bf6c09.html) —

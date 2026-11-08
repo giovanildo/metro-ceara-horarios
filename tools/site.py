@@ -718,8 +718,7 @@ def sitemap(caminhos):
     return "\n".join(linhas + ["</urlset>", ""])
 
 
-def main():
-    pasta = sys.argv[1] if len(sys.argv) > 1 else None
+def carregar_dados(pasta=None):
     with open(REGRAS, encoding="utf-8") as fh:
         regras = json.load(fh)
     indice = carregar_json("indice.json", pasta)
@@ -727,7 +726,12 @@ def main():
     normais = {**indice.get("tipos", {}), **indice.get("normais", {})}
     util = carregar_json(normais["dia-util"]["arquivo"], pasta)
     sabado = carregar_json(normais["sabado"]["arquivo"], pasta) if "sabado" in normais else {"linhas": []}
-    d = Dados(regras, util, sabado)
+    return Dados(regras, util, sabado), util, sabado
+
+
+def main():
+    pasta = sys.argv[1] if len(sys.argv) > 1 else None
+    d, util, sabado = carregar_dados(pasta)
 
     caminhos = list(FIXAS) + ["estacoes/", "linhas/"]
     escrever(os.path.join(DOCS, "estacoes", "index.html"), indice_estacoes(d))
