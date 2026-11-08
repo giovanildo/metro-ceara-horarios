@@ -3,7 +3,7 @@ import {
   linhaParada, passagemDaLinha, fonteLinha, proximas, somarDias, veiculo,
 } from "./dados.js";
 import { PERFIS, Roteador } from "./roteiro.js";
-import { destinoIdaVolta, escolherMetro } from "./idavolta.js";
+import { destinoIdaVolta, deveInverterRecente, escolherMetro } from "./idavolta.js";
 import { aoLado, buscarLugares, caminhada, emojiLugar, longe, metrosAPe, minutosAPe, pertoDaEstacao, serve } from "./lugares.js";
 
 const PERTO_A_PE = 3000; // "Sua ida e volta": até aqui, a pessoa está na estação de casa ou do trabalho (padrão do app)
@@ -382,7 +382,16 @@ function telaInicio() {
   document.getElementById("iv-abrir")?.addEventListener("click", (e) => {
     estado.viagem = { destino: e.currentTarget.dataset.destino, busca: "", hora: null, escolhido: 0 };
   });
-  document.getElementById("ultima-viagem")?.addEventListener("click", (e) => { e.preventDefault(); abrirRecente(0); });
+  document.getElementById("ultima-viagem")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    const { origem, destino, lugar } = e.currentTarget.dataset;
+    abrirViagem({ origem, destino, lugar: lugar || null });
+  });
+  document.getElementById("ultima-inverter")?.addEventListener("click", (e) => {
+    const chave = e.currentTarget.dataset.chave;
+    estado.ultimaInvertida = estado.ultimaInvertida === chave ? null : chave;
+    render();
+  });
 }
 
 // ---------- sua ida e volta (como no app; só neste navegador)
@@ -471,21 +480,30 @@ function blocoIdaVolta(t) {
 function blocoUltimaViagem(t) {
   const salvos = lerLugares();
   if (salvos.casa || salvos.trabalho) return null;
-  const r = lerRecentes()[0];
-  if (!r) return null;
+  const guardada = lerRecentes()[0];
+  if (!guardada) return null;
   const { grade, regras } = estado.dados;
+  const [lg, eg] = guardada.origem.split("|"), [lh, eh] = guardada.destino.split("|");
+  if (!grade.linha(lg) || !grade.linha(lh) || !grade.estacoes[eg] || !grade.estacoes[eh]) return null;
+  // A mais recente ou, quando a pessoa já foi, o caminho de volta. ⇄ vale enquanto o app achar o mesmo.
+  const ate = (id) => (estado.pos ? distancia(estado.pos.lat, estado.pos.lon, grade.estacoes[id].lat, grade.estacoes[id].lon) : null);
+  const auto = deveInverterRecente(ate(eg), ate(eh), PERTO_A_PE, guardada.em, Date.now());
+  const chave = `${guardada.origem}>${guardada.destino}:${guardada.em || 0}:${auto}`;
+  const invertida = auto !== (estado.ultimaInvertida === chave);
+  const r = invertida ? { origem: guardada.destino, destino: guardada.origem, lugar: null } : guardada;
   const [lo, eo] = r.origem.split("|"), [ld, ed] = r.destino.split("|");
   const a = grade.linha(lo), b = grade.linha(ld);
-  if (!a || !b || !grade.estacoes[eo] || !grade.estacoes[ed]) return null;
   const dia = diaDaViagem(t);
   const o = dia && !dia.domingo
     ? new Roteador(grade, regras, perfilGuardado()).planejar({ linha: lo, est: eo }, { linha: ld, est: ed }, t.minutos - 2, 1, dia.evitar)[0] : null;
   const pontos = [a, ...(b.id !== a.id ? [b] : [])].map((l) => `<span class="ponto" style="background:${cor(l)}"></span>`).join("");
-  return `<a class="cartao iv iv-recente" id="ultima-viagem" href="#/rotas">
-    <p class="iv-meta">🕘 Sua última viagem</p>
-    <p class="iv-titulo">${pontos} ${esc(semSufixo(grade.nome(eo)))} → ${esc(r.lugar || semSufixo(grade.nome(ed)))}</p>
-    ${o ? `<div class="iv-hora"><span>sai ${hora(o.sai)} · chega ${hora(o.chega)}</span><b class="iv-falta">${falta(o.sai - t.minutos)}</b></div>` : ""}
-  </a>`;
+  return `<div class="cartao iv iv-recente">
+    <div class="iv-topo"><p class="iv-meta">🕘 ${invertida ? "Sua viagem de volta" : "Sua última viagem"}</p>
+      <button class="iv-inverter" id="ultima-inverter" data-chave="${esc(chave)}">⇄ Inverter</button></div>
+    <a class="iv-abrir" id="ultima-viagem" href="#/rotas" data-origem="${r.origem}" data-destino="${r.destino}" data-lugar="${esc(r.lugar || "")}">
+      <p class="iv-titulo">${pontos} ${esc(semSufixo(grade.nome(eo)))} → ${esc(r.lugar || semSufixo(grade.nome(ed)))}</p>
+      ${o ? `<div class="iv-hora"><span>sai ${hora(o.sai)} · chega ${hora(o.chega)}</span><b class="iv-falta">${falta(o.sai - t.minutos)}</b></div>` : ""}
+    </a></div>`;
 }
 
 /** Item do Mais: as estações, os horários e os dias. Grava a cada mudança. */
@@ -544,7 +562,7 @@ function salvarRecentes(l) {
 /** A viagem vista vai para o topo, sem repetir o mesmo trajeto. */
 function guardarRecente(r) {
   const igual = (x) => x.origem === r.origem && x.destino === r.destino && (x.lugar || null) === (r.lugar || null);
-  salvarRecentes([r, ...lerRecentes().filter((x) => !igual(x))]);
+  salvarRecentes([{ ...r, em: Date.now() }, ...lerRecentes().filter((x) => !igual(x))]);
 }
 
 function blocoRecentes() {
@@ -572,7 +590,10 @@ function blocoRecentes() {
 /** Abre o roteiro de uma viagem recente. */
 function abrirRecente(i) {
   const r = lerRecentes()[i];
-  if (!r) return;
+  if (r) abrirViagem(r);
+}
+
+function abrirViagem(r) {
   estado.viagem = { destino: r.destino, lugar: r.lugar || null, nota: null, busca: "", hora: null, escolhido: 0 };
   const [lo, eo] = r.origem.split("|");
   location.hash = `#/viagem/${lo}/${eo}`;

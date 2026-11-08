@@ -2,6 +2,7 @@
 // regra do app completo (data/Commute.kt).
 
 const DIA = 1440;
+const VOLTA_HORAS = 3; // sem localização, a última viagem vira a volta depois disso (padrão do app)
 const MOSTRA_ULTIMO = 6; // a partir de quantas partidas para o fim do dia o último aparece
 
 /**
@@ -20,6 +21,18 @@ export function destinoIdaVolta(agora, chegar, sair, dCasa, dTrabalho, perto) {
     return dCasa <= dTrabalho ? "trabalho" : "casa";
   }
   return destinoPeloRelogio(agora, chegar, sair);
+}
+
+const diaEmFortaleza = (ms) => new Date(ms).toLocaleDateString("en-CA", { timeZone: "America/Fortaleza" });
+
+/**
+ * A última viagem deve aparecer invertida? Perto de uma das duas estações, sim se
+ * a mais perto for o destino; sem localização, ou longe das duas, sim se foi vista
+ * hoje, há pelo menos VOLTA_HORAS.
+ */
+export function deveInverterRecente(dOrigem, dDestino, perto, vistaEm, agoraMs) {
+  if (dOrigem != null && dDestino != null && Math.min(dOrigem, dDestino) <= perto) return dDestino < dOrigem;
+  return Boolean(vistaEm) && diaEmFortaleza(vistaEm) === diaEmFortaleza(agoraMs) && agoraMs - vistaEm >= VOLTA_HORAS * 3600000;
 }
 
 /**

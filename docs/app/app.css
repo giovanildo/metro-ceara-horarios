@@ -326,7 +326,7 @@ dialog.folha[open] { animation: sobe .25s ease-out; }
 .iv-rota .ponto, .iv-titulo .ponto { margin-right: 3px; }
 .iv-abrir { display: block; color: inherit; text-decoration: none; }
 .iv-meta { font-size: .82rem; margin-top: 10px !important; opacity: .85; }
-.iv-recente { display: block; text-decoration: none; color: var(--cartao-texto); }
+.iv-recente .iv-abrir { color: var(--cartao-texto); }
 .iv-recente .iv-meta { margin-top: 0 !important; }
 .iv-titulo { font-size: 1.08rem; font-weight: 700; margin-top: 4px !important; }
 .iv-hora { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; margin-top: 2px; }
