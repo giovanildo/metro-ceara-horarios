@@ -829,6 +829,9 @@ fun AppRoot() {
     // estações, aviso, busca, rotinas, Bicicletar, linhas). Durante a viagem, o
     // cartão dela ocupa o lugar de Casa/Trabalho, estações, busca e rotinas.
     val trip = activeTrip
+    // Começou uma viagem (de "Planeje sua viagem", da estação, do aviso): o andamento
+    // fica no Início. Sem isso, a aba de viagem ficava vazia (a busca some na viagem).
+    LaunchedEffect(trip != null) { if (trip != null) homeTab = HomeTab.HOME }
     fun homeBlocks(layout: HomeLayout): List<HomeBlock> = layout.homeOrder.filter { b ->
         layout.shows(b) && when (b) {
             HomeBlock.PLACES, HomeBlock.STATIONS, HomeBlock.SEARCH -> trip == null

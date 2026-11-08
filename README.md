@@ -104,6 +104,9 @@ Passagem (o guia), Nina, Ajustar para mim, Configurações, De onde vem cada
 informação, Sobre o app e Compartilhar o app. Ícone sem nome não serve para
 todo mundo, por isso cada botão diz o que faz; com letra grande, "Planeje sua
 viagem" quebra em duas linhas. A aba aberta volta depois de abrir uma linha.
+Ao começar o modo viagem, o app vai para o Início, onde está o andamento;
+durante a viagem, "Planeje sua viagem" mostra o cartão dela no lugar da busca
+(não se começa outra viagem por cima).
 
 ### Nina (Super NINA)
 

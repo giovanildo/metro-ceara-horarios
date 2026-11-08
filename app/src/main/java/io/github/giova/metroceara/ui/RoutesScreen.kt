@@ -124,7 +124,12 @@ fun RoutesScreen(
                         )
                     }
                 }
-                HomeTab.ROUTES -> routeBlocks.forEach { b -> item(key = b.key) { block(b) } }
+                HomeTab.ROUTES -> {
+                    // Durante a viagem a busca some (não se começa outra por cima): fica o
+                    // cartão da viagem em andamento, em vez de uma tela vazia.
+                    if (routeBlocks.isEmpty()) header?.let { h -> item(key = "topo") { h() } }
+                    routeBlocks.forEach { b -> item(key = b.key) { block(b) } }
+                }
                 HomeTab.LINES -> items(routes, key = { it.id }) { route ->
                     RouteCard(
                         route = route,
