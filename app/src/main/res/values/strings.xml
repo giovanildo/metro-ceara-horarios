@@ -163,6 +163,7 @@
     <string name="journey_start">Iniciar modo viagem</string>
     <string name="journey_trip_hint">Guarde o celular: ele avisa antes da sua estação, mesmo com a tela desligada.</string>
     <string name="journey_reminder">Avisar a hora de sair</string>
+    <string name="journey_trip_when_near">O modo viagem aparece quando você estiver perto de %1$s.</string>
     <string name="journey_reminder_marked">🔔 Aviso às %1$s (toque para tirar)</string>
     <string name="journey_from_here">Ir daqui para outra estação</string>
     <string name="route_walk_to_origin">Saindo de %1$s, a uns %2$d min a pé de você.</string>
@@ -287,6 +288,8 @@
     <string name="settings_trip_warn">Perguntar antes de começar a partir de</string>
     <string name="settings_trip_warn_desc">Se você estiver mais longe que isso da estação de partida, o app confirma antes de começar a viagem.</string>
     <string name="settings_trip_max">Esconder o modo viagem a partir de</string>
+    <string name="settings_walk_station">Somar a caminhada até a estação até</string>
+    <string name="settings_walk_station_desc">Em \"Sair agora\", até essa distância o roteiro conta o tempo a pé até a estação de partida.</string>
     <string name="settings_trip_max_desc">Longe assim de qualquer estação, a opção de modo viagem não aparece.</string>
     <string name="settings_gps_lost">Considerar o GPS perdido depois de</string>
     <string name="settings_gps_lost_desc">Sem sinal de GPS por esse tempo, o app avisa que a posição está sendo calculada pela tabela de horários.</string>

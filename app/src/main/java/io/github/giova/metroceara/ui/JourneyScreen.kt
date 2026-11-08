@@ -733,6 +733,13 @@ private fun JourneyResultSheet(
                                 modifier = Modifier.padding(start = 8.dp),
                             )
                         }
+                        if (time == null) {
+                            Text(
+                                stringResource(R.string.journey_trip_when_near, first.fromName),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     }
                 }
             }

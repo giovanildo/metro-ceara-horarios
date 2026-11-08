@@ -20,7 +20,9 @@ data class AppSettings(
     /** Acima disso, o modo viagem pergunta antes de começar. */
     val tripWarnMeters: Int = 1_000,
     /** Acima disso, o modo viagem não aparece. */
-    val tripMaxMeters: Int = 3_000,
+    val tripMaxMeters: Int = 1_000,
+    /** Até esta distância, o "Sair agora" soma a caminhada até a estação de partida. */
+    val walkToStationMeters: Int = 3_000,
     /** Quantas estações antes do destino vem o aviso de descida. */
     val alertStationsBefore: Int = 2,
     /** Sem posição boa por este tempo, o GPS é dado como perdido. */
@@ -55,11 +57,22 @@ data class AppSettings(
         const val THEME_AUTO = 0
         const val THEME_LIGHT = 1
         const val THEME_DARK = 2
+
+        /** O padrão até a v1.86. */
+        private const val OLD_TRIP_MAX_METERS = 3_000
+
+        /** O limite do modo viagem ao abrir: o padrão antigo guardado passa para o novo, uma vez só. */
+        fun loadedTripMax(saved: Int, warnMeters: Int, alreadyMigrated: Boolean): Int {
+            val newDefault = AppSettings().tripMaxMeters
+            return if (!alreadyMigrated && saved == OLD_TRIP_MAX_METERS && warnMeters <= newDefault) newDefault else saved
+        }
     }
 }
 
 /** Guarda as [AppSettings] no aparelho e avisa a interface quando mudam. */
 object SettingsStore {
+
+    private const val KEY_TRIP_MAX_MIGRATED = "trip_max_1km"
 
     private val state = MutableStateFlow<AppSettings?>(null)
 
@@ -77,6 +90,8 @@ object SettingsStore {
             putInt("bike_near_station_m", settings.bikeNearStationMeters)
             putInt("trip_warn_m", settings.tripWarnMeters)
             putInt("trip_max_m", settings.tripMaxMeters)
+            putBoolean(KEY_TRIP_MAX_MIGRATED, true)
+            putInt("walk_to_station_m", settings.walkToStationMeters)
             putInt("alert_stations_before", settings.alertStationsBefore)
             putInt("gps_lost_s", settings.gpsLostSeconds)
             putInt("home_gps_s", settings.homeGpsSeconds)
@@ -107,7 +122,13 @@ object SettingsStore {
             bikeNearYouMeters = p.getInt("bike_near_you_m", d.bikeNearYouMeters),
             bikeNearStationMeters = p.getInt("bike_near_station_m", d.bikeNearStationMeters),
             tripWarnMeters = p.getInt("trip_warn_m", d.tripWarnMeters),
-            tripMaxMeters = p.getInt("trip_max_m", d.tripMaxMeters),
+            tripMaxMeters = AppSettings.loadedTripMax(
+                saved = p.getInt("trip_max_m", d.tripMaxMeters),
+                warnMeters = p.getInt("trip_warn_m", d.tripWarnMeters),
+                alreadyMigrated = p.getBoolean(KEY_TRIP_MAX_MIGRATED, false),
+            ),
+            // Até a v1.86 era o mesmo limite do modo viagem: quem o ajustou continua igual.
+            walkToStationMeters = p.getInt("walk_to_station_m", p.getInt("trip_max_m", d.walkToStationMeters)),
             alertStationsBefore = p.getInt("alert_stations_before", d.alertStationsBefore),
             gpsLostSeconds = p.getInt("gps_lost_s", d.gpsLostSeconds),
             homeGpsSeconds = p.getInt("home_gps_s", d.homeGpsSeconds),

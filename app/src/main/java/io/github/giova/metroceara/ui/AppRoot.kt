@@ -559,10 +559,10 @@ fun AppRoot() {
     }
 
     // Minutos a pé da pessoa até a estação (0 sem localização, ou já nela).
-    // Longe da estação (além do limite do modo viagem), a pessoa está planejando, não
+    // Longe da estação (além do limite de caminhada), a pessoa está planejando, não
     // indo agora a pé: a caminhada não conta (de casa, a 10 km, daria 2 h a pé).
     fun walkTo(station: Station): Int =
-        userDistanceTo(station.lat, station.lon)?.takeIf { it <= settings.tripMaxMeters }
+        userDistanceTo(station.lat, station.lon)?.takeIf { it <= settings.walkToStationMeters }
             ?.let { ceil(it / WALK_METERS_PER_MINUTE).toInt() }
             ?.takeIf { it > ORIGIN_WALK_FREE_MINUTES } ?: 0
 

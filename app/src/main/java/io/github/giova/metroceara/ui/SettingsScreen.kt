@@ -245,6 +245,11 @@ fun SettingsScreen(
                 value = settings.tripMaxMeters, range = 1_000..10_000, step = 1_000, format = ::formatMeters,
             ) { onChange(settings.copy(tripMaxMeters = it, tripWarnMeters = minOf(settings.tripWarnMeters, it))) }
             SettingSlider(
+                title = R.string.settings_walk_station,
+                description = R.string.settings_walk_station_desc,
+                value = settings.walkToStationMeters, range = 1_000..10_000, step = 1_000, format = ::formatMeters,
+            ) { onChange(settings.copy(walkToStationMeters = it)) }
+            SettingSlider(
                 title = R.string.settings_gps_lost,
                 description = R.string.settings_gps_lost_desc,
                 value = settings.gpsLostSeconds, range = 30..300, step = 30, format = ::formatSeconds,
