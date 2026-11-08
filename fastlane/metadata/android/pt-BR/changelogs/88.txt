@@ -1,0 +1,4 @@
+• A distância até a estação não pula mais, e o app avisa que ela é em linha reta.
+• Avisos do Metrofor juntos, no topo da tela inicial. Dá para mover em Ordem da tela inicial.
+• O modo viagem aparece a até 1 km da partida (ajustável), e o roteiro explica quando você está longe.
+• Menu Mais em grupos, com Suas rotinas e Ordem da tela inicial.
