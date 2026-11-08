@@ -944,6 +944,7 @@ próprias cores, em vermelho). Nas outras seções:
 | Perguntar antes de começar a viagem a partir de | 1 km | 500 m – 3 km |
 | Esconder o modo viagem a partir de | 1 km | 1 – 10 km |
 | Somar a caminhada até a estação até | 3 km | 1 – 10 km |
+| Mostrar a volta da última viagem depois de | 3 h | 1 – 8 h |
 | Considerar o GPS perdido depois de | 1 min | 30 s – 5 min |
 | Contar o trem que saiu há até | 2 min | 0 – 10 min |
 | Encerrar a viagem sozinho depois de | 30 min | 10 – 60 min |
