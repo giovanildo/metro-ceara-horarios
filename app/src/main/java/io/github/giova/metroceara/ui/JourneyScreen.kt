@@ -115,7 +115,7 @@ fun JourneyScreen(
     arrivalsFor: (Station) -> Map<String, Int>,
     plan: (Station, RoutePoint, Int?) -> JourneyResult,
     canStartTrip: (Station) -> Boolean,
-    onStartTrip: (Station, RouteView) -> Unit,
+    onStartTrip: (Station, RouteView, String?) -> Unit,
     onRepeat: (Station, JourneyLine, Stop, RouteView?) -> Unit,
     onBack: () -> Unit,
     /** Destino já escolhido (linha, estação): vindo do aviso da hora de sair, abre o roteiro direto. */
@@ -318,7 +318,7 @@ fun JourneyScreen(
                     finalWalk = landmark?.let { FinalWalk(it.name, it.walkMeters, walkMinutes(it), it.beside) },
                     plan = { time -> plan(from, RoutePoint(line.routeId, stop.id), time) },
                     canStartTrip = canStartTrip(from),
-                    onStartTrip = { onStartTrip(from, it) },
+                    onStartTrip = { onStartTrip(from, it, landmark?.name) },
                     destination = line to stop,
                     onRepeat = { view -> onRepeat(from, line, stop, view) },
                     onSwap = if (landmark != null) null else ({

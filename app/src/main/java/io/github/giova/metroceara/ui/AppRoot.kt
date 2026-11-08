@@ -357,6 +357,7 @@ fun AppRoot() {
     var tripChoice by remember { mutableStateOf<Pair<TripPlan, TripPlan>?>(null) }
 
     val activeTrip by TripTracker.active.collectAsState()
+    val tripArrival by TripTracker.arrival.collectAsState()
     val tripSound by TripTracker.soundEnabled(context).collectAsState()
     val tripStationAlerts by TripTracker.stationAlerts(context).collectAsState()
     var pendingTrip by remember { mutableStateOf<TripPlan?>(null) }
@@ -402,13 +403,13 @@ fun AppRoot() {
         }
     }
 
-    fun startTrip(routeId: String, direction: Direction, origin: Stop, destination: Stop) {
+    fun startTrip(routeId: String, direction: Direction, origin: Stop, destination: Stop, placeName: String? = null) {
         val route = repo.route(routeId) ?: return
         val from = nowMinutes() - settings.lateBoardingMinutes
         val direct = repo.nextTrip(origin.id, routeId, direction.id, from)
             ?.let { (_, times) -> leg(routeId, direction.id, origin.id, destination.id, times) }
             ?.takeIf { it.size >= 2 }
-            ?.let { TripPlan(routeId, route.name, direction.headsign, it, settings.alertStationsBefore) }
+            ?.let { TripPlan(routeId, route.name, direction.headsign, it, settings.alertStationsBefore, placeName = placeName) }
         if (direct == null) {
             tripMessage = context.getString(R.string.trip_no_trip_today)
             return
@@ -430,7 +431,7 @@ fun AppRoot() {
             val returning = leg(routeId, direction.id, terminal.id, destination.id, times2) ?: return@run null
             TripPlan(
                 routeId, route.name, direction.headsign, going + returning,
-                settings.alertStationsBefore, turnaroundIndex = going.lastIndex,
+                settings.alertStationsBefore, turnaroundIndex = going.lastIndex, placeName = placeName,
             )
         }
         if (seated == null) confirmAndLaunch(direct) else tripChoice = direct to seated
@@ -727,17 +728,17 @@ fun AppRoot() {
 
     // O roteiro vira viagem. Num trecho só, pelo caminho de sempre (que oferece ir
     // sentado pelo terminal); com integração, o roteiro inteiro, trecho a trecho.
-    fun startJourney(origin: Station, view: RouteView) {
+    fun startJourney(origin: Station, view: RouteView, placeName: String?) {
         journeyOpen = false
         val legs = view.itinerary.legs
         val single = legs.singleOrNull()
         val direction = single?.let { leg -> repo.directions(leg.routeId).firstOrNull { it.id == leg.directionId } }
         val destination = single?.let { repo.stop(it.toStop) }
         if (single != null && direction != null && destination != null) {
-            startTrip(single.routeId, direction, Stop(origin.stopId, origin.stopName, seq = 0), destination)
+            startTrip(single.routeId, direction, Stop(origin.stopId, origin.stopName, seq = 0), destination, placeName)
             return
         }
-        val plan = JourneyPlanner.plan(repo, view.itinerary, settings, simulated = false)
+        val plan = JourneyPlanner.plan(repo, view.itinerary, settings, simulated = false)?.copy(placeName = placeName)
         if (plan == null) {
             tripMessage = context.getString(R.string.trip_no_trip_today)
             return
@@ -875,16 +876,14 @@ fun AppRoot() {
 
     // ------------------------------------------------- blocos da tela inicial --
     // Cada bloco na ordem que a pessoa escolheu (padrão: Trabalho e Casa, as duas
-    // estações, aviso, busca, rotinas, Bicicletar, linhas). Durante a viagem, o
-    // cartão dela ocupa o lugar de Casa/Trabalho, estações, busca e rotinas.
+    // estações, aviso, busca, rotinas, Bicicletar, linhas).
     val trip = activeTrip
-    // Começou uma viagem (de "Planeje sua viagem", da estação, do aviso): o andamento
-    // fica no Início. Sem isso, a aba de viagem ficava vazia (a busca some na viagem).
+    // Terminada a viagem, volta-se ao Início, seja de onde ela tenha começado.
     LaunchedEffect(trip != null) { if (trip != null) homeTab = HomeTab.HOME }
     fun homeBlocks(layout: HomeLayout): List<HomeBlock> = layout.homeOrder.filter { b ->
         layout.shows(b) && when (b) {
-            HomeBlock.PLACES, HomeBlock.STATIONS, HomeBlock.SEARCH -> trip == null
-            HomeBlock.ROUTINES -> trip == null && !routinesList.isNullOrEmpty()
+            HomeBlock.PLACES, HomeBlock.STATIONS, HomeBlock.SEARCH -> true
+            HomeBlock.ROUTINES -> !routinesList.isNullOrEmpty()
             // O de hoje vai com as estações; aqui ficam os dos próximos dias.
             HomeBlock.NOTICES -> notices.any { !it.isToday }
             HomeBlock.BIKE -> homeBike != null
@@ -894,9 +893,8 @@ fun AppRoot() {
 
     // A aba "Planeje sua viagem": "Para onde você vai?" e, com "Vou ao trabalho",
     // Trabalho e Casa (que também ficam no topo da tela inicial).
-    // Durante a viagem, o cartão dela fica no Início e aqui não se começa outra.
     fun routeBlocks(layout: HomeLayout): List<HomeBlock> =
-        listOf(HomeBlock.SEARCH, HomeBlock.PLACES).filter { layout.shows(it) && trip == null }
+        listOf(HomeBlock.SEARCH, HomeBlock.PLACES).filter { layout.shows(it) }
 
     @Composable
     fun HomeBlockContent(block: HomeBlock, layout: HomeLayout) {
@@ -990,24 +988,23 @@ fun AppRoot() {
         }
     }
 
-    // Por cima dos blocos: a viagem em andamento e, só quando os horários não
-    // são os de hoje, o aviso disso (no dia normal, a origem fica em "Fonte").
+    // Por cima dos blocos, só quando os horários não são os de hoje, o aviso disso
+    // (no dia normal, a origem fica em "Fonte").
     val showStatus = scheduleStatusIsWarning(repo.source)
-    val homeHeader: (@Composable () -> Unit)? = if (trip == null && !showStatus) null else ({
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            if (trip != null) {
-                TripCard(
-                    trip = trip,
-                    soundEnabled = tripSound ?: true,
-                    onToggleSound = { TripTracker.setSoundEnabled(context, it) },
-                    stationAlerts = tripStationAlerts ?: false,
-                    onToggleStationAlerts = { TripTracker.setStationAlerts(context, it) },
-                    onStop = { TripTracker.stop(context) },
-                )
-            }
-            if (showStatus) ScheduleStatus(source = repo.source, syncing = scheduleSyncing)
-        }
+    val homeHeader: (@Composable () -> Unit)? = if (!showStatus) null else ({
+        ScheduleStatus(source = repo.source, syncing = scheduleSyncing)
     })
+
+    // O WhatsApp da Super NINA, onde ela atende. Nada de DevLog aqui: o toque na
+    // Nina não fica registrado em lugar nenhum.
+    fun ninaOpener(routeName: String?): (() -> Unit)? = Regras.current.nina
+        ?.takeIf { nina -> nina.serves(routeName) }
+        ?.let { nina ->
+            {
+                runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(nina.link))) }
+                Unit
+            }
+        }
 
     // A prévia de "Ordem da tela inicial": os mesmos blocos, com o cabeçalho do app.
     @Composable
@@ -1024,7 +1021,27 @@ fun AppRoot() {
     }
 
     // --------------------------------------------------------------- telas ----
+    val arrived = tripArrival?.takeIf { it.isRecent(System.currentTimeMillis()) }
     when {
+        // Chegou: o resumo, antes de voltar ao app.
+        arrived != null -> TripArrivalScreen(
+            arrival = arrived,
+            lineColorHex = repo.route(arrived.routeId)?.colorHex.orEmpty(),
+            onDone = { TripTracker.dismissArrival() },
+        )
+
+        // Em viagem, a tela é só o trilho; o resto do app volta quando ela termina.
+        trip != null && !trip.arrived -> TripRailScreen(
+            trip = trip,
+            lineColorHex = repo.route(trip.plan.routeId)?.colorHex.orEmpty(),
+            soundEnabled = tripSound ?: true,
+            onToggleSound = { TripTracker.setSoundEnabled(context, it) },
+            stationAlerts = tripStationAlerts ?: false,
+            onToggleStationAlerts = { TripTracker.setStationAlerts(context, it) },
+            onNina = ninaOpener(trip.plan.routeName),
+            onStop = { TripTracker.stop(context) },
+        )
+
         orderOpen -> {
             BackHandler { orderOpen = false }
             HomeOrderScreen(
@@ -1278,14 +1295,7 @@ fun AppRoot() {
             menu = HomeMenuActions(
                 onFareGuide = Regras.current.fareGuide?.let { { fareGuideOpen = true } },
 
-                // Nada de DevLog aqui: o toque na Nina não fica registrado em lugar nenhum.
-                onNina = Regras.current.nina
-                    ?.takeIf { nina -> nina.serves(homeState.station?.routeName) }
-                    ?.let { nina ->
-                        {
-                            runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(nina.link))) }
-                        }
-                    },
+                onNina = ninaOpener(homeState.station?.routeName),
                 onAdjust = { adjustOpen = true },
                 onSettings = { showSettings = true },
                 onSources = { sourcesOpen = true },

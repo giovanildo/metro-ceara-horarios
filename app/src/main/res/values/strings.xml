@@ -126,12 +126,6 @@
     <string name="trip_journey_now">Agora: %1$s, em %2$s</string>
     <string name="trip_journey_then">Integração em %1$s às %2$s · %3$s às %4$s</string>
     <string name="trip_journey_walking">Indo para %1$s · %2$s às %3$s, sentido %4$s · em %5$d min</string>
-    <string name="trip_card_title_journey">Modo viagem · %1$s → %2$s</string>
-    <string name="trip_card_title_journey_sim">Simulação · %1$s → %2$s</string>
-    <string name="trip_journey_arrival">Chega às %1$s</string>
-    <string name="trip_journey_done">feito</string>
-    <string name="trip_journey_current">agora</string>
-    <string name="trip_journey_leg">%1$s até %2$s</string>
     <string name="trip_journey_transfer">Integração em %1$s</string>
     <string name="route_title">%1$s → %2$s</string>
     <string name="route_leg">%1$s, sentido %2$s. Desça em %3$s às %4$s.</string>
@@ -226,9 +220,6 @@
     <string name="trip_stop">Encerrar viagem</string>
     <string name="trip_sound_on">Aviso sonoro ligado</string>
     <string name="trip_sound_off">Aviso sonoro desligado</string>
-    <string name="trip_card_title">Modo viagem · %1$s</string>
-    <string name="trip_alert_sent">Aviso de descida enviado.</string>
-    <string name="trip_alert_at">Aviso em %1$s, %2$s antes.</string>
     <string name="trip_station_alerts">Avisar cada estação (voz)</string>
     <string name="trip_channel_station">Aviso a cada estação</string>
     <string name="trip_channel_review">Convite para mandar o registro de uma viagem</string>
@@ -252,7 +243,6 @@
     <string name="trip_far_simulate">Simular a viagem</string>
     <string name="trip_far_wait">Esperar o GPS</string>
     <string name="trip_sim">Simulação</string>
-    <string name="trip_card_title_sim">Simulação · %1$s</string>
     <string name="trip_fix_simulated">simulação, pela tabela de horários</string>
     <string name="trip_too_far">Você está a %1$s de %2$s. O modo viagem só fica disponível a até %3$s da estação de partida.</string>
     <string name="trip_gps_lost_title">Sem GPS há %1$d min</string>
@@ -565,4 +555,45 @@
     <string name="settings_recent">Viagens recentes</string>
     <string name="settings_recent_desc">As 3 últimas ficam só neste celular</string>
     <string name="settings_recent_clear">Limpar</string>
+    <!-- Modo viagem: a tela do trilho e a chegada -->
+    <string name="trip_rail_then">, depois\u0020</string>
+    <string name="trip_rail_to">Até %1$s</string>
+    <string name="trip_rail_arrives">chega ~%1$s</string>
+    <plurals name="trip_rail_left">
+        <item quantity="one">falta %1$s</item>
+        <item quantity="other">faltam %1$s</item>
+    </plurals>
+    <string name="trip_rail_here">você está aqui · %1$s</string>
+    <string name="trip_rail_estimated">posição estimada</string>
+    <string name="trip_rail_wait_platform">espere na plataforma</string>
+    <string name="trip_rail_go_platform">vá até a plataforma</string>
+    <string name="trip_rail_board_title">%1$s às %2$s</string>
+    <string name="trip_rail_board_in">em %1$s · sentido %2$s</string>
+    <string name="trip_rail_board_now">a qualquer momento · sentido %1$s</string>
+    <string name="trip_rail_get_off">desce aqui</string>
+    <string name="trip_rail_get_off_place">desce aqui · para %1$s</string>
+    <string name="trip_rail_transfer_here">desce aqui e faz a integração</string>
+    <string name="trip_rail_boards">%1$s · sai às %2$s</string>
+    <string name="trip_rail_turnaround">fique no %1$s: ele volta daqui</string>
+    <string name="trip_rail_alert_here">avisa aqui que está chegando</string>
+    <string name="trip_rail_walk">%1$d min a pé</string>
+    <string name="trip_rail_fare_free">passagem grátis</string>
+    <string name="trip_rail_fare_paid">passagem paga</string>
+    <string name="trip_rail_more_options">Mais opções</string>
+    <string name="trip_rail_on">ligado</string>
+    <plurals name="trip_rail_more">
+        <item quantity="one">mais %1$d estação até %2$s</item>
+        <item quantity="other">mais %1$d estações até %2$s</item>
+    </plurals>
+    <string name="trip_stop_title">Encerrar a viagem?</string>
+    <string name="trip_stop_text">Você deixa de receber o aviso de chegada.</string>
+    <string name="trip_stop_keep">Continuar</string>
+    <string name="trip_stop_confirm">Encerrar</string>
+    <string name="trip_arrival_title">Você chegou a</string>
+    <string name="trip_arrival_left">Saiu de %1$s</string>
+    <string name="trip_arrival_arrived">Chegou</string>
+    <string name="trip_arrival_duration">Tempo de viagem</string>
+    <string name="trip_arrival_minutes">%1$d min</string>
+    <string name="trip_arrival_stations">Estações</string>
+    <string name="trip_arrival_done">Voltar ao início</string>
 </resources>
