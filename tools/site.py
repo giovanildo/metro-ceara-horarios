@@ -36,6 +36,8 @@ from datetime import datetime, timedelta, timezone
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DOCS = os.path.join(RAIZ, "docs")
 REGRAS = os.path.join(RAIZ, "app", "src", "main", "assets", "regras.json")
+FOTOS = os.path.join(RAIZ, "tools", "site_fotos.json")
+FOTOS_NO_TOPO = 4  # as outras fotos da estação ficam no fim da página e só carregam ao rolar
 RAW = "https://raw.githubusercontent.com/giovanildo/metro-ceara-horarios/dados/"
 SITE = "https://giovanildo.github.io/metro-ceara-horarios/"
 FORTALEZA = timezone(timedelta(hours=-3))
@@ -137,6 +139,10 @@ class Dados:
         self.cores = {k: v for k, v in regras.get("cores", {}).items() if not k.startswith("_")}
         self.linhas = util["linhas"]
         self._estacoes()
+        self.fotos = {}  # tools/site_fotos.json, do tools/site_fotos.py (Wikimedia Commons)
+        if os.path.exists(FOTOS):
+            with open(FOTOS, encoding="utf-8") as fh:
+                self.fotos = json.load(fh)
 
     def cor(self, linha, escuro=False):
         c = self.cores.get(linha["nome"])
@@ -257,7 +263,7 @@ CABECA = """<!doctype html>
 <meta property="og:title" content="{titulo}">
 <meta property="og:description" content="{descricao}">
 <meta property="og:url" content="{url}">
-<meta property="og:image" content="{site}img/previa.png">
+<meta property="og:image" content="{imagem}">
 <link rel="stylesheet" href="{raiz}site/site.css">
 {extra}</head>
 <body>
@@ -271,7 +277,7 @@ CABECA = """<!doctype html>
 RODAPE = """<footer class="rodape"><div class="largura">
   <p><strong>Metrô Ceará</strong> é um guia independente, feito por um passageiro. <strong>Não é o site oficial do Metrofor</strong>
   nem do Governo do Ceará. Os horários vêm do GTFS que o Metrofor publica; endereços, passagem e acessibilidade, do site
-  do Metrofor (conferidos em {conferido}). Lugares por perto: © colaboradores do OpenStreetMap.</p>
+  do Metrofor (conferidos em {conferido}). Lugares por perto: © colaboradores do OpenStreetMap. Fotos das estações: Wikimedia Commons, com o autor e a licença em cada uma.</p>
   <p>Viu algo errado? <a href="{whats}">Conte pelo WhatsApp</a> · <a href="{raiz}">Sobre o app</a> · <a href="{raiz}privacidade.html">Privacidade</a></p>
   <p class="gerado">Página gerada em {gerado}.</p>
 </div></footer>
@@ -280,7 +286,7 @@ RODAPE = """<footer class="rodape"><div class="largura">
 """
 
 
-def pagina(d, *, caminho, titulo, descricao, corpo, tema="#CE0F2E", extra="", scripts=""):
+def pagina(d, *, caminho, titulo, descricao, corpo, tema="#CE0F2E", extra="", scripts="", imagem=None):
     nivel = caminho.count("/")
     raiz = "../" * nivel
     url = SITE + caminho
@@ -288,7 +294,8 @@ def pagina(d, *, caminho, titulo, descricao, corpo, tema="#CE0F2E", extra="", sc
     if re.match(r"\d{4}-\d{2}$", conferido):
         meses = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"]
         conferido = f"{meses[int(conferido[5:]) - 1]}/{conferido[:4]}"
-    return (CABECA.format(titulo=esc(titulo), descricao=esc(descricao), url=esc(url), raiz=raiz, tema=tema, site=SITE, extra=extra)
+    return (CABECA.format(titulo=esc(titulo), descricao=esc(descricao), url=esc(url), raiz=raiz, tema=tema, site=SITE, extra=extra,
+                          imagem=esc(imagem or SITE + "img/previa.png"))
             + corpo
             + RODAPE.format(conferido=esc(conferido), whats=esc(WHATSAPP + "Metrô Ceará, site: " + url + " — "),
                             raiz=raiz, gerado=datetime.now(FORTALEZA).strftime("%d/%m/%Y"), scripts=scripts))
@@ -348,6 +355,10 @@ def pagina_estacao(d, grupo):
 
     if info.get("aviso"):
         h.append(f'<p class="aviso">⚠️ {esc(info["aviso"])}</p>')
+
+    fotos = d.fotos.get(grupo["slug"], [])
+    if fotos:
+        h.append(fotos_do_topo(fotos, nome, raiz))
 
     # Horários
     h.append('<section><h2>Horários</h2><div class="grade-cartoes">')
@@ -432,6 +443,8 @@ def pagina_estacao(d, grupo):
             h.append("</ul></div>")
         h.append("</div></section>")
 
+    if fotos:
+        h.append(fotos_do_fim(fotos, nome, raiz))
     h.append(chamada_app(raiz))
     h.append("</main>")
 
@@ -442,13 +455,50 @@ def pagina_estacao(d, grupo):
           "url": SITE + f"estacoes/{grupo['slug']}/"}
     if info.get("endereco"):
         ld["address"] = info["endereco"]
+    if fotos:
+        ld["image"] = [SITE + "img/estacoes/" + f["arquivo"] for f in fotos[:3]]
     extra = json_ld(ld) + json_ld({"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
         {"@type": "ListItem", "position": 1, "name": "Início", "item": SITE},
         {"@type": "ListItem", "position": 2, "name": "Estações", "item": SITE + "estacoes/"},
         {"@type": "ListItem", "position": 3, "name": nome}]})
     return pagina(d, caminho=f"estacoes/{grupo['slug']}/", titulo=f"Estação {nome} — horários do {veic} ({nomes_linhas}) | Metrô Ceará",
                   descricao=descricao, corpo="\n".join(h), tema=cor, extra=extra,
-                  scripts=f'<script type="module" src="{raiz}site/agora.js"></script>\n')
+                  scripts=f'<script type="module" src="{raiz}site/agora.js"></script>\n',
+                  imagem=SITE + "img/estacoes/" + fotos[0].get("capa_jpg", fotos[0]["arquivo"]) if fotos else None)
+
+
+def galeria(fotos, nome, raiz, *, inicio=0, titulo="Fotos", ident="fotos", rodape=""):
+    """Grade de fotos com o crédito de cada uma (exigência da licença: autor, licença e link).
+    As 4 primeiras da estação carregam na hora; as outras, só quando a pessoa rola até elas."""
+    h = [f'<section class="fotos" id="{ident}"><h2>{titulo}</h2><div class="grade-fotos">']
+    for n, f in enumerate(fotos, start=inicio):
+        src = f'{raiz}img/estacoes/{f["arquivo"]}'
+        lic = esc(f["licenca"])
+        if f.get("licenca_url"):
+            lic = f'<a href="{esc(f["licenca_url"])}" target="_blank" rel="noopener license">{lic}</a>'
+        quando = f' · {f["data"][5:7]}/{f["data"][:4]}' if re.match(r"\d{4}-\d{2}", f.get("data", "")) else ""
+        h.append(f'<figure><a href="{src}"><img src="{src}" alt="Estação {esc(nome)}, foto {n + 1}" width="{f["largura"]}" '
+                 f'height="{f["altura"]}"{"" if n < FOTOS_NO_TOPO else " loading=\"lazy\""} decoding="async"></a>'
+                 f'<figcaption><a href="{esc(f["pagina"])}" target="_blank" rel="noopener">{esc(f["autor"])}</a> · {lic}{quando}</figcaption></figure>')
+    h.append(f"</div>{rodape}</section>")
+    return "".join(h)
+
+
+def fotos_do_topo(fotos, nome, raiz):
+    resto = len(fotos) - FOTOS_NO_TOPO
+    mais = (f'<a href="#mais-fotos">Mais {resto} foto{"s" if resto > 1 else ""} no fim da página ↓</a> · ' if resto > 0 else "")
+    rodape = (f'<p class="dica">{mais}Fotos do Wikimedia Commons (reduzidas para o site), de quem fotografou e liberou o uso. '
+              'Toque no nome para ver a original.</p>')
+    return galeria(fotos[:FOTOS_NO_TOPO], nome, raiz, rodape=rodape)
+
+
+def fotos_do_fim(fotos, nome, raiz):
+    resto = fotos[FOTOS_NO_TOPO:]
+    if not resto:
+        return ""
+    return galeria(resto, nome, raiz, inicio=FOTOS_NO_TOPO, ident="mais-fotos",
+                   titulo=f'Mais fotos da estação {esc(nome)} <span class="dica">· {len(resto)}</span>',
+                   rodape='<p class="dica">Fotos do Wikimedia Commons. <a href="#fotos">Voltar ao começo das fotos ↑</a></p>')
 
 
 def texto_integracoes(d, grupo, raiz):

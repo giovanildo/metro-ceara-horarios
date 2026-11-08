@@ -1194,6 +1194,7 @@ tools/operacoes.py                   dias de operação especial e linhas parada
 tools/fontes.py                      fontes do regras.json e quais estão com a conferência vencida
 tools/site.py                        site: páginas das estações e linhas, mapas e sitemap em docs/
 tools/site_previa.py                 prévia de link do site (docs/img/previa.png) com o mapa
+tools/site_fotos.py                  fotos das estações do Wikimedia Commons (docs/img/estacoes/)
 app/src/main/assets/metrofor.db      banco gerado (não editar à mão)
 app/src/main/assets/regras.json      regras fora do GTFS: bike, integrações, passagem,
                                      guia da passagem, endereços, acessibilidade, cores,
@@ -1423,6 +1424,23 @@ Google já conhece, em pastas próprias — a lite em `docs/app/` não é tocada
   quais estações têm o nome escrito no mapa e de que lado ficam `ROTULOS`,
   `ESQUERDA`, `ACIMA` e `ABAIXO`. O visual mora em
   [`docs/site/site.css`](docs/site/site.css), com tema escuro.
+- **Fotos das estações** (desde 07/11): 409 fotos de 44 estações, do
+  [Wikimedia Commons](https://commons.wikimedia.org/wiki/Category:Fortaleza_Metro)
+  (CC BY-SA e CC0; a maioria de Joelkaula e Ruan Moreira).
+  [`tools/site_fotos.py`](tools/site_fotos.py) percorre as categorias de cada
+  estação, baixa em 960 px, grava em WebP sem os metadados do arquivo (some o
+  GPS) em `docs/img/estacoes/<estação>/`, faz uma cópia da capa em JPG para a
+  prévia de link e escreve `tools/site_fotos.json` com autor, licença, link e
+  data. Só aceita CC BY, CC BY-SA, CC0 e domínio público; pula foto cujo nome
+  diz que é de outra estação (categoria trocada no Commons). Escolhas feitas
+  olhando: `CAPA` (a primeira) e `NO_FIM`. Na página, as 4 primeiras ficam no
+  topo e as outras no fim, carregando só ao rolar (`FOTOS_NO_TOPO` no
+  `site.py`); cada uma com autor, licença e mês, como a licença pede. Rodar de
+  novo baixa só o que é novo e apaga o que saiu do Commons:
+
+  ```bash
+  python3 tools/site_fotos.py && python3 tools/site.py
+  ```
 - **Prévia de link** (a imagem que aparece ao mandar o endereço no WhatsApp):
   `docs/img/previa.png`, 1200×630, com o nome e o mapa de Fortaleza. Sai de
   [`tools/site_previa.py`](tools/site_previa.py), que monta a página com o

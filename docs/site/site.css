@@ -180,3 +180,14 @@ main section { margin: 44px 0 0; }
 /* ---------- rodapé */
 .rodape { margin-top: 64px; padding: 28px 0 40px; border-top: 1px solid var(--linha); color: var(--suave); font-size: .92rem; }
 .rodape .gerado { font-size: .82rem; }
+
+/* Fotos da estação (Wikimedia Commons): 4 no topo, o resto no fim da página */
+.fotos h2 .dica { font-family: system-ui, sans-serif; font-size: 1rem; font-weight: 400; }
+.grade-fotos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 760px) { .grade-fotos { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } }
+.grade-fotos figure { margin: 0; min-width: 0; }
+.grade-fotos img { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; display: block;
+  border-radius: var(--raio); background: var(--papel); box-shadow: var(--sombra); }
+.grade-fotos figcaption { font-size: .8rem; color: var(--suave); margin-top: 5px; overflow-wrap: anywhere; }
+.grade-fotos figcaption a { color: inherit; }
+#fotos, #mais-fotos { scroll-margin-top: 72px; }
