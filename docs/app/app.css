@@ -9,6 +9,8 @@
   --passado: #a3a1aa;
   --destaque: #c9d2ff;
   --rosa: #fdd6f6;
+  --menta: #cdede3;
+  --menta-texto: #0b3b30;
   --borda: #c8c5d0;
   color-scheme: light;
 }
@@ -23,6 +25,8 @@
     --passado: #6d6b75;
     --destaque: #34406a;
     --rosa: #4a2a45;
+    --menta: #1e4a40;
+    --menta-texto: #bcebdd;
     --borda: #46454e;
     color-scheme: dark;
   }
@@ -326,7 +330,9 @@ dialog.folha[open] { animation: sobe .25s ease-out; }
 .iv-rota .ponto, .iv-titulo .ponto { margin-right: 3px; }
 .iv-abrir { display: block; color: inherit; text-decoration: none; }
 .iv-meta { font-size: .82rem; margin-top: 10px !important; opacity: .85; }
-.iv-recente .iv-abrir { color: var(--cartao-texto); }
+.iv-recente { background: var(--menta); color: var(--menta-texto); }
+.iv-recente .iv-abrir, .iv-recente .iv-inverter { color: var(--menta-texto); }
+.iv-destino { font-weight: 700; margin-top: 2px !important; }
 .iv-recente .iv-meta { margin-top: 0 !important; }
 .iv-titulo { font-size: 1.08rem; font-weight: 700; margin-top: 4px !important; }
 .iv-hora { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; margin-top: 2px; }

@@ -335,15 +335,10 @@ function telaInicio() {
     for (const { linha, id, d } of perto) {
       const sentidos = grade.sentidosDePartida(linha, id);
       if (`${linha.id}|${id}` !== aberta) {
-        // Compacta: nome, linha e distância numa linha; cada sentido numa linha curta.
+        // Compacta: só nome, linha e distância; os horários aparecem ao tocar.
         html += `<div class="cartao compacto"><button class="cabeca-compacta" data-abrir="${linha.id}|${id}">
           <span class="topo-compacto"><strong>${esc(grade.nome(id))}</strong> <span class="ponto" style="background:${cor(linha)}"></span>
-            <span class="linha-nome">${esc(linha.nome)} · ${metros(d)} em linha reta</span></span>
-          ${domingoSemOperacao(t) ? `<span class="dica">Hoje não circula</span>` : linhaParada(estado.dados.regras, t.data, linha.nome) ? `<span class="dica">Não circula hoje</span>` : sentidos.map((s) => {
-            const { hoje, amanha } = partidasComAmanha(linha, s, id);
-            const p = proximas(hoje, t.minutos, 1, amanha)[0];
-            return `<span class="sentido-compacto"><span>${esc(s.destino)}</span><strong>${p ? falta(minutosAte(p, t.minutos)) : "—"}</strong></span>`;
-          }).join("")}</button></div>`;
+            <span class="linha-nome">${esc(linha.nome)} · ${metros(d)} em linha reta</span></span></button></div>`;
         continue;
       }
       html += `<div class="cartao">
@@ -496,13 +491,15 @@ function blocoUltimaViagem(t) {
   const dia = diaDaViagem(t);
   const o = dia && !dia.domingo
     ? new Roteador(grade, regras, perfilGuardado()).planejar({ linha: lo, est: eo }, { linha: ld, est: ed }, t.minutos - 2, 1, dia.evitar)[0] : null;
+  const lugarR = r.lugar ? buscarLugares(regras, r.lugar, 50).find((x) => x.nome === r.lugar) : null;
   const pontos = [a, ...(b.id !== a.id ? [b] : [])].map((l) => `<span class="ponto" style="background:${cor(l)}"></span>`).join("");
   return `<div class="cartao iv iv-recente">
     <div class="iv-topo"><p class="iv-meta">🕘 ${invertida ? "Sua viagem de volta" : "Sua última viagem"}</p>
       <button class="iv-inverter" id="ultima-inverter" data-chave="${esc(chave)}">⇄ Inverter</button></div>
     <a class="iv-abrir" id="ultima-viagem" href="#/rotas" data-origem="${r.origem}" data-destino="${r.destino}" data-lugar="${esc(r.lugar || "")}">
       <p class="iv-titulo">${pontos} ${esc(semSufixo(grade.nome(eo)))} → ${esc(r.lugar || semSufixo(grade.nome(ed)))}</p>
-      ${o ? `<div class="iv-hora"><span>sai ${hora(o.sai)} · chega ${hora(o.chega)}</span><b class="iv-falta">${falta(o.sai - t.minutos)}</b></div>` : ""}
+      ${o ? `<div class="iv-hora"><span>sai ${hora(o.sai)}</span><b class="iv-falta">${falta(o.sai - t.minutos)}</b></div>
+        <p class="iv-destino">Chega a ${esc(r.lugar || semSufixo(grade.nome(ed)))} às ${hora(o.chega + (lugarR ? minutosAPe(lugarR, fatorPerfil()) : 0))}</p>` : ""}
     </a></div>`;
 }
 
