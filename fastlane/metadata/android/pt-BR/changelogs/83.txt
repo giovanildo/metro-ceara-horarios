@@ -1,0 +1,1 @@
+• Correção: ao iniciar o modo viagem pelo "Planeje sua viagem", a tela ficava vazia. Agora o app vai para o Início, onde está o andamento da viagem.
