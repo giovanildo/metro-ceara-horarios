@@ -20,7 +20,7 @@
 <li><b>Passagem, meia e gratuidade:</b> quanto custa cada linha, quem paga meia ou não paga, onde tirar o cartão e o que levar, conforme o site do Metrofor.</li>
 <li><b>Bicicletar:</b> a estação mais próxima de você ou da estação de metrô.</li>
 <li><b>Bike no metrô e VLT:</b> diz se dá para embarcar com bicicleta agora, pelas regras do Metrofor.</li>
-<li><b>Aviso de domingo:</b> metrô e VLT normalmente não circulam aos domingos; o app mostra os horários de segunda.</li>
+<li><b>Aviso de domingo:</b> metrô e VLT normalmente não circulam aos domingos; o app avisa a que horas voltam na segunda.</li>
 </ul>
 
 <p><b>Transparência:</b> cada informação diz de onde vem e quando foi conferida (o site do Metrofor, uma notícia, o OpenStreetMap), com o link para conferir. O que é estimativa do app aparece como estimativa.</p>
