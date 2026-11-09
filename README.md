@@ -308,7 +308,11 @@ mesma tela saindo dali.
   **Frases** e **Clássico**. Fora o Clássico, os tempos aparecem como "sai em 5 min".
   A viagem que não usa um sentido da estação, ou sem metrô agora, fica na faixa de
   sempre, para nenhum jeito inventar horário. O trilho só diz "Você está aqui" a até
-  1 km (`tripMaxMeters`); mais longe, mostra o nome da estação.
+  1 km (`tripMaxMeters`); mais longe, mostra o nome da estação. Com integração, o
+  ponto no trilho é a estação da troca ("Integração em Parangaba, para Papicu"), que é
+  onde aquele metrô para; com mais de uma, só a primeira, e o roteiro completo abre no
+  toque. Se o primeiro metrô é de outra linha, a viagem fica na faixa, com "Integração
+  aqui em Parangaba".
 - **"via"** (`viaStation`; na lite, `escolherVia`): a próxima estação do sentido, de
   referência ("sentido Carlito Benevides, via Padre Cícero"). Sem "via" se a próxima já
   for o terminal. Nunca aparece no sentido da viagem da pessoa: ali é "Para X" ou
