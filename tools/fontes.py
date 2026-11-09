@@ -6,6 +6,10 @@ conferência" (conferido + revisar_em_meses, seção "fontes" do regras.json).
 Este script diz quais já passaram dessa data, para conferir na fonte: se nada
 mudou, basta subir o "conferido" (a próxima conferência anda junto).
 
+Aqui vale a data do repositório. Passagem, guia da passagem e bike podem estar em
+dia na tela sem subir esta data: a comparação automática (tools/paginas.py) a
+avança só no regras.json publicado. O tools/vigia.py avisa o que está vencendo.
+
     python3 tools/fontes.py              # todas, com a situação
     python3 tools/fontes.py --vencidas   # só as atrasadas ou do mês; sai com 1 se houver
 """

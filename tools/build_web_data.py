@@ -25,6 +25,7 @@ Arquivos em SAIDA:
     regras.json                 app/src/main/assets/regras.json mais as datas especiais
                                 de bike (tools/datas_especiais.py) e as operacoes especiais
                                 (tools/operacoes.py) tiradas das noticias
+    paginas.json                paginas oficiais lidas hoje, para comparar com as conferidas (tools/paginas.py)
     noticias.json               ultimas noticias do site do Metrofor: titulo, data e link
                                 (so para o app ate a versao 1.45; hoje o aviso e o de operacoes)
 """
@@ -46,6 +47,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import build_db as gtfs  # noqa: E402  (mesmo tratamento de nomes, cores e Bicicletar)
 import datas_especiais  # noqa: E402
 import operacoes  # noqa: E402
+import paginas  # noqa: E402
 
 FORTALEZA = timezone(timedelta(hours=-3))  # sem horario de verao
 TIPOS = {5: "sabado", 6: "domingo"}  # weekday() -> tipo; o resto e dia util
@@ -234,6 +236,23 @@ def operacoes_das_noticias(out, manuais, saude):
     return {**automaticas, **manuais}
 
 
+def conferir_paginas(out, regras, agora):
+    """Le as paginas oficiais uma vez por dia e adia a conferencia das que nao mudaram.
+    E um extra: nada aqui pode derrubar a rodada dos horarios."""
+    caminho = os.path.join(out, "paginas.json")
+    try:
+        try:
+            with open(caminho, encoding="utf-8") as fh:
+                estado = json.load(fh)
+        except (OSError, ValueError):
+            estado = {}
+        estado = paginas.atualizar(estado, agora)
+        escrever(caminho, estado)
+        paginas.adiar_conferencias(regras, estado, paginas.ler_conferidas())
+    except Exception as e:  # noqa: BLE001
+        print(f"paginas oficiais: {e}")
+
+
 def dia_especial(regras, dia):
     """Dia com operacao anunciada que muda o horario ("normal": a noticia diz que nao muda)."""
     op = regras.get("operacoes", {}).get(dia)
@@ -267,6 +286,7 @@ def main():
 
     # As regras vem antes: dizem se hoje e dia de operacao especial.
     regras = regras_com_datas_especiais(out, saude)
+    conferir_paginas(out, regras, agora)
     especial = dia_especial(regras, hoje)
     normais = indice.setdefault("normais", {})
     for t, info in indice["tipos"].items():
