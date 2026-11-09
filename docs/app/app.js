@@ -512,10 +512,16 @@ function viagensDaEstacao(t, ultima, estacao) {
     const o = dia && !dia.domingo
       ? roteador.planejar({ linha: lo, est: eo }, { linha: ld, est: ed }, t.minutos, 1, dia.evitar)[0] : null; // nada de metrô que já saiu
     const lugar = r.lugar ? buscarLugares(regras, r.lugar, 50).find((x) => x.nome === r.lugar) : null;
+    // O primeiro metrô é de outra linha: a troca é logo aqui.
+    const integAqui = Boolean(o) && o.pernas[0].linha !== lo;
+    const troca = !o ? null : integAqui ? eo : o.pernas.length > 1 ? o.pernas[0].para : null;
+    const integ = troca ? esc(semSufixo(grade.nome(troca))) : null;
     return {
       r, o, destino: esc(r.lugar || semSufixo(grade.nome(ed))), origemNome: esc(semSufixo(grade.nome(eo))),
       chegada: o ? o.chega + (lugar ? minutosAPe(lugar, fatorPerfil()) : 0) : null,
-      notas: [lo !== ld ? "com integração" : "", r.lugar ? "a pé no fim" : ""].filter(Boolean).join(" · "),
+      integ, integAqui, aPe: Boolean(r.lugar),
+      // Em minúsculas, para entrar no meio da frase.
+      notas: [integ ? `integração em ${integ}` : lo !== ld ? "com integração" : "", r.lugar ? "a pé no fim" : ""].filter(Boolean).join(" · "),
       direta: lo === ld && !r.lugar,
     };
   });
@@ -524,6 +530,11 @@ function viagensDaEstacao(t, ultima, estacao) {
 /** Os atributos que fazem o toque abrir o roteiro da viagem. */
 const dadosViagem = (v) => `data-origem="${v.r.origem}" data-destino="${v.r.destino}" data-lugar="${esc(v.r.lugar || "")}"`;
 
+const primeiraMaiuscula = (t) => t.replace(/^./, (c) => c.toUpperCase());
+
+/** O que falta dizer depois do metrô a pegar: a troca logo aqui já veio antes. */
+const notasFaixa = (v) => primeiraMaiuscula(v.integAqui ? (v.aPe ? "a pé no fim" : "") : v.notas);
+
 /** A faixa de sempre, em cor própria, com o botão de outro destino. */
 function faixaDe(viagens, comEstacao) {
   if (!viagens.length) return "";
@@ -531,7 +542,8 @@ function faixaDe(viagens, comEstacao) {
     const titulo = comEstacao ? `Para ${v.destino}` : `${v.origemNome} → ${v.destino}`;
     return `<button class="faixa-linha" ${dadosViagem(v)}>
       <span class="faixa-texto"><strong>🕘 ${titulo}</strong>
-        ${v.o ? `<span>Pegue o das ${hora(v.o.sai)}</span>` : ""}${v.o && v.notas ? `<span>${v.notas}</span>` : ""}</span>
+        ${v.integAqui ? `<span>Integração aqui em ${v.integ}</span>` : ""}
+        ${v.o ? `<span>Pegue o das ${hora(v.o.sai)}</span>` : ""}${v.o && notasFaixa(v) ? `<span>${notasFaixa(v)}</span>` : ""}</span>
       ${v.o ? `<span class="faixa-chega"><small>chega ~</small><b>${hora(v.chegada)}</b></span>` : ""}
     </button>`;
   }).join("");
@@ -584,8 +596,12 @@ function linhaSentido(f, c, comVia) {
 }
 
 /** "Desça em Parangaba · chega às 08:19", dentro do sentido que a viagem usa. */
-function viagemNoSentido(v, f) {
-  const texto = v.direta ? `Desça em ${v.destino} · chega às ${hora(v.chegada)}` : `Para ${v.destino} · ${v.notas} · chega às ${hora(v.chegada)}`;
+function viagemNoSentido(v, f, curto = false) {
+  const chega = hora(v.chegada);
+  const texto = v.integ && curto ? `Integração em ${v.integ} · ${chega}`
+    : v.integ && !v.aPe ? `Integração em ${v.integ} · para ${v.destino} · chega às ${chega}`
+    : v.direta ? `Desça em ${v.destino} · chega às ${chega}`
+    : `Para ${v.destino} · ${v.notas} · chega às ${chega}`;
   return f.p?.m === v.o.sai ? texto : `Pegue o das ${hora(v.o.sai)} · ${texto}`;
 }
 
@@ -595,7 +611,11 @@ function estiloTrilho(c, naLinha) {
   const em = [...c.filas].sort((a, b) => b.s.id - a.s.id);
   const topo = em.length > 1 ? em[0] : null, baixo = em[em.length - 1];
   const fim = (f, vs) => `<div class="no"><div class="no-fim"><span>${rotuloSentido(f.s)}${vs.length ? "" : textoVia(f)}</span>${tempoSai(f, c)}</div>${fimDe(f)}</div>`;
-  const pino = (v) => `<div class="no"><button class="toque-viagem pino" ${dadosViagem(v)}><span><strong>${v.destino}</strong><small>sua viagem · ${veiculo(c.linha.nome)} das ${hora(v.o.sai)}${v.notas ? ` · ${v.notas}` : ""}</small></span><b>${hora(v.chegada)}</b></button></div>`;
+  // O ponto no trilho é onde este metrô para: com integração, a estação da troca.
+  const textoPino = (v) => (v.integ
+    ? `<strong>Integração em ${v.integ}</strong><strong>para ${v.destino}</strong><small>${veiculo(c.linha.nome)} das ${hora(v.o.sai)}${v.aPe ? " · a pé no fim" : ""}</small>`
+    : `<strong>${v.destino}</strong><small>sua viagem · ${veiculo(c.linha.nome)} das ${hora(v.o.sai)}${v.notas ? ` · ${v.notas}` : ""}</small>`);
+  const pino = (v) => `<div class="no"><button class="toque-viagem pino" ${dadosViagem(v)}><span>${textoPino(v)}</span><b>${hora(v.chegada)}</b></button></div>`;
   const de = (f) => naLinha.filter((v) => v.o.pernas[0].sentido.id === f.s.id);
   const ate = (a, b) => a.chegada - b.chegada;
   return `<div class="rail" style="--cor-linha:${cor(c.linha)}">
@@ -610,8 +630,8 @@ function estiloViagem(c, naLinha) {
   const falto = (v) => saiEm(v.o.sai - c.minutos);
   const unica = naLinha.length === 1 ? naLinha[0] : null;
   const destaque = unica
-    ? `<button class="toque-viagem destaque" ${dadosViagem(unica)}><strong>Para ${unica.destino}</strong><b class="gigante">${falto(unica)}</b><span>${blocoSaiChega(unica, c)}</span>${unica.notas ? `<span>${unica.notas}</span>` : ""}</button>`
-    : naLinha.map((v) => `<button class="toque-viagem par" ${dadosViagem(v)}><span><strong>Para ${v.destino}</strong><span>${blocoSaiChega(v, c)}</span>${v.notas ? `<span>${v.notas}</span>` : ""}</span><b>${falto(v)}</b></button>`).join("");
+    ? `<button class="toque-viagem destaque" ${dadosViagem(unica)}><strong>Para ${unica.destino}</strong><b class="gigante">${falto(unica)}</b><span>${blocoSaiChega(unica, c)}</span>${unica.notas ? `<span>${primeiraMaiuscula(unica.notas)}</span>` : ""}</button>`
+    : naLinha.map((v) => `<button class="toque-viagem par" ${dadosViagem(v)}><span><strong>Para ${v.destino}</strong><span>${blocoSaiChega(v, c)}</span>${v.notas ? `<span>${primeiraMaiuscula(v.notas)}</span>` : ""}</span><b>${falto(v)}</b></button>`).join("");
   return `${naLinha.length ? `<div class="bloco-viagem">${destaque}</div>` : ""}
     ${naLinha.length && outros.length ? `<p class="grupo">O outro lado</p>` : ""}${outros.map((f) => linhaSentido(f, c, true)).join("")}`;
 }
@@ -620,7 +640,7 @@ function estiloLados(c, naLinha) {
   const filas = [...c.filas].sort((a, b) => a.s.id - b.s.id);
   return `<div class="lados">${filas.map((f) => {
     const vs = naLinha.filter((v) => v.o.pernas[0].sentido.id === f.s.id), v = vs[0];
-    const corpo = `${tremVirando(f.s, cor(c.linha))}${rotuloSentido(f.s)}${v ? "" : textoVia(f)}${tempoSai(f, c)}${vs.map((x) => `<span class="lado-viagem">${viagemNoSentido(x, f)}</span>`).join("")}`;
+    const corpo = `${tremVirando(f.s, cor(c.linha))}${rotuloSentido(f.s)}${v ? "" : textoVia(f)}${tempoSai(f, c)}${vs.map((x) => `<span class="lado-viagem">${viagemNoSentido(x, f, true)}</span>`).join("")}`;
     return v ? `<button class="toque-viagem lado sua" ${dadosViagem(v)}>${corpo}</button>` : `<div class="lado">${corpo}</div>`;
   }).join("")}</div>${filas.map(fimDe).join("")}`;
 }
