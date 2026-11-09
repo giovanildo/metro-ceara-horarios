@@ -300,6 +300,19 @@ mesma tela saindo dali.
   feitas ("Benfica → Parangaba"). Tocar abre Planeje sua viagem já preenchida, e
   **Outro destino** abre com o "De" preenchido e o "Para" vazio. Sem metrô agora,
   mostra só o destino, sem inventar a chegada.
+- **Personalizar a tela inicial** (no Mais; `HomeStyle`, `HomeStyleScreen`,
+  `ui/HomeStationStyles.kt`; na lite, `#/personalizar`, `corpoEstilo`): seis jeitos de
+  mostrar os horários da estação aberta, com um exemplo em cima, porque cada pessoa
+  entende melhor um. **Trilho** (padrão: a linha na cor dela, os dois sentidos e o
+  destino marcado), **Minha viagem primeiro**, **Dois lados**, **Para onde vou**,
+  **Frases** e **Clássico**. Fora o Clássico, os tempos aparecem como "sai em 5 min".
+  A viagem que não usa um sentido da estação, ou sem metrô agora, fica na faixa de
+  sempre, para nenhum jeito inventar horário. O trilho só diz "Você está aqui" a até
+  1 km (`tripMaxMeters`); mais longe, mostra o nome da estação.
+- **"via"** (`viaStation`; na lite, `escolherVia`): a próxima estação do sentido, de
+  referência ("sentido Carlito Benevides, via Padre Cícero"). Sem "via" se a próxima já
+  for o terminal. Nunca aparece no sentido da viagem da pessoa: ali é "Para X" ou
+  "Desça em X".
 - **Resultado**, numa folha que sobe por baixo:
   - **Hoje** ou **Amanhã, ter 10/11** (`data/TomorrowPlan.kt`). Tocar em Amanhã abre
     o relógio (começa às 07:00); os horários vêm da grade prevista, com o aviso
