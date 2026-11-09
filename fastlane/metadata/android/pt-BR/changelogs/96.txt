@@ -1,0 +1,2 @@
+• Na tela inicial, a viagem com integração agora diz em qual estação trocar de linha.
+• A sugestão de viagem não mostra mais um metrô que já passou.
