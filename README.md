@@ -277,7 +277,9 @@ mesma tela saindo dali.
     longe das duas, vem do relógio: entre a saída e a próxima chegada, a primeira
     metade ainda é a volta e a segunda já é a ida, o que serve também para
     faculdade à noite e para quem trabalha de madrugada. Longe das duas, sai da
-    estação mais perto. O **⇄** inverte até o app mudar de sentido sozinho;
+    estação mais perto, a não ser que ela seja o próprio destino (mesmo ponto
+    ou integração a pé): aí sai da outra guardada. Com uma estação guardada
+    fora da grade do dia, voltam os atalhos. O **⇄** inverte até o app mudar de sentido sozinho;
   - **o metrô em destaque**: na ida, o último que chega até a hora marcada, com
     "atrasa" no seguinte; na volta, o primeiro depois da hora de sair. Invertido
     ou fora dos dias marcados, o próximo. Se o dia acaba antes da hora de sair
@@ -331,14 +333,16 @@ mesma tela saindo dali.
   Só no aparelho (`data/RecentTrips.kt`, preferências `metrofor_recent_trips`;
   na lite, `localStorage` "recentes", com ✕ para remover).
   - saindo agora: **Iniciar modo viagem** (perto da estação, até o limite das
-    Configurações). Num trecho só, a viagem começa como sempre (com a oferta
-    de ir sentado pelo terminal); com integração, o roteiro inteiro.
+    Configurações). O app acompanha o metrô da opção escolhida, não o próximo.
+    Num trecho só, a viagem começa como sempre (com a oferta de ir sentado pelo
+    terminal); com integração, o roteiro inteiro.
   - no horário escolhido: **Avisar a hora de sair** (o aviso do app), para a
     partida do roteiro.
 - **Domingo sem operação anunciada:** nenhum roteiro nem modo viagem. O
   resultado mostra só o aviso "Hoje é domingo: metrô e VLT não circulam.
   Voltam segunda, a partir das 05:30." (o primeiro horário de segunda na
-  estação de partida).
+  estação de partida). Se o Metrofor avisou que a linha não circula na segunda,
+  ou se a segunda tem operação especial, o aviso diz isso no lugar do horário.
 
 **Como o roteiro é calculado** ([`data/Router.kt`](app/src/main/java/io/github/giova/metroceara/data/Router.kt),
 Kotlin puro, com testes em `app/src/test`). A rede é pequena, com até três
@@ -453,7 +457,8 @@ localização agora."); sem permissão, o ↻ abre o app, que pede.
 Depois do último horário do dia, mostra o primeiro de amanhã ("05:47
 amanhã") ou de segunda. O aviso do dia é a notícia da operação especial, "O
 Metrofor avisou que esta linha não circula hoje." ou, num domingo sem
-operação, "Domingo: metrô e VLT não circulam. Voltam segunda às 05:30.", sem
+operação, "Domingo: metrô e VLT não circulam. Voltam segunda às 05:30." (ou
+que a linha não circula segunda, ou "Segunda: horário especial"), sem
 as linhas de horário. Tocar abre a tela
 da estação no app. Segue o tema do celular, claro ou escuro.
 
@@ -602,7 +607,9 @@ Por trás da tela, o serviço segue a viagem assim:
   trem, ele volta às HH:MM"; na volta, as estações repetidas são reconhecidas
   como volta (o GPS sempre casa com a próxima ocorrência à frente). O trem não
   sai do terminal antes do horário: adiantamento medido na ida é descartado ali.
-  **Em qualquer horário**, com "direto" como primeira opção. Até a 1.78 a
+  Num horário mais à frente na lista, o sentado parte dali em diante: ele sai
+  no outro sentido, então nunca é o metrô escolhido, que continua sendo o
+  "direto". **Em qualquer horário**, com "direto" como primeira opção. Até a 1.78 a
   pergunta só aparecia no pico (6h às 8h e 16h às 19h, ~45% dos passageiros
   segundo o Relatório de Demanda do Metrofor, 3º tri/2025), mas em 04/11 ele
   embarcou em Maracanaú às 15h para voltar sentado e o app não ofereceu: a
@@ -1112,7 +1119,9 @@ Detalhes que valem saber:
   à toa. Tela inicial, widget, tela da estação e roteiro mostram só "Hoje é
   domingo: metrô e VLT não circulam. Voltam segunda, a partir das 05:30." (sem
   a grade de segunda conhecida, "Só há operação aos domingos quando o Metrofor
-  anuncia"). Saem as próximas partidas, os horários de segunda, o próximo da
+  anuncia"). Linha anunciada como parada na segunda e segunda com operação
+  especial têm aviso próprio (`ScheduleRepository.mondayReturn`; na lite e no
+  site, `voltaDaSegunda`). Saem as próximas partidas, os horários de segunda, o próximo da
   integração, o roteiro e o modo viagem; a tela da estação traz também a
   notícia de amanhã (feriado na segunda). Até a v1.79 a tela mostrava os
   horários de segunda. A lite e a página da estação no site fazem o mesmo.
@@ -1264,9 +1273,11 @@ as regras se apoiam com a última versão que alguém leu
 ([`tools/paginas_conferidas.json`](tools/paginas_conferidas.json)). A rodada guarda
 a leitura em `paginas.json`, no ramo `dados`.
 
-Se passagem, guia da passagem ou bike estão com as páginas iguais às conferidas, o
-`conferido` avança **só no `regras.json` publicado**, e o `detalhe` diz que foi uma
-comparação automática. Se a página mudou, a data para e o vigia abre uma issue com
+Se as páginas da regra de bike estão iguais às conferidas, o `conferido` avança
+**só no `regras.json` publicado**, e o `detalhe` diz que foi uma comparação
+automática. Passagem e guia da passagem ficam de fora: também dependem de páginas
+das linhas, notícias, OpenStreetMap e Ceará Digital, que essa comparação não vê, e
+continuam com a conferência à mão (o vigia lembra quando vence). Se a página mudou, a data para e o vigia abre uma issue com
 a diferença. Depois de ler a página e acertar o `regras.json`:
 
 ```bash
