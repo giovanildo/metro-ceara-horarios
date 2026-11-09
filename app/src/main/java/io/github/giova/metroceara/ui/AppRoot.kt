@@ -90,7 +90,9 @@ import io.github.giova.metroceara.data.Place
 import io.github.giova.metroceara.data.Places
 import io.github.giova.metroceara.data.ScheduleRepository
 import io.github.giova.metroceara.data.ScheduleStore
+import io.github.giova.metroceara.data.ItineraryLeg
 import io.github.giova.metroceara.data.isSundayWithoutService
+import io.github.giova.metroceara.data.seatedSearchFrom
 import io.github.giova.metroceara.data.Station
 import io.github.giova.metroceara.data.nearestBikeTo
 import io.github.giova.metroceara.data.SettingsStore
@@ -434,11 +436,14 @@ fun AppRoot() {
         }
     }
 
-    fun startTrip(routeId: String, direction: Direction, origin: Stop, destination: Stop, placeName: String? = null) {
+    fun startTrip(routeId: String, direction: Direction, origin: Stop, destination: Stop, chosen: ItineraryLeg, placeName: String?) {
         val route = repo.route(routeId) ?: return
-        val from = nowMinutes() - settings.lateBoardingMinutes
-        val direct = repo.nextTrip(origin.id, routeId, direction.id, from)
-            ?.let { (_, times) -> leg(routeId, direction.id, origin.id, destination.id, times) }
+        val earliest = nowMinutes() - settings.lateBoardingMinutes
+        val next = repo.nextTrip(origin.id, routeId, direction.id, earliest)?.second
+        // O metrô que a pessoa escolheu; se já passou (tela aberta há tempo), o próximo.
+        val times = if (chosen.departure >= earliest) repo.tripTimes(chosen.tripId, routeId) else next
+        val direct = times
+            ?.let { leg(routeId, direction.id, origin.id, destination.id, it) }
             ?.takeIf { it.size >= 2 }
             ?.let { TripPlan(routeId, route.name, direction.headsign, it, settings.alertStationsBefore, placeName = placeName) }
         if (direct == null) {
@@ -449,7 +454,9 @@ fun AppRoot() {
         // "Sentado pelo terminal": se o terminal do outro sentido está perto,
         // vai até ele e volta no mesmo trem, que lá esvazia. Em qualquer horário
         // (até a 1.78 era só no pico, e em 04/11 ele quis às 15h e não teve a
-        // opção); "Direto" vem primeiro na escolha.
+        // opção); "Direto" vem primeiro na escolha. Ele não é o metrô escolhido (sai
+        // no outro sentido): num horário mais à frente, parte dali em diante.
+        val from = seatedSearchFrom(earliest, next?.get(origin.id), chosen.departure)
         val seated = run {
             if (settings.seatedMaxStations <= 0) return@run null
             val back = repo.directions(routeId).firstOrNull { it.id != direction.id } ?: return@run null
@@ -887,7 +894,7 @@ fun AppRoot() {
         val direction = single?.let { leg -> repo.directions(leg.routeId).firstOrNull { it.id == leg.directionId } }
         val destination = single?.let { repo.stop(it.toStop) }
         if (single != null && direction != null && destination != null) {
-            startTrip(single.routeId, direction, Stop(origin.stopId, origin.stopName, seq = 0), destination, placeName)
+            startTrip(single.routeId, direction, Stop(origin.stopId, origin.stopName, seq = 0), destination, single, placeName)
             return
         }
         val plan = JourneyPlanner.plan(repo, view.itinerary, settings, simulated = false)?.copy(placeName = placeName)

@@ -63,6 +63,14 @@ data class TripJourney(
 }
 
 /**
+ * A partir de que hora procurar o "sentado pelo terminal". Com o próximo metrô
+ * ([chosen] nulo ou até [next]), desde [earliest], como sempre; com um horário
+ * mais à frente, desde ele: a pessoa só chega à estação para aquele metrô.
+ */
+fun seatedSearchFrom(earliest: Int, next: Int?, chosen: Int?): Int =
+    if (chosen == null || next == null || chosen <= next) earliest else chosen
+
+/**
  * O que a pessoa escolheu: uma viagem de [stops].first() até [stops].last(),
  * na linha [routeName] rumo a [headsign].
  */
