@@ -1221,6 +1221,39 @@ O script também normaliza a capitalização, porque o feed vem todo em Title Ca
 
 ## Mantendo os dados atualizados
 
+### Vigia dos dados
+
+A rodada de dados foi feita para não quebrar: se uma fonte falha, fica o dado
+anterior e o app segue. O preço é que a falha não aparece. Por isso, uma vez por
+dia, a tarefa [`vigia.yml`](.github/workflows/vigia.yml) roda o
+[`tools/vigia.py`](tools/vigia.py), que confere o que foi publicado no ramo
+`dados` e abre uma issue com o rótulo `vigia`, atribuída ao dono do repositório,
+só no que precisa de gente:
+
+| Alerta | Quando dispara |
+|---|---|
+| Grade parada | mais de 24 h sem grade válida |
+| Fonte sem leitura | notícias, operações e regras de bike há 3 dias; Bicicletar há 7 |
+| Silêncio nas notícias | mais de 60 dias sem notícia nova (o site pode ter mudado) |
+| Notícia não entendida | título de operação especial, nos últimos 10 dias, sem data que o leitor consiga tirar |
+| Estação ou linha | estação do feed fora do `regras.json` ou com outro nome; linha sem cor |
+
+Uma falha isolada não vira alerta: o site do Metrofor às vezes não responde e
+volta na rodada seguinte. Por isso os limites olham a última leitura **boa** de
+cada fonte, que o `build_web_data.py` grava em `indice.json` (`saude`).
+
+Quando o problema some, a issue fecha sozinha. Para calar um alerta de estação,
+linha ou notícia que não é problema, feche a issue como **não planejado**. Os da
+grade e das fontes não se calam assim: voltam no dia seguinte se continuar errado.
+
+```bash
+python3 tools/vigia.py            # só mostra o que encontrou
+python3 tools/vigia.py /tmp/d     # usa uma pasta gerada pelo build_web_data.py
+python3 tools/vigia.py --issues   # abre e fecha as issues (precisa do gh)
+```
+
+### Conferência local
+
 `tools/check_updates.py` compara as fontes com o último estado conhecido e diz
 o que mudou:
 
@@ -1342,6 +1375,7 @@ tools/build_web_data.py              espelho: grade do dia, Bicicletar e regras.
 tools/datas_especiais.py             regra de bike de dias especiais, das notícias do Metrofor
 tools/operacoes.py                   dias de operação especial e linhas paradas, das notícias
 tools/fontes.py                      fontes do regras.json e quais estão com a conferência vencida
+tools/vigia.py                       confere os dados publicados e abre issue quando algo para
 tools/site.py                        site: páginas das estações e linhas, mapas e sitemap em docs/
 tools/site_previa.py                 prévia de link do site (docs/img/previa.png) com o mapa
 tools/site_fotos.py                  fotos das estações do Wikimedia Commons (docs/img/estacoes/)
