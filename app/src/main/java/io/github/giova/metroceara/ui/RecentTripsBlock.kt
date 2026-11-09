@@ -56,7 +56,17 @@ data class StationTrip(
     val times: Pair<Int, Int>?,
     /** Sai da estação do cartão. Sem estação conhecida, a linha diz de onde sai. */
     val fromStation: Boolean,
-)
+    /** O sentido do metrô a pegar na estação do cartão; `null` se sai de outra linha ou não há metrô. */
+    val directionId: Int? = null,
+) {
+    /** Termina na estação de descida, sem integração nem trecho a pé. */
+    val direct: Boolean get() = row.lines.size == 1 && !row.walk
+}
+
+/** Fundo e texto da viagem da pessoa: cor própria, fora do tema e do papel de parede. */
+@Composable
+internal fun tripColors(): Pair<Color, Color> =
+    if (LocalDarkTheme.current) Color(0xFF1E4A40) to Color(0xFFBCEBDD) else Color(0xFFCDEDE3) to Color(0xFF0B3B30)
 
 /**
  * No cartão da estação aberta: para onde a pessoa costuma ir dali, com o metrô a
@@ -65,11 +75,10 @@ data class StationTrip(
  */
 @Composable
 fun StationTrips(trips: List<StationTrip>, onOpen: (RecentTrip) -> Unit, onOther: () -> Unit) {
-    val dark = LocalDarkTheme.current
-    val content = if (dark) Color(0xFFBCEBDD) else Color(0xFF0B3B30)
+    val (background, content) = tripColors()
     Surface(
         shape = RoundedCornerShape(12.dp),
-        color = if (dark) Color(0xFF1E4A40) else Color(0xFFCDEDE3),
+        color = background,
         contentColor = content,
         modifier = Modifier.fillMaxWidth(),
     ) {

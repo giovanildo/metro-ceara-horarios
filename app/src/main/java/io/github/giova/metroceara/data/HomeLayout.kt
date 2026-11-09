@@ -37,6 +37,22 @@ enum class HomeBlock(val key: String) {
     val inRoutes: Boolean get() = this == SEARCH || this == LINES
 }
 
+/** O jeito de mostrar os horários na estação aberta. Cada pessoa entende melhor um. */
+enum class HomeStyle(val key: String) {
+    RAIL("trilho"),
+    TRIP_FIRST("viagem"),
+    SIDES("lados"),
+    ASK_FIRST("pergunta"),
+    PHRASES("frases"),
+    CLASSIC("classico"),
+    ;
+
+    companion object {
+        val DEFAULT = RAIL
+        fun of(key: String?): HomeStyle = entries.firstOrNull { it.key == key } ?: DEFAULT
+    }
+}
+
 /**
  * A tela inicial de cada pessoa: a ordem dos blocos, os escondidos e os ajustes
  * de "Ajustar para mim". Fica só no aparelho.
@@ -50,6 +66,8 @@ data class HomeLayout(
     val halfFare: Boolean = false,
     /** Preciso de elevador ou rampa: acessibilidade da estação no cartão. */
     val access: Boolean = false,
+    /** Como os horários aparecem na estação aberta (Personalizar a tela inicial). */
+    val style: HomeStyle = HomeStyle.DEFAULT,
 ) {
     /** O bloco aparece na tela inicial. */
     fun shows(block: HomeBlock): Boolean = when {
@@ -126,6 +144,7 @@ object HomeLayoutStore {
             putBoolean("bike", layout.bike)
             putBoolean("half_fare", layout.halfFare)
             putBoolean("access", layout.access)
+            putString("style", layout.style.key)
         }
         state.value = layout
     }
@@ -156,6 +175,7 @@ object HomeLayoutStore {
             bike = p.getBoolean("bike", false),
             halfFare = p.getBoolean("half_fare", false),
             access = p.getBoolean("access", false),
+            style = HomeStyle.of(p.getString("style", null)),
         )
     }
 

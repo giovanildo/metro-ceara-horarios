@@ -1,5 +1,14 @@
 package io.github.giova.metroceara.ui
 
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.RadioButton
+import androidx.compose.ui.semantics.Role
+import io.github.giova.metroceara.data.Departure
+import io.github.giova.metroceara.data.HomeStyle
+import io.github.giova.metroceara.data.RecentTrip
+import io.github.giova.metroceara.data.Station
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -381,4 +390,104 @@ private fun OrderRow(
         }
     }
     HorizontalDivider()
+}
+
+private val HomeStyle.title: Int get() = when (this) {
+    HomeStyle.RAIL -> R.string.style_rail
+    HomeStyle.TRIP_FIRST -> R.string.style_trip
+    HomeStyle.SIDES -> R.string.style_sides
+    HomeStyle.ASK_FIRST -> R.string.style_ask
+    HomeStyle.PHRASES -> R.string.style_phrases
+    HomeStyle.CLASSIC -> R.string.style_classic
+}
+
+private val HomeStyle.description: Int get() = when (this) {
+    HomeStyle.RAIL -> R.string.style_rail_desc
+    HomeStyle.TRIP_FIRST -> R.string.style_trip_desc
+    HomeStyle.SIDES -> R.string.style_sides_desc
+    HomeStyle.ASK_FIRST -> R.string.style_ask_desc
+    HomeStyle.PHRASES -> R.string.style_phrases_desc
+    HomeStyle.CLASSIC -> R.string.style_classic_desc
+}
+
+/** "Personalizar a tela inicial": a prévia em cima, com um exemplo, e os jeitos embaixo. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeStyleScreen(layout: HomeLayout, onChange: (HomeLayout) -> Unit, onBack: () -> Unit) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.menu_style)) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+                    }
+                },
+            )
+        },
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.style_intro),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 12.dp),
+            )
+            Text(stringResource(R.string.style_preview), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+            StylePreview(layout.style, Modifier.padding(top = 6.dp, bottom = 12.dp))
+            HomeStyle.entries.forEach { style ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .selectable(selected = style == layout.style, role = Role.RadioButton) { onChange(layout.copy(style = style)) }
+                        .padding(vertical = 10.dp),
+                ) {
+                    RadioButton(selected = style == layout.style, onClick = null, modifier = Modifier.padding(end = 12.dp))
+                    Column {
+                        Text(stringResource(style.title), style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            text = stringResource(style.description),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                HorizontalDivider()
+            }
+        }
+    }
+}
+
+/** Um exemplo fixo, para ver o jeito mesmo sem localização ou sem viagem guardada. */
+@Composable
+private fun StylePreview(style: HomeStyle, modifier: Modifier = Modifier) {
+    val now = 480
+    val station = Station(stopId = "exemplo", stopName = "Benfica", routeId = "exemplo", routeName = "Linha Sul", routeColor = "CE0F2E", lat = 0.0, lon = 0.0)
+    val trip = StationTrip(
+        row = RecentRow(RecentTrip("exemplo", "exemplo", "fim", "exemplo"), "Benfica → Parangaba", "Parangaba", listOf("Linha Sul" to "CE0F2E"), walk = false),
+        times = (now + 5) to (now + 13),
+        fromStation = true,
+        directionId = 0,
+    )
+    val departures = listOf(
+        HomeDeparture("Carlito Benevides", 0, Departure(now + 5, tomorrow = false), via = "Padre Cícero"),
+        HomeDeparture("Chico da Silva", 1, Departure(now + 4, tomorrow = false), via = "São Benedito"),
+    )
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Text(station.stopName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(station.routeName, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(bottom = 8.dp))
+            StyledDepartures(StationStyle(style = style, trips = listOf(trip)), station, stringResource(R.string.station_here), departures, now)
+        }
+    }
 }

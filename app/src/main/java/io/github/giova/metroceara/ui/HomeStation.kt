@@ -14,6 +14,8 @@ data class HomeDeparture(
     val dayEnd: DayEnd? = null,
     /** `false`: o Metrofor não publicou hoje os horários deste sentido. */
     val published: Boolean = true,
+    /** A próxima estação do sentido, de referência; `null` se a próxima já é o terminal. */
+    val via: String? = null,
 )
 
 /**

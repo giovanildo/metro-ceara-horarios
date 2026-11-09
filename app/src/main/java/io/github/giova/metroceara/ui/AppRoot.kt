@@ -105,6 +105,7 @@ import io.github.giova.metroceara.data.CommuteStore
 import io.github.giova.metroceara.data.commuteDestination
 import io.github.giova.metroceara.data.pickCommute
 import io.github.giova.metroceara.data.suggestionsFrom
+import io.github.giova.metroceara.data.viaStation
 import io.github.giova.metroceara.data.vehicleName
 import io.github.giova.metroceara.data.HomeBlock
 import io.github.giova.metroceara.data.HomeLayout
@@ -217,6 +218,7 @@ fun AppRoot() {
     var accessOpen by rememberSaveable { mutableStateOf(false) }
     // "Ajustar para mim" e "Ordem da tela inicial".
     var adjustOpen by rememberSaveable { mutableStateOf(false) }
+    var styleOpen by rememberSaveable { mutableStateOf(false) }
     var orderOpen by rememberSaveable { mutableStateOf(false) }
     // Aba da barra de baixo (Início, Rotas, Linhas): volta a ela depois de abrir uma linha.
     var homeTab by rememberSaveable { mutableStateOf(HomeTab.HOME) }
@@ -514,6 +516,7 @@ fun AppRoot() {
             sourcesOpen = false
             accessOpen = false
             adjustOpen = false
+            styleOpen = false
             orderOpen = false
             routeId = route
             stopId = stop
@@ -540,6 +543,7 @@ fun AppRoot() {
             sourcesOpen = false
             accessOpen = false
             adjustOpen = false
+            styleOpen = false
             orderOpen = false
             journeyOpen = true
             JourneyRequest.value = null
@@ -846,10 +850,15 @@ fun AppRoot() {
         }.mapNotNull(::recentRow)
     }
 
-    // Saída e chegada de quem sai agora; sem metrô hoje, nada.
-    fun recentTimesOf(t: RecentTrip): Pair<Int, Int>? {
+    // O roteiro de quem sai agora; sem metrô hoje, nada.
+    fun recentPlanOf(t: RecentTrip): Itinerary? {
         val origin = repo.station(t.originStop, t.originRoute) ?: return null
-        val plan = planJourney(origin, RoutePoint(t.destRoute, t.destStop), null).options.firstOrNull()?.itinerary ?: return null
+        return planJourney(origin, RoutePoint(t.destRoute, t.destStop), null).options.firstOrNull()?.itinerary
+    }
+
+    // Saída e chegada de quem sai agora.
+    fun recentTimesOf(t: RecentTrip, known: Itinerary? = recentPlanOf(t)): Pair<Int, Int>? {
+        val plan = known ?: return null
         val walk = t.landmark?.let { name -> Regras.current.landmarks.firstOrNull { it.name == name } }
             ?.let(::landmarkWalkMinutes) ?: 0
         return plan.departure to plan.arrival + walk
@@ -871,7 +880,17 @@ fun AppRoot() {
             if (repo.station(last.originStop, last.originRoute) == null || repo.station(last.destStop, last.destRoute) == null) return@withContext null
             val links = repo.transferLinks()
             last.suggestionsFrom(openStationNow?.stopId, openStationNow?.routeId, links) { id -> repo.stop(id)?.name?.let(JourneyPlanner::plainName) }
-                .mapNotNull { trip -> recentRow(trip)?.let { StationTrip(it, recentTimesOf(trip), fromStation = openStationNow != null) } }
+                .mapNotNull { trip ->
+                    recentRow(trip)?.let { row ->
+                        val plan = recentPlanOf(trip)
+                        StationTrip(
+                            row = row,
+                            times = recentTimesOf(trip, plan),
+                            fromStation = openStationNow != null,
+                            directionId = plan?.legs?.firstOrNull()?.takeIf { it.routeId == trip.originRoute }?.directionId,
+                        )
+                    }
+                }
                 .takeIf { it.isNotEmpty() }
         }
     }
@@ -962,12 +981,14 @@ fun AppRoot() {
                 count = 1,
                 tomorrow = repo.departuresTomorrow(station.stopId, station.routeId, direction.id),
             ).firstOrNull()
+            val stops = repo.stops(station.routeId, direction.id)
             HomeDeparture(
                 headsign = direction.headsign,
                 directionId = direction.id,
                 departure = departure,
                 dayEnd = if (departure == null) repo.dayEnd(station.stopId, station.routeId, direction.id) else null,
                 published = direction.published,
+                via = viaStation(stops.drop(stops.indexOfFirst { it.id == station.stopId } + 1).map { JourneyPlanner.plainName(it.name) }),
             )
         }
 
@@ -1110,6 +1131,7 @@ fun AppRoot() {
                     access = layout.access,
                     onOpenFareGuide = { fareGuideOpen = true },
                     mondayReturn = { repo.mondayReturn(it.stopId, it.routeId) },
+                    hereMeters = settings.tripMaxMeters,
                 )
                 // Como os cartões da viagem: uma estação aberta (no começo, a mais perto)
                 // e as outras compactas; tocar numa compacta abre ela.
@@ -1130,13 +1152,25 @@ fun AppRoot() {
                         )
                     }
                 }
+                val styled = StationStyle(
+                    style = layout.style,
+                    trips = trips.orEmpty(),
+                    onOpen = ::openRecent,
+                    onOther = { station ->
+                        journeyFrom = station
+                        journeyDest = null
+                        journeyLandmark = null
+                        journeyOpen = true
+                    },
+                )
                 HomeStationCard(
+                    styled = styled,
                     state = homeState,
                     departures = homeDepartures,
                     now = now,
                     compact = expandedKey != null,
                     onExpand = { expandedStation = null },
-                    footer = tripFooter.takeIf { expandedKey == null },
+                    footer = tripFooter.takeIf { homeState.station == null },
                     onUseLocation = {
                         if (locationSource.hasPermission()) {
                             scope.launch { locate("tap") }
@@ -1158,7 +1192,7 @@ fun AppRoot() {
                         showRefresh = false,
                         compact = expandedKey != station.stopId + station.routeId,
                         onExpand = { expandedStation = station.stopId + station.routeId },
-                        footer = tripFooter.takeIf { expandedKey == station.stopId + station.routeId },
+                        styled = styled,
                         // A passagem é por linha: na mesma linha do primeiro cartão, não repete.
                         extras = extras.copy(halfFare = extras.halfFare && station.routeName != homeState.station?.routeName),
                     )
@@ -1261,6 +1295,15 @@ fun AppRoot() {
                 onChange = { HomeLayoutStore.save(context, it) },
                 onBack = { orderOpen = false },
                 preview = { layout -> HomePreviewContent(layout) },
+            )
+        }
+
+        styleOpen -> {
+            BackHandler { styleOpen = false }
+            HomeStyleScreen(
+                layout = homeLayout,
+                onChange = { HomeLayoutStore.save(context, it) },
+                onBack = { styleOpen = false },
             )
         }
 
@@ -1527,6 +1570,7 @@ fun AppRoot() {
                 onRoutines = { routinesOpen = true },
                 onCommute = { commuteOpen = true },
                 onAdjust = { adjustOpen = true },
+                onStyle = { styleOpen = true },
                 onOrder = { orderOpen = true },
                 onSettings = { showSettings = true },
                 onSources = { sourcesOpen = true },

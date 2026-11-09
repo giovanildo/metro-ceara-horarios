@@ -62,8 +62,10 @@ fun HomeStationCard(
     /** Compacto: só nome, linha e distância; tocar abre ([onExpand]). */
     compact: Boolean = false,
     onExpand: () -> Unit = {},
-    /** Debaixo dos horários, a última viagem a partir desta estação. */
+    /** Sem estação conhecida, debaixo do convite: a última viagem. */
     footer: (@Composable () -> Unit)? = null,
+    /** O jeito de mostrar os horários e a viagem da pessoa na estação aberta. */
+    styled: StationStyle = StationStyle(),
 ) {
     Card(
         colors = CardDefaults.cardColors(
@@ -103,6 +105,8 @@ fun HomeStationCard(
                 onClick = { if (compact) onExpand() else onOpenStation(state.station) },
                 extras = extras,
                 compact = compact,
+                styled = styled,
+                hereLabel = stringResource(R.string.station_here).takeIf { state.distanceMeters <= extras.hereMeters },
             )
 
             is HomeStation.Pinned -> StationSummary(
@@ -115,6 +119,7 @@ fun HomeStationCard(
                 onClick = { if (compact) onExpand() else onOpenStation(state.station) },
                 extras = extras,
                 compact = compact,
+                styled = styled,
             )
 
             is HomeStation.Unavailable -> Invitation(
@@ -155,6 +160,9 @@ private fun StationSummary(
     onClick: () -> Unit,
     extras: HomeCardExtras,
     compact: Boolean = false,
+    styled: StationStyle = StationStyle(),
+    /** "Você está aqui" no trilho, só de quem está perto; senão, o nome da estação. */
+    hereLabel: String? = null,
 ) {
     if (compact) {
         CompactSummary(station, subtitle, icon, onRefresh, onClick)
@@ -217,57 +225,14 @@ private fun StationSummary(
             if (stopped) {
                 SundayNotice(modifier = Modifier.padding(bottom = 6.dp), text = stringResource(R.string.line_stopped_today))
             }
-            if (!sundayOff) departures.forEach { item ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Bottom,
-                ) {
-                    Row(
-                        modifier = Modifier.weight(1f, fill = false).padding(end = 8.dp),
-                        verticalAlignment = Alignment.Bottom,
-                    ) {
-                        DirectionTurn(
-                            toLeft = item.directionId == 0,
-                            color = routeColor(station.routeColor),
-                            modifier = Modifier.padding(end = 10.dp, bottom = 2.dp),
-                            width = 40.dp,
-                        )
-                        DirectionLabel(headsign = item.headsign)
-                    }
-                    // O tempo que falta é o que a pessoa procura: ele vem grande, a hora embaixo.
-                    val departure = item.departure
-                    if (departure != null) {
-                        Column(horizontalAlignment = Alignment.End) {
-                            Text(
-                                text = relativeLabel(minutesUntil(departure, now)),
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                            )
-                            Text(
-                                text = formatTime(departure.minutes),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    } else {
-                        Text(
-                            text = stringResource(
-                                if (item.published) R.string.home_no_departures else R.string.home_unpublished,
-                            ),
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Medium,
-                        )
-                    }
-                }
-                item.dayEnd?.let { dayEndText(it) }?.let {
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
+            StyledDepartures(
+                styled = styled,
+                station = station,
+                hereLabel = hereLabel ?: station.stopName,
+                // Domingo sem operação: nenhum horário, só a viagem, sem previsão.
+                departures = if (sundayOff) emptyList() else departures,
+                now = now,
+            )
             // No domingo há só operação especial: com ela anunciada mas sem regra de bike,
             // o aviso diz que não se sabe; sem operação anunciada, já há o aviso de domingo
             // (a grade de domingo comum vem igual à de dia útil). Sem mais partidas hoje,
@@ -372,6 +337,8 @@ data class HomeCardExtras(
     val onOpenFareGuide: () -> Unit = {},
     /** Como a linha volta na segunda, para o aviso de domingo. */
     val mondayReturn: (Station) -> MondayReturn = { MondayReturn.Unknown },
+    /** Até esta distância, o trilho diz "Você está aqui". */
+    val hereMeters: Int = 0,
 )
 
 private fun formatDistance(meters: Double): String =
