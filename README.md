@@ -1237,20 +1237,44 @@ só no que precisa de gente:
 | Silêncio nas notícias | mais de 60 dias sem notícia nova (o site pode ter mudado) |
 | Notícia não entendida | título de operação especial, nos últimos 10 dias, sem data que o leitor consiga tirar |
 | Estação ou linha | estação do feed fora do `regras.json` ou com outro nome; linha sem cor |
+| Página oficial | tarifas, gratuidades, meia, bike ou Cariri diferente da versão conferida, ou sem leitura há 7 dias |
+| Notícia sobre regra | título sobre passagem, gratuidade, bike, linha nova ou Nina, nos últimos 10 dias |
+| Conferência vencendo | fonte do `regras.json` que vence neste mês ou no próximo |
 
 Uma falha isolada não vira alerta: o site do Metrofor às vezes não responde e
 volta na rodada seguinte. Por isso os limites olham a última leitura **boa** de
 cada fonte, que o `build_web_data.py` grava em `indice.json` (`saude`).
 
-Quando o problema some, a issue fecha sozinha. Para calar um alerta de estação,
-linha ou notícia que não é problema, feche a issue como **não planejado**. Os da
-grade e das fontes não se calam assim: voltam no dia seguinte se continuar errado.
+Quando o problema some, a issue fecha sozinha. Notícia é aviso único: a issue fica
+aberta até alguém fechar e não volta depois. Para calar um alerta de estação ou
+linha que não é problema, feche a issue como **não planejado**. Os outros não se
+calam assim: voltam no dia seguinte se continuar errado.
 
 ```bash
 python3 tools/vigia.py            # só mostra o que encontrou
 python3 tools/vigia.py /tmp/d     # usa uma pasta gerada pelo build_web_data.py
 python3 tools/vigia.py --issues   # abre e fecha as issues (precisa do gh)
 ```
+
+### Páginas oficiais conferidas
+
+[`tools/paginas.py`](tools/paginas.py) compara, uma vez por dia, as páginas em que
+as regras se apoiam com a última versão que alguém leu
+([`tools/paginas_conferidas.json`](tools/paginas_conferidas.json)). A rodada guarda
+a leitura em `paginas.json`, no ramo `dados`.
+
+Se passagem, guia da passagem ou bike estão com as páginas iguais às conferidas, o
+`conferido` avança **só no `regras.json` publicado**, e o `detalhe` diz que foi uma
+comparação automática. Se a página mudou, a data para e o vigia abre uma issue com
+a diferença. Depois de ler a página e acertar o `regras.json`:
+
+```bash
+python3 tools/paginas.py                     # compara o site com o conferido
+python3 tools/paginas.py --aceitar tarifas   # esta página foi lida e o app está certo
+```
+
+O site do governo não envia o certificado intermediário: ele fica em
+`tools/certificados/` (vale até 2030), e a verificação continua ligada.
 
 ### Conferência local
 
@@ -1376,6 +1400,7 @@ tools/datas_especiais.py             regra de bike de dias especiais, das notíc
 tools/operacoes.py                   dias de operação especial e linhas paradas, das notícias
 tools/fontes.py                      fontes do regras.json e quais estão com a conferência vencida
 tools/vigia.py                       confere os dados publicados e abre issue quando algo para
+tools/paginas.py                     páginas oficiais das regras, comparadas com a versão conferida
 tools/site.py                        site: páginas das estações e linhas, mapas e sitemap em docs/
 tools/site_previa.py                 prévia de link do site (docs/img/previa.png) com o mapa
 tools/site_fotos.py                  fotos das estações do Wikimedia Commons (docs/img/estacoes/)
