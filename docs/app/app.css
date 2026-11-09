@@ -198,6 +198,7 @@ select, input[type=number] {
   padding: 7px 12px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
 .chip.sel { background: var(--destaque); border-color: var(--destaque); font-weight: 600; }
 .chip input[type="time"] { font: inherit; color: inherit; background: none; border: 0; padding: 0; }
+.previsao { font-size: .9rem; padding: 10px 12px; margin: 0 0 12px; }
 .viagem-campos label.campo { display: flex; flex-direction: column; gap: 4px; margin: 10px 0; }
 .viagem-campos select, .viagem-campos input { width: 100%; }
 /* Casa e Trabalho: atalhos debaixo de "Para onde você vai?" */

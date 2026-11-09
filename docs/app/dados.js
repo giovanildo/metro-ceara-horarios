@@ -75,7 +75,7 @@ async function carregarGrade(indice, tipo, prever = false) {
 }
 
 /** Dia com operação especial anunciada que muda o horário ("normal": a notícia diz que não muda). */
-function diaEspecial(regras, data) {
+export function diaEspecial(regras, data) {
   const op = regras?.operacoes?.[data];
   return !!op && !op.normal;
 }

@@ -1,6 +1,6 @@
 import {
   agora, bikeAgora, carregar, dataCurta, distancia, falta, hora, infoEstacao, janelasBike, metros, minutosAte, passagem,
-  linhaParada, passagemDaLinha, fonteLinha, proximas, somarDias, veiculo,
+  diaEspecial, linhaParada, passagemDaLinha, fonteLinha, proximas, somarDias, veiculo,
 } from "./dados.js";
 import { PERFIS, Roteador } from "./roteiro.js";
 import { destinoIdaVolta, deveInverterRecente, escolherMetro } from "./idavolta.js";
@@ -1050,6 +1050,47 @@ function diaDaViagem(t) {
   return { domingo, grade, data, diaSemana: domingo ? 1 : t.diaSemana, evitar };
 }
 
+const AMANHA_HORA_INICIAL = 7 * 60; // de noite, a hora atual não ajudaria
+const DIAS_CURTOS = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
+
+/**
+ * O que o roteiro pode mostrar de amanhã: situacao "previsao" (com grade, data e
+ * linhas paradas, como diaDaViagem), "especial", "domingo" ou "desconhecido".
+ */
+function diaDeAmanha(t) {
+  const { regras } = estado.dados;
+  const data = somarDias(t.data, 1);
+  const diaSemana = (t.diaSemana + 1) % 7;
+  if (diaEspecial(regras, data)) return { situacao: "especial", data };
+  if (diaSemana === 0 && !regras?.operacoes?.[data]) return { situacao: "domingo", data };
+  // Num domingo anunciado com horário normal, a grade guardada é a de segunda: não serve.
+  const grade = diaSemana === 0 ? null : estado.proximo;
+  if (!grade) return { situacao: "desconhecido", data };
+  const evitar = new Set(grade.linhas.filter((l) => linhaParada(regras, data, l.nome)).map((l) => l.id));
+  return { situacao: "previsao", amanha: true, domingo: false, grade, data, diaSemana, evitar };
+}
+
+/** "Amanhã, ter 10/11". */
+function rotuloAmanha(t) {
+  const [, m, d] = somarDias(t.data, 1).split("-");
+  return `Amanhã, ${DIAS_CURTOS[(t.diaSemana + 1) % 7]} ${d}/${m}`;
+}
+
+/** No lugar dos horários, quando amanhã não há o que prever. */
+function avisoAmanha(dia, lo, eo) {
+  if (dia.situacao === "especial") {
+    const link = estado.dados.regras?.operacoes?.[dia.data]?.link;
+    return `<div class="aviso"><strong>Amanhã o horário é especial.</strong> Ele só sai depois da meia-noite.${
+      /^https:\/\//.test(link || "") ? ` <a href="${esc(link)}" target="_blank" rel="noopener">Ver o aviso do Metrofor ›</a>` : ""}</div>`;
+  }
+  if (dia.situacao === "domingo") {
+    const primeiro = primeiroDeSegunda(lo, eo);
+    return `<div class="aviso"><strong>Domingo não tem metrô nem VLT.</strong> ${primeiro !== undefined
+      ? `Voltam segunda, a partir das ${hora(primeiro)}.` : "Só há operação aos domingos quando o Metrofor anuncia."}</div>`;
+  }
+  return `<div class="aviso"><strong>Ainda não temos os horários de amanhã.</strong> Eles saem depois da meia-noite.</div>`;
+}
+
 /**
  * "Para onde você vai?": de onde (a estação mais perto, já escolhida), para onde
  * (busca sem acento, as estações por linha) e o roteiro, na mesma linha ou com
@@ -1108,6 +1149,8 @@ function telaViagem(linhaId, estId) {
       mostrarResultado();
     }));
     resultado.querySelector("#v-agora")?.addEventListener("click", () => { v.hora = null; v.escolhido = 0; mostrarResultado(); });
+    resultado.querySelector("#v-hoje")?.addEventListener("click", () => { v.amanha = false; v.hora = null; v.escolhido = 0; mostrarResultado(); });
+    resultado.querySelector("#v-amanha")?.addEventListener("click", () => { v.amanha = true; v.hora ??= AMANHA_HORA_INICIAL; v.escolhido = 0; mostrarResultado(); });
     // O destino vira a partida, e a partida o destino.
     resultado.querySelector("#v-inverter")?.addEventListener("click", () => {
       const [ld, ed] = v.destino.split("|");
@@ -1259,31 +1302,38 @@ function notaLugar(nome, eo) {
 /** O roteiro escolhido: horário (agora ou escolhido), o cartão, os outros horários e o lembrete. */
 function resultadoViagem(lo, eo, v, t) {
   const { regras } = estado.dados;
+  const amanha = v.amanha ? diaDeAmanha(t) : null;
+  const escolhaDia = `<div class="chips">
+    <button class="chip ${v.amanha ? "" : "sel"}" id="v-hoje">Hoje</button>
+    <button class="chip ${v.amanha ? "sel" : ""}" id="v-amanha">${rotuloAmanha(t)}</button></div>`;
+  if (amanha && amanha.situacao !== "previsao") return escolhaDia + avisoAmanha(amanha, lo, eo);
   // Domingo sem metrô: nenhum roteiro, só o aviso de quando volta.
-  if (domingoSemOperacao(t)) return avisoDomingo(t, primeiroDeSegunda(lo, eo));
-  const dia = diaDaViagem(t);
+  if (!amanha && domingoSemOperacao(t)) return escolhaDia + avisoDomingo(t, primeiroDeSegunda(lo, eo));
+  const dia = amanha || diaDaViagem(t);
   if (!dia) {
-    return estado.dados.proximoEspecial
+    return escolhaDia + (estado.dados.proximoEspecial
       ? `<p class="vazio">Segunda o horário é especial e só sai depois da meia-noite.</p>`
-      : `<p class="vazio">Carregando os horários de segunda…</p>`;
+      : `<p class="vazio">Carregando os horários de segunda…</p>`);
   }
   const { grade } = dia;
   const [ld, ed] = v.destino.split("|");
   const perfil = perfilGuardado();
   const r = new Roteador(grade, regras, perfil);
-  const apos = v.hora ?? t.minutos - 2;
+  const horaEscolhida = v.amanha ? v.hora ?? AMANHA_HORA_INICIAL : v.hora;
+  const apos = horaEscolhida ?? t.minutos - 2;
   const opcoes = r.planejar({ linha: lo, est: eo }, { linha: ld, est: ed }, apos, 4, dia.evitar);
   const lugar = v.lugar ? buscarLugares(regras, v.lugar, 50).find((x) => x.nome === v.lugar) : null;
   const ape = lugar ? { nome: lugar.nome, metros: lugar.a_pe_m, min: minutosAPe(lugar, fatorPerfil()), aoLado: aoLado(lugar) } : null;
   const nomeDestino = lugar?.nome || semSufixo(grade.nome(ed));
-  const horaValor = v.hora != null ? hora(v.hora) : "";
-  let html = `<div class="chips">
-    <button class="chip ${v.hora == null ? "sel" : ""}" id="v-agora">Sair agora</button>
-    <label class="chip ${v.hora != null ? "sel" : ""}">${v.hora != null ? "Sair às" : "Escolher horário"}
+  const horaValor = horaEscolhida != null ? hora(horaEscolhida) : "";
+  let html = `${escolhaDia}<div class="chips">
+    ${v.amanha ? "" : `<button class="chip ${horaEscolhida == null ? "sel" : ""}" id="v-agora">Sair agora</button>`}
+    <label class="chip ${horaEscolhida != null ? "sel" : ""}">${horaEscolhida != null ? "Sair às" : "Escolher horário"}
       <input type="time" id="v-hora" value="${horaValor}"></label></div>`;
+  if (v.amanha) html += `<div class="cartao neutro previsao">📅 <strong>Previsão:</strong> horários de um dia comum. O Metrofor confirma depois da meia-noite.</div>`;
   if (!opcoes.length) {
     const ultimo = r.planejar({ linha: lo, est: eo }, { linha: ld, est: ed }, 0, 99, dia.evitar).map((o) => o.sai).sort((a, b) => b - a)[0];
-    const quando = "hoje";
+    const quando = v.amanha ? "amanhã" : "hoje";
     html += `<p class="vazio">${ultimo == null ? `Não há como chegar a ${esc(nomeDestino)} ${quando} saindo daqui.`
       : `Sem metrô ou VLT para ${esc(nomeDestino)} ${quando} depois das ${hora(ultimo)}.`}</p>`;
     return html;
@@ -1327,9 +1377,9 @@ function cartaoOpcao(o, k, aberto, proximo, grade, dia, perfil, ape, t) {
   if (aberto) {
     html += cartaoRoteiro(o, grade, dia, perfil, ape);
     // No lugar do modo viagem: o lembrete da partida, para quem ainda não saiu.
-    if (o.sai >= t.minutos) {
+    if (dia.amanha || o.sai >= t.minutos) {
       const p = o.pernas[0];
-      const dados = esc(JSON.stringify({ linha: p.linha, sentido: p.sentido.id, est: p.de, m: o.sai, amanha: false }));
+      const dados = esc(JSON.stringify({ linha: p.linha, sentido: p.sentido.id, est: p.de, m: o.sai, amanha: Boolean(dia.amanha) }));
       html += `<button class="botao secundario largo" id="v-lembrete" data-p="${dados}">⏰ Lembrete na agenda</button>`;
     }
   }
