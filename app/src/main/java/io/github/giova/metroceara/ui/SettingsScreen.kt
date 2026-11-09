@@ -252,11 +252,6 @@ fun SettingsScreen(
                 value = settings.walkToStationMeters, range = 1_000..10_000, step = 1_000, format = ::formatMeters,
             ) { onChange(settings.copy(walkToStationMeters = it)) }
             SettingSlider(
-                title = R.string.settings_recent_return,
-                description = R.string.settings_recent_return_desc,
-                value = settings.recentReturnHours, range = 1..8, step = 1, format = { "$it h" },
-            ) { onChange(settings.copy(recentReturnHours = it)) }
-            SettingSlider(
                 title = R.string.settings_gps_lost,
                 description = R.string.settings_gps_lost_desc,
                 value = settings.gpsLostSeconds, range = 30..300, step = 30, format = ::formatSeconds,

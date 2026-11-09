@@ -33,7 +33,6 @@ import io.github.giova.metroceara.data.Itinerary
 import io.github.giova.metroceara.data.Place
 import io.github.giova.metroceara.data.Station
 import io.github.giova.metroceara.data.formatTime
-import io.github.giova.metroceara.ui.theme.LocalDarkTheme
 import io.github.giova.metroceara.ui.theme.routeColor
 
 /** "Sua ida e volta" pronta para a tela. */
@@ -217,64 +216,6 @@ private fun CommuteOption(option: Itinerary, view: CommuteView, modifier: Modifi
                 style = MaterialTheme.typography.bodySmall,
                 color = if (late) MaterialTheme.colorScheme.error else Color.Unspecified,
             )
-        }
-    }
-}
-
-/**
- * Para quem não definiu Casa nem Trabalho: a viagem mais recente com o próximo
- * horário, ou o caminho de volta ([reversed]) quando a pessoa já foi. ⇄ inverte.
- */
-@Composable
-fun RecentTripCard(
-    row: RecentRow,
-    times: Pair<Int, Int>?,
-    reversed: Boolean,
-    now: Int,
-    onOpen: () -> Unit,
-    onFlip: () -> Unit,
-) {
-    // Cor própria, fora do tema e das cores do papel de parede, para não se confundir
-    // com os cartões das estações.
-    val dark = LocalDarkTheme.current
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = if (dark) Color(0xFF1E4A40) else Color(0xFFCDEDE3),
-            contentColor = if (dark) Color(0xFFBCEBDD) else Color(0xFF0B3B30),
-        ),
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onOpen),
-    ) {
-        Column(Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = "🕘 " + stringResource(if (reversed) R.string.commute_recent_back else R.string.commute_recent_title),
-                    style = MaterialTheme.typography.labelLarge,
-                    modifier = Modifier.weight(1f),
-                )
-                FlipPill(stringResource(R.string.commute_recent_flip), onFlip)
-            }
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
-                row.lines.forEach { (_, color) ->
-                    Spacer(Modifier.padding(end = 5.dp).size(9.dp).clip(CircleShape).background(routeColor(color)))
-                }
-                Text(row.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            }
-            times?.let { (leaves, arrives) ->
-                Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.fillMaxWidth().padding(top = 6.dp)) {
-                    Text(
-                        text = stringResource(R.string.commute_recent_leaves, formatTime(leaves)),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    Spacer(Modifier.weight(1f))
-                    Text(inTime(leaves - now), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                }
-                Text(
-                    text = stringResource(R.string.commute_recent_arrival, row.destination, formatTime(arrives)),
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(top = 2.dp),
-                )
-            }
         }
     }
 }

@@ -2,6 +2,7 @@ package io.github.giova.metroceara.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,12 +11,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -26,12 +29,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.giova.metroceara.R
 import io.github.giova.metroceara.data.RecentTrip
 import io.github.giova.metroceara.data.formatTime
+import io.github.giova.metroceara.ui.theme.LocalDarkTheme
 import io.github.giova.metroceara.ui.theme.routeColor
 
 /** Uma viagem recente pronta para a tela: "Benfica → Papicu" e as linhas na cor de cada uma. */
@@ -45,15 +50,74 @@ data class RecentRow(
     val walk: Boolean,
 )
 
-/** A viagem do alto da tela inicial, já no sentido em que aparece. */
-data class LatestTrip(
+/** Uma viagem sugerida no cartão da estação aberta: saída e chegada de quem sai agora. */
+data class StationTrip(
     val row: RecentRow,
     val times: Pair<Int, Int>?,
-    val reversed: Boolean,
-    /** A viagem guardada e o que o app decidiu sobre ela, para saber até quando vale o ⇄. */
-    val source: RecentTrip,
-    val automatic: Boolean,
+    /** Sai da estação do cartão. Sem estação conhecida, a linha diz de onde sai. */
+    val fromStation: Boolean,
 )
+
+/**
+ * No cartão da estação aberta: para onde a pessoa costuma ir dali, com o metrô a
+ * pegar e a chegada. Cor própria, fora do tema e do papel de parede, a mesma da
+ * última viagem desde a 1.90.
+ */
+@Composable
+fun StationTrips(trips: List<StationTrip>, onOpen: (RecentTrip) -> Unit, onOther: () -> Unit) {
+    val dark = LocalDarkTheme.current
+    val content = if (dark) Color(0xFFBCEBDD) else Color(0xFF0B3B30)
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = if (dark) Color(0xFF1E4A40) else Color(0xFFCDEDE3),
+        contentColor = content,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column {
+            trips.forEachIndexed { i, trip ->
+                if (i > 0) HorizontalDivider(color = content.copy(alpha = 0.2f), modifier = Modifier.padding(horizontal = 13.dp))
+                StationTripRow(trip, onClick = { onOpen(trip.row.trip) })
+            }
+            Text(
+                text = stringResource(R.string.station_trip_other),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.fillMaxWidth().clickable(onClick = onOther).padding(start = 13.dp, end = 13.dp, top = 4.dp, bottom = 12.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun StationTripRow(trip: StationTrip, onClick: () -> Unit) {
+    val row = trip.row
+    Row(
+        verticalAlignment = Alignment.Bottom,
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 13.dp, vertical = 10.dp),
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(
+                text = "🕘 " + if (trip.fromStation) stringResource(R.string.station_trip_to, row.destination) else row.title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+            )
+            trip.times?.let { (leaves, _) ->
+                Text(stringResource(R.string.station_trip_take, formatTime(leaves)), style = MaterialTheme.typography.bodyMedium)
+            }
+            val notes = listOfNotNull(
+                stringResource(R.string.station_trip_transfer).takeIf { row.lines.size > 1 },
+                stringResource(R.string.recent_walk).takeIf { row.walk },
+            )
+            if (notes.isNotEmpty() && trip.times != null) Text(notes.joinToString(" · "), style = MaterialTheme.typography.bodyMedium)
+        }
+        trip.times?.let { (_, arrives) ->
+            Column(horizontalAlignment = Alignment.End, modifier = Modifier.padding(start = 12.dp)) {
+                Text(stringResource(R.string.station_trip_arrives), style = MaterialTheme.typography.bodySmall)
+                Text(formatTime(arrives), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
 
 /** "Recentes", debaixo de Casa e Trabalho: um toque repete, tocar e segurar remove. */
 @OptIn(ExperimentalFoundationApi::class)

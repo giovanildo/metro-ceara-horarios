@@ -5,8 +5,6 @@ import androidx.core.content.edit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import java.util.Calendar
-import java.util.TimeZone
 
 /**
  * Uma viagem consultada: de onde (estação e linha), para onde (estação e linha)
@@ -44,29 +42,29 @@ data class RecentTrip(
 fun List<RecentTrip>.withTrip(trip: RecentTrip, max: Int = RecentTrips.MAX): List<RecentTrip> =
     (listOf(trip) + filterNot { it.sameAs(trip) }).take(max)
 
-private fun dayOf(millis: Long): Int =
-    Calendar.getInstance(TimeZone.getTimeZone("America/Fortaleza")).run {
-        timeInMillis = millis
-        get(Calendar.YEAR) * 1000 + get(Calendar.DAY_OF_YEAR)
-    }
-
 /**
- * A última viagem deve aparecer invertida? Perto de uma das duas estações, sim
- * se a mais perto for o destino. Sem localização, ou longe das duas, sim se ela
- * foi vista hoje, há pelo menos [returnHours]: a pessoa provavelmente já foi.
+ * As viagens a sugerir a partir da estação aberta na tela inicial: para as duas
+ * estações desta viagem, menos a que for a própria estação. Na origem sobra o
+ * destino; no destino, a volta; em outra estação, as duas, sempre o destino
+ * primeiro. Sem estação conhecida, a viagem e a volta como foram feitas: o app não
+ * sabe onde a pessoa está. Destino em estação com um lado em cada linha (Parangaba
+ * e Parangaba - NE): vale o lado da linha de quem sai, senão não há metrô direto.
+ * [nameOf]: o nome sem o sufixo da linha; só muda de lado com o mesmo nome.
  */
-fun shouldReverseRecent(
-    distanceOrigin: Double?,
-    distanceDestination: Double?,
-    nearMeters: Double,
-    seenAt: Long,
-    now: Long,
-    returnHours: Int,
-): Boolean {
-    if (distanceOrigin != null && distanceDestination != null && minOf(distanceOrigin, distanceDestination) <= nearMeters) {
-        return distanceDestination < distanceOrigin
+fun RecentTrip.suggestionsFrom(
+    stop: String?,
+    route: String?,
+    links: List<TransferLink>,
+    nameOf: (String) -> String?,
+): List<RecentTrip> {
+    val both = listOf(this, reversed())
+    if (stop == null || route == null) return both
+    return both.filterNot { isSameStation(stop, it.destStop, links) }.map { trip ->
+        val side = links.firstOrNull {
+            it.fromStop == trip.destStop && it.fromRoute == trip.destRoute && it.toRoute == route && nameOf(it.toStop) == nameOf(trip.destStop)
+        }
+        trip.copy(originStop = stop, originRoute = route, destStop = side?.toStop ?: trip.destStop, destRoute = side?.toRoute ?: trip.destRoute)
     }
-    return dayOf(seenAt) == dayOf(now) && now - seenAt >= returnHours * 3_600_000L
 }
 
 /**

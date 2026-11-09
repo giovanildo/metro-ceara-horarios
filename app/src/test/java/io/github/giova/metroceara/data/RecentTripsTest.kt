@@ -1,7 +1,6 @@
 package io.github.giova.metroceara.data
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -53,31 +52,57 @@ class RecentTripsTest {
         assertEquals(RecentTrip("PAP", "ne", "SBE", "sul", null, 9L), back)
     }
 
-    // 09/11/2026, 07:05 em Fortaleza (UTC-3).
-    private val morning = 1_794_218_700_000L
-    private val hour = 3_600_000L
+    private val last = RecentTrip("BEN", "sul", "PAR", "sul", null, 9L)
+    private val links = listOf(
+        TransferLink("sul", "PAR", "ne", "PAR-NE", 4),
+        TransferLink("ne", "PAR-NE", "sul", "PAR", 4),
+        TransferLink("sul", "CHI", "oeste", "MOU", 5),
+    )
+    private fun names(id: String) = mapOf("PAR-NE" to "Parangaba", "PAR" to "Parangaba", "CHI" to "Chico", "MOU" to "Moura")[id] ?: id
+    private fun from(trip: RecentTrip, stop: String?, route: String?) = trip.suggestionsFrom(stop, route, links, ::names)
 
     @Test
-    fun `perto do destino inverte, perto da origem não`() {
-        assertTrue(shouldReverseRecent(9000.0, 100.0, 3000.0, morning, morning + hour, 3))
-        assertFalse(shouldReverseRecent(100.0, 9000.0, 3000.0, morning, morning + 8 * hour, 3))
+    fun `na origem, sugere só o destino`() {
+        assertEquals(listOf("PAR"), from(last, "BEN", "sul").map { it.destStop })
     }
 
     @Test
-    fun `sem localização, inverte só horas depois e no mesmo dia`() {
-        assertFalse(shouldReverseRecent(null, null, 3000.0, morning, morning + 2 * hour, 3))
-        assertTrue(shouldReverseRecent(null, null, 3000.0, morning, morning + 10 * hour, 3))
-        assertFalse(shouldReverseRecent(null, null, 3000.0, morning, morning + 24 * hour, 3))
+    fun `no destino, sugere só a volta`() {
+        assertEquals(listOf("BEN"), from(last, "PAR", "sul").map { it.destStop })
     }
 
     @Test
-    fun `longe das duas estações, vale o tempo`() {
-        assertTrue(shouldReverseRecent(9000.0, 8000.0, 3000.0, morning, morning + 10 * hour, 3))
-        assertFalse(shouldReverseRecent(8000.0, 9000.0, 3000.0, morning, morning + hour, 3))
+    fun `no outro lado da integração, também é o destino`() {
+        assertEquals(listOf("BEN"), from(last, "PAR-NE", "ne").map { it.destStop })
     }
 
     @Test
-    fun `viagem sem data não inverte pelo tempo`() {
-        assertFalse(shouldReverseRecent(null, null, 3000.0, 0, morning, 3))
+    fun `em outra estação, as duas, o destino primeiro, saindo dali`() {
+        val l = from(last, "POR", "sul")
+        assertEquals(listOf("PAR", "BEN"), l.map { it.destStop })
+        assertTrue(l.all { it.originStop == "POR" && it.originRoute == "sul" })
+    }
+
+    @Test
+    fun `o lugar acompanha o destino e não a volta`() {
+        val l = from(last.copy(landmark = "Rodoviária"), "POR", "sul")
+        assertEquals(listOf("Rodoviária", null), l.map { it.landmark })
+    }
+
+    @Test
+    fun `sem estação conhecida, a viagem e a volta como foram feitas`() {
+        assertEquals(listOf(last, last.reversed()), from(last, null, null))
+    }
+
+    @Test
+    fun `de outra linha, vai ao lado da integração que está nela`() {
+        val l = from(last, "PAP", "ne")
+        assertEquals(listOf("PAR-NE" to "ne", "BEN" to "sul"), l.map { it.destStop to it.destRoute })
+    }
+
+    @Test
+    fun `integração entre estações de nomes diferentes mantém o destino`() {
+        val l = from(RecentTrip("BEN", "sul", "CHI", "sul"), "CAU", "oeste")
+        assertEquals("CHI", l.first().destStop)
     }
 }

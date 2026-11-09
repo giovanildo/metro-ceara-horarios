@@ -104,7 +104,7 @@ import io.github.giova.metroceara.data.CommuteSchedule
 import io.github.giova.metroceara.data.CommuteStore
 import io.github.giova.metroceara.data.commuteDestination
 import io.github.giova.metroceara.data.pickCommute
-import io.github.giova.metroceara.data.shouldReverseRecent
+import io.github.giova.metroceara.data.suggestionsFrom
 import io.github.giova.metroceara.data.vehicleName
 import io.github.giova.metroceara.data.HomeBlock
 import io.github.giova.metroceara.data.HomeLayout
@@ -861,26 +861,18 @@ fun AppRoot() {
         }
     }
 
-    // A viagem do alto da tela inicial, para quem não guardou Casa nem Trabalho: a
-    // mais recente ou, quando a pessoa já foi, o caminho de volta. ⇄ vale enquanto
-    // o app continuar achando o mesmo para a mesma viagem.
-    var latestFlippedFrom by remember { mutableStateOf<Pair<RecentTrip, Boolean>?>(null) }
-    val latestTrip by produceState<LatestTrip?>(null, recentTrips, latestFlippedFrom, homeState, now, sundayOff, stoppedRoutes, settings) {
+    // A última viagem no cartão da estação aberta, para quem não guardou Casa nem
+    // Trabalho: dali até as estações dela, com o metrô a pegar e a chegada.
+    val openStationNow = expandedStation?.let { key -> otherLines.firstOrNull { it.first.stopId + it.first.routeId == key }?.first }
+        ?: homeState.station
+    val stationTrips by produceState<List<StationTrip>?>(null, recentTrips, places, openStationNow, now, sundayOff, stoppedRoutes) {
         value = withContext(Dispatchers.IO) {
-            val trip = recentTrips.orEmpty().firstOrNull() ?: return@withContext null
-            val origin = repo.station(trip.originStop, trip.originRoute) ?: return@withContext null
-            val destination = repo.station(trip.destStop, trip.destRoute) ?: return@withContext null
-            val automatic = shouldReverseRecent(
-                userDistanceTo(origin.lat, origin.lon),
-                userDistanceTo(destination.lat, destination.lon),
-                settings.walkToStationMeters.toDouble(),
-                trip.at,
-                System.currentTimeMillis(),
-                settings.recentReturnHours,
-            )
-            val reversed = automatic != (latestFlippedFrom == (trip to automatic))
-            val shown = if (reversed) trip.reversed() else trip
-            recentRow(shown)?.let { LatestTrip(it, recentTimesOf(shown), reversed, trip, automatic) }
+            val last = recentTrips.orEmpty().firstOrNull()?.takeIf { places.isNullOrEmpty() } ?: return@withContext null
+            if (repo.station(last.originStop, last.originRoute) == null || repo.station(last.destStop, last.destRoute) == null) return@withContext null
+            val links = repo.transferLinks()
+            last.suggestionsFrom(openStationNow?.stopId, openStationNow?.routeId, links) { id -> repo.stop(id)?.name?.let(JourneyPlanner::plainName) }
+                .mapNotNull { trip -> recentRow(trip)?.let { StationTrip(it, recentTimesOf(trip), fromStation = openStationNow != null) } }
+                .takeIf { it.isNotEmpty() }
         }
     }
     fun openRecent(trip: RecentTrip) {
@@ -1059,9 +1051,14 @@ fun AppRoot() {
     val trip = activeTrip
     // Terminada a viagem, volta-se ao Início, seja de onde ela tenha começado.
     LaunchedEffect(trip != null) { if (trip != null) homeTab = HomeTab.HOME }
+    // A última viagem entra no cartão da estação no lugar dos atalhos de Casa e Trabalho.
+    fun tripInStation(layout: HomeLayout) =
+        layout.shows(HomeBlock.PLACES) && layout.shows(HomeBlock.STATIONS) && !stationTrips.isNullOrEmpty()
+
     fun homeBlocks(layout: HomeLayout): List<HomeBlock> = layout.homeOrder.filter { b ->
         layout.shows(b) && when (b) {
-            HomeBlock.PLACES, HomeBlock.STATIONS, HomeBlock.SEARCH -> true
+            HomeBlock.PLACES -> !tripInStation(layout)
+            HomeBlock.STATIONS, HomeBlock.SEARCH -> true
             HomeBlock.ROUTINES -> !routinesList.isNullOrEmpty()
             HomeBlock.NOTICES -> notices.isNotEmpty()
             HomeBlock.BIKE -> homeBike != null
@@ -1079,7 +1076,6 @@ fun AppRoot() {
         when (block) {
             HomeBlock.PLACES -> Column {
                 val view = commuteView
-                val latest = latestTrip
                 when {
                     !inRoutes && commuteReady && !commuteMissing -> view?.let {
                         CommuteCard(
@@ -1096,19 +1092,6 @@ fun AppRoot() {
                             onStart = { it.route?.let { route -> startJourney(it.origin, route, null) } },
                         )
                     }
-                    // Sem Casa nem Trabalho: a viagem mais recente, logo abaixo dos avisos.
-                    !inRoutes && places.isNullOrEmpty() && latest != null ->
-                        RecentTripCard(
-                            row = latest.row,
-                            times = latest.times,
-                            reversed = latest.reversed,
-                            now = now,
-                            onOpen = { openRecent(latest.row.trip) },
-                            onFlip = {
-                                val key = latest.source to latest.automatic
-                                latestFlippedFrom = if (latestFlippedFrom == key) null else key
-                            },
-                        )
                     else -> PlaceShortcuts(
                         shortcuts = placeShortcuts,
                         kind = commuteKind,
@@ -1131,12 +1114,29 @@ fun AppRoot() {
                 // Como os cartões da viagem: uma estação aberta (no começo, a mais perto)
                 // e as outras compactas; tocar numa compacta abre ela.
                 val expandedKey = expandedStation?.takeIf { key -> otherLines.any { it.first.stopId + it.first.routeId == key } }
+                val trips = stationTrips?.takeIf { tripInStation(layout) }
+                val tripFooter: (@Composable () -> Unit)? = trips?.let { list ->
+                    {
+                        StationTrips(
+                            trips = list,
+                            onOpen = ::openRecent,
+                            onOther = {
+                                val first = list.first().row.trip
+                                journeyFrom = repo.station(first.originStop, first.originRoute)
+                                journeyDest = null
+                                journeyLandmark = null
+                                journeyOpen = true
+                            },
+                        )
+                    }
+                }
                 HomeStationCard(
                     state = homeState,
                     departures = homeDepartures,
                     now = now,
                     compact = expandedKey != null,
                     onExpand = { expandedStation = null },
+                    footer = tripFooter.takeIf { expandedKey == null },
                     onUseLocation = {
                         if (locationSource.hasPermission()) {
                             scope.launch { locate("tap") }
@@ -1158,6 +1158,7 @@ fun AppRoot() {
                         showRefresh = false,
                         compact = expandedKey != station.stopId + station.routeId,
                         onExpand = { expandedStation = station.stopId + station.routeId },
+                        footer = tripFooter.takeIf { expandedKey == station.stopId + station.routeId },
                         // A passagem é por linha: na mesma linha do primeiro cartão, não repete.
                         extras = extras.copy(halfFare = extras.halfFare && station.routeName != homeState.station?.routeName),
                     )

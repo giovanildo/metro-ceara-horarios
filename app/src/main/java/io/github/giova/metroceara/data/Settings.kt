@@ -23,8 +23,6 @@ data class AppSettings(
     val tripMaxMeters: Int = 1_000,
     /** Até esta distância, o "Sair agora" soma a caminhada até a estação de partida. */
     val walkToStationMeters: Int = 3_000,
-    /** Sem localização, a última viagem vira a volta depois destas horas, no mesmo dia. */
-    val recentReturnHours: Int = 3,
     /** Quantas estações antes do destino vem o aviso de descida. */
     val alertStationsBefore: Int = 2,
     /** Sem posição boa por este tempo, o GPS é dado como perdido. */
@@ -94,7 +92,6 @@ object SettingsStore {
             putInt("trip_max_m", settings.tripMaxMeters)
             putBoolean(KEY_TRIP_MAX_MIGRATED, true)
             putInt("walk_to_station_m", settings.walkToStationMeters)
-            putInt("recent_return_h", settings.recentReturnHours)
             putInt("alert_stations_before", settings.alertStationsBefore)
             putInt("gps_lost_s", settings.gpsLostSeconds)
             putInt("home_gps_s", settings.homeGpsSeconds)
@@ -138,7 +135,6 @@ object SettingsStore {
             homeFixHoldSeconds = p.getInt("home_fix_hold_s", d.homeFixHoldSeconds),
             lateBoardingMinutes = p.getInt("late_boarding_min", d.lateBoardingMinutes),
             tripGiveUpMinutes = p.getInt("trip_give_up_min", d.tripGiveUpMinutes),
-            recentReturnHours = p.getInt("recent_return_h", d.recentReturnHours),
             seatedMaxStations = p.getInt("seated_max_stations", d.seatedMaxStations),
             themeMode = p.getInt("theme_mode", d.themeMode),
             wallpaperColors = p.getBoolean("wallpaper_colors", d.wallpaperColors),

@@ -239,13 +239,6 @@
     <string name="commute_last">Último %1$s %2$s: %3$s</string>
     <string name="commute_is_last">Este é o último %1$s de hoje</string>
     <string name="commute_arrives_late">chega %1$s · atrasa</string>
-    <string name="commute_recent_title">Sua última viagem</string>
-    <string name="commute_recent_back">Sua viagem de volta</string>
-    <string name="commute_recent_flip">Inverter</string>
-    <string name="settings_recent_return">Mostrar a volta da última viagem depois de</string>
-    <string name="settings_recent_return_desc">Sem saber onde você está, a tela inicial passa a mostrar o caminho de volta quando a última viagem foi vista há esse tempo, no mesmo dia.</string>
-    <string name="commute_recent_leaves">sai %1$s</string>
-    <string name="commute_recent_arrival">Chega a %1$s às %2$s</string>
     <string name="place_define">Definir %1$s</string>
     <string name="place_here">você está aqui</string>
     <string name="place_open">ver o roteiro até %1$s</string>
@@ -636,6 +629,11 @@
     <string name="recent_leaves">sai %1$s</string>
     <string name="recent_remove">Remover dos recentes</string>
     <string name="recent_walk">a pé no fim</string>
+    <string name="station_trip_to">Para %1$s</string>
+    <string name="station_trip_take">Pegue o das %1$s</string>
+    <string name="station_trip_arrives">chega ~</string>
+    <string name="station_trip_transfer">com integração</string>
+    <string name="station_trip_other">Outro destino ›</string>
     <string name="settings_recent">Viagens recentes</string>
     <string name="settings_recent_desc">As 3 últimas ficam só neste celular</string>
     <string name="settings_recent_clear">Limpar</string>
