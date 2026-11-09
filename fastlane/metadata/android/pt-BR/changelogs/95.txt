@@ -1,0 +1,3 @@
+• Tela inicial nova: a linha desenhada, com os dois sentidos e o seu destino nela.
+• Em Mais, "Personalizar a tela inicial": escolha entre seis jeitos de ver os horários.
+• Cada sentido agora mostra a próxima estação ("via Padre Cícero"), para você saber para que lado vai.
