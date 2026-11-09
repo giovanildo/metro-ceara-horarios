@@ -185,7 +185,12 @@ def avisos_do_metrofor():
     return avisos[:5]
 
 
-def regras_com_datas_especiais(out):
+def leitura_boa(saude, fonte):
+    """Grava quando a fonte foi lida com sucesso: tools/vigia.py avisa se isso parar."""
+    saude[fonte] = datetime.now(FORTALEZA).isoformat(timespec="seconds")
+
+
+def regras_com_datas_especiais(out, saude):
     """O regras.json do app com as datas especiais de bike das noticias do Metrofor.
 
     As datas postas a mao em regras.json ("datas_especiais") ganham das tiradas
@@ -196,6 +201,7 @@ def regras_com_datas_especiais(out):
     manuais = regras.get("datas_especiais", {})
     try:
         automaticas = datas_especiais.buscar()
+        leitura_boa(saude, "datas_bike")
         print(f"datas especiais de bike nas noticias: {', '.join(automaticas) or 'nenhuma'}")
     except Exception as e:  # noqa: BLE001
         print(f"datas especiais: {e}; mantidas as da publicacao anterior")
@@ -206,15 +212,16 @@ def regras_com_datas_especiais(out):
         except (OSError, ValueError):
             automaticas = {}
     regras["datas_especiais"] = {**automaticas, **manuais}
-    regras["operacoes"] = operacoes_das_noticias(out, regras.get("operacoes", {}))
+    regras["operacoes"] = operacoes_das_noticias(out, regras.get("operacoes", {}), saude)
     return regras
 
 
-def operacoes_das_noticias(out, manuais):
+def operacoes_das_noticias(out, manuais, saude):
     """Os dias de operacao especial anunciados nas noticias; os postos a mao em
     regras.json ganham. Se o site falhar, ficam os da publicacao anterior."""
     try:
         automaticas = operacoes.buscar()
+        leitura_boa(saude, "operacoes")
         print(f"operacoes especiais nas noticias: {', '.join(automaticas) or 'nenhuma'}")
     except Exception as e:  # noqa: BLE001
         print(f"operacoes especiais: {e}; mantidas as da publicacao anterior")
@@ -255,8 +262,11 @@ def main():
         with open(indice_path, encoding="utf-8") as fh:
             indice = json.load(fh)
 
+    saude = indice.setdefault("saude", {})
+    saude.setdefault("desde", agora.isoformat(timespec="seconds"))
+
     # As regras vem antes: dizem se hoje e dia de operacao especial.
-    regras = regras_com_datas_especiais(out)
+    regras = regras_com_datas_especiais(out, saude)
     especial = dia_especial(regras, hoje)
     normais = indice.setdefault("normais", {})
     for t, info in indice["tipos"].items():
@@ -292,6 +302,7 @@ def main():
 
     bikes = gtfs.load_bike_stations()
     if bikes:
+        leitura_boa(saude, "bicicletar")
         escrever(os.path.join(out, "bicicletar.json"), [
             {"numero": n, "nome": nome, "bairro": bairro, "vagas": vagas, "lat": lat, "lon": lon}
             for n, nome, bairro, vagas, lat, lon in bikes
@@ -302,6 +313,7 @@ def main():
     # horarios seguem normalmente.
     try:
         escrever(os.path.join(out, "noticias.json"), avisos_do_metrofor())
+        leitura_boa(saude, "noticias")
     except Exception as e:  # noqa: BLE001
         print(f"avisos do Metrofor: {e}")
     indice["atualizado"] = agora.isoformat(timespec="seconds")
