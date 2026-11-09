@@ -42,10 +42,10 @@ PAGINAS = {
                  "link": SITE + "wp-content/uploads/sites/75/2023/03/Regula_Bikes_2023.pdf", "arquivo": True},
     "cariri": {"titulo": "Bilhetagem eletrônica no Cariri", "link": SITE + "bilhetagem-eletronica-no-cariri/"},
 }
-# Só as fontes cuja regra está inteira nessas páginas têm a conferência adiada.
+# Só as fontes cuja regra está inteira nessas páginas têm a conferência adiada. Ficam
+# de fora "passagem" (páginas das linhas, OpenStreetMap, notícia do VLT Aeroporto) e
+# "guia_passagem" (notícias, Ceará Digital): a conferência delas continua à mão.
 FONTES = {
-    "passagem": ["tarifas", "cariri"],
-    "guia_passagem": ["tarifas", "meia", "gratuidades"],
     "bike": ["bike", "bike_pdf"],
 }
 MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"]
