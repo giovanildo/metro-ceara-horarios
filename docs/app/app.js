@@ -555,7 +555,7 @@ function faixaViagem(t, ultima, estacao) {
   return ultima ? faixaDe(viagensDaEstacao(t, ultima, estacao), Boolean(estacao)) : "";
 }
 
-// ---------- o jeito de mostrar os horários (Personalizar a tela inicial; como no app)
+// ---------- o jeito de mostrar os horários (Sua tela inicial; como no app)
 
 const ESTILOS = [
   ["trilho", "Trilho (padrão)", "A linha desenhada, com os dois sentidos e o seu destino nela"],
@@ -689,7 +689,7 @@ function telaPersonalizar() {
   const exemplo = atual === "classico"
     ? `${c.filas.map((f) => `<div class="partida">${sentidoNoCartao(f.s, linha)}${partidaGrande(f.p, m, f.s)}</div>`).join("")}${faixaDe(c.viagens, true)}`
     : corpoEstilo(atual, c);
-  tela.innerHTML = `<h2 class="titulo-aba">Personalizar a tela inicial</h2>
+  tela.innerHTML = `<h2 class="titulo-aba">Sua tela inicial</h2>
     <p class="dica">Escolha o jeito que fica mais fácil para você. Dá para trocar quando quiser.</p>
     <p class="grupo">Como fica</p>
     <div class="cartao exemplo" aria-hidden="true"><h3>Benfica <span class="linha-nome">Linha Sul</span></h3>${exemplo}</div>
@@ -868,7 +868,7 @@ function abrirMais() {
     ${nina ? `<a href="${nina}" target="_blank" rel="noopener" aria-label="Nina: abre o WhatsApp da Super NINA"><span class="ic">${ROSTO_NINA}</span>Nina</a>` : ""}
     <h4>Do seu jeito</h4>
     <a href="#/ida-volta"><span class="ic">⇄</span><span>Sua ida e volta<small>casa, trabalho ou faculdade e seus horários</small></span></a>
-    <a href="#/personalizar"><span class="ic">🎨</span><span>Personalizar a tela inicial<small>o jeito de mostrar os horários</small></span></a>
+    <a href="#/personalizar"><span class="ic">🎨</span><span>Sua tela inicial<small>o jeito de mostrar os horários</small></span></a>
     <h4>O app</h4>
     <a href="#/fontes"><span class="ic">🔎</span>De onde vem cada informação</a>
     <a href="#/sobre"><span class="ic">ⓘ</span>Sobre o app</a>
