@@ -58,6 +58,10 @@ data class StationTrip(
     val fromStation: Boolean,
     /** O sentido do metrô a pegar na estação do cartão; `null` se sai de outra linha ou não há metrô. */
     val directionId: Int? = null,
+    /** Onde trocar de linha pela primeira vez; `null` sem integração. */
+    val transferAt: String? = null,
+    /** A troca é logo na estação do cartão: o primeiro metrô é de outra linha. */
+    val transferHere: Boolean = false,
 ) {
     /** Termina na estação de descida, sem integração nem trecho a pé. */
     val direct: Boolean get() = row.lines.size == 1 && !row.walk
@@ -110,11 +114,19 @@ private fun StationTripRow(trip: StationTrip, onClick: () -> Unit) {
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
             )
+            val transfer = when {
+                trip.times == null || trip.transferAt == null -> null
+                trip.transferHere -> stringResource(R.string.station_integration_here, trip.transferAt)
+                else -> stringResource(R.string.station_integration, trip.transferAt)
+            }
+            // Trocar logo aqui é a primeira coisa a fazer: vem antes do metrô a pegar.
+            if (trip.transferHere && transfer != null) Text(transfer, style = MaterialTheme.typography.bodyMedium)
             trip.times?.let { (leaves, _) ->
                 Text(stringResource(R.string.station_trip_take, formatTime(leaves)), style = MaterialTheme.typography.bodyMedium)
             }
             val notes = listOfNotNull(
-                stringResource(R.string.station_trip_transfer).takeIf { row.lines.size > 1 },
+                transfer.takeIf { !trip.transferHere },
+                stringResource(R.string.station_trip_transfer).takeIf { transfer == null && row.lines.size > 1 },
                 stringResource(R.string.recent_walk).takeIf { row.walk },
             )
             if (notes.isNotEmpty() && trip.times != null) Text(notes.joinToString(" · "), style = MaterialTheme.typography.bodyMedium)

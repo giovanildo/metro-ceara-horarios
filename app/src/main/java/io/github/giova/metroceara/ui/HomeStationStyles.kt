@@ -178,21 +178,30 @@ private fun SentidoRow(view: StyleView, item: HomeDeparture, showVia: Boolean, l
     DayEndLine(item)
 }
 
-/** Integração e trecho a pé, quando houver. */
+/** Integração e trecho a pé, quando houver, em minúsculas para entrar no meio da frase. */
 @Composable
 private fun tripNotes(trip: StationTrip): String? = listOfNotNull(
-    stringResource(R.string.station_trip_transfer).takeIf { trip.row.lines.size > 1 },
+    trip.transferAt?.let { stringResource(R.string.station_integration_lower, it) },
+    stringResource(R.string.station_trip_transfer).takeIf { trip.transferAt == null && trip.row.lines.size > 1 },
     stringResource(R.string.recent_walk).takeIf { trip.row.walk },
 ).joinToString(" · ").takeIf { it.isNotEmpty() }
 
-/** "Desça em Parangaba · chega às 08:19", dentro do sentido que a viagem usa. */
+/** A mesma nota, para abrir uma linha. */
 @Composable
-private fun tripInRow(view: StyleView, trip: StationTrip, item: HomeDeparture): String {
+private fun tripNotesLine(trip: StationTrip): String? = tripNotes(trip)?.replaceFirstChar { it.uppercase() }
+
+/** "Desça em Parangaba · chega às 08:19", dentro do sentido que a viagem usa. [short]: onde falta espaço. */
+@Composable
+private fun tripInRow(view: StyleView, trip: StationTrip, item: HomeDeparture, short: Boolean = false): String {
     val (leaves, arrives) = trip.times!!
-    val text = if (trip.direct) {
-        stringResource(R.string.station_trip_get_off, trip.row.destination, formatTime(arrives))
-    } else {
-        stringResource(R.string.station_trip_note, trip.row.destination, tripNotes(trip).orEmpty(), formatTime(arrives))
+    val time = formatTime(arrives)
+    val text = when {
+        trip.transferAt != null && short -> stringResource(R.string.station_integration_short, trip.transferAt, time)
+        trip.transferAt != null && trip.row.walk ->
+            stringResource(R.string.station_trip_note, trip.row.destination, tripNotes(trip).orEmpty(), time)
+        trip.transferAt != null -> stringResource(R.string.station_integration_to, trip.transferAt, trip.row.destination, time)
+        trip.direct -> stringResource(R.string.station_trip_get_off, trip.row.destination, time)
+        else -> stringResource(R.string.station_trip_note, trip.row.destination, tripNotes(trip).orEmpty(), time)
     }
     return if (view.isNext(trip, item)) text else stringResource(R.string.station_trip_take, formatTime(leaves)) + " · " + text
 }
@@ -277,11 +286,24 @@ private fun RailPin(view: StyleView, trip: StationTrip) {
     ) {
         Row(Modifier.padding(horizontal = 11.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f).padding(end = 8.dp)) {
-                Text(trip.row.destination, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                Text(
-                    text = listOfNotNull(stringResource(R.string.station_trip_pin, view.vehicle, formatTime(leaves)), tripNotes(trip)).joinToString(" · "),
-                    style = MaterialTheme.typography.bodySmall,
-                )
+                // O ponto no trilho é onde este metrô para: com integração, a estação da troca.
+                if (trip.transferAt != null) {
+                    Text(stringResource(R.string.station_integration, trip.transferAt), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.station_trip_for, trip.row.destination), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = listOfNotNull(
+                            stringResource(R.string.station_vehicle_at, view.vehicle, formatTime(leaves)),
+                            stringResource(R.string.recent_walk).takeIf { trip.row.walk },
+                        ).joinToString(" · "),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                } else {
+                    Text(trip.row.destination, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = listOfNotNull(stringResource(R.string.station_trip_pin, view.vehicle, formatTime(leaves)), tripNotes(trip)).joinToString(" · "),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
             }
             Text(formatTime(arrives), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         }
@@ -303,7 +325,7 @@ private fun TripFirstStyle(view: StyleView) {
                         Text(stringResource(R.string.station_trip_to, single.row.destination), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                         Text(leaveLabel(leaves - view.now), style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.ExtraBold)
                         Text(stringResource(R.string.station_vehicle_arrives, view.vehicleTitle, formatTime(leaves), formatTime(arrives)), style = MaterialTheme.typography.bodyLarge)
-                        tripNotes(single)?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
+                        tripNotesLine(single)?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
                     }
                 } else view.trips.forEachIndexed { i, trip ->
                     val (leaves, arrives) = trip.times!!
@@ -315,7 +337,7 @@ private fun TripFirstStyle(view: StyleView) {
                         Column(Modifier.weight(1f).padding(end = 10.dp)) {
                             Text(stringResource(R.string.station_trip_to, trip.row.destination), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                             Text(stringResource(R.string.station_vehicle_arrives, view.vehicleTitle, formatTime(leaves), formatTime(arrives)), style = MaterialTheme.typography.bodyMedium)
-                            tripNotes(trip)?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
+                            tripNotesLine(trip)?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
                         }
                         Text(leaveLabel(leaves - view.now), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
                     }
@@ -355,7 +377,7 @@ private fun SidesStyle(view: StyleView) {
                     TimeColumn(view, item, leaves = true, modifier = Modifier.fillMaxWidth())
                     view.tripsOn(item).forEach {
                         HorizontalDivider(color = content.copy(alpha = 0.25f), modifier = Modifier.padding(vertical = 7.dp))
-                        Text(tripInRow(view, it, item), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                        Text(tripInRow(view, it, item, short = true), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
                     }
                 }
             }

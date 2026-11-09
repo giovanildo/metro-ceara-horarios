@@ -890,6 +890,12 @@ fun AppRoot() {
                             times = recentTimesOf(trip, plan),
                             fromStation = openStationNow != null,
                             directionId = plan?.legs?.firstOrNull()?.takeIf { it.routeId == trip.originRoute }?.directionId,
+                            transferAt = plan?.let { itinerary ->
+                                val first = itinerary.legs.first()
+                                val stop = if (first.routeId != trip.originRoute) trip.originStop else first.toStop.takeIf { itinerary.legs.size > 1 }
+                                stop?.let { id -> repo.stop(id)?.name?.let(JourneyPlanner::plainName) }
+                            },
+                            transferHere = plan != null && plan.legs.first().routeId != trip.originRoute,
                         )
                     }
                 }

@@ -646,6 +646,12 @@
     <string name="station_trip_pin">sua viagem · %1$s das %2$s</string>
     <string name="station_trip_get_off">Desça em %1$s · chega às %2$s</string>
     <string name="station_trip_note">Para %1$s · %2$s · chega às %3$s</string>
+    <string name="station_integration">Integração em %1$s</string>
+    <string name="station_integration_here">Integração aqui em %1$s</string>
+    <string name="station_integration_lower">integração em %1$s</string>
+    <string name="station_trip_for">para %1$s</string>
+    <string name="station_integration_to">Integração em %1$s · para %2$s · chega às %3$s</string>
+    <string name="station_integration_short">Integração em %1$s · %2$s</string>
     <string name="station_via_vehicle">Via %1$s · %2$s das %3$s</string>
     <string name="menu_style">Personalizar a tela inicial</string>
     <string name="menu_style_sub">o jeito de mostrar os horários</string>
