@@ -112,8 +112,8 @@ Embaixo, uma barra com ícone e nome em cada botão
 você vai?" e Casa e Trabalho), **Linhas** (a lista das linhas; tocar abre as
 estações) e **Mais**, uma lista que sobe de baixo por cima da tela
 ([`ui/HomeMenu.kt`](app/src/main/java/io/github/giova/metroceara/ui/HomeMenu.kt)):
-em três grupos: **Para a viagem** (Passagem, Nina, Suas rotinas), **Do seu
-jeito** (Sua ida e volta, Ajustar para mim, Ordem da tela inicial, Configurações) e **O app** (De
+em quatro grupos: **Para a viagem** (Passagem, Nina), **Seu dia a dia** (Sua ida e
+volta, Suas rotinas), **Do seu jeito** (Sua tela inicial, Configurações) e **O app** (De
 onde vem cada informação, Sobre o app, Compartilhar o app). Na lite, só os que
 ela tem. Ícone sem nome não serve para
 todo mundo, por isso cada botão diz o que faz; com letra grande, "Planeje sua
@@ -138,7 +138,7 @@ acontecendo, o Metrofor orienta procurar um funcionário); isso fica na fonte,
 em "De onde vem cada informação", e não no menu, a pedido, para não alarmar
 quem olha a tela.
 
-### Ordem da tela inicial e "Ajustar para mim"
+### Sua tela inicial: jeito dos horários, o que você usa e ordem
 
 O app faz muita coisa, mas o propósito é simples: a pessoa ver logo quando
 passa o próximo metrô. Por isso a tela inicial é uma lista de blocos e, no
@@ -170,8 +170,9 @@ padrão, segue o perfil da maioria (quem vai e volta do trabalho ou da escola):
 tela inicial (`HomeBlock.inRoutes`); uma ordem guardada antes disso continua
 valendo para os outros blocos.
 
-**Ajustar para mim** (no Mais ou no topo das Configurações; `ui/HomeLayoutScreens.kt`)
-são interruptores, sem cadastro e sem "perfil" (que lembra login): **Vou ao
+**Sua tela inicial** (no Mais; `HomeSetupScreen` em `ui/HomeLayoutScreens.kt`) junta
+o jeito de mostrar os horários ("Como os horários aparecem", com **Trocar**), a
+ordem e, em **O que você usa**, os interruptores: são, sem cadastro e sem "perfil" (que lembra login): **Vou ao
 trabalho ou à escola** (Trabalho e Casa aparecem), **Levo bike** (a regra da
 bike no cartão e o Bicicletar; desligado no padrão), **Pago meia ou tenho
 gratuidade** (a passagem e o guia da meia no cartão), **Preciso de elevador ou
@@ -265,7 +266,7 @@ mesma tela saindo dali.
   modo viagem. O lugar onde a pessoa já está vira "você está aqui" e vai para
   o fim, então de manhã, em casa, o Trabalho fica na frente e, no fim do dia,
   a Casa. Tocar e segurar troca a estação (com "Nenhuma" para apagar), e
-  **Configurações → Casa e Trabalho** também. Na lista do **Para**, os dois
+  **Sua ida e volta** também. Na lista do **Para**, os dois
   aparecem no topo, em "Seus lugares", enquanto a busca está vazia. Guardados
   só no aparelho (`data/Places.kt`, estação e linha).
 - **Sua ida e volta** (no Mais; `data/Commute.kt`, `ui/CommuteScreen.kt`,
@@ -300,7 +301,7 @@ mesma tela saindo dali.
   feitas ("Benfica → Parangaba"). Tocar abre Planeje sua viagem já preenchida, e
   **Outro destino** abre com o "De" preenchido e o "Para" vazio. Sem metrô agora,
   mostra só o destino, sem inventar a chegada.
-- **Personalizar a tela inicial** (no Mais; `HomeStyle`, `HomeStyleScreen`,
+- **Como os horários aparecem** (no Mais, em Sua tela inicial → Trocar; `HomeStyle`, `HomeStyleScreen`,
   `ui/HomeStationStyles.kt`; na lite, `#/personalizar`, `corpoEstilo`): seis jeitos de
   mostrar os horários da estação aberta, com um exemplo em cima, porque cada pessoa
   entende melhor um. **Trilho** (padrão: a linha na cor dela, os dois sentidos e o
@@ -349,7 +350,7 @@ mesma tela saindo dali.
   vazia. Entra quando o resultado aparece, o mesmo
   trajeto sobe em vez de repetir, e Casa ou Trabalho saindo da estação de
   agora não aparecem (já têm atalho). Um toque abre o resultado; tocar e
-  segurar remove; **Configurações → Viagens recentes → Limpar** apaga todas.
+  segurar remove; **Configurações → Seus dados → Viagens recentes → Limpar** apaga todas.
   Só no aparelho (`data/RecentTrips.kt`, preferências `metrofor_recent_trips`;
   na lite, `localStorage` "recentes", com ✕ para remover).
   - saindo agora: **Iniciar modo viagem** (perto da estação, até o limite das
@@ -382,7 +383,7 @@ de fora. Sem roteiro possível: "Sem metrô ou VLT para Papicu hoje depois das
 ([`data/TransferTime.kt`](app/src/main/java/io/github/giova/metroceara/data/TransferTime.kt)).
 É o tempo a pé da estação (`caminhada_min`) vezes o jeito de se deslocar da
 pessoa (arredondado para cima), mais o pico e o ajuste fino. O que é escolha da
-pessoa fica nas **Configurações → Integração**: "Como você se desloca" e
+pessoa fica nas **Configurações → Como você se desloca**: o jeito de se deslocar e
 "Minutos a mais em toda integração". O que é medida do sistema fica no
 `regras.json`, para corrigir sem versão nova:
 
@@ -655,7 +656,7 @@ capacidade de vagas, que o banco também guarda, não aparece: não é quantas
 bicicletas há agora e confundia.
 
 - **Na tela inicial**, num cartão próprio, para quem ligou **Levo bike** em
-  "Ajustar para mim". Com GPS, a
+  "Sua tela inicial". Com GPS, a
   distância é medida a partir de **você**, até 3 km — acima disso (fora de
   Fortaleza, por exemplo) o cartão some. Com estação fixada, é medida a partir
   da estação, até 600 m.
@@ -962,7 +963,10 @@ rodada: em minutos ou horas os celulares recebem. Um arquivo com erro no
 espelho é ignorado: o app segue com a última cópia boa e, sem nenhuma, com a do
 APK. Com tudo ilegível, segue sem avisos de bike e de passagem, em vez de fechar.
 
-**Mais → Configurações** abre as distâncias
+**Mais → Configurações** abre o que muda o dia a dia em quatro seções (Aparência,
+Avisos, Como você se desloca, Seus dados); o que quase ninguém mexe (distâncias,
+modo viagem e GPS) fica em **Ajustes finos**, no fim dela (`FineSettingsScreen`), com
+Restaurar padrões. São as distâncias
 e os tempos que antes eram fixos no código (`data/Settings.kt`; padrões entre
 parênteses):
 
@@ -993,7 +997,7 @@ próprio app, sem janela nem botão (`LeaveToggle`, em `ui/LeaveReminder.kt`). U
 confirmação curta aparece embaixo: "Aviso às 13:59 (15 min antes) para o metrô das
 14:14." O horário ganha o sininho ("🔔 13:59" nas próximas partidas; o botão
 destacado em "Todos os horários"), e **tocar de novo tira** o aviso ("Aviso das
-13:59 tirado."). A antecedência fica nas **Configurações → Hora de sair** (5 a 45
+13:59 tirado."). A antecedência fica nas **Configurações → Avisos** (5 a 45
 min, padrão 15, `AppSettings.leaveBeforeMinutes`). No primeiro toque, o Android
 pede a permissão de notificação, e o app explica uma vez só "Alarmes e lembretes".
 Se a antecedência já passou para aquela partida, o app avisa que não dá ("Faltam
@@ -1465,7 +1469,7 @@ arquivo por viagem, com as mesmas linhas do registro de testes (os eventos
 caminhada até a estação, que pode mostrar onde a pessoa mora) e as da tela
 inicial ficam de fora. Os arquivos somem depois de **7 dias**.
 
-Em **Configurações › Registro das viagens**: desligar, ver quantas viagens há,
+Em **Configurações › Seus dados**: desligar, ver quantas viagens há,
 **Enviar por e-mail** e Apagar. O envio abre a tela de compartilhar com o
 e-mail montado: para giovanildos@gmail.com, assunto "Registro de viagem · v1.56
 · 29/10 · Benfica → Carlito Benevides" (ou "… · 5 viagens"), um **resumo** de
@@ -1540,7 +1544,7 @@ registro de testes — esses ficam só no app de Android. A tela inicial segue a
 mesma ordem padrão do app (Trabalho e Casa, o aviso do Metrofor de hoje, as duas
 estações mais próximas com o tempo que falta grande, os avisos dos próximos
 dias — toda operação anunciada, desde o dia em que a notícia sai),
-sem "Ajustar para mim" nem a escolha da ordem. A mesma barra de baixo do app:
+sem os interruptores de "O que você usa" nem a escolha da ordem (Mais → Sua tela inicial só escolhe o jeito dos horários). A mesma barra de baixo do app:
 Início, Planeje sua viagem (`#/rotas`), Linhas (`#/linhas`) e Mais (Passagem, Sua ida e volta,
 Nina, De onde vem cada informação, Sobre, Compartilhar; um `<dialog>` que sobe
 de baixo). O navegador não consegue baixar
