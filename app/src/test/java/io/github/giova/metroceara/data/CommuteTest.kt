@@ -1,7 +1,9 @@
 package io.github.giova.metroceara.data
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class CommuteTest {
@@ -108,5 +110,18 @@ class CommuteTest {
     @Test
     fun `sem metrô, nada`() {
         assertNull(pickCommute(emptyList(), toWork = true, target = min(8), now = min(7)))
+    }
+
+    private val links = listOf(TransferLink("sul", "5", "ne", "31", 3), TransferLink("ne", "31", "sul", "5", 3))
+
+    @Test
+    fun `mesma estação é o mesmo ponto ou os dois lados da integração`() {
+        assertTrue(isSameStation("56", "56", links))
+        assertTrue(isSameStation("31", "5", links))
+    }
+
+    @Test
+    fun `nomes iguais em cidades diferentes não são a mesma estação`() {
+        assertFalse(isSameStation("14", "44", links))
     }
 }

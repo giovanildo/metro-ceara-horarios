@@ -3,7 +3,7 @@ import {
   diaEspecial, linhaParada, voltaDaSegunda, passagemDaLinha, fonteLinha, proximas, somarDias, veiculo,
 } from "./dados.js";
 import { PERFIS, Roteador } from "./roteiro.js";
-import { destinoIdaVolta, deveInverterRecente, escolherMetro } from "./idavolta.js";
+import { destinoIdaVolta, deveInverterRecente, escolherMetro, mesmaEstacao } from "./idavolta.js";
 import { aoLado, buscarLugares, caminhada, emojiLugar, longe, metrosAPe, minutosAPe, pertoDaEstacao, serve } from "./lugares.js";
 
 const PERTO_A_PE = 3000; // "Sua ida e volta": até aqui, a pessoa está na estação de casa ou do trabalho (padrão do app)
@@ -427,7 +427,10 @@ function blocoIdaVolta(t) {
   const alvoValor = salvos[destino];
   // Longe das duas, sai da estação mais perto, como o atalho sempre fez.
   const longeDasDuas = dc != null && Math.min(dc, dt) > PERTO_A_PE;
-  const origemValor = (!invertido && longeDasDuas && origemPadrao()) || salvos[outro];
+  // A não ser que a mais perto seja o próprio destino: daria "Casa → Casa".
+  const maisPerto = !invertido && longeDasDuas ? origemPadrao() : "";
+  const ehODestino = maisPerto && mesmaEstacao(maisPerto.split("|")[1], alvoValor.split("|")[1], new Roteador(grade, regras, perfilGuardado()).ligacoes);
+  const origemValor = (!ehODestino && maisPerto) || salvos[outro];
   const [lo, eo] = origemValor.split("|"), [ld, ed] = alvoValor.split("|");
 
   const ida = destino === "trabalho";

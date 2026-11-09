@@ -23,6 +23,14 @@ export function destinoIdaVolta(agora, chegar, sair, dCasa, dTrabalho, perto) {
   return destinoPeloRelogio(agora, chegar, sair);
 }
 
+/**
+ * [a] e [b] são a mesma estação para quem sai dela: o mesmo ponto, ou os dois lados
+ * de uma integração a pé (Parangaba). O nome não serve: há dois "Padre Cícero".
+ */
+export function mesmaEstacao(a, b, ligacoes) {
+  return a === b || ligacoes.some((l) => l.deEst === a && l.paraEst === b);
+}
+
 const diaEmFortaleza = (ms) => new Date(ms).toLocaleDateString("en-CA", { timeZone: "America/Fortaleza" });
 
 /**

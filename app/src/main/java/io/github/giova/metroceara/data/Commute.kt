@@ -53,6 +53,14 @@ fun commuteDestination(
     return commuteDestinationByClock(now, arriveBy, leaveAt)
 }
 
+/**
+ * [a] e [b] são a mesma estação para quem sai dela: o mesmo ponto, ou os dois lados
+ * de uma integração a pé (Parangaba). O nome não serve: há dois "Padre Cícero", um
+ * em Fortaleza e outro no Cariri.
+ */
+fun isSameStation(a: String, b: String, links: List<TransferLink>): Boolean =
+    a == b || links.any { it.fromStop == a && it.toStop == b }
+
 /** Por que este é o metrô em destaque. */
 enum class CommuteReason {
     /** O próximo, sem hora marcada para levar em conta. */

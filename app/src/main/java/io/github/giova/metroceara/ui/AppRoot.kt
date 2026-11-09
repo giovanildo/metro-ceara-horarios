@@ -92,6 +92,7 @@ import io.github.giova.metroceara.data.ScheduleRepository
 import io.github.giova.metroceara.data.ScheduleStore
 import io.github.giova.metroceara.data.ItineraryLeg
 import io.github.giova.metroceara.data.MondayReturn
+import io.github.giova.metroceara.data.isSameStation
 import io.github.giova.metroceara.data.isSundayWithoutService
 import io.github.giova.metroceara.data.seatedSearchFrom
 import io.github.giova.metroceara.data.Station
@@ -771,7 +772,8 @@ fun AppRoot() {
             val farFromBoth = toHome != null && toWork != null && minOf(toHome, toWork) > nearMeters
             val nearest = (homeState as? HomeStation.Nearby)?.station
             val origin = when {
-                !flipped && farFromBoth && nearest != null -> nearest
+                // A não ser que a mais perto seja o próprio destino: daria "Casa → Casa".
+                !flipped && farFromBoth && nearest != null && !isSameStation(nearest.stopId, target.stopId, repo.transferLinks()) -> nearest
                 destination == Place.HOME -> workStation
                 else -> homeStation
             }
@@ -801,6 +803,14 @@ fun AppRoot() {
                 target = hour,
                 vehicle = repo.route(origin.routeId)?.let { vehicleName(it.name) }.orEmpty(),
             )
+        }
+    }
+
+    // Estação guardada fora da grade do dia: sem o bloco, voltam os atalhos. Começa
+    // falso para os atalhos não piscarem enquanto o bloco é calculado.
+    val commuteMissing by produceState(false, repo, places) {
+        value = withContext(Dispatchers.IO) {
+            listOf(Place.HOME, Place.WORK).any { place -> places?.get(place)?.let { repo.station(it.first, it.second) } == null }
         }
     }
 
@@ -1064,7 +1074,7 @@ fun AppRoot() {
                 val view = commuteView
                 val latest = latestTrip
                 when {
-                    !inRoutes && commuteReady -> view?.let {
+                    !inRoutes && commuteReady && !commuteMissing -> view?.let {
                         CommuteCard(
                             view = it,
                             now = now,
