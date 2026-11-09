@@ -57,10 +57,6 @@ fun List<Station>.nearestStations(lat: Double, lon: Double, maxMeters: Double, c
     return chosen
 }
 
-/** As duas primeiras de [nearestStations]. */
-fun List<Station>.nearestTwo(lat: Double, lon: Double, maxMeters: Double): List<Pair<Station, Double>> =
-    nearestStations(lat, lon, maxMeters, count = 2)
-
 /**
  * Padrão da distância a pé que ainda vale a pena para pegar uma bicicleta perto
  * de uma estação. A pessoa ajusta nas configurações ([AppSettings]).

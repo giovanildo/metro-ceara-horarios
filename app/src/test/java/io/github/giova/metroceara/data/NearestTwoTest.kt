@@ -19,19 +19,19 @@ class NearestTwoTest {
 
     @Test
     fun `a segunda é de outra linha quando há uma por perto`() {
-        val two = stations.nearestTwo(-3.7330, -38.5352, 3_000.0)
+        val two = stations.nearestStations(-3.7330, -38.5352, 3_000.0, count = 2)
         assertEquals(listOf("SBE", "MBR"), two.map { it.first.stopId })
     }
 
     @Test
     fun `sem outra linha por perto, a segunda é da mesma linha`() {
-        val two = stations.nearestTwo(-3.8080, -38.5780, 3_000.0)
+        val two = stations.nearestStations(-3.8080, -38.5780, 3_000.0, count = 2)
         assertEquals(listOf("MON", "SAT"), two.map { it.first.stopId })
     }
 
     @Test
     fun `a segunda fica de fora acima da distância`() {
-        val two = stations.nearestTwo(-3.8080, -38.5780, 500.0)
+        val two = stations.nearestStations(-3.8080, -38.5780, 500.0, count = 2)
         assertEquals(listOf("MON"), two.map { it.first.stopId })
     }
 

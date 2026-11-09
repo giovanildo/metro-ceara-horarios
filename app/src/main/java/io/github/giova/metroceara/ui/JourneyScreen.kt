@@ -129,6 +129,8 @@ fun JourneyScreen(
     linesFor: (Station?) -> List<JourneyLine>,
     arrivalsFor: (Station) -> Map<String, Int>,
     plan: (Station, RoutePoint, Int?, Boolean) -> JourneyResult,
+    /** Amanhã não tem o que prever (especial, domingo, sem grade): só o aviso. */
+    tomorrowBlocked: () -> Boolean,
     canStartTrip: (Station) -> Boolean,
     onStartTrip: (Station, RouteView, String?) -> Unit,
     onRepeat: (Station, JourneyLine, Stop, RouteView?) -> Unit,
@@ -332,6 +334,7 @@ fun JourneyScreen(
                     destinationName = landmark?.name ?: plainName(stop.name),
                     finalWalk = landmark?.let { FinalWalk(it.name, it.walkMeters, walkMinutes(it), it.beside) },
                     plan = { time, tomorrow -> plan(from, RoutePoint(line.routeId, stop.id), time, tomorrow) },
+                    tomorrowBlocked = tomorrowBlocked,
                     canStartTrip = canStartTrip(from),
                     onStartTrip = { onStartTrip(from, it, landmark?.name) },
                     destination = line to stop,
@@ -645,6 +648,7 @@ private fun JourneyResultSheet(
     /** O lugar escolhido: o roteiro termina com a caminhada até ele. */
     finalWalk: FinalWalk?,
     plan: (Int?, Boolean) -> JourneyResult,
+    tomorrowBlocked: () -> Boolean,
     canStartTrip: Boolean,
     onStartTrip: (RouteView) -> Unit,
     destination: Pair<JourneyLine, Stop>,
@@ -658,7 +662,7 @@ private fun JourneyResultSheet(
     var tomorrow by remember { mutableStateOf(false) }
     var pickForTomorrow by remember { mutableStateOf(false) }
     // Amanhã sem horários (especial, domingo): só o aviso, sem perguntar a hora.
-    val tomorrowBlocked = remember { plan(null, true).notice != null }
+    val noTomorrowPlan = remember { tomorrowBlocked() }
     // O aviso da hora de sair: um toque marca, outro tira (confirmação em Toast, por cima da folha).
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -696,7 +700,7 @@ private fun JourneyResultSheet(
             FilterChip(
                 selected = tomorrow,
                 onClick = {
-                    if (tomorrowBlocked) {
+                    if (noTomorrowPlan) {
                         tomorrow = true; time = null; selected = 0
                     } else {
                         pickForTomorrow = true; pickingTime = true

@@ -661,6 +661,13 @@ fun AppRoot() {
         return RouteView(itinerary, legs, transfers, walkNote + warnings + accessWarnings, accessNote)
     }
 
+    // O que dá para mostrar de amanhã, sem calcular roteiro nenhum.
+    fun tomorrowStatusNow(): TomorrowStatus {
+        val date = ScheduleStore.tomorrow()
+        return tomorrowStatus(ScheduleStore.isSpecial(date), ScheduleStore.tomorrowType() == DayType.SUNDAY,
+            Regras.current.operations[date] != null, routerTomorrow != null)
+    }
+
     // Os roteiros de [origin] até [target]: saindo agora ([from] null) ou no horário
     // escolhido; num domingo sem metrô, nenhum: só o aviso de quando o metrô volta.
     fun planJourney(origin: Station, target: RoutePoint, from: Int?, tomorrow: Boolean = false): JourneyResult {
@@ -671,7 +678,7 @@ fun AppRoot() {
             val operation = Regras.current.operations[date]
             fun notice(title: Int, text: String, link: String? = null) =
                 JourneyResult(emptyList(), monday = false, message = null, notice = TomorrowNotice(context.getString(title), text, link))
-            when (tomorrowStatus(ScheduleStore.isSpecial(date), ScheduleStore.tomorrowType() == DayType.SUNDAY, operation != null, routerTomorrow != null)) {
+            when (tomorrowStatusNow()) {
                 TomorrowStatus.SPECIAL -> return notice(R.string.journey_tomorrow_special_title,
                     context.getString(R.string.journey_tomorrow_special_text), operation?.link)
                 TomorrowStatus.SUNDAY -> return notice(R.string.journey_tomorrow_sunday_title,
@@ -1386,6 +1393,7 @@ fun AppRoot() {
                     linesFor = ::journeyLines,
                     arrivalsFor = ::journeyArrivals,
                     plan = ::planJourney,
+                    tomorrowBlocked = { tomorrowStatusNow() != TomorrowStatus.FORECAST },
                     // Modo viagem só com metrô hoje e perto o bastante da estação.
                     canStartTrip = { !sundayOff && tripAllowedFrom(it.lat, it.lon) },
                     onStartTrip = ::startJourney,
