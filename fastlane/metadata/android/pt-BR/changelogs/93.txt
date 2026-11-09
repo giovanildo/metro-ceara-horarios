@@ -1,0 +1,3 @@
+• Iniciar a viagem agora acompanha o metrô do horário que você escolheu.
+• No domingo, o aviso diz se a sua linha não circula na segunda ou se o horário de segunda é especial.
+• Correções em Sua ida e volta e na ordem da tela inicial.
