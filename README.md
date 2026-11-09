@@ -1239,14 +1239,15 @@ só no que precisa de gente:
 | Estação ou linha | estação do feed fora do `regras.json` ou com outro nome; linha sem cor |
 | Página oficial | tarifas, gratuidades, meia, bike ou Cariri diferente da versão conferida, ou sem leitura há 7 dias |
 | Notícia sobre regra | título sobre passagem, gratuidade, bike, linha nova ou Nina, nos últimos 10 dias |
+| Página alterada | outra página do site, nos últimos 10 dias, sobre passagem, cartão, bike, linhas, estações ou horários (fora licitação, publicidade e relatórios) |
 | Conferência vencendo | fonte do `regras.json` que vence neste mês ou no próximo |
 
 Uma falha isolada não vira alerta: o site do Metrofor às vezes não responde e
 volta na rodada seguinte. Por isso os limites olham a última leitura **boa** de
 cada fonte, que o `build_web_data.py` grava em `indice.json` (`saude`).
 
-Quando o problema some, a issue fecha sozinha. Notícia é aviso único: a issue fica
-aberta até alguém fechar e não volta depois. Para calar um alerta de estação ou
+Quando o problema some, a issue fecha sozinha. Notícia e página alterada são aviso
+único: a issue fica aberta até alguém fechar e não volta depois. Para calar um alerta de estação ou
 linha que não é problema, feche a issue como **não planejado**. Os outros não se
 calam assim: voltam no dia seguinte se continuar errado.
 
