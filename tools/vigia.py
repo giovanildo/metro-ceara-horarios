@@ -14,13 +14,14 @@ aparece. Este script olha o que foi publicado no ramo "dados" e abre uma issue
     linha:*       linha do feed sem cor no regras.json (linha nova?)
     pagina:*      página oficial diferente da versão conferida (tools/paginas.py)
     regra:*       notícia sobre passagem, gratuidade, bike, linha nova ou Nina
+    alterada:*    outra página do site, sobre esses assuntos, criada ou alterada
     conferir:*    fonte do regras.json com a conferência vencendo
 
 Falha isolada não é problema (o site do Metrofor às vezes não responde e volta
 na rodada seguinte): por isso os limites olham a última leitura BOA, gravada pela
 rodada em indice.json ("saude"). Quando o problema some, a issue fecha sozinha.
 
-Notícia é um aviso só: a issue fica aberta até alguém fechar e não volta depois.
+Notícia e página alterada são um aviso só: a issue fica aberta até alguém fechar e não volta depois.
 Para calar um alerta de estação ou linha que não é problema, feche a issue como
 "não planejado" (close as not planned). Os outros não se calam assim: fechados,
 voltam no dia seguinte se o problema continuar.
@@ -53,7 +54,7 @@ RAW = "https://raw.githubusercontent.com/giovanildo/metro-ceara-horarios/dados/"
 DONO = "giovanildo"
 ROTULO = "vigia"
 CALAVEIS = ("estacao:", "linha:")  # "não planejado" cala; os outros voltariam
-UNICOS = ("noticia:", "regra:")  # um aviso por notícia: só gente fecha
+UNICOS = ("noticia:", "regra:", "alterada:")  # um aviso por acontecimento: só gente fecha
 
 HORAS_GRADE = 24
 # Quanto cada fonte pode ficar sem uma leitura boa. Chave = indice.json "saude".
@@ -81,6 +82,11 @@ ASSUNTO_DE_REGRA = re.compile(
     r"|cart[ãa]o m[úu]ltiplo|vaivem|passe livre|bicicleta|\bbikes?\b|nova esta[çc][ãa]o|inaugura|nova linha"
     r"|linha leste|ramal aeroporto|come[çc]a a operar|entra em opera|passa a operar|novos hor[áa]rios"
     r"|integra[çc][ãa]o|importuna|\bnina\b", re.I)
+# As páginas fora de tools/paginas.py: nos dez primeiros meses de 2026 seriam 9
+# alertas, e a bilhetagem do Cariri, que nenhuma notícia anunciou, é uma delas.
+ASSUNTO_DE_PAGINA = re.compile(r"cart[ãa]o|recarga|hor[áa]rio|\blinhas?\b|\bvlt\b|esta[çc][õãa]|acessib|passagem", re.I)
+SECOES_FORA = ("negocios/", "acesso-a-informacao/", "governanca/", "institucional/")  # licitação, publicidade, relatórios
+DIAS_PAGINA_ALTERADA = 10
 DIAS_PAGINA_SEM_LEITURA = 7
 MESES_AVISO_CONFERENCIA = 1
 LIMITE_DIFERENCA = 6000
@@ -104,6 +110,8 @@ COMO_CORRIGIR = {
               "Enquanto isso, a data de conferência dessa informação não anda.",
     "regra": "Veja se a notícia muda alguma regra mostrada no app (`app/src/main/assets/regras.json`). "
              "Quando resolver, ou se não mudar nada, feche esta issue.",
+    "alterada": "Veja se muda algo que o app mostra. Se precisar acompanhar esta página sempre, "
+                "acrescente em `PAGINAS` no `tools/paginas.py`. Quando resolver, ou se não mudar nada, feche esta issue.",
     "conferir": "Confira na fonte. Se nada mudou, suba `conferido` em `fontes` no `app/src/main/assets/regras.json` e faça o commit: "
                 "a issue fecha sozinha.",
     "linha": "Linha nova no feed: ponha a cor em `cores` no `app/src/main/assets/regras.json` e confira preço e integrações.",
@@ -252,6 +260,26 @@ def ver_noticias_de_regras(posts):
     return saida
 
 
+def ver_paginas_alteradas(lista, hoje):
+    acompanhadas = {p["link"] for p in paginas.PAGINAS.values()}
+    saida = {}
+    for p in lista:
+        link, slug, alterada = p["link"], p["slug"], date.fromisoformat(p["modified"][:10])
+        if link in acompanhadas or link.split("/metrofor/", 1)[-1].startswith(SECOES_FORA):
+            continue
+        if (hoje - alterada).days > DIAS_PAGINA_ALTERADA:
+            continue
+        titulo = de._limpo(p["title"]["rendered"])
+        alvo = f"{slug.replace('-', ' ')} {titulo}"
+        if not (ASSUNTO_DE_REGRA.search(alvo) or ASSUNTO_DE_PAGINA.search(alvo)):
+            continue
+        nova = p["date"][:10] == p["modified"][:10]
+        saida[f"alterada:{slug}@{alterada.isoformat()}"] = problema(
+            f"Página do site {'criada' if nova else 'alterada'}: {titulo[:80]}",
+            f"{link}\n\n{'Criada' if nova else 'Alterada'} em {alterada:%d/%m/%Y}.")
+    return saida
+
+
 def ver_conferencias(regras, agora):
     atual = agora.year * 12 + agora.month - 1
     saida = {}
@@ -299,6 +327,10 @@ def verificar(pasta):
         **ver_paginas(ler(pasta, "paginas.json", opcional=True), paginas.ler_conferidas(), agora),
         **ver_conferencias(regras, agora),
     }
+    try:
+        problemas.update(ver_paginas_alteradas(paginas.listar_site(), agora.date()))
+    except Exception as e:  # noqa: BLE001 - idem
+        print(f"páginas do site: não deu para listar hoje ({e}); fica para amanhã")
     try:
         posts = de.posts_recentes(agora.date(), DIAS_NOTICIA_NAO_ENTENDIDA)
     except Exception as e:  # noqa: BLE001 - site fora do ar é assunto do fonte:*, não daqui

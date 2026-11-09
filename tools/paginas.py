@@ -25,6 +25,7 @@ import os
 import re
 import ssl
 import sys
+import urllib.error
 import urllib.request
 
 RAIZ = os.path.dirname(os.path.abspath(__file__))
@@ -80,6 +81,23 @@ def ler(chave):
         return {"hash": hashlib.sha256(bruto).hexdigest()}
     texto = texto_da_pagina(bruto.decode("utf-8", "replace"))
     return {"hash": hashlib.sha256(texto.encode()).hexdigest(), "texto": texto}
+
+
+def listar_site():
+    """Todas as páginas do site do Metrofor, com as datas de criação e de alteração."""
+    lista = []
+    for numero in range(1, 21):
+        url = f"{SITE}wp-json/wp/v2/pages?per_page=100&page={numero}&_fields=slug,link,date,modified,title"
+        try:
+            pedaco = json.loads(baixar(url))
+        except urllib.error.HTTPError as e:
+            if e.code == 400:  # passou da última (total múltiplo de 100)
+                break
+            raise
+        lista += pedaco
+        if len(pedaco) < 100:
+            break
+    return lista
 
 
 def ler_conferidas():
