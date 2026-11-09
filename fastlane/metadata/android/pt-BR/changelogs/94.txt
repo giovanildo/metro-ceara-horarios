@@ -1,0 +1,3 @@
+• Tela inicial mais limpa: sua última viagem agora aparece junto da estação aberta, com o metrô a pegar e a hora de chegada.
+• No destino da última viagem, o app já mostra a volta. Em outra estação, mostra as duas.
+• "Outro destino" abre o planejamento já saindo daquela estação.
