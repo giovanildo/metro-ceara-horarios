@@ -54,6 +54,8 @@ data class HomeLayout(
     /** O bloco aparece na tela inicial. */
     fun shows(block: HomeBlock): Boolean = when {
         block.fixed -> true
+        // Sem opção de esconder desde a reorganização: quem escondeu antes não ficava sem eles.
+        block.inRoutes -> true
         block == HomeBlock.BIKE && !bike -> false
         else -> block !in hidden
     }
@@ -83,7 +85,7 @@ data class HomeLayout(
     fun resetOrder(): HomeLayout = copy(order = DEFAULT_ORDER, hidden = emptySet())
 
     val isDefaultOrder: Boolean
-        get() = homeOrder == DEFAULT_ORDER.filterNot { it.inRoutes } && hidden.isEmpty()
+        get() = homeOrder == DEFAULT_ORDER.filterNot { it.inRoutes } && hidden.none { !it.inRoutes }
 
     companion object {
         /** O perfil da maioria: ver logo o próximo metrô das estações perto. */
@@ -106,7 +108,9 @@ data class HomeLayout(
 /** Guarda o [HomeLayout] no aparelho e avisa a interface quando muda. */
 object HomeLayoutStore {
 
-    private const val KEY_NOTICES_ON_TOP = "notices_on_top"
+    // A chave "notices_on_top" (1.87) marcava a mudança sem gravar a ordem: na abertura
+    // seguinte os avisos voltavam para baixo. Esta refaz a mudança, agora gravada.
+    private const val KEY_NOTICES_ON_TOP = "notices_on_top_2"
 
     private val state = MutableStateFlow<HomeLayout?>(null)
 
@@ -139,9 +143,15 @@ object HomeLayoutStore {
         }
         // Uma vez só: depois disso, pôr os avisos de volta embaixo tem de ficar valendo.
         val migrate = !p.getBoolean(KEY_NOTICES_ON_TOP, false)
-        if (migrate) p.edit { putBoolean(KEY_NOTICES_ON_TOP, true) }
+        val current = if (migrate) HomeLayout.withNoticesOnTop(order) else order
+        if (migrate) {
+            p.edit {
+                putBoolean(KEY_NOTICES_ON_TOP, true)
+                if (current != order) putString("order", current.joinToString(",") { it.key })
+            }
+        }
         return HomeLayout(
-            order = if (migrate) HomeLayout.withNoticesOnTop(order) else order,
+            order = current,
             hidden = blocks(p.getString("hidden", null)).filterNot { it.fixed }.toSet(),
             bike = p.getBoolean("bike", false),
             halfFare = p.getBoolean("half_fare", false),

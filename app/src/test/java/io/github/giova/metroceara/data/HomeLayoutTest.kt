@@ -40,6 +40,13 @@ class HomeLayoutTest {
     }
 
     @Test
+    fun `busca escondida em versão antiga volta a aparecer`() {
+        val layout = HomeLayout(hidden = setOf(HomeBlock.SEARCH, HomeBlock.LINES))
+        assertTrue(layout.shows(HomeBlock.SEARCH))
+        assertTrue(layout.isDefaultOrder)
+    }
+
+    @Test
     fun `subir e descer não passam das pontas`() {
         val l = HomeLayout()
         assertEquals(l, l.moved(HomeBlock.NOTICES, -1))
