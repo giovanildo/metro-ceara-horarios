@@ -43,7 +43,7 @@ PAGINAS = {
 }
 # Só as fontes cuja regra está inteira nessas páginas têm a conferência adiada.
 FONTES = {
-    "passagem": ["tarifas"],
+    "passagem": ["tarifas", "cariri"],
     "guia_passagem": ["tarifas", "meia", "gratuidades"],
     "bike": ["bike", "bike_pdf"],
 }
