@@ -264,9 +264,6 @@
     <string name="route_walk_beside">%1$s fica ao lado da estação.</string>
     <string name="landmarks_near_title">Perto desta estação</string>
     <string name="landmarks_walk_note">Distância a pé pelas ruas, aproximada.</string>
-    <string name="settings_section_places">Casa e Trabalho</string>
-    <string name="settings_places_desc">Atalhos debaixo de \"Para onde você vai?\": um toque mostra o roteiro até lá. Toque aqui para trocar a estação; tocar e segurar o atalho na tela inicial também troca.</string>
-    <string name="settings_place_unset">Nenhuma estação</string>
     <string name="trip_transfer_paid">Passagem paga.</string>
     <string name="trip_notification_title_transfer">Viagem até %1$s · integração em %2$s</string>
     <string name="trip_alert_text">%1$s para %2$s.</string>
@@ -325,10 +322,13 @@
     <string name="about_license">Software livre, sob a GNU GPL versão 3. O código-fonte está no GitHub.</string>
     <string name="about_source_code">Ver o código-fonte</string>
     <string name="settings_title">Configurações</string>
-    <string name="settings_section_distances">Distâncias</string>
+    <string name="settings_section_alerts">Avisos</string>
+    <string name="settings_section_data">Seus dados</string>
+    <string name="settings_section_near">Perto de você</string>
+    <string name="settings_fine">Ajustes finos</string>
+    <string name="settings_fine_sub">distâncias, modo viagem e GPS</string>
     <string name="settings_section_trip">Modo viagem</string>
     <string name="settings_section_gps">Localização</string>
-    <string name="settings_section_transfer">Integração</string>
     <string name="settings_mobility">Como você se desloca</string>
     <string name="settings_mobility_desc">Usado para calcular se dá tempo de trocar de linha. No horário de pico, o app soma 1 minuto a cada integração (2 minutos das 17h às 18h).</string>
     <string name="mobility_walking">Andando</string>
@@ -366,7 +366,6 @@
     <string name="settings_home_fix_hold">Segurar a posição mais certa por</string>
     <string name="settings_home_fix_hold_desc">Às vezes o celular manda uma localização menos certa, e a distância pula. O app continua com a melhor por esse tempo; depois, só troca se a nova mostrar mesmo que você está em outro lugar.</string>
     <string name="settings_reset">Restaurar padrões</string>
-    <string name="settings_section_trip_log">Registro das viagens</string>
     <string name="settings_trip_log">Guardar como foram minhas viagens</string>
     <string name="settings_trip_log_desc">Fica só no seu celular, por 7 dias: as estações, os horários e o GPS de cada viagem, do embarque até o fim. Nada é enviado sem você mandar. Se quiser ajudar a melhorar o app, mande por e-mail: você vê tudo antes de enviar.</string>
     <plurals name="settings_trip_log_count">
@@ -444,7 +443,6 @@
     <string name="leave_quick_done">Aviso às %1$s (%2$d min antes) para o %3$s das %4$s.</string>
     <string name="leave_quick_done_tomorrow">Amanhã, aviso às %1$s (%2$d min antes) para o %3$s das %4$s.</string>
     <string name="leave_removed">Aviso das %1$s tirado.</string>
-    <string name="settings_section_leave">Hora de sair</string>
     <string name="settings_leave_before">Avisar antes de sair</string>
     <string name="settings_leave_before_desc">Quanto tempo antes da partida o app avisa, quando você toca num horário (por exemplo, o tempo que você leva até a estação).</string>
     <string name="leave_exact_title">Avisar na hora certa</string>
@@ -561,15 +559,12 @@
     <string name="direction_via_last">", a última"</string>
 
     <!-- Ajustar para mim e ordem da tela inicial (v1.74) -->
-    <string name="adjust_title">Ajustar para mim</string>
-    <string name="adjust_intro">Ligue só o que serve para você. A tela inicial mostra mais ou menos coisas conforme o que estiver ligado.</string>
-    <string name="adjust_home_link_sub">bike, meia, acessibilidade</string>
     <string name="adjust_commute">Vou ao trabalho ou à escola</string>
     <string name="adjust_commute_desc">Casa e Trabalho no topo, com a hora de chegada</string>
     <string name="adjust_bike">Levo bike</string>
     <string name="adjust_bike_desc">Horário em que a bike pode entrar e o Bicicletar mais perto</string>
     <string name="adjust_half_fare">Pago meia ou tenho gratuidade</string>
-    <string name="adjust_half_fare_desc">Valor da passagem e onde tirar a carteira, no cartão da estação</string>
+    <string name="adjust_half_fare_desc">Valor da passagem e onde tirar a carteira</string>
     <string name="adjust_access">Preciso de elevador ou rampa</string>
     <string name="adjust_access_desc">Se a estação tem elevador, rampa ou escada rolante</string>
     <string name="adjust_order">Ordem da tela inicial</string>
@@ -602,14 +597,12 @@
     <string name="menu_fare">Passagem</string>
     <string name="menu_about">Sobre o app</string>
     <string name="menu_group_trip">Para a viagem</string>
+    <string name="menu_group_daily">Seu dia a dia</string>
     <string name="menu_group_mine">Do seu jeito</string>
     <string name="menu_group_app">O app</string>
     <string name="menu_fare_sub">valores, meia e gratuidade</string>
-    <string name="menu_routines_sub">os trajetos do dia a dia</string>
-    <string name="menu_adjust_sub">bike, meia, elevador</string>
-    <string name="menu_order_sub">o que aparece e onde</string>
-    <string name="menu_settings_sub">distâncias, GPS e tema</string>
-    <string name="menu_adjust">Ajustar para mim</string>
+    <string name="menu_routines_sub">avisam a hora de sair, nos dias que você escolher</string>
+    <string name="menu_settings_sub">tema, avisos e localização</string>
     <string name="tab_home">Início</string>
     <string name="tab_routes">Planeje sua viagem</string>
     <string name="tab_more">Mais</string>
@@ -653,8 +646,11 @@
     <string name="station_integration_to">Integração em %1$s · para %2$s · chega às %3$s</string>
     <string name="station_integration_short">Integração em %1$s · %2$s</string>
     <string name="station_via_vehicle">Via %1$s · %2$s das %3$s</string>
-    <string name="menu_style">Personalizar a tela inicial</string>
-    <string name="menu_style_sub">o jeito de mostrar os horários</string>
+    <string name="menu_home_setup">Sua tela inicial</string>
+    <string name="menu_home_setup_sub">o jeito dos horários, o que aparece e a ordem</string>
+    <string name="style_title">Como os horários aparecem</string>
+    <string name="style_change">Trocar</string>
+    <string name="adjust_section">O que você usa</string>
     <string name="style_intro">Escolha o jeito que fica mais fácil para você. Dá para trocar quando quiser.</string>
     <string name="style_preview">Como fica</string>
     <string name="style_rail">Trilho (padrão)</string>

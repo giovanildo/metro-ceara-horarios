@@ -217,7 +217,8 @@ fun AppRoot() {
     var sourcesOpen by rememberSaveable { mutableStateOf(false) }
     var accessOpen by rememberSaveable { mutableStateOf(false) }
     // "Ajustar para mim" e "Ordem da tela inicial".
-    var adjustOpen by rememberSaveable { mutableStateOf(false) }
+    var homeSetupOpen by rememberSaveable { mutableStateOf(false) }
+    var fineSettingsOpen by rememberSaveable { mutableStateOf(false) }
     var styleOpen by rememberSaveable { mutableStateOf(false) }
     var orderOpen by rememberSaveable { mutableStateOf(false) }
     // Aba da barra de baixo (Início, Rotas, Linhas): volta a ela depois de abrir uma linha.
@@ -511,11 +512,12 @@ fun AppRoot() {
             routinesOpen = false
             routineEditing = null
             showSettings = false
+            fineSettingsOpen = false
             showAbout = false
             fareGuideOpen = false
             sourcesOpen = false
             accessOpen = false
-            adjustOpen = false
+            homeSetupOpen = false
             styleOpen = false
             orderOpen = false
             routeId = route
@@ -538,11 +540,12 @@ fun AppRoot() {
             routinesOpen = false
             routineEditing = null
             showSettings = false
+            fineSettingsOpen = false
             showAbout = false
             fareGuideOpen = false
             sourcesOpen = false
             accessOpen = false
-            adjustOpen = false
+            homeSetupOpen = false
             styleOpen = false
             orderOpen = false
             journeyOpen = true
@@ -1315,13 +1318,24 @@ fun AppRoot() {
             )
         }
 
-        adjustOpen -> {
-            BackHandler { adjustOpen = false }
-            AdjustScreen(
+        homeSetupOpen -> {
+            BackHandler { homeSetupOpen = false }
+            HomeSetupScreen(
                 layout = homeLayout,
                 onChange = { HomeLayoutStore.save(context, it) },
+                onOpenStyle = { styleOpen = true },
                 onOpenOrder = { orderOpen = true },
-                onBack = { adjustOpen = false },
+                onBack = { homeSetupOpen = false },
+            )
+        }
+
+        fineSettingsOpen -> {
+            BackHandler { fineSettingsOpen = false }
+            FineSettingsScreen(
+                settings = settings,
+                onChange = { SettingsStore.save(context, it) },
+                onReset = { SettingsStore.reset(context) },
+                onBack = { fineSettingsOpen = false },
             )
         }
 
@@ -1330,18 +1344,10 @@ fun AppRoot() {
             SettingsScreen(
                 settings = settings,
                 onChange = { SettingsStore.save(context, it) },
-                onReset = { SettingsStore.reset(context) },
                 onBack = { showSettings = false },
-                places = Place.entries.map { place ->
-                    place to places?.get(place)?.let { saved ->
-                        placeName(saved)?.let { name -> listOfNotNull(name, repo.route(saved.second)?.name).joinToString(" · ") }
-                    }
-                },
-                onEditPlace = { placeEditing = it },
-                commuteKind = commuteKind,
                 recentCount = recentTrips.orEmpty().size,
                 onClearRecent = { RecentTrips.clear(context) },
-                onOpenAdjust = { adjustOpen = true },
+                onOpenFine = { fineSettingsOpen = true },
             )
         }
 
@@ -1577,9 +1583,7 @@ fun AppRoot() {
                 onNina = ninaOpener(homeState.station?.routeName),
                 onRoutines = { routinesOpen = true },
                 onCommute = { commuteOpen = true },
-                onAdjust = { adjustOpen = true },
-                onStyle = { styleOpen = true },
-                onOrder = { orderOpen = true },
+                onHomeSetup = { homeSetupOpen = true },
                 onSettings = { showSettings = true },
                 onSources = { sourcesOpen = true },
                 onAbout = { showAbout = true },

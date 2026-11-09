@@ -31,6 +31,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -85,19 +86,20 @@ fun homeBlockName(block: HomeBlock): String = stringResource(
     },
 )
 
-/** "Ajustar para mim": interruptores que deixam a tela inicial com a cara da pessoa. */
+/** "Sua tela inicial": o jeito dos horários, o que a pessoa usa e a ordem, num lugar só. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AdjustScreen(
+fun HomeSetupScreen(
     layout: HomeLayout,
     onChange: (HomeLayout) -> Unit,
+    onOpenStyle: () -> Unit,
     onOpenOrder: () -> Unit,
     onBack: () -> Unit,
 ) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.adjust_title)) },
+                title = { Text(stringResource(R.string.menu_home_setup)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
@@ -113,12 +115,22 @@ fun AdjustScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
-            Text(
-                text = stringResource(R.string.adjust_intro),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 8.dp),
-            )
+            SetupTitle(R.string.style_title)
+            Card(
+                onClick = onOpenStyle,
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(16.dp)) {
+                    Icon(Icons.Outlined.Palette, contentDescription = null, modifier = Modifier.padding(end = 14.dp))
+                    Column(Modifier.weight(1f).padding(end = 8.dp)) {
+                        Text(stringResource(layout.style.title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Text(stringResource(layout.style.description), style = MaterialTheme.typography.bodySmall)
+                    }
+                    Text(stringResource(R.string.style_change) + " ›", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                }
+            }
+            SetupTitle(R.string.adjust_section, Modifier.padding(top = 16.dp))
             AdjustSwitch("💼", R.string.adjust_commute, R.string.adjust_commute_desc, layout.commute) {
                 onChange(layout.withVisible(HomeBlock.PLACES, it))
             }
@@ -158,6 +170,16 @@ fun AdjustScreen(
             )
         }
     }
+}
+
+@Composable
+private fun SetupTitle(text: Int, modifier: Modifier = Modifier) {
+    Text(
+        text = stringResource(text),
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = modifier.padding(bottom = 6.dp),
+    )
 }
 
 @Composable
@@ -410,14 +432,14 @@ private val HomeStyle.description: Int get() = when (this) {
     HomeStyle.CLASSIC -> R.string.style_classic_desc
 }
 
-/** "Personalizar a tela inicial": a prévia em cima, com um exemplo, e os jeitos embaixo. */
+/** "Como os horários aparecem": a prévia em cima, com um exemplo, e os jeitos embaixo. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeStyleScreen(layout: HomeLayout, onChange: (HomeLayout) -> Unit, onBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.menu_style)) },
+                title = { Text(stringResource(R.string.style_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))

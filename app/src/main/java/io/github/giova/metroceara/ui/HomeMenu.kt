@@ -10,7 +10,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Repeat
 import androidx.compose.material.icons.outlined.SwapHoriz
-import androidx.compose.material.icons.outlined.SwapVert
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Column
@@ -25,7 +24,6 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.TravelExplore
-import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -54,9 +52,7 @@ class HomeMenuActions(
     val onNina: (() -> Unit)? = null,
     val onRoutines: () -> Unit = {},
     val onCommute: () -> Unit = {},
-    val onAdjust: () -> Unit = {},
-    val onStyle: () -> Unit = {},
-    val onOrder: () -> Unit = {},
+    val onHomeSetup: () -> Unit = {},
     val onSettings: () -> Unit = {},
     val onSources: () -> Unit = {},
     val onAbout: () -> Unit = {},
@@ -89,7 +85,8 @@ fun HomeMoreSheet(actions: HomeMenuActions, onDismiss: () -> Unit) {
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(start = 16.dp, bottom = 4.dp),
             )
-            MenuGroup(R.string.menu_group_trip)
+            // Passagem e Nina podem faltar: sem nenhuma, o título não fica sozinho.
+            if (actions.onFareGuide != null || actions.onNina != null) MenuGroup(R.string.menu_group_trip)
             actions.onFareGuide?.let {
                 MenuRow(Icons.Outlined.ConfirmationNumber, R.string.menu_fare, R.string.menu_fare_sub) { go(it) }
             }
@@ -110,12 +107,11 @@ fun HomeMoreSheet(actions: HomeMenuActions, onDismiss: () -> Unit) {
                     onClick = { go(onNina) },
                 )
             }
+            MenuGroup(R.string.menu_group_daily)
+            MenuRow(Icons.Outlined.SwapHoriz, R.string.menu_commute, R.string.menu_commute_sub) { go(actions.onCommute) }
             MenuRow(Icons.Outlined.Repeat, R.string.routines_title, R.string.menu_routines_sub) { go(actions.onRoutines) }
             MenuGroup(R.string.menu_group_mine)
-            MenuRow(Icons.Outlined.SwapHoriz, R.string.menu_commute, R.string.menu_commute_sub) { go(actions.onCommute) }
-            MenuRow(Icons.Outlined.Palette, R.string.menu_style, R.string.menu_style_sub) { go(actions.onStyle) }
-            MenuRow(Icons.Outlined.Tune, R.string.menu_adjust, R.string.menu_adjust_sub) { go(actions.onAdjust) }
-            MenuRow(Icons.Outlined.SwapVert, R.string.adjust_order, R.string.menu_order_sub) { go(actions.onOrder) }
+            MenuRow(Icons.Outlined.Palette, R.string.menu_home_setup, R.string.menu_home_setup_sub) { go(actions.onHomeSetup) }
             MenuRow(Icons.Outlined.Settings, R.string.settings_title, R.string.menu_settings_sub) { go(actions.onSettings) }
             MenuGroup(R.string.menu_group_app)
             MenuRow(Icons.Outlined.TravelExplore, R.string.sources_title) { go(actions.onSources) }
