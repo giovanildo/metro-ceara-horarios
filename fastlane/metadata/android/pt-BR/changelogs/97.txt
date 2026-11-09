@@ -1,0 +1,2 @@
+• O menu Mais ficou mais simples: o que mexe na tela inicial agora está junto em "Sua tela inicial".
+• Configurações em quatro partes, com os detalhes em "Ajustes finos".
