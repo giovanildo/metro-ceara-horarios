@@ -510,7 +510,7 @@ function viagensDaEstacao(t, ultima, estacao) {
   return viagensSugeridas(ultima, estacao, roteador.ligacoes, (id) => semSufixo(grade.nome(id))).map((r) => {
     const [lo, eo] = r.origem.split("|"), [ld, ed] = r.destino.split("|");
     const o = dia && !dia.domingo
-      ? roteador.planejar({ linha: lo, est: eo }, { linha: ld, est: ed }, t.minutos - 2, 1, dia.evitar)[0] : null;
+      ? roteador.planejar({ linha: lo, est: eo }, { linha: ld, est: ed }, t.minutos, 1, dia.evitar)[0] : null; // nada de metrô que já saiu
     const lugar = r.lugar ? buscarLugares(regras, r.lugar, 50).find((x) => x.nome === r.lugar) : null;
     return {
       r, o, destino: esc(r.lugar || semSufixo(grade.nome(ed))), origemNome: esc(semSufixo(grade.nome(eo))),

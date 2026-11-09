@@ -851,9 +851,11 @@ fun AppRoot() {
     }
 
     // O roteiro de quem sai agora; sem metrô hoje, nada.
-    fun recentPlanOf(t: RecentTrip): Itinerary? {
+    fun recentPlanOf(t: RecentTrip, onlyAhead: Boolean = false): Itinerary? {
         val origin = repo.station(t.originStop, t.originRoute) ?: return null
-        return planJourney(origin, RoutePoint(t.destRoute, t.destStop), null).options.firstOrNull()?.itinerary
+        // A tela inicial não sugere metrô que já saiu; o planejamento dá uma tolerância.
+        val from = if (onlyAhead) maxOf(leaveNow(origin), nowMinutes()) else null
+        return planJourney(origin, RoutePoint(t.destRoute, t.destStop), from).options.firstOrNull()?.itinerary
     }
 
     // Saída e chegada de quem sai agora.
@@ -882,7 +884,7 @@ fun AppRoot() {
             last.suggestionsFrom(openStationNow?.stopId, openStationNow?.routeId, links) { id -> repo.stop(id)?.name?.let(JourneyPlanner::plainName) }
                 .mapNotNull { trip ->
                     recentRow(trip)?.let { row ->
-                        val plan = recentPlanOf(trip)
+                        val plan = recentPlanOf(trip, onlyAhead = true)
                         StationTrip(
                             row = row,
                             times = recentTimesOf(trip, plan),
