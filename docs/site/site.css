@@ -115,6 +115,8 @@ main section { margin: 44px 0 0; }
 .horarios tbody th { font-weight: 600; }
 .horarios td { font-family: var(--titulo); font-size: 1.15rem; font-weight: 700; }
 .horarios td[colspan] { font-family: inherit; font-size: .9rem; font-weight: 400; color: var(--suave); }
+.horarios.compacta td { font-size: .9rem; white-space: nowrap; }
+.horarios.compacta .selo { display: inline-block; white-space: normal; }
 
 .lista { padding-left: 0; list-style: none; }
 .lista li { margin: 8px 0; }

@@ -12,6 +12,7 @@ Gera (e só mexe nestes caminhos; a lite em docs/app/ fica intocada):
     docs/estacoes/<estacao>/index.html  uma página por estação
     docs/linhas/index.html              todas as linhas
     docs/linhas/<linha>/index.html      uma página por linha
+    docs/perguntas-frequentes/index.html  as dúvidas comuns, respondidas com os mesmos dados
     docs/sitemap.xml                    reescrito com as páginas fixas e as geradas
     docs/index.html                     só os trechos <!--gerado:...--> (mapas, busca, números);
                                         o resto da página principal é feito à mão
@@ -216,6 +217,12 @@ class Dados:
                  and simples(l["estacao"]) in nomes]
         return sorted(lista, key=lambda l: l["a_pe_m"])
 
+    def stop_pelo_nome(self, nome):
+        return next((sid for sid, e in self.util["estacoes"].items() if simples(e["nome"]) == simples(nome)), None)
+
+    def linha_do_stop(self, sid):
+        return next(l for l in self.linhas if any(sid in s["estacoes"] for s in l["sentidos"]))
+
     def passagem(self, linha):
         for k, v in self.regras.get("passagem", {}).items():
             if not k.startswith("_") and k.strip().lower() == linha["nome"].strip().lower():
@@ -270,7 +277,7 @@ CABECA = """<!doctype html>
 <a class="pular" href="#conteudo">Pular para o conteúdo</a>
 <nav class="topo"><div class="largura">
   <a class="marca" href="{raiz}"><img src="{raiz}img/icon.png" alt="" width="32" height="32"><span class="marca-nome">Metrô Ceará</span></a>
-  <span class="menu"><a href="{raiz}estacoes/">Estações</a><a href="{raiz}linhas/">Linhas</a><a class="abrir" href="{raiz}app/">Horários agora</a></span>
+  <span class="menu"><a href="{raiz}estacoes/">Estações</a><a href="{raiz}linhas/">Linhas</a><a class="opcional" href="{raiz}perguntas-frequentes/">Dúvidas</a><a class="abrir" href="{raiz}app/">Horários agora</a></span>
 </div></nav>
 """
 
@@ -278,7 +285,7 @@ RODAPE = """<footer class="rodape"><div class="largura">
   <p><strong>Metrô Ceará</strong> é um guia independente, feito por um passageiro. <strong>Não é o site oficial do Metrofor</strong>
   nem do Governo do Ceará. Os horários vêm do GTFS que o Metrofor publica; endereços, passagem e acessibilidade, do site
   do Metrofor (conferidos em {conferido}). Lugares por perto: © colaboradores do OpenStreetMap. Fotos das estações: Wikimedia Commons, com o autor e a licença em cada uma.</p>
-  <p>Viu algo errado? <a href="{whats}">Conte pelo WhatsApp</a> · <a href="{raiz}">Sobre o app</a> · <a href="{raiz}privacidade.html">Privacidade</a></p>
+  <p>Viu algo errado? <a href="{whats}">Conte pelo WhatsApp</a> · <a href="{raiz}perguntas-frequentes/">Perguntas frequentes</a> · <a href="{raiz}">Sobre o app</a> · <a href="{raiz}privacidade.html">Privacidade</a></p>
   <p class="gerado">Página gerada em {gerado}.</p>
 </div></footer>
 {scripts}</body>
@@ -286,14 +293,20 @@ RODAPE = """<footer class="rodape"><div class="largura">
 """
 
 
+def mes_ano(aaaa_mm):
+    """"2026-11" -> "nov/2026"; outro formato volta como veio."""
+    if not re.match(r"\d{4}-\d{2}$", aaaa_mm):
+        return aaaa_mm
+    meses = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"]
+    return f"{meses[int(aaaa_mm[5:]) - 1]}/{aaaa_mm[:4]}"
+
+
 def pagina(d, *, caminho, titulo, descricao, corpo, tema="#CE0F2E", extra="", scripts="", imagem=None):
     nivel = caminho.count("/")
     raiz = "../" * nivel
     url = SITE + caminho
     conferido = d.regras.get("fontes", {}).get("passagem", {}).get("conferido", "")
-    if re.match(r"\d{4}-\d{2}$", conferido):
-        meses = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"]
-        conferido = f"{meses[int(conferido[5:]) - 1]}/{conferido[:4]}"
+    conferido = mes_ano(conferido)
     return (CABECA.format(titulo=esc(titulo), descricao=esc(descricao), url=esc(url), raiz=raiz, tema=tema, site=SITE, extra=extra,
                           imagem=esc(imagem or SITE + "img/previa.png"))
             + corpo
@@ -501,32 +514,28 @@ def fotos_do_fim(fotos, nome, raiz):
                    rodape='<p class="dica">Fotos do Wikimedia Commons. <a href="#fotos">Voltar ao começo das fotos ↑</a></p>')
 
 
+def frase_integracao(i, de, para, chave):
+    """Um sentido da integração, com a passagem (regras.json), como item de lista."""
+    texto = {"gratis": "não paga outra passagem", "paga": "paga outra passagem"}.get(i.get(f"passagem_{chave}"))
+    if not texto:
+        return ""
+    motivo = i.get(f"motivo_{chave}")
+    return (f"<li>{da(de).capitalize()} {esc(nome_linha(de['nome']))} para {para_a(para)} {esc(nome_linha(para['nome']))}: {texto}"
+            + (f" ({esc(motivo)})" if motivo else "") + ".</li>")
+
+
 def texto_integracoes(d, grupo, raiz):
     """As integrações desta estação, com a passagem em cada sentido (regras.json)."""
-    def stop(nome):
-        return next((sid for sid, e in d.util["estacoes"].items() if simples(e["nome"]) == simples(nome)), None)
-
-    def linha_do(sid):
-        return next(l for l in d.linhas if any(sid in s["estacoes"] for s in l["sentidos"]))
-
     itens = []
     for i in d.regras.get("integracoes", []):
-        sa, sb = stop(i.get("a", "")), stop(i.get("b", ""))
+        sa, sb = d.stop_pelo_nome(i.get("a", "")), d.stop_pelo_nome(i.get("b", ""))
         if not sa or not sb or (sa not in grupo["stops"] and sb not in grupo["stops"]):
             continue
-        la, lb = linha_do(sa), linha_do(sb)
+        la, lb = d.linha_do_stop(sa), d.linha_do_stop(sb)
         outra = d.por_stop[sb if sa in grupo["stops"] else sa]
         onde = "" if outra is grupo else f' com a estação <a href="{raiz}estacoes/{outra["slug"]}/">{esc(outra["nome"])}</a>'
-
-        def frase(de, para, chave):
-            texto = {"gratis": "não paga outra passagem", "paga": "paga outra passagem"}.get(i.get(f"passagem_{chave}"))
-            if not texto:
-                return ""
-            motivo = i.get(f"motivo_{chave}")
-            return (f"<li>{da(de).capitalize()} {esc(nome_linha(de['nome']))} para {para_a(para)} {esc(nome_linha(para['nome']))}: {texto}"
-                    + (f" ({esc(motivo)})" if motivo else "") + ".</li>")
         itens.append(f"<p><strong>Integração</strong>{onde}: {i['caminhada_min']} min a pé.</p><ul class=\"lista\">"
-                     + frase(la, lb, "a_para_b") + frase(lb, la, "b_para_a") + "</ul>")
+                     + frase_integracao(i, la, lb, "a_para_b") + frase_integracao(i, lb, la, "b_para_a") + "</ul>")
     return "".join(itens)
 
 
@@ -673,6 +682,188 @@ def indice_linhas(d):
                   corpo="\n".join(h))
 
 
+# ---------- perguntas frequentes
+
+def hora_falada(h):
+    """"09:00" -> "9h"; "16:30" -> "16h30"."""
+    hh, mm = h.split(":")
+    return f"{int(hh)}h" + ("" if mm == "00" else mm)
+
+
+def janelas_bike(janelas):
+    if not janelas:
+        return "não pode"
+    return " e ".join(f"a partir das {hora_falada(a)}" if b is None else f"das {hora_falada(a)} às {hora_falada(b)}" for a, b in janelas)
+
+
+def juntar(nomes):
+    nomes = list(nomes)
+    return nomes[0] if len(nomes) == 1 else ", ".join(nomes[:-1]) + " e " + nomes[-1]
+
+
+def linha_de_fonte(d, ids):
+    """De onde veio a resposta (regras.json "fontes"), com o link e a data da conferência."""
+    partes = []
+    for i in ids:
+        f = d.regras.get("fontes", {}).get(i)
+        if not f:
+            continue
+        nome = esc(f["fonte"])
+        if f.get("link"):
+            nome = f'<a href="{esc(f["link"])}" target="_blank" rel="noopener">{nome}</a>'
+        quando = "acompanhado todo dia" if f.get("diario") else (f"conferido em {mes_ano(f['conferido'])}" if f.get("conferido") else "")
+        partes.append(("" if f.get("tipo") == "app" else "Fonte: ") + nome + (f" · {quando}" if quando else ""))
+    return "".join(f'<p class="dica">{p}</p>' for p in partes)
+
+
+def tabela_horarios_linhas(d, raiz):
+    """Primeira e última partida de cada linha, saindo das pontas."""
+    def faixa(grade, linha):
+        p = [m for s in linha["sentidos"] if s["estacoes"] for m in d.partidas(grade, linha["id"], s["id"], s["estacoes"][0])]
+        return f"{hora(min(p))}–{hora(max(p))}" if p else "sem viagens"
+
+    h = ['<table class="horarios compacta"><thead><tr><th></th><th>Segunda a sexta</th><th>Sábado</th></tr></thead><tbody>']
+    for sistema in ORDEM_SISTEMAS:
+        for linha in [l for l in d.linhas if SISTEMA.get(l["id"]) == sistema]:
+            h.append(f"<tr><th>{selo(d, linha, raiz)}</th><td>{faixa(d.util, linha)}</td><td>{faixa(d.sabado, linha)}</td></tr>")
+    h.append("</tbody></table>")
+    return "".join(h)
+
+
+def resposta_passagem(d, raiz):
+    h = ['<ul class="lista">']
+    for sistema in ORDEM_SISTEMAS:
+        for linha in [l for l in d.linhas if SISTEMA.get(l["id"]) == sistema]:
+            p = d.passagem(linha)
+            h.append(f"<li>{selo(d, linha, raiz, False)} {esc(p) if p else 'veja no site do Metrofor'}</li>")
+    h.append("</ul>")
+    temas = {t["titulo"]: t for t in d.regras.get("guia_passagem", {}).get("temas", [])}
+    meia = temas.get("Meia de estudante")
+    if meia:
+        h.append("<p><strong>Meia de estudante:</strong></p><ul class=\"lista\">")
+        for q in meia["secoes"][0].get("quadros", []):
+            h.append(f"<li>{esc(q['titulo'])}: {esc(q['texto'])}</li>")
+        h.append("</ul>")
+    if "Gratuidade" in temas:
+        h.append(f"<p><strong>Quem não paga:</strong> {esc(temas['Gratuidade']['resumo'])}</p>")
+    h.append(f'<p><a href="{raiz}app/#/passagem">Onde tirar o cartão, o que levar e as outras regras ›</a></p>')
+    return "".join(h)
+
+
+def resposta_integracao(d):
+    h = ["<p>Depende de onde e em que sentido você troca de linha:</p>"]
+    for i in d.regras.get("integracoes", []):
+        sa, sb = d.stop_pelo_nome(i.get("a", "")), d.stop_pelo_nome(i.get("b", ""))
+        if not sa or not sb:
+            continue
+        ga, gb = d.por_stop[sa], d.por_stop[sb]
+        la, lb = d.linha_do_stop(sa), d.linha_do_stop(sb)
+        onde = f"Em {esc(ga['nome'])}" if ga is gb else f"Entre {esc(ga['nome'])} e {esc(gb['nome'])}"
+        h.append(f"<p><strong>{onde}</strong> ({i['caminhada_min']} min a pé):</p><ul class=\"lista\">"
+                 + frase_integracao(i, la, lb, "a_para_b") + frase_integracao(i, lb, la, "b_para_a") + "</ul>")
+    h.append('<p class="dica">Onde está "paga outra passagem", é a nossa conclusão: a estação cobra na entrada e o Metrofor '
+             "não anunciou integração de passagem nesses pontos.</p>")
+    return "".join(h)
+
+
+def resposta_bike(d):
+    bike = d.regras.get("bike", {})
+    por_linha = {k: v for k, v in bike.get("linhas", {}).items() if not k.startswith("_")}
+    h = []
+    for id_regra, regra in bike.get("regulamentos", {}).items():
+        nomes = [nome_linha(k) for k, v in por_linha.items() if v == id_regra]
+        if not nomes:
+            continue
+        h.append(f"<p><strong>{esc(juntar(nomes))}:</strong></p><ul class=\"lista\">"
+                 f"<li>Segunda a sexta: {janelas_bike(regra.get('dias_uteis', []))}.</li>"
+                 f"<li>Sábado: {janelas_bike(regra.get('sabado', []))}.</li>"
+                 f"<li>Até {regra['limite_por_viagem']} bikes por viagem.</li></ul>")
+    if bike.get("proibidas"):
+        h.append(f"<p><strong>{esc(bike['proibidas'])}</strong></p>")
+    sem_regra = [nome_linha(l["nome"]) for l in d.linhas if l["nome"] not in por_linha]
+    if sem_regra:
+        h.append(f"<p>{esc(juntar(sem_regra))}: não encontramos regra publicada. Pergunte na estação antes de levar a bike.</p>")
+    h.append('<p class="dica">Em feriado e operação especial, vale o que o Metrofor anunciar para o dia.</p>')
+    return "".join(h)
+
+
+def pagina_faq(d):
+    raiz = "../"
+    subterraneas = [g["nome"] for g in d.estacoes if g["info"].get("subterranea")]
+    com_dados = sum(1 for g in d.estacoes if g["info"].get("acesso"))
+    # As páginas das linhas do Metrofor e a grade publicada discordam sobre o fim do sábado: vale a grade, com o aviso.
+    data_sabado = d.sabado.get("data", "")
+    quando_sabado = f" de {data_sabado[8:10]}/{data_sabado[5:7]}/{data_sabado[:4]}" if re.match(r"\d{4}-\d{2}-\d{2}", data_sabado) else ""
+    aviso_sabado = (f'<p class="dica">Sábado: horários da programação{quando_sabado}. O horário de fim varia de um sábado para outro, '
+                    "e em algumas linhas o site do Metrofor diz outro. Confira as próximas partidas no dia.</p>")
+
+    perguntas = [
+        ("domingo", "O metrô e o VLT funcionam domingo e feriado?",
+         "<p><strong>Domingo: normalmente, não.</strong> O metrô e o VLT só circulam em domingo especial, como eleição, ENEM e eventos grandes, "
+         "quando o Metrofor anuncia uma operação especial. Nas eleições de 2026 e no ENEM de 2025, a operação foi gratuita.</p>"
+         "<p><strong>Feriado: costuma ter operação especial, com horário menor.</strong> Nos feriados de 2026, as linhas Sul, Nordeste e Oeste "
+         "começaram por volta das 5h30 e foram até o início da noite. Na maioria deles, os VLTs de Sobral e do Cariri não circularam. "
+         "O horário muda de um feriado para outro.</p>"
+         f'<p>A <a href="{raiz}app/">versão lite</a> e o app mostram o aviso assim que o Metrofor anuncia.</p>',
+         ["operacoes"]),
+        ("horarios", "A que horas começam e terminam o metrô e o VLT?",
+         "<p>Da primeira à última partida de cada linha, saindo das pontas:</p>" + tabela_horarios_linhas(d, raiz)
+         + f'<p>Na sua estação o horário é outro. Veja em <a href="{raiz}estacoes/">Estações</a> ou nas '
+         f'<a href="{raiz}app/">próximas partidas de agora</a>.</p>'
+         + aviso_sabado,
+         []),
+        ("passagem", "Quanto custa a passagem? Como funciona a meia?", resposta_passagem(d, raiz), ["passagem", "guia_passagem"]),
+        ("integracao", "A integração entre as linhas é paga?", resposta_integracao(d), ["integracao"]),
+        ("bike", "Posso levar bicicleta no metrô e no VLT?", resposta_bike(d), ["bike", "bike_sobral"]),
+        ("acessibilidade", "As estações têm elevador e rampa?",
+         f'<p>Depende da estação. A <a href="{raiz}estacoes/">página de cada estação</a> mostra quantos elevadores, rampas e escadas ela tem '
+         f"(temos os dados de {com_dados} das {len(d.estacoes)} estações). Todos os metrôs e VLTs têm espaço para cadeira de rodas.</p>"
+         "<p>Os números vêm de tabelas do Metrofor de 2015, e um elevador pode estar parado para manutenção. "
+         f'Encontrou algo diferente? <a href="{esc(WHATSAPP + "Metrô Ceará · acessibilidade: ")}">Conte pelo WhatsApp</a>.</p>',
+         ["acessibilidade"]),
+        ("exato", "O horário é exato? Por que às vezes muda?",
+         "<p>São os horários programados, que o Metrofor publica para cada dia. Eles não mostram onde o metrô está agora, "
+         "então um atraso não aparece.</p>"
+         "<p>Eles mudam porque o Metrofor pode trocar a programação de um dia para o outro, e às vezes durante o próprio dia. "
+         "Por isso os horários são baixados de novo todo dia.</p>",
+         []),
+        ("instalar", "Precisa instalar? Funciona sem internet e no iPhone?",
+         f'<p>Para ver os horários, não precisa instalar nada. A <a href="{raiz}app/">versão lite</a> abre no navegador de qualquer celular, '
+         "iPhone também, e pode ficar com um ícone na tela inicial. Depois de aberta uma vez, ela funciona sem internet, com os últimos horários guardados.</p>"
+         f'<p>O <a href="{raiz}#baixar">app para Android</a> acrescenta o modo viagem, que avisa antes da sua estação mesmo com a tela desligada. '
+         "Ele está em fase de testes na Play Store.</p>"
+         + (f"<p>Em {esc(juntar(subterraneas))}, que são estações subterrâneas, o sinal do celular costuma falhar. "
+            "Leve dinheiro ou deixe o Pix aberto antes de descer.</p>" if subterraneas else ""),
+         ["subterranea"]),
+        ("oficial", "O Metrô Ceará é do Metrofor?",
+         "<p><strong>Não.</strong> É um guia independente, feito por um passageiro, sem vínculo com o Metrofor, o Governo do Ceará ou a Prefeitura de Fortaleza. "
+         "As informações vêm do que o Metrofor publica, e cada uma diz a fonte. Não tem anúncio nem cadastro, e o "
+         '<a href="https://github.com/giovanildo/metro-ceara-horarios" target="_blank" rel="noopener">código é aberto</a>.</p>'
+         '<p>Reclamação sobre o serviço do metrô ou do VLT é com o <a href="https://www.ce.gov.br/metrofor/" target="_blank" rel="noopener">Metrofor</a>. '
+         f'Erro no guia, <a href="{esc(WHATSAPP + "Metrô Ceará · perguntas frequentes: ")}">conte pelo WhatsApp</a>.</p>',
+         []),
+    ]
+
+    h = ['<header class="faixa" style="--cor:#CE0F2E;--cor-escuro:#CE0F2E"><div class="largura">',
+         migalhas(raiz, [("Perguntas frequentes", None)]),
+         '<h1>Perguntas frequentes</h1><p class="endereco">O que mais se pergunta sobre o metrô e o VLT de Fortaleza, do Cariri e de Sobral.</p>',
+         '</div></header><main id="conteudo" class="largura"><nav aria-label="Perguntas"><ul class="lista">']
+    h += [f'<li><a href="#{i}">{esc(q)}</a></li>' for i, q, _, _ in perguntas]
+    h.append("</ul></nav>")
+    h += [f'<section id="{i}"><h2>{esc(q)}</h2>{r}{linha_de_fonte(d, f)}</section>' for i, q, r, f in perguntas]
+    h.append(chamada_app(raiz))
+    h.append("</main>")
+
+    def so_texto(r):
+        return re.sub(r"\s+([.,:;)])", r"\1", " ".join(html.unescape(re.sub(r"<[^>]+>", " ", r)).split()))
+
+    ld = json_ld({"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
+        {"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": so_texto(r)}} for _, q, r, _ in perguntas]})
+    return pagina(d, caminho="perguntas-frequentes/", titulo="Perguntas frequentes sobre metrô e VLT no Ceará | Metrô Ceará",
+                  descricao="Funciona domingo? Até que horas? Quanto custa? Pode levar bike? As respostas sobre o metrô e o VLT de Fortaleza, Cariri e Sobral, com a fonte de cada uma.",
+                  corpo="\n".join(h), extra=ld)
+
+
 # ---------- mapa (posições reais das estações) e página principal
 
 # Estações com nome escrito no mapa; as outras só têm o ponto (o nome aparece ao tocar).
@@ -783,7 +974,8 @@ def main():
     pasta = sys.argv[1] if len(sys.argv) > 1 else None
     d, util, sabado = carregar_dados(pasta)
 
-    caminhos = list(FIXAS) + ["estacoes/", "linhas/"]
+    caminhos = list(FIXAS) + ["estacoes/", "linhas/", "perguntas-frequentes/"]
+    escrever(os.path.join(DOCS, "perguntas-frequentes", "index.html"), pagina_faq(d))
     escrever(os.path.join(DOCS, "estacoes", "index.html"), indice_estacoes(d))
     escrever(os.path.join(DOCS, "linhas", "index.html"), indice_linhas(d))
     for linha in d.linhas:

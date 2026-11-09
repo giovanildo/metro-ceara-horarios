@@ -1558,6 +1558,12 @@ Google já conhece, em pastas próprias — a lite em `docs/app/` não é tocada
   descrição e dados estruturados (`TrainStation`, `BreadcrumbList`) para o
   Google. Parangaba e Expedicionários (duas linhas na mesma estação) são uma
   página só; Padre Cícero do Cariri é `padre-cicero-cariri`.
+- **[Perguntas frequentes](docs/perguntas-frequentes/index.html)**: 9 dúvidas
+  (domingo e feriado, horários, passagem e meia, integração, bike, elevador,
+  horário exato, instalar/sem internet/iPhone, se é do Metrofor), com a fonte
+  de cada resposta (`fontes` do `regras.json`) e dados estruturados `FAQPage`.
+  Passagem, integração, bike e horários saem dos dados; o texto das outras
+  fica em `pagina_faq`. Link em "Dúvidas" no menu do computador e no rodapé.
 - **Gerado por [`tools/site.py`](tools/site.py)**, a partir do `regras.json`
   e da grade comum (`normais`) de dia útil e sábado do ramo `dados`. O que é
   fixo vai escrito no HTML; as próximas partidas e os avisos cada página busca
