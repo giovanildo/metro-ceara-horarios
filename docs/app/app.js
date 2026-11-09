@@ -3,7 +3,7 @@ import {
   diaEspecial, linhaParada, voltaDaSegunda, passagemDaLinha, fonteLinha, proximas, somarDias, veiculo,
 } from "./dados.js";
 import { PERFIS, Roteador } from "./roteiro.js";
-import { destinoIdaVolta, deveInverterRecente, escolherMetro, mesmaEstacao } from "./idavolta.js";
+import { destinoIdaVolta, escolherMetro, mesmaEstacao, viagensSugeridas } from "./idavolta.js";
 import { aoLado, buscarLugares, caminhada, emojiLugar, longe, metrosAPe, minutosAPe, pertoDaEstacao, serve } from "./lugares.js";
 
 const PERTO_A_PE = 3000; // "Sua ida e volta": até aqui, a pessoa está na estação de casa ou do trabalho (padrão do app)
@@ -309,8 +309,10 @@ function telaInicio() {
   // Trabalho de novo) e as linhas em Linhas, na barra de baixo. Domingo fica no topo.
   // Os avisos do Metrofor ficam juntos, no topo, antes de tudo.
   let html = avisosMetrofor() + convite() + avisoDomingo(t);
-  // Com a ida e volta pronta, o bloco dela; sem Casa nem Trabalho, a viagem mais recente.
-  html += blocoIdaVolta(t) ?? blocoUltimaViagem(t) ?? atalhosLugares(t);
+  // Com a ida e volta pronta, o bloco dela; sem Casa nem Trabalho, a viagem mais
+  // recente vai para o cartão da estação aberta, no lugar dos atalhos.
+  const ultima = ultimaViagemGuardada();
+  html += blocoIdaVolta(t) ?? (ultima ? "" : atalhosLugares(t));
 
   if (!estado.pos) {
     html += `<div class="cartao">
@@ -318,6 +320,7 @@ function telaInicio() {
       <button class="botao" id="localizar" ${estado.localizando ? "disabled" : ""}>
         ${estado.localizando ? "Procurando você…" : "Usar minha localização"}</button>
       ${estado.erroLocal ? `<p class="dica">${esc(estado.erroLocal)}</p>` : ""}
+      ${faixaViagem(t, ultima, null)}
     </div>`;
   } else {
     // As duas estações mais perto: a segunda é de outra linha quando houver uma
@@ -361,7 +364,7 @@ function telaInicio() {
             return `<div class="partida">${sentidoNoCartao(s, linha)}${partidaGrande(p, t.minutos, s)}</div>`
               + (fim ? `<p class="dica fim-do-dia">${fim}</p>` : "");
           }).join("")}
-        </a></div>`;
+        </a>${faixaViagem(t, ultima, `${linha.id}|${id}`)}</div>`;
     }
   }
 
@@ -384,16 +387,11 @@ function telaInicio() {
   document.getElementById("iv-abrir")?.addEventListener("click", (e) => {
     estado.viagem = { destino: e.currentTarget.dataset.destino, busca: "", hora: null, escolhido: 0 };
   });
-  document.getElementById("ultima-viagem")?.addEventListener("click", (e) => {
-    e.preventDefault();
-    const { origem, destino, lugar } = e.currentTarget.dataset;
+  tela.querySelectorAll(".faixa-linha").forEach((b) => b.addEventListener("click", () => {
+    const { origem, destino, lugar } = b.dataset;
     abrirViagem({ origem, destino, lugar: lugar || null });
-  });
-  document.getElementById("ultima-inverter")?.addEventListener("click", (e) => {
-    const chave = e.currentTarget.dataset.chave;
-    estado.ultimaInvertida = estado.ultimaInvertida === chave ? null : chave;
-    render();
-  });
+  }));
+  tela.querySelector(".faixa-outro")?.addEventListener("click", (e) => abrirViagem({ origem: e.currentTarget.dataset.origem, destino: "", lugar: null }));
 }
 
 // ---------- sua ida e volta (como no app; só neste navegador)
@@ -481,36 +479,40 @@ function blocoIdaVolta(t) {
     </a></div>`;
 }
 
-/** Sem Casa nem Trabalho: a viagem mais recente, com o próximo horário. null sem nenhuma. */
-function blocoUltimaViagem(t) {
+/** Sem Casa nem Trabalho: a viagem mais recente, se as estações dela estão na grade. */
+function ultimaViagemGuardada() {
   const salvos = lerLugares();
   if (salvos.casa || salvos.trabalho) return null;
-  const guardada = lerRecentes()[0];
-  if (!guardada) return null;
+  const g = lerRecentes()[0];
+  if (!g) return null;
+  const { grade } = estado.dados;
+  const [lo, eo] = g.origem.split("|"), [ld, ed] = g.destino.split("|");
+  return grade.linha(lo) && grade.linha(ld) && grade.estacoes[eo] && grade.estacoes[ed] ? g : null;
+}
+
+/** No cartão da estação aberta: para onde a pessoa costuma ir dali, o metrô a pegar e a chegada. */
+function faixaViagem(t, ultima, estacao) {
+  if (!ultima) return "";
   const { grade, regras } = estado.dados;
-  const [lg, eg] = guardada.origem.split("|"), [lh, eh] = guardada.destino.split("|");
-  if (!grade.linha(lg) || !grade.linha(lh) || !grade.estacoes[eg] || !grade.estacoes[eh]) return null;
-  // A mais recente ou, quando a pessoa já foi, o caminho de volta. ⇄ vale enquanto o app achar o mesmo.
-  const ate = (id) => (estado.pos ? distancia(estado.pos.lat, estado.pos.lon, grade.estacoes[id].lat, grade.estacoes[id].lon) : null);
-  const auto = deveInverterRecente(ate(eg), ate(eh), PERTO_A_PE, guardada.em, Date.now());
-  const chave = `${guardada.origem}>${guardada.destino}:${guardada.em || 0}:${auto}`;
-  const invertida = auto !== (estado.ultimaInvertida === chave);
-  const r = invertida ? { origem: guardada.destino, destino: guardada.origem, lugar: null } : guardada;
-  const [lo, eo] = r.origem.split("|"), [ld, ed] = r.destino.split("|");
-  const a = grade.linha(lo), b = grade.linha(ld);
+  const roteador = new Roteador(grade, regras, perfilGuardado());
+  const sugeridas = viagensSugeridas(ultima, estacao, roteador.ligacoes, (id) => semSufixo(grade.nome(id)));
+  if (!sugeridas.length) return "";
   const dia = diaDaViagem(t);
-  const o = dia && !dia.domingo
-    ? new Roteador(grade, regras, perfilGuardado()).planejar({ linha: lo, est: eo }, { linha: ld, est: ed }, t.minutos - 2, 1, dia.evitar)[0] : null;
-  const lugarR = r.lugar ? buscarLugares(regras, r.lugar, 50).find((x) => x.nome === r.lugar) : null;
-  const pontos = [a, ...(b.id !== a.id ? [b] : [])].map((l) => `<span class="ponto" style="background:${cor(l)}"></span>`).join("");
-  return `<div class="cartao iv iv-recente">
-    <div class="iv-topo"><p class="iv-meta">🕘 ${invertida ? "Sua viagem de volta" : "Sua última viagem"}</p>
-      <button class="iv-inverter" id="ultima-inverter" data-chave="${esc(chave)}">⇄ Inverter</button></div>
-    <a class="iv-abrir" id="ultima-viagem" href="#/rotas" data-origem="${r.origem}" data-destino="${r.destino}" data-lugar="${esc(r.lugar || "")}">
-      <p class="iv-titulo">${pontos} ${esc(semSufixo(grade.nome(eo)))} → ${esc(r.lugar || semSufixo(grade.nome(ed)))}</p>
-      ${o ? `<div class="iv-hora"><span>sai ${hora(o.sai)}</span><b class="iv-falta">${falta(o.sai - t.minutos)}</b></div>
-        <p class="iv-destino">Chega a ${esc(r.lugar || semSufixo(grade.nome(ed)))} às ${hora(o.chega + (lugarR ? minutosAPe(lugarR, fatorPerfil()) : 0))}</p>` : ""}
-    </a></div>`;
+  const linhas = sugeridas.map((r) => {
+    const [lo, eo] = r.origem.split("|"), [ld, ed] = r.destino.split("|");
+    const o = dia && !dia.domingo
+      ? roteador.planejar({ linha: lo, est: eo }, { linha: ld, est: ed }, t.minutos - 2, 1, dia.evitar)[0] : null;
+    const lugar = r.lugar ? buscarLugares(regras, r.lugar, 50).find((x) => x.nome === r.lugar) : null;
+    const nomeDestino = esc(r.lugar || semSufixo(grade.nome(ed)));
+    const titulo = estacao ? `Para ${nomeDestino}` : `${esc(semSufixo(grade.nome(eo)))} → ${nomeDestino}`;
+    const notas = [lo !== ld ? "com integração" : "", r.lugar ? "a pé no fim" : ""].filter(Boolean).join(" · ");
+    return `<button class="faixa-linha" data-origem="${r.origem}" data-destino="${r.destino}" data-lugar="${esc(r.lugar || "")}">
+      <span class="faixa-texto"><strong>🕘 ${titulo}</strong>
+        ${o ? `<span>Pegue o das ${hora(o.sai)}</span>` : ""}${o && notas ? `<span>${notas}</span>` : ""}</span>
+      ${o ? `<span class="faixa-chega"><small>chega ~</small><b>${hora(o.chega + (lugar ? minutosAPe(lugar, fatorPerfil()) : 0))}</b></span>` : ""}
+    </button>`;
+  }).join("");
+  return `<div class="faixa-viagem">${linhas}<button class="faixa-outro" data-origem="${sugeridas[0].origem}">Outro destino ›</button></div>`;
 }
 
 /** Item do Mais: as estações, os horários e os dias. Grava a cada mudança. */

@@ -2,7 +2,6 @@
 // regra do app completo (data/Commute.kt).
 
 const DIA = 1440;
-const VOLTA_HORAS = 3; // sem localização, a última viagem vira a volta depois disso (padrão do app)
 const MOSTRA_ULTIMO = 6; // a partir de quantas partidas para o fim do dia o último aparece
 
 /**
@@ -31,16 +30,24 @@ export function mesmaEstacao(a, b, ligacoes) {
   return a === b || ligacoes.some((l) => l.deEst === a && l.paraEst === b);
 }
 
-const diaEmFortaleza = (ms) => new Date(ms).toLocaleDateString("en-CA", { timeZone: "America/Fortaleza" });
-
 /**
- * A última viagem deve aparecer invertida? Perto de uma das duas estações, sim se
- * a mais perto for o destino; sem localização, ou longe das duas, sim se foi vista
- * hoje, há pelo menos VOLTA_HORAS.
+ * As viagens a sugerir a partir da estação aberta ("linha|id"): para as duas
+ * estações da última viagem, menos a que for a própria estação. Na origem sobra o
+ * destino; no destino, a volta; em outra estação, as duas, o destino primeiro. Sem
+ * estação conhecida (null), a viagem e a volta como foram feitas. Destino em estação
+ * com um lado em cada linha (Parangaba e Parangaba - NE): vale o lado da linha de quem
+ * sai, senão não há metrô direto. nomeDe: o nome sem o sufixo da linha.
  */
-export function deveInverterRecente(dOrigem, dDestino, perto, vistaEm, agoraMs) {
-  if (dOrigem != null && dDestino != null && Math.min(dOrigem, dDestino) <= perto) return dDestino < dOrigem;
-  return Boolean(vistaEm) && diaEmFortaleza(vistaEm) === diaEmFortaleza(agoraMs) && agoraMs - vistaEm >= VOLTA_HORAS * 3600000;
+export function viagensSugeridas(ultima, estacao, ligacoes, nomeDe) {
+  const volta = { origem: ultima.destino, destino: ultima.origem, lugar: null };
+  const ida = { origem: ultima.origem, destino: ultima.destino, lugar: ultima.lugar || null };
+  if (!estacao) return [ida, volta];
+  const [linha, id] = estacao.split("|");
+  return [ida, volta].filter((v) => !mesmaEstacao(id, v.destino.split("|")[1], ligacoes)).map((v) => {
+    const [ld, ed] = v.destino.split("|");
+    const lado = ligacoes.find((l) => l.deEst === ed && l.deLinha === ld && l.paraLinha === linha && nomeDe(l.paraEst) === nomeDe(ed));
+    return { ...v, origem: estacao, destino: lado ? `${lado.paraLinha}|${lado.paraEst}` : v.destino };
+  });
 }
 
 /**
