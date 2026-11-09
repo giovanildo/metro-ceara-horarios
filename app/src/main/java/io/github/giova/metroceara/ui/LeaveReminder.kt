@@ -129,8 +129,8 @@ class LeaveToggle(private val show: suspend (String) -> Unit) {
         }
         val alert = leaveAlertFor(reminder, before) ?: return
         LeaveScheduler.add(context, alert)
-        show(context.getString(R.string.leave_quick_done, formatTime(alert.departure - before), before,
-            reminder.vehicle, formatTime(alert.departure)))
+        show(context.getString(if (reminder.departure.tomorrow) R.string.leave_quick_done_tomorrow else R.string.leave_quick_done,
+            formatTime(alert.departure - before), before, reminder.vehicle, formatTime(alert.departure)))
         if (!LeaveScheduler.canExact(context) && !LeaveStore.exactExplained(context)) {
             LeaveStore.setExactExplained(context)
             askExact = true

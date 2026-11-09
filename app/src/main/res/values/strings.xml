@@ -150,6 +150,28 @@
     <string name="journey_via_one">integração em %1$s</string>
     <string name="journey_via_many">%1$d integrações</string>
     <string name="journey_now">Sair agora</string>
+    <string name="journey_today">Hoje</string>
+    <string name="journey_tomorrow_chip">Amanhã, %1$s %2$s</string>
+    <string-array name="week_days_short">
+        <item>dom</item>
+        <item>seg</item>
+        <item>ter</item>
+        <item>qua</item>
+        <item>qui</item>
+        <item>sex</item>
+        <item>sáb</item>
+    </string-array>
+    <string name="journey_tomorrow_forecast">📅 Previsão: horários de um dia comum. O Metrofor confirma depois da meia-noite.</string>
+    <string name="journey_tomorrow_special_title">Amanhã o horário é especial</string>
+    <string name="journey_tomorrow_special_text">Ele só sai depois da meia-noite.</string>
+    <string name="journey_tomorrow_open_notice">Ver o aviso do Metrofor ›</string>
+    <string name="journey_tomorrow_sunday_title">Domingo não tem metrô nem VLT</string>
+    <string name="journey_tomorrow_sunday_back">Voltam segunda, a partir das %1$s.</string>
+    <string name="journey_tomorrow_sunday_unknown">Só há operação aos domingos quando o Metrofor anuncia.</string>
+    <string name="journey_tomorrow_unknown_title">Ainda não temos os horários de amanhã</string>
+    <string name="journey_tomorrow_unknown_text">Eles saem depois da meia-noite.</string>
+    <string name="journey_none_tomorrow">Amanhã não há como chegar a %1$s saindo daqui.</string>
+    <string name="journey_none_tomorrow_after">Sem metrô ou VLT para %1$s amanhã depois das %2$s.</string>
     <string name="journey_pick_time">Escolher horário</string>
     <string name="journey_at">Sair às %1$s</string>
     <!-- Cada horário da viagem como cartão. -->
@@ -421,6 +443,7 @@
     <string name="leave_minutes">%1$d min</string>
     <string name="leave_too_late">Faltam só %1$d min para a partida: não dá para avisar antes.</string>
     <string name="leave_quick_done">Aviso às %1$s (%2$d min antes) para o %3$s das %4$s.</string>
+    <string name="leave_quick_done_tomorrow">Amanhã, aviso às %1$s (%2$d min antes) para o %3$s das %4$s.</string>
     <string name="leave_removed">Aviso das %1$s tirado.</string>
     <string name="settings_section_leave">Hora de sair</string>
     <string name="settings_leave_before">Avisar antes de sair</string>

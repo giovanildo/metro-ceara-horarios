@@ -53,6 +53,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.stringArrayResource
+import java.util.Calendar
+import java.util.TimeZone
 import kotlinx.coroutines.launch
 import android.widget.Toast
 import androidx.compose.runtime.collectAsState
@@ -97,7 +101,18 @@ data class JourneyLine(
 )
 
 /** Os roteiros até o destino; [monday]: domingo sem metrô, nenhum roteiro e [message] é o aviso. */
-data class JourneyResult(val options: List<RouteView>, val monday: Boolean, val message: String?)
+data class JourneyResult(
+    val options: List<RouteView>,
+    val monday: Boolean,
+    val message: String?,
+    /** Amanhã não há horários a mostrar: só este aviso. */
+    val notice: TomorrowNotice? = null,
+    /** Os horários são de amanhã, pela grade de um dia comum. */
+    val forecast: Boolean = false,
+)
+
+/** Por que amanhã não há horários; [link], a notícia do Metrofor, se houver. */
+data class TomorrowNotice(val title: String, val text: String, val link: String? = null)
 
 /**
  * "Para onde você vai?": de onde (a estação em destaque, já escolhida), para onde
@@ -113,7 +128,7 @@ fun JourneyScreen(
     stations: List<Station>,
     linesFor: (Station?) -> List<JourneyLine>,
     arrivalsFor: (Station) -> Map<String, Int>,
-    plan: (Station, RoutePoint, Int?) -> JourneyResult,
+    plan: (Station, RoutePoint, Int?, Boolean) -> JourneyResult,
     canStartTrip: (Station) -> Boolean,
     onStartTrip: (Station, RouteView, String?) -> Unit,
     onRepeat: (Station, JourneyLine, Stop, RouteView?) -> Unit,
@@ -316,7 +331,7 @@ fun JourneyScreen(
                     origin = from,
                     destinationName = landmark?.name ?: plainName(stop.name),
                     finalWalk = landmark?.let { FinalWalk(it.name, it.walkMeters, walkMinutes(it), it.beside) },
-                    plan = { time -> plan(from, RoutePoint(line.routeId, stop.id), time) },
+                    plan = { time, tomorrow -> plan(from, RoutePoint(line.routeId, stop.id), time, tomorrow) },
                     canStartTrip = canStartTrip(from),
                     onStartTrip = { onStartTrip(from, it, landmark?.name) },
                     destination = line to stop,
@@ -622,14 +637,14 @@ fun StationPickerDialog(
  * cartão; o aberto mostra o roteiro e o modo viagem (saindo agora) ou o aviso
  * da hora de sair.
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 private fun JourneyResultSheet(
     origin: Station,
     destinationName: String,
     /** O lugar escolhido: o roteiro termina com a caminhada até ele. */
     finalWalk: FinalWalk?,
-    plan: (Int?) -> JourneyResult,
+    plan: (Int?, Boolean) -> JourneyResult,
     canStartTrip: Boolean,
     onStartTrip: (RouteView) -> Unit,
     destination: Pair<JourneyLine, Stop>,
@@ -639,13 +654,18 @@ private fun JourneyResultSheet(
     var time by remember { mutableStateOf<Int?>(null) }
     var selected by remember { mutableStateOf(0) }
     var pickingTime by remember { mutableStateOf(false) }
+    // Hoje ou amanhã. O relógio aberto vale para [pickForTomorrow] até a pessoa confirmar.
+    var tomorrow by remember { mutableStateOf(false) }
+    var pickForTomorrow by remember { mutableStateOf(false) }
+    // Amanhã sem horários (especial, domingo): só o aviso, sem perguntar a hora.
+    val tomorrowBlocked = remember { plan(null, true).notice != null }
     // O aviso da hora de sair: um toque marca, outro tira (confirmação em Toast, por cima da folha).
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val leaveToggle = remember { LeaveToggle { Toast.makeText(context, it, Toast.LENGTH_LONG).show() } }
     LeaveToggleHost(leaveToggle)
     val leaveAlerts by LeaveStore.alerts(context).collectAsState()
-    val result = remember(time) { plan(time) }
+    val result = remember(time, tomorrow) { plan(time, tomorrow) }
     val view = result.options.getOrNull(selected.coerceAtMost(result.options.lastIndex))
 
     Column(
@@ -667,24 +687,59 @@ private fun JourneyResultSheet(
                 }
             }
         }
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(
+                selected = !tomorrow,
+                onClick = { tomorrow = false; time = null; selected = 0 },
+                label = { Text(stringResource(R.string.journey_today)) },
+            )
+            FilterChip(
+                selected = tomorrow,
+                onClick = {
+                    if (tomorrowBlocked) {
+                        tomorrow = true; time = null; selected = 0
+                    } else {
+                        pickForTomorrow = true; pickingTime = true
+                    }
+                },
+                label = { Text(tomorrowChipLabel()) },
+            )
+        }
+        result.notice?.let {
+            TomorrowNoticeCard(it)
+            return@Column
+        }
         // Domingo sem metrô: só o aviso, sem horário nenhum.
         if (result.monday) {
             SundayNotice(text = result.message.orEmpty())
             return@Column
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(
-                selected = time == null,
-                onClick = { time = null; selected = 0 },
-                label = { Text(stringResource(R.string.journey_now)) },
-            )
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            // "Agora" não existe amanhã: lá a hora é sempre escolhida.
+            if (!tomorrow) {
+                FilterChip(
+                    selected = time == null,
+                    onClick = { time = null; selected = 0 },
+                    label = { Text(stringResource(R.string.journey_now)) },
+                )
+            }
             FilterChip(
                 selected = time != null,
-                onClick = { pickingTime = true },
+                onClick = { pickForTomorrow = tomorrow; pickingTime = true },
                 label = {
                     Text(time?.let { stringResource(R.string.journey_at, formatTime(it)) } ?: stringResource(R.string.journey_pick_time))
                 },
             )
+        }
+        if (result.forecast) {
+            Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = stringResource(R.string.journey_tomorrow_forecast),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.padding(12.dp),
+                )
+            }
         }
         if (view == null) {
             Text(result.message.orEmpty(), color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -710,10 +765,10 @@ private fun JourneyResultSheet(
                         }
                         Text(stringResource(R.string.journey_trip_hint), style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    } else if (first.departure >= nowMinutes()) {
+                    } else if (tomorrow || first.departure >= nowMinutes()) {
                         val leg = option.itinerary.legs.first()
                         val leave = LeaveReminder(
-                            Departure(first.departure, tomorrow = false), first.fromName,
+                            Departure(first.departure, tomorrow = tomorrow), first.fromName,
                             first.routeName, first.headsign, vehicleName(first.routeName),
                             stopId = leg.fromStop, routeId = leg.routeId, directionId = leg.directionId,
                             destStopId = destination.second.id, destRouteId = destination.first.routeId,
@@ -751,8 +806,9 @@ private fun JourneyResultSheet(
     }
 
     if (pickingTime) {
+        val pickerStart = if (pickForTomorrow) TOMORROW_PICKER_START else nowMinutes()
         val state = rememberTimePickerState(
-            initialHour = (time ?: nowMinutes()) / 60, initialMinute = (time ?: nowMinutes()) % 60, is24Hour = true,
+            initialHour = (time ?: pickerStart) / 60, initialMinute = (time ?: pickerStart) % 60, is24Hour = true,
         )
         AlertDialog(
             onDismissRequest = { pickingTime = false },
@@ -761,12 +817,47 @@ private fun JourneyResultSheet(
             confirmButton = {
                 TextButton(onClick = {
                     time = state.hour * 60 + state.minute
+                    tomorrow = pickForTomorrow
                     selected = 0
                     pickingTime = false
                 }) { Text("OK") }
             },
             dismissButton = { TextButton(onClick = { pickingTime = false }) { Text(stringResource(R.string.cancel)) } },
         )
+    }
+}
+
+/** Onde o relógio abre para amanhã: de noite, a hora atual não ajudaria. */
+private const val TOMORROW_PICKER_START = 7 * 60
+
+/** "Amanhã, ter 10/11". */
+@Composable
+private fun tomorrowChipLabel(): String {
+    val date = Calendar.getInstance(TimeZone.getTimeZone("America/Fortaleza")).apply { add(Calendar.DAY_OF_MONTH, 1) }
+    val weekDay = stringArrayResource(R.array.week_days_short)[date.get(Calendar.DAY_OF_WEEK) - 1]
+    return stringResource(R.string.journey_tomorrow_chip, weekDay,
+        "%02d/%02d".format(date.get(Calendar.DAY_OF_MONTH), date.get(Calendar.MONTH) + 1))
+}
+
+/** No lugar dos horários, quando amanhã não há o que prever. */
+@Composable
+private fun TomorrowNoticeCard(notice: TomorrowNotice) {
+    val uriHandler = LocalUriHandler.current
+    Surface(color = MaterialTheme.colorScheme.tertiaryContainer, shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(14.dp)) {
+            Text(notice.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onTertiaryContainer)
+            Text(notice.text, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onTertiaryContainer)
+            notice.link?.takeIf { it.startsWith("https://") }?.let { link ->
+                Text(
+                    text = stringResource(R.string.journey_tomorrow_open_notice),
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                    modifier = Modifier.clickable { uriHandler.openUri(link) }.padding(vertical = 4.dp),
+                )
+            }
+        }
     }
 }
 

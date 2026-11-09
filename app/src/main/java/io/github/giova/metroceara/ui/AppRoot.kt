@@ -6,8 +6,11 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.core.content.ContextCompat
 import io.github.giova.metroceara.alerts.OperationAlerts
+import io.github.giova.metroceara.data.DayType
 import io.github.giova.metroceara.data.Landmark
+import io.github.giova.metroceara.data.TomorrowStatus
 import io.github.giova.metroceara.data.near
+import io.github.giova.metroceara.data.tomorrowStatus
 import io.github.giova.metroceara.data.walkMinutes
 import io.github.giova.metroceara.data.LeaveScheduler
 import io.github.giova.metroceara.data.LeaveStore
@@ -554,6 +557,12 @@ fun AppRoot() {
     val router = remember(repo, settings) {
         Router(repo.timetable, repo.transferLinks()) { link, arrival -> transferMinutes(link.baseMinutes, arrival, settings) }
     }
+    // O roteiro de amanhã: a grade prevista, ou null quando não há como prever.
+    val routerTomorrow = remember(repo, settings) {
+        repo.timetableTomorrow?.let { timetable ->
+            Router(timetable, repo.transferLinks()) { link, arrival -> transferMinutes(link.baseMinutes, arrival, settings) }
+        }
+    }
     val stoppedRoutes = remember(repo, today) {
         repo.routes().filter { Regras.current.stopped(today, it.name) }.map { it.id }.toSet()
     }
@@ -597,7 +606,7 @@ fun AppRoot() {
     // De onde a pessoa sai agora: com a caminhada até a estação, ou já nela.
     fun leaveNow(origin: Station): Int = walkTo(origin).let { if (it > 0) nowMinutes() + it else nowMinutes() - settings.lateBoardingMinutes }
 
-    fun routeView(itinerary: Itinerary, walk: Int = 0): RouteView {
+    fun routeView(itinerary: Itinerary, walk: Int = 0, dayOfWeek: Int = nowDayOfWeek()): RouteView {
         fun stopName(id: String) = JourneyPlanner.plainName(repo.stop(id)?.name ?: id)
         fun headsign(routeId: String, direction: Int) =
             repo.directions(routeId).firstOrNull { it.id == direction }?.headsign.orEmpty()
@@ -616,7 +625,7 @@ fun AppRoot() {
             val rule = bikeRuleFor(leg.fromName, leg.routeName)
             when {
                 rule == null -> context.getString(R.string.route_bike_no_line, leg.routeName)
-                !bikeBoarding(rule, nowDayOfWeek(), leg.departure).allowed ->
+                !bikeBoarding(rule, dayOfWeek, leg.departure).allowed ->
                     context.getString(R.string.route_bike_not_now, leg.routeName, formatTime(leg.departure))
                 else -> null
             }
@@ -645,9 +654,37 @@ fun AppRoot() {
 
     // Os roteiros de [origin] até [target]: saindo agora ([from] null) ou no horário
     // escolhido; num domingo sem metrô, nenhum: só o aviso de quando o metrô volta.
-    fun planJourney(origin: Station, target: RoutePoint, from: Int?): JourneyResult {
+    fun planJourney(origin: Station, target: RoutePoint, from: Int?, tomorrow: Boolean = false): JourneyResult {
         val start = RoutePoint(origin.routeId, origin.stopId)
         val name = JourneyPlanner.plainName(repo.stop(target.stopId)?.name.orEmpty())
+        if (tomorrow) {
+            val date = ScheduleStore.tomorrow()
+            val operation = Regras.current.operations[date]
+            fun notice(title: Int, text: String, link: String? = null) =
+                JourneyResult(emptyList(), monday = false, message = null, notice = TomorrowNotice(context.getString(title), text, link))
+            when (tomorrowStatus(ScheduleStore.isSpecial(date), ScheduleStore.tomorrowType() == DayType.SUNDAY, operation != null, routerTomorrow != null)) {
+                TomorrowStatus.SPECIAL -> return notice(R.string.journey_tomorrow_special_title,
+                    context.getString(R.string.journey_tomorrow_special_text), operation?.link)
+                TomorrowStatus.SUNDAY -> {
+                    val mondayFirst = repo.boardingDirections(origin.stopId, origin.routeId)
+                        .mapNotNull { repo.dayEnd(origin.stopId, origin.routeId, it.id).nextFirst }.minOrNull()
+                    return notice(R.string.journey_tomorrow_sunday_title,
+                        mondayFirst?.let { context.getString(R.string.journey_tomorrow_sunday_back, formatTime(it)) }
+                            ?: context.getString(R.string.journey_tomorrow_sunday_unknown))
+                }
+                TomorrowStatus.UNKNOWN -> return notice(R.string.journey_tomorrow_unknown_title,
+                    context.getString(R.string.journey_tomorrow_unknown_text))
+                TomorrowStatus.FORECAST -> Unit
+            }
+            val router = routerTomorrow ?: return JourneyResult(emptyList(), monday = false, message = null)
+            val plans = router.plan(start, target, from ?: 0, 4, stoppedTomorrow)
+            val message = if (plans.isNotEmpty()) null else router.lastDeparture(start, target, stoppedTomorrow)
+                ?.let { context.getString(R.string.journey_none_tomorrow_after, name, formatTime(it)) }
+                ?: context.getString(R.string.journey_none_tomorrow, name)
+            // Calendar.DAY_OF_WEEK vai de 1 (domingo) a 7 (sábado).
+            val day = nowDayOfWeek() % 7 + 1
+            return JourneyResult(plans.map { routeView(it, dayOfWeek = day) }, monday = false, message, forecast = true)
+        }
         if (sundayOff) {
             val mondayFirst = repo.boardingDirections(origin.stopId, origin.routeId)
                 .mapNotNull { repo.departuresTomorrow(origin.stopId, origin.routeId, it.id)?.firstOrNull() }.minOrNull()
