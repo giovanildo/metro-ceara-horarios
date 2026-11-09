@@ -360,3 +360,43 @@ dialog.folha[open] { animation: sobe .25s ease-out; }
 .iv-linha { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 13px 14px; margin: 8px 0; background: var(--neutro); color: var(--texto); border-radius: 14px; text-decoration: none; }
 .iv-linha b { color: var(--cartao-texto); }
 .iv-linha input { font: inherit; color: var(--texto); background: var(--fundo); border: 1px solid var(--borda); border-radius: 8px; padding: 4px 8px; }
+
+/* Personalizar a tela inicial: os jeitos de mostrar os horários. */
+.via-sentido { display: block; font-size: inherit; color: inherit; line-height: 1.25; }
+.toque-viagem { font: inherit; color: var(--menta-texto); background: var(--menta); border: 0; border-radius: 12px; text-align: left; cursor: pointer; }
+.faixa-outro.link-outro { color: var(--cartao-texto); padding: 12px 0 2px; display: block; }
+.rail { margin-top: 10px; }
+.rail .no { position: relative; padding: 5px 0 5px 40px; }
+.rail .no::before { content: ""; position: absolute; left: 16px; top: 0; bottom: 0; width: 7px; background: var(--cor-linha); }
+.rail .no:first-child::before { top: 50%; border-radius: 4px 4px 0 0; }
+.rail .no:last-child::before { bottom: 50%; border-radius: 0 0 4px 4px; }
+.rail .no::after { content: ""; position: absolute; left: 11.5px; top: 50%; width: 16px; height: 16px; margin-top: -8px; box-sizing: border-box; border-radius: 50%; background: var(--fundo); border: 3.5px solid var(--cor-linha); }
+.rail .no.aqui { padding-top: 12px; padding-bottom: 12px; font-size: 1.05rem; }
+.rail .no.aqui::after { left: 7px; width: 25px; height: 25px; margin-top: -12.5px; background: var(--primaria, #44598f); border: 4px solid #fff; }
+.no-fim { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.no-fim .hora.grande { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.1; white-space: nowrap; font-weight: 600; }
+.no-fim .hora.grande b { font-size: 1.35rem; font-weight: 700; }
+.no-fim .hora.grande small { font-size: .8rem; font-weight: 400; opacity: .8; }
+.pino { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 11px; }
+.pino strong, .pino small { display: block; } .pino small { font-size: .8rem; } .pino b { font-size: 1.3rem; }
+.bloco-viagem { background: var(--menta); color: var(--menta-texto); border-radius: 12px; margin-top: 12px; }
+.destaque { width: 100%; display: flex; flex-direction: column; padding: 14px; }
+.destaque strong { font-size: 1.3rem; } .gigante { font-size: 2.5rem; font-weight: 800; line-height: 1.1; }
+.par { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 14px; }
+.par + .par { border-top: 1px solid color-mix(in srgb, var(--menta-texto) 20%, transparent); border-radius: 0; }
+.par span span { display: block; font-size: .9rem; } .par strong { font-size: 1.1rem; } .par b { font-size: 1.35rem; white-space: nowrap; }
+.lados { display: flex; gap: 8px; margin-top: 12px; }
+.lado { flex: 1; min-width: 0; background: var(--fundo); border-radius: 12px; padding: 11px 12px; display: flex; flex-direction: column; gap: 3px; color: var(--cartao-texto); }
+.lado.sua { background: var(--menta); color: var(--menta-texto); }
+.lado .hora.grande { display: flex; flex-direction: column; line-height: 1.15; margin-top: 4px; }
+.lado .hora.grande b { font-size: 1.3rem; } .lado .hora.grande small { font-size: .8rem; }
+.lado-viagem { border-top: 1px solid color-mix(in srgb, var(--menta-texto) 25%, transparent); margin-top: 6px; padding-top: 6px; font-size: .9rem; font-weight: 700; }
+.faixa-outro.pergunta { background: var(--fundo); border-radius: 26px; padding: 13px 18px; margin-top: 12px; font-size: 1.05rem; font-weight: 500; }
+.chip { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 13px; margin-top: 8px; }
+.chip strong, .chip span span { display: block; } .chip span span { font-size: .9rem; } .chip b { white-space: nowrap; }
+.frase { width: 100%; display: flex; flex-direction: column; background: var(--fundo); border-radius: 12px; padding: 11px 13px; margin-top: 8px; color: var(--cartao-texto); font-size: .95rem; }
+.frase.sua { background: var(--menta); color: var(--menta-texto); }
+.frase-tempo { font-size: 1.6rem; font-weight: 800; line-height: 1.15; } .frase-sua { font-weight: 700; }
+.exemplo { pointer-events: none; }
+.estilo { display: flex; align-items: center; gap: 12px; padding: 12px 4px; border-bottom: 1px solid var(--borda); cursor: pointer; }
+.estilo strong, .estilo small { display: block; } .estilo strong { font-weight: 500; } .estilo small { color: var(--texto-2); font-size: .82rem; }

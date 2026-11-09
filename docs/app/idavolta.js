@@ -50,6 +50,11 @@ export function viagensSugeridas(ultima, estacao, ligacoes, nomeDe) {
   });
 }
 
+/** A próxima estação do sentido, de referência. O terminal não vale: já é o nome do sentido. */
+export function escolherVia(frente) {
+  return frente.length >= 2 ? frente[0] : null;
+}
+
 /**
  * Escolhe o metrô de [opcoes] (os do resto do dia, em ordem). [alvo]: a hora
  * marcada (chegar, na ida; sair, na volta), ou null quando não vale agora.

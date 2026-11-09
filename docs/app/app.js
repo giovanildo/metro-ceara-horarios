@@ -3,9 +3,10 @@ import {
   diaEspecial, linhaParada, voltaDaSegunda, passagemDaLinha, fonteLinha, proximas, somarDias, veiculo,
 } from "./dados.js";
 import { PERFIS, Roteador } from "./roteiro.js";
-import { destinoIdaVolta, escolherMetro, mesmaEstacao, viagensSugeridas } from "./idavolta.js";
+import { destinoIdaVolta, escolherMetro, escolherVia, mesmaEstacao, viagensSugeridas } from "./idavolta.js";
 import { aoLado, buscarLugares, caminhada, emojiLugar, longe, metrosAPe, minutosAPe, pertoDaEstacao, serve } from "./lugares.js";
 
+const AQUI_METROS = 1000; // até aqui, o trilho diz "Você está aqui" (padrão do app)
 const PERTO_A_PE = 3000; // "Sua ida e volta": até aqui, a pessoa está na estação de casa ou do trabalho (padrão do app)
 const PERTO_METROS = 3000; // a segunda estação mais perto aparece até esta distância (padrão do app)
 const LINK = "https://giovanildo.github.io/metro-ceara-horarios/app/";
@@ -351,20 +352,32 @@ function telaInicio() {
             <span class="linha-nome">${esc(linha.nome)} · ${metros(d)} em linha reta</span></span></button></div>`;
         continue;
       }
-      html += `<div class="cartao">
-        <a class="cabeca" href="#/estacao/${linha.id}/${id}">
-          <h3>${esc(grade.nome(id))} <span class="ponto" style="background:${cor(linha)}"></span>
+      const domingo = domingoSemOperacao(t);
+      const filas = domingo ? [] : sentidos.map((s) => {
+        const { hoje, amanha } = partidasComAmanha(linha, s, id);
+        const p = proximas(hoje, t.minutos, 1, amanha)[0];
+        return { s, p, fim: p ? "" : fimDoDia(linha, s, id), via: viaDoCaminho(s, id) };
+      });
+      const cabeca = `<h3>${esc(grade.nome(id))} <span class="ponto" style="background:${cor(linha)}"></span>
             <span class="linha-nome">${esc(linha.nome)}</span></h3>
           <span class="distancia">${metros(d)} em linha reta, sem contar ruas nem trânsito</span>
           ${avisoParada(linha, t)}
-          ${domingoSemOperacao(t) ? `<p class="dica fim-do-dia">${textoVoltaSegunda(fraseDaSegunda(linha.id, id, "Volta"))}</p>` : sentidos.map((s) => {
-            const { hoje, amanha } = partidasComAmanha(linha, s, id);
-            const p = proximas(hoje, t.minutos, 1, amanha)[0];
-            const fim = p ? "" : fimDoDia(linha, s, id);
-            return `<div class="partida">${sentidoNoCartao(s, linha)}${partidaGrande(p, t.minutos, s)}</div>`
-              + (fim ? `<p class="dica fim-do-dia">${fim}</p>` : "");
-          }).join("")}
-        </a>${faixaViagem(t, ultima, `${linha.id}|${id}`)}</div>`;
+          ${domingo ? `<p class="dica fim-do-dia">${textoVoltaSegunda(fraseDaSegunda(linha.id, id, "Volta"))}</p>` : ""}`;
+      const estacao = `${linha.id}|${id}`;
+      const estilo = estiloInicio();
+      if (estilo === "classico") {
+        html += `<div class="cartao">
+        <a class="cabeca" href="#/estacao/${linha.id}/${id}">${cabeca}
+          ${filas.map((f) => `<div class="partida">${sentidoNoCartao(f.s, linha)}${partidaGrande(f.p, t.minutos, f.s)}</div>`
+            + (f.fim ? `<p class="dica fim-do-dia">${f.fim}</p>` : "")).join("")}
+        </a>${faixaViagem(t, ultima, estacao)}</div>`;
+      } else {
+        html += `<div class="cartao"><a class="cabeca" href="#/estacao/${linha.id}/${id}">${cabeca}</a>
+          <div data-ir="#/estacao/${linha.id}/${id}">${corpoEstilo(estilo, {
+            linha, estacao, filas, minutos: t.minutos, aqui: d <= AQUI_METROS ? "Você está aqui" : esc(grade.nome(id)),
+            viagens: ultima ? viagensDaEstacao(t, ultima, estacao) : [],
+          })}</div></div>`;
+      }
     }
   }
 
@@ -387,11 +400,10 @@ function telaInicio() {
   document.getElementById("iv-abrir")?.addEventListener("click", (e) => {
     estado.viagem = { destino: e.currentTarget.dataset.destino, busca: "", hora: null, escolhido: 0 };
   });
-  tela.querySelectorAll(".faixa-linha").forEach((b) => b.addEventListener("click", () => {
-    const { origem, destino, lugar } = b.dataset;
-    abrirViagem({ origem, destino, lugar: lugar || null });
+  ligarViagens();
+  tela.querySelectorAll("[data-ir]").forEach((c) => c.addEventListener("click", (e) => {
+    if (!e.target.closest("a, button")) location.hash = c.dataset.ir;
   }));
-  tela.querySelector(".faixa-outro")?.addEventListener("click", (e) => abrirViagem({ origem: e.currentTarget.dataset.origem, destino: "", lugar: null }));
 }
 
 // ---------- sua ida e volta (como no app; só neste navegador)
@@ -490,29 +502,192 @@ function ultimaViagemGuardada() {
   return grade.linha(lo) && grade.linha(ld) && grade.estacoes[eo] && grade.estacoes[ed] ? g : null;
 }
 
-/** No cartão da estação aberta: para onde a pessoa costuma ir dali, o metrô a pegar e a chegada. */
-function faixaViagem(t, ultima, estacao) {
-  if (!ultima) return "";
+/** As viagens a sugerir, com o metrô a pegar (o) e a chegada; sem metrô agora, o é null. */
+function viagensDaEstacao(t, ultima, estacao) {
   const { grade, regras } = estado.dados;
   const roteador = new Roteador(grade, regras, perfilGuardado());
-  const sugeridas = viagensSugeridas(ultima, estacao, roteador.ligacoes, (id) => semSufixo(grade.nome(id)));
-  if (!sugeridas.length) return "";
   const dia = diaDaViagem(t);
-  const linhas = sugeridas.map((r) => {
+  return viagensSugeridas(ultima, estacao, roteador.ligacoes, (id) => semSufixo(grade.nome(id))).map((r) => {
     const [lo, eo] = r.origem.split("|"), [ld, ed] = r.destino.split("|");
     const o = dia && !dia.domingo
       ? roteador.planejar({ linha: lo, est: eo }, { linha: ld, est: ed }, t.minutos - 2, 1, dia.evitar)[0] : null;
     const lugar = r.lugar ? buscarLugares(regras, r.lugar, 50).find((x) => x.nome === r.lugar) : null;
-    const nomeDestino = esc(r.lugar || semSufixo(grade.nome(ed)));
-    const titulo = estacao ? `Para ${nomeDestino}` : `${esc(semSufixo(grade.nome(eo)))} → ${nomeDestino}`;
-    const notas = [lo !== ld ? "com integração" : "", r.lugar ? "a pé no fim" : ""].filter(Boolean).join(" · ");
-    return `<button class="faixa-linha" data-origem="${r.origem}" data-destino="${r.destino}" data-lugar="${esc(r.lugar || "")}">
+    return {
+      r, o, destino: esc(r.lugar || semSufixo(grade.nome(ed))), origemNome: esc(semSufixo(grade.nome(eo))),
+      chegada: o ? o.chega + (lugar ? minutosAPe(lugar, fatorPerfil()) : 0) : null,
+      notas: [lo !== ld ? "com integração" : "", r.lugar ? "a pé no fim" : ""].filter(Boolean).join(" · "),
+      direta: lo === ld && !r.lugar,
+    };
+  });
+}
+
+/** Os atributos que fazem o toque abrir o roteiro da viagem. */
+const dadosViagem = (v) => `data-origem="${v.r.origem}" data-destino="${v.r.destino}" data-lugar="${esc(v.r.lugar || "")}"`;
+
+/** A faixa de sempre, em cor própria, com o botão de outro destino. */
+function faixaDe(viagens, comEstacao) {
+  if (!viagens.length) return "";
+  const linhas = viagens.map((v) => {
+    const titulo = comEstacao ? `Para ${v.destino}` : `${v.origemNome} → ${v.destino}`;
+    return `<button class="faixa-linha" ${dadosViagem(v)}>
       <span class="faixa-texto"><strong>🕘 ${titulo}</strong>
-        ${o ? `<span>Pegue o das ${hora(o.sai)}</span>` : ""}${o && notas ? `<span>${notas}</span>` : ""}</span>
-      ${o ? `<span class="faixa-chega"><small>chega ~</small><b>${hora(o.chega + (lugar ? minutosAPe(lugar, fatorPerfil()) : 0))}</b></span>` : ""}
+        ${v.o ? `<span>Pegue o das ${hora(v.o.sai)}</span>` : ""}${v.o && v.notas ? `<span>${v.notas}</span>` : ""}</span>
+      ${v.o ? `<span class="faixa-chega"><small>chega ~</small><b>${hora(v.chegada)}</b></span>` : ""}
     </button>`;
   }).join("");
-  return `<div class="faixa-viagem">${linhas}<button class="faixa-outro" data-origem="${sugeridas[0].origem}">Outro destino ›</button></div>`;
+  return `<div class="faixa-viagem">${linhas}<button class="faixa-outro" data-origem="${viagens[0].r.origem}">Outro destino ›</button></div>`;
+}
+
+/** No cartão da estação aberta: para onde a pessoa costuma ir dali, o metrô a pegar e a chegada. */
+function faixaViagem(t, ultima, estacao) {
+  return ultima ? faixaDe(viagensDaEstacao(t, ultima, estacao), Boolean(estacao)) : "";
+}
+
+// ---------- o jeito de mostrar os horários (Personalizar a tela inicial; como no app)
+
+const ESTILOS = [
+  ["trilho", "Trilho (padrão)", "A linha desenhada, com os dois sentidos e o seu destino nela"],
+  ["viagem", "Minha viagem primeiro", "O tempo da sua viagem bem grande"],
+  ["lados", "Dois lados", "Um quadro para cada sentido, lado a lado"],
+  ["pergunta", "Para onde vou", "Começa perguntando o destino"],
+  ["frases", "Frases", "Quando sai, para que lado vai e onde descer"],
+  ["classico", "Clássico", "Os sentidos em lista e a viagem embaixo"],
+];
+
+function estiloInicio() {
+  try {
+    const e = localStorage.getItem("estilo-inicio");
+    return ESTILOS.some((x) => x[0] === e) ? e : "trilho";
+  } catch { return "trilho"; }
+}
+
+/** A próxima estação deste sentido; só para referência, nunca o destino da pessoa. */
+function viaDoCaminho(s, stopId) {
+  const i = s.estacoes.indexOf(stopId);
+  return escolherVia(i < 0 ? [] : s.estacoes.slice(i + 1).map((id) => semSufixo(estado.dados.grade.nome(id))));
+}
+
+const saiEm = (min) => `sai ${falta(min)}`;
+const Veiculo = (linha) => veiculo(linha.nome).replace(/^./, (c) => c.toUpperCase());
+
+/** O tempo grande e a hora embaixo; sem partida, o motivo. */
+function tempoSai(f, c) {
+  if (!f.p) return `<span class="hora">${textoPartida(f.p, c.minutos, f.s)}</span>`;
+  return `<span class="hora grande"><b>${saiEm(minutosAte(f.p, c.minutos))}</b><small>${hora(f.p.m)}${f.p.amanha ? " (amanhã)" : ""}</small></span>`;
+}
+
+const textoVia = (f) => (f.via ? `<small class="via-sentido">via ${esc(f.via)}</small>` : "");
+const fimDe = (f) => (f.fim ? `<p class="dica fim-do-dia">${f.fim}</p>` : "");
+
+function linhaSentido(f, c, comVia) {
+  return `<div class="partida"><span><span class="sentido-cartao">${tremVirando(f.s, cor(c.linha))}${rotuloSentido(f.s)}</span>${comVia ? textoVia(f) : ""}</span>${tempoSai(f, c)}</div>${fimDe(f)}`;
+}
+
+/** "Desça em Parangaba · chega às 08:19", dentro do sentido que a viagem usa. */
+function viagemNoSentido(v, f) {
+  const texto = v.direta ? `Desça em ${v.destino} · chega às ${hora(v.chegada)}` : `Para ${v.destino} · ${v.notas} · chega às ${hora(v.chegada)}`;
+  return f.p?.m === v.o.sai ? texto : `Pegue o das ${hora(v.o.sai)} · ${texto}`;
+}
+
+const blocoSaiChega = (v, c) => `${Veiculo(c.linha)} das ${hora(v.o.sai)} · chega às ${hora(v.chegada)}`;
+
+function estiloTrilho(c, naLinha) {
+  const em = [...c.filas].sort((a, b) => b.s.id - a.s.id);
+  const topo = em.length > 1 ? em[0] : null, baixo = em[em.length - 1];
+  const fim = (f, vs) => `<div class="no"><div class="no-fim"><span>${rotuloSentido(f.s)}${vs.length ? "" : textoVia(f)}</span>${tempoSai(f, c)}</div>${fimDe(f)}</div>`;
+  const pino = (v) => `<div class="no"><button class="toque-viagem pino" ${dadosViagem(v)}><span><strong>${v.destino}</strong><small>sua viagem · ${veiculo(c.linha.nome)} das ${hora(v.o.sai)}${v.notas ? ` · ${v.notas}` : ""}</small></span><b>${hora(v.chegada)}</b></button></div>`;
+  const de = (f) => naLinha.filter((v) => v.o.pernas[0].sentido.id === f.s.id);
+  const ate = (a, b) => a.chegada - b.chegada;
+  return `<div class="rail" style="--cor-linha:${cor(c.linha)}">
+    ${topo ? fim(topo, de(topo)) + [...de(topo)].sort((a, b) => ate(b, a)).map(pino).join("") : ""}
+    <div class="no aqui"><strong>${c.aqui}</strong></div>
+    ${[...de(baixo)].sort(ate).map(pino).join("")}${fim(baixo, de(baixo))}</div>`;
+}
+
+function estiloViagem(c, naLinha) {
+  const usados = new Set(naLinha.map((v) => v.o.pernas[0].sentido.id));
+  const outros = c.filas.filter((f) => !usados.has(f.s.id));
+  const falto = (v) => saiEm(v.o.sai - c.minutos);
+  const unica = naLinha.length === 1 ? naLinha[0] : null;
+  const destaque = unica
+    ? `<button class="toque-viagem destaque" ${dadosViagem(unica)}><strong>Para ${unica.destino}</strong><b class="gigante">${falto(unica)}</b><span>${blocoSaiChega(unica, c)}</span>${unica.notas ? `<span>${unica.notas}</span>` : ""}</button>`
+    : naLinha.map((v) => `<button class="toque-viagem par" ${dadosViagem(v)}><span><strong>Para ${v.destino}</strong><span>${blocoSaiChega(v, c)}</span>${v.notas ? `<span>${v.notas}</span>` : ""}</span><b>${falto(v)}</b></button>`).join("");
+  return `${naLinha.length ? `<div class="bloco-viagem">${destaque}</div>` : ""}
+    ${naLinha.length && outros.length ? `<p class="grupo">O outro lado</p>` : ""}${outros.map((f) => linhaSentido(f, c, true)).join("")}`;
+}
+
+function estiloLados(c, naLinha) {
+  const filas = [...c.filas].sort((a, b) => a.s.id - b.s.id);
+  return `<div class="lados">${filas.map((f) => {
+    const vs = naLinha.filter((v) => v.o.pernas[0].sentido.id === f.s.id), v = vs[0];
+    const corpo = `${tremVirando(f.s, cor(c.linha))}${rotuloSentido(f.s)}${v ? "" : textoVia(f)}${tempoSai(f, c)}${vs.map((x) => `<span class="lado-viagem">${viagemNoSentido(x, f)}</span>`).join("")}`;
+    return v ? `<button class="toque-viagem lado sua" ${dadosViagem(v)}>${corpo}</button>` : `<div class="lado">${corpo}</div>`;
+  }).join("")}</div>${filas.map(fimDe).join("")}`;
+}
+
+function estiloPergunta(c, naLinha) {
+  return `<button class="faixa-outro pergunta" data-origem="${c.estacao}">🔍 Para onde você vai?</button>
+    ${naLinha.map((v) => `<button class="toque-viagem chip" ${dadosViagem(v)}><span><strong>${v.destino}</strong><span>${saiEm(v.o.sai - c.minutos)}${v.notas ? ` · ${v.notas}` : ""}</span></span><b>chega ${hora(v.chegada)}</b></button>`).join("")}
+    <p class="grupo">Próximas partidas daqui</p>
+    ${c.filas.map((f) => linhaSentido(f, c, !naLinha.some((v) => v.o.pernas[0].sentido.id === f.s.id))).join("")}`;
+}
+
+function estiloFrases(c, naLinha) {
+  return [...c.filas].sort((a, b) => a.s.id - b.s.id).map((f) => {
+    const vs = naLinha.filter((v) => v.o.pernas[0].sentido.id === f.s.id);
+    const topo = `${f.p ? `<b class="frase-tempo">${saiEm(minutosAte(f.p, c.minutos))}</b>` : ""}<strong>sentido ${esc(f.s.destino)}</strong>`;
+    const linha = vs.length ? vs.map((v) => `<span class="frase-sua">${viagemNoSentido(v, f)}</span>`).join("")
+      : f.p ? `<span>${f.via ? `Via ${esc(f.via)} · ${veiculo(c.linha.nome)}` : Veiculo(c.linha)} das ${hora(f.p.m)}</span>` : `<span>${textoPartida(f.p, c.minutos, f.s)}</span>`;
+    return vs.length ? `<button class="toque-viagem frase sua" ${dadosViagem(vs[0])}>${topo}${linha}</button>${fimDe(f)}` : `<div class="frase">${topo}${linha}</div>${fimDe(f)}`;
+  }).join("");
+}
+
+/** Os horários no jeito escolhido. Viagem que não usa um sentido daqui fica na faixa, sem inventar horário. */
+function corpoEstilo(estilo, c) {
+  const naLinha = c.viagens.filter((v) => v.o && v.o.pernas[0]?.linha === c.linha.id && c.filas.some((f) => f.p && f.s.id === v.o.pernas[0].sentido.id));
+  const resto = c.viagens.filter((v) => !naLinha.includes(v));
+  const miolo = !c.filas.length ? "" : { trilho: estiloTrilho, viagem: estiloViagem, lados: estiloLados, pergunta: estiloPergunta, frases: estiloFrases }[estilo](c, naLinha);
+  const rodape = resto.length ? faixaDe(resto, true)
+    : estilo === "pergunta" && c.filas.length ? ""
+    : `<button class="faixa-outro link-outro" data-origem="${c.estacao}">${c.viagens.length ? "Outro destino" : "Para onde você vai?"} ›</button>`;
+  return miolo + rodape;
+}
+
+/** Item do Mais: o exemplo em cima e os jeitos embaixo. */
+function telaPersonalizar() {
+  const { grade } = estado.dados;
+  const atual = estiloInicio();
+  const m = agora().minutos;
+  const linha = grade.linhas.find((l) => l.nome === "Linha Sul") ?? grade.linhas[0];
+  const s = (id, destino) => ({ id, destino, naoPublicado: false });
+  const sul = s(0, "Carlito Benevides");
+  const c = {
+    linha, estacao: "", minutos: m, aqui: "Você está aqui",
+    filas: [{ s: sul, p: { m: m + 5 }, fim: "", via: "Padre Cícero" }, { s: s(1, "Chico da Silva"), p: { m: m + 4 }, fim: "", via: "São Benedito" }],
+    viagens: [{ r: { origem: "", destino: "", lugar: "" }, o: { sai: m + 5, chega: m + 13, pernas: [{ linha: linha.id, sentido: sul }] }, destino: "Parangaba", origemNome: "Benfica", chegada: m + 13, notas: "", direta: true }],
+  };
+  const exemplo = atual === "classico"
+    ? `${c.filas.map((f) => `<div class="partida">${sentidoNoCartao(f.s, linha)}${partidaGrande(f.p, m, f.s)}</div>`).join("")}${faixaDe(c.viagens, true)}`
+    : corpoEstilo(atual, c);
+  tela.innerHTML = `<h2 class="titulo-aba">Personalizar a tela inicial</h2>
+    <p class="dica">Escolha o jeito que fica mais fácil para você. Dá para trocar quando quiser.</p>
+    <p class="grupo">Como fica</p>
+    <div class="cartao exemplo" aria-hidden="true"><h3>Benfica <span class="linha-nome">Linha Sul</span></h3>${exemplo}</div>
+    ${ESTILOS.map(([id, nome, desc]) => `<label class="estilo"><input type="radio" name="estilo" value="${id}" ${id === atual ? "checked" : ""}>
+      <span><strong>${nome}</strong><small>${desc}</small></span></label>`).join("")}`;
+  tela.querySelectorAll('input[name="estilo"]').forEach((i) => i.addEventListener("change", () => {
+    try { localStorage.setItem("estilo-inicio", i.value); } catch { /* segue */ }
+    telaPersonalizar();
+  }));
+}
+
+/** Os toques que abrem o roteiro ou Sua viagem, nos cartões da tela inicial. */
+function ligarViagens() {
+  tela.querySelectorAll(".faixa-linha, .toque-viagem").forEach((b) => b.addEventListener("click", () => {
+    const { origem, destino, lugar } = b.dataset;
+    abrirViagem({ origem, destino, lugar: lugar || null });
+  }));
+  tela.querySelectorAll(".faixa-outro").forEach((b) => b.addEventListener("click", () => abrirViagem({ origem: b.dataset.origem, destino: "", lugar: null })));
 }
 
 /** Item do Mais: as estações, os horários e os dias. Grava a cada mudança. */
@@ -673,6 +848,7 @@ function abrirMais() {
     ${nina ? `<a href="${nina}" target="_blank" rel="noopener" aria-label="Nina: abre o WhatsApp da Super NINA"><span class="ic">${ROSTO_NINA}</span>Nina</a>` : ""}
     <h4>Do seu jeito</h4>
     <a href="#/ida-volta"><span class="ic">⇄</span><span>Sua ida e volta<small>casa, trabalho ou faculdade e seus horários</small></span></a>
+    <a href="#/personalizar"><span class="ic">🎨</span><span>Personalizar a tela inicial<small>o jeito de mostrar os horários</small></span></a>
     <h4>O app</h4>
     <a href="#/fontes"><span class="ic">🔎</span>De onde vem cada informação</a>
     <a href="#/sobre"><span class="ic">ⓘ</span>Sobre o app</a>
@@ -1752,6 +1928,7 @@ function render() {
   else if (partes[0] === "viagem") telaViagem(partes[1], partes[2]);
   else if (partes[0] === "lugar") telaLugar(partes[1], partes[2]);
   else if (partes[0] === "ida-volta") telaIdaVolta();
+  else if (partes[0] === "personalizar") telaPersonalizar();
   else if (partes[0] === "ir") irParaLugar(partes[1]);
   else if (partes[0] === "rotas") telaRotas();
   else if (partes[0] === "linhas") telaLinhas();
