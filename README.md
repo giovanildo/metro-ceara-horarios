@@ -296,6 +296,12 @@ mesma tela saindo dali.
   na lite). O **⇄ Inverter** corrige um erro e vale até o app mudar de ideia ou
   entrar outra viagem. Por isso cada recente guarda quando foi vista.
 - **Resultado**, numa folha que sobe por baixo:
+  - **Hoje** ou **Amanhã, ter 10/11** (`data/TomorrowPlan.kt`). Tocar em Amanhã abre
+    o relógio (começa às 07:00); os horários vêm da grade prevista, com o aviso
+    "Previsão: horários de um dia comum", e no lugar do modo viagem fica **Avisar a
+    hora de sair**. Com operação especial anunciada, domingo sem operação ou sem
+    grade para prever, nenhum horário: só o aviso. No domingo, Amanhã já mostra a
+    segunda. Só um dia à frente: quanto mais longe, maior a chance de a previsão errar;
   - **Sair agora** ou **Escolher horário** (relógio de 24 h; "Sair às 17:30");
   - **cada horário um cartão**, como nos apps de ônibus
     ([`ui/JourneyOptions.kt`](app/src/main/java/io/github/giova/metroceara/ui/JourneyOptions.kt)):
@@ -404,7 +410,9 @@ botão **"Ir daqui para outra estação"** na estação abrem a tela **Sua viage
 agora / Escolher horário, um cartão por horário, ⇅ Inverter ida e volta), calculado por
 [`docs/app/roteiro.js`](docs/app/roteiro.js) com a mesma regra. "Como você se
 desloca" fica nessa tela e o navegador lembra. Na lite não há modo viagem: no
-lugar do botão, o **lembrete na agenda** e o convite para o app completo.
+lugar do botão, o **lembrete na agenda** e o convite para o app completo. O
+**Hoje / Amanhã** segue a mesma regra do app; em Amanhã, já aparece "Sair às 07:00",
+que a pessoa muda ali mesmo.
 **Casa e Trabalho** também estão na lite, guardados no navegador
 (`localStorage` "lugares"): os atalhos no topo da tela inicial levam ao roteiro
 (`#/ir/casa`), a escolha da estação é uma tela própria (`#/lugar/casa`, com
