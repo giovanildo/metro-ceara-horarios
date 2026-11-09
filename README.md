@@ -159,9 +159,10 @@ padrão, segue o perfil da maioria (quem vai e volta do trabalho ou da escola):
    não**); recusado ou negado, não volta;
 2. **Sua ida e volta**, para quem configurou; só com as estações, os atalhos
    **Trabalho e Casa** (também debaixo da busca, em Planeje sua viagem); sem Casa
-   nem Trabalho, **Sua última viagem**, com o próximo horário, ou **Sua viagem de
-   volta** quando a pessoa já foi;
-3. **as duas estações mais próximas** (sempre aparecem: é o motivo do app);
+   nem Trabalho, este bloco some e a última viagem vai para dentro da estação aberta;
+3. **as estações mais próximas** (sempre aparecem: é o motivo do app), uma aberta
+   e as outras compactas; quem não guardou Casa nem Trabalho vê na aberta a
+   **última viagem a partir dali**;
 4. as **rotinas**;
 5. o **Bicicletar** (só com "Levo bike").
 
@@ -288,15 +289,17 @@ mesma tela saindo dali.
     sem operação, nenhum horário, só quando o metrô volta. As contas usam a grade
     do aparelho, então funciona sem sinal e no subterrâneo. Só as estações e os
     horários ficam guardados, neste celular.
-- **Sua última viagem** (`RecentTripCard`, `shouldReverseRecent`; na lite,
-  `blocoUltimaViagem`, `deveInverterRecente`): quem não guardou Casa nem Trabalho
-  vê no topo, num cartão de outra cor, a viagem mais recente, com a próxima
-  saída e a chegada ao destino final ("Chega a Papicu às 08:40"). Ela vira **Sua viagem
-  de volta** quando a pessoa está perto do destino (a mais perto das duas
-  estações, até o limite de caminhada) ou, sem localização ou longe das duas,
-  quando foi vista hoje há pelo menos 3 h (**Configurações**, de 1 a 8 h; fixo
-  na lite). O **⇄ Inverter** corrige um erro e vale até o app mudar de ideia ou
-  entrar outra viagem. Por isso cada recente guarda quando foi vista.
+- **A última viagem na estação aberta** (`StationTrips`, `suggestionsFrom`; na lite,
+  `faixaViagem`, `viagensSugeridas`): quem não guardou Casa nem Trabalho vê, dentro
+  do cartão da estação aberta e numa faixa de outra cor, o metrô a pegar e a chegada
+  ("Pegue o das 08:11", "chega ~ 08:19"). A regra só compara a estação do cartão com
+  as duas da viagem: na origem, mostra o destino; no destino, a volta; em outra
+  estação, as duas, o destino primeiro. A estação e a do outro lado da integração
+  contam como a mesma (`isSameStation`), e com destino em estação de duas linhas vale
+  o lado da linha de quem sai. Sem localização, aparecem a viagem e a volta como foram
+  feitas ("Benfica → Parangaba"). Tocar abre Planeje sua viagem já preenchida, e
+  **Outro destino** abre com o "De" preenchido e o "Para" vazio. Sem metrô agora,
+  mostra só o destino, sem inventar a chegada.
 - **Resultado**, numa folha que sobe por baixo:
   - **Hoje** ou **Amanhã, ter 10/11** (`data/TomorrowPlan.kt`). Tocar em Amanhã abre
     o relógio (começa às 07:00); os horários vêm da grade prevista, com o aviso
@@ -960,7 +963,6 @@ próprias cores, em vermelho). Nas outras seções:
 | Perguntar antes de começar a viagem a partir de | 1 km | 500 m – 3 km |
 | Esconder o modo viagem a partir de | 1 km | 1 – 10 km |
 | Somar a caminhada até a estação até | 3 km | 1 – 10 km |
-| Mostrar a volta da última viagem depois de | 3 h | 1 – 8 h |
 | Considerar o GPS perdido depois de | 1 min | 30 s – 5 min |
 | Contar o trem que saiu há até | 2 min | 0 – 10 min |
 | Encerrar a viagem sozinho depois de | 30 min | 10 – 60 min |
