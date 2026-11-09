@@ -1631,7 +1631,11 @@ Google já conhece, em pastas próprias — a lite em `docs/app/` não é tocada
   (`docs/app/dados.js`) — mudou esse arquivo, confira o site também. Na página
   principal, o gerador só troca os trechos `<!--gerado:nome-->…<!--/gerado:nome-->`
   (mapas, lista da busca, número de estações e linhas). Também reescreve o
-  `sitemap.xml`. Rode de novo quando mudar o `regras.json` ou a grade comum:
+  `sitemap.xml`. A tarefa [`site.yml`](.github/workflows/site.yml) roda sozinha
+  quando muda o `regras.json` e toda segunda, para pegar a grade comum, e só
+  publica se o conteúdo mudou (a data de geração sozinha não conta). Por isso a
+  `main` pode ganhar commits "Site: dados atualizados": faça `git pull --rebase`
+  antes de publicar. Para gerar à mão:
 
   ```bash
   python3 tools/site.py          # baixa a grade do ramo dados

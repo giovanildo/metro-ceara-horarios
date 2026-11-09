@@ -1,0 +1,58 @@
+# Gera de novo o site-guia (docs/) quando mudam as regras e, uma vez por semana,
+# para pegar mudanças na grade comum. Só publica se o conteúdo mudou: a data de
+# geração sozinha não conta (tools/site.py). Ver "Site" no README.
+name: Site
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - app/src/main/assets/regras.json
+      - tools/site.py
+      - tools/site_fotos.json
+  schedule:
+    # Segunda, 06:41 em Fortaleza.
+    - cron: "41 9 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: site
+  cancel-in-progress: false
+
+jobs:
+  site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gerar o site
+        env:
+          TZ: America/Fortaleza
+        run: python3 tools/site.py
+
+      - name: Publicar se mudou
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git add docs
+          if git diff --cached --quiet; then
+            echo "Nada mudou."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -q -m "Site: dados atualizados"
+          # Alguém pode ter publicado na main enquanto o site era gerado.
+          for espera in 5 20 0; do
+            git pull -q --rebase origin main && git push origin HEAD:main && break
+            [ "$espera" -gt 0 ] || exit 1
+            sleep "$espera"
+          done
+          # Publicação feita por esta tarefa não dispara o GitHub Pages sozinha.
+          gh api --method POST "repos/$GITHUB_REPOSITORY/pages/builds" --silent

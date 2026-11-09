@@ -21,7 +21,7 @@ O que é fixo (endereço, acessibilidade, lugares perto, primeiro e último hor�
 intervalo) vai no HTML, para o Google ler. O "agora" (próximas partidas de hoje)
 a página busca sozinha no navegador, como a lite (docs/site/agora.js). Por isso
 basta gerar de novo quando mudar regras.json ou a grade comum de dia útil/sábado,
-não todo dia.
+não todo dia. A tarefa .github/workflows/site.yml faz isso sozinha.
 """
 import html
 import json
@@ -124,7 +124,15 @@ def carregar_json(nome, pasta):
         return json.loads(r.read().decode("utf-8"))
 
 
+GERADO = re.compile(r"Página gerada em \d{2}/\d{2}/\d{4}\.")
+
+
 def escrever(caminho, texto):
+    """Página em que só a data de geração mudaria fica como está: o site só muda com conteúdo novo."""
+    if os.path.exists(caminho):
+        with open(caminho, encoding="utf-8") as fh:
+            if GERADO.sub("", fh.read()) == GERADO.sub("", texto):
+                return
     os.makedirs(os.path.dirname(caminho), exist_ok=True)
     with open(caminho, "w", encoding="utf-8") as fh:
         fh.write(texto)
