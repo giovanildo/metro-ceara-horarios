@@ -1,7 +1,7 @@
 // "Próximas partidas" na página da estação do site. Usa o mesmo código e os mesmos
 // dados da lite (docs/app/dados.js, ramo "dados"): domingo sem operação, operação
 // especial e linha parada seguem as mesmas regras.
-import { carregar, agora, hora, falta, proximas, minutosAte, linhaParada } from "../app/dados.js";
+import { carregar, agora, hora, falta, proximas, minutosAte, linhaParada, somarDias, voltaDaSegunda } from "../app/dados.js";
 
 const quadro = document.querySelector(".agora");
 const lista = quadro?.querySelector(".agora-lista");
@@ -29,13 +29,16 @@ function desenhar() {
   // Domingo sem operação: nenhum horário (hora na tela dá a impressão de que hoje tem
   // metrô), só o aviso e a hora em que volta na segunda.
   if (domingo) {
-    const primeiros = paradas.flatMap((p) => p.sentidos.map((sp) => {
+    const segunda = somarDias(t.data, 1);
+    const nome = (p) => grade.linha(p.linha)?.nome;
+    const abertas = paradas.filter((p) => !nome(p) || !linhaParada(regras, segunda, nome(p)));
+    const primeiros = abertas.flatMap((p) => p.sentidos.map((sp) => {
       const sa = amanha?.linha(p.linha)?.sentidos.find((x) => x.id === sp.id);
       return sa ? amanha.partidas(sa, p.stop)[0] : undefined;
     })).filter((m) => m !== undefined);
-    html += `<p class="aviso-dia"><strong>Hoje é domingo: metrô e VLT não circulam.</strong> ${primeiros.length
-      ? `Voltam segunda, a partir das ${hora(Math.min(...primeiros))}.`
-      : "Só há operação aos domingos quando o Metrofor anuncia (eleição, ENEM, eventos)."}</p>`;
+    html += `<p class="aviso-dia"><strong>Hoje é domingo: metrô e VLT não circulam.</strong> ${
+      voltaDaSegunda(regras, segunda, abertas.length ? undefined : nome(paradas[0]), primeiros.length ? Math.min(...primeiros) : undefined)
+      ?? "Só há operação aos domingos quando o Metrofor anuncia (eleição, ENEM, eventos)."}</p>`;
     lista.innerHTML = html;
     return;
   }

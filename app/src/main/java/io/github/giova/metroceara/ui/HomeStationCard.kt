@@ -27,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -37,6 +38,7 @@ import io.github.giova.metroceara.data.bikeBoarding
 import io.github.giova.metroceara.data.nowDayOfWeek
 import io.github.giova.metroceara.data.Regras
 import io.github.giova.metroceara.data.ScheduleStore
+import io.github.giova.metroceara.data.MondayReturn
 import io.github.giova.metroceara.data.Station
 import io.github.giova.metroceara.data.formatTime
 import io.github.giova.metroceara.data.vehicleName
@@ -204,8 +206,8 @@ private fun StationSummary(
             // Sem ela, nenhum horário: só o aviso e a hora em que o metrô volta na segunda.
             val sundayOff = sunday && Regras.current.operations[day] == null
             if (sundayOff) {
-                val mondayFirst = departures.mapNotNull { it.departure?.takeIf { d -> d.tomorrow }?.minutes }.minOrNull()
-                SundayNotice(modifier = Modifier.padding(bottom = 6.dp), text = sundayOffText(mondayFirst))
+                val monday = remember(station.stopId, station.routeId, day) { extras.mondayReturn(station) }
+                SundayNotice(modifier = Modifier.padding(bottom = 6.dp), text = sundayOffText(LocalContext.current, monday))
             }
             val stopped = Regras.current.stopped(day, station.routeName)
             if (stopped) {
@@ -364,6 +366,8 @@ data class HomeCardExtras(
     val halfFare: Boolean = false,
     val access: Boolean = false,
     val onOpenFareGuide: () -> Unit = {},
+    /** Como a linha volta na segunda, para o aviso de domingo. */
+    val mondayReturn: (Station) -> MondayReturn = { MondayReturn.Unknown },
 )
 
 private fun formatDistance(meters: Double): String =

@@ -16,6 +16,7 @@ import io.github.giova.metroceara.MainActivity
 import io.github.giova.metroceara.R
 import io.github.giova.metroceara.data.DayEnd
 import io.github.giova.metroceara.data.LocationSource
+import io.github.giova.metroceara.data.MondayReturn
 import io.github.giova.metroceara.data.PinnedStation
 import io.github.giova.metroceara.data.Regras
 import io.github.giova.metroceara.data.ScheduleRepository
@@ -110,8 +111,7 @@ object StationWidget {
             var nextSpecial: DayEnd? = null
             // Domingo sem operação: nenhum horário, só o aviso com a hora em que o metrô volta.
             val sundayOff = isSundayWithoutService()
-            val mondayFirst = if (!sundayOff) null else repo.boardingDirections(stopId, routeId)
-                .mapNotNull { repo.departuresTomorrow(stopId, routeId, it.id)?.firstOrNull() }.minOrNull()
+            val monday = if (sundayOff) repo.mondayReturn(stopId, routeId) else MondayReturn.Unknown
             val rows = if (sundayOff) emptyList() else repo.boardingDirections(stopId, routeId).take(2).map { direction ->
                 val today = repo.departures(stopId, routeId, direction.id).filter { it >= now }.take(2)
                 val end = if (today.isEmpty()) repo.dayEnd(stopId, routeId, direction.id) else null
@@ -132,8 +132,12 @@ object StationWidget {
                 nextSpecial != null -> context.getString(
                     if (nextSpecial!!.nextIsMonday) R.string.widget_monday_special else R.string.widget_tomorrow_special,
                 ) to false
-                sundayOff -> (mondayFirst?.let { context.getString(R.string.widget_sunday_back, formatTime(it)) }
-                    ?: context.getString(R.string.widget_sunday)) to true
+                sundayOff -> when (monday) {
+                    is MondayReturn.At -> context.getString(R.string.widget_sunday_back, formatTime(monday.minutes))
+                    MondayReturn.Stopped -> context.getString(R.string.widget_sunday_monday_stopped)
+                    MondayReturn.Special -> context.getString(R.string.widget_sunday_monday_special)
+                    MondayReturn.Unknown -> context.getString(R.string.widget_sunday)
+                } to true
                 else -> null to false
             }
             // Atualiza depois que o primeiro horário de hoje passar.

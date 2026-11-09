@@ -60,6 +60,7 @@ import io.github.giova.metroceara.data.Stop
 import io.github.giova.metroceara.data.formatTime
 import io.github.giova.metroceara.data.vehicleName
 import io.github.giova.metroceara.data.isSundayToday
+import io.github.giova.metroceara.data.MondayReturn
 import io.github.giova.metroceara.data.isSundayWithoutService
 import io.github.giova.metroceara.data.minutesUntil
 import io.github.giova.metroceara.data.nextDepartures
@@ -89,6 +90,8 @@ fun DeparturesScreen(
     departuresFor: (Direction) -> List<Int>,
     tomorrowFor: (Direction) -> List<Int>?,
     dayEndFor: (Direction) -> DayEnd,
+    /** Como a linha volta na segunda, para o aviso de domingo. */
+    mondayReturn: () -> MondayReturn,
     /** Por onde o sentido passa a partir desta estação. */
     viaFor: (Direction) -> DirectionVia?,
     onPlanJourney: () -> Unit,
@@ -128,7 +131,7 @@ fun DeparturesScreen(
     val sunday = remember(now) { isSundayToday() }
     // Domingo comum: nenhum horário na tela, só o aviso e a hora em que o metrô volta.
     val sundayOff = remember(now) { isSundayWithoutService() }
-    val mondayFirst = remember(directions) { directions.mapNotNull { tomorrowFor(it)?.firstOrNull() }.minOrNull() }
+    val monday = remember(stop.id, route.id, sundayOff) { if (sundayOff) mondayReturn() else MondayReturn.Unknown }
     // Tocar num horário: o aviso do app, num toque só depois da primeira vez.
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -283,7 +286,7 @@ fun DeparturesScreen(
                 if (operation != null) {
                     item { MetroforNotices(listOf(ScheduleStore.Notice(operation.title, operation.link, listOf(day)))) }
                 } else if (sunday) {
-                    item { SundayNotice(text = sundayOffText(mondayFirst)) }
+                    item { SundayNotice(text = sundayOffText(context, monday)) }
                     // O metrô volta na segunda: vale também a notícia de amanhã.
                     Regras.current.operations[ScheduleStore.tomorrow()]?.let { next ->
                         item { MetroforNotices(listOf(ScheduleStore.Notice(next.title, next.link, listOf(ScheduleStore.tomorrow())))) }

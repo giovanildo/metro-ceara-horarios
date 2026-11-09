@@ -228,6 +228,16 @@ export function linhaParada(regras, data, nomeLinha) {
   return (regras?.operacoes?.[data]?.paradas || []).some((n) => n.trim().toLowerCase() === nomeLinha.trim().toLowerCase());
 }
 
+/**
+ * A frase de como a linha volta na segunda, para os avisos de domingo; null se não
+ * se sabe. [data]: a segunda; [primeiro]: o primeiro metrô dela, em minutos.
+ */
+export function voltaDaSegunda(regras, data, nomeLinha, primeiro, verbo = "Voltam") {
+  if (nomeLinha && linhaParada(regras, data, nomeLinha)) return "O Metrofor avisou que esta linha também não circula segunda.";
+  if (diaEspecial(regras, data)) return "Segunda o horário é especial e só sai depois da meia-noite.";
+  return primeiro === undefined ? null : `${verbo} segunda, a partir das ${hora(primeiro)}.`;
+}
+
 /** "R$ 3,60 (meia R$ 1,80) · dinheiro ou Pix", ou null. */
 export function passagemDaLinha(regras, nomeLinha) {
   const [, texto] = Object.entries(regras?.passagem || {})

@@ -91,6 +91,7 @@ import io.github.giova.metroceara.data.Places
 import io.github.giova.metroceara.data.ScheduleRepository
 import io.github.giova.metroceara.data.ScheduleStore
 import io.github.giova.metroceara.data.ItineraryLeg
+import io.github.giova.metroceara.data.MondayReturn
 import io.github.giova.metroceara.data.isSundayWithoutService
 import io.github.giova.metroceara.data.seatedSearchFrom
 import io.github.giova.metroceara.data.Station
@@ -672,13 +673,13 @@ fun AppRoot() {
             when (tomorrowStatus(ScheduleStore.isSpecial(date), ScheduleStore.tomorrowType() == DayType.SUNDAY, operation != null, routerTomorrow != null)) {
                 TomorrowStatus.SPECIAL -> return notice(R.string.journey_tomorrow_special_title,
                     context.getString(R.string.journey_tomorrow_special_text), operation?.link)
-                TomorrowStatus.SUNDAY -> {
-                    val mondayFirst = repo.boardingDirections(origin.stopId, origin.routeId)
-                        .mapNotNull { repo.dayEnd(origin.stopId, origin.routeId, it.id).nextFirst }.minOrNull()
-                    return notice(R.string.journey_tomorrow_sunday_title,
-                        mondayFirst?.let { context.getString(R.string.journey_tomorrow_sunday_back, formatTime(it)) }
-                            ?: context.getString(R.string.journey_tomorrow_sunday_unknown))
-                }
+                TomorrowStatus.SUNDAY -> return notice(R.string.journey_tomorrow_sunday_title,
+                    when (val monday = repo.mondayReturn(origin.stopId, origin.routeId)) {
+                        is MondayReturn.At -> context.getString(R.string.journey_tomorrow_sunday_back, formatTime(monday.minutes))
+                        MondayReturn.Stopped -> context.getString(R.string.journey_tomorrow_sunday_stopped)
+                        MondayReturn.Special -> context.getString(R.string.journey_tomorrow_sunday_special)
+                        MondayReturn.Unknown -> context.getString(R.string.journey_tomorrow_sunday_unknown)
+                    })
                 TomorrowStatus.UNKNOWN -> return notice(R.string.journey_tomorrow_unknown_title,
                     context.getString(R.string.journey_tomorrow_unknown_text))
                 TomorrowStatus.FORECAST -> Unit
@@ -693,11 +694,7 @@ fun AppRoot() {
             return JourneyResult(plans.map { routeView(it, dayOfWeek = day) }, monday = false, message, forecast = true)
         }
         if (sundayOff) {
-            val mondayFirst = repo.boardingDirections(origin.stopId, origin.routeId)
-                .mapNotNull { repo.departuresTomorrow(origin.stopId, origin.routeId, it.id)?.firstOrNull() }.minOrNull()
-            return JourneyResult(emptyList(), monday = true,
-                mondayFirst?.let { context.getString(R.string.sunday_off_back, formatTime(it)) }
-                    ?: context.getString(R.string.sunday_warning))
+            return JourneyResult(emptyList(), monday = true, sundayOffText(context, repo.mondayReturn(origin.stopId, origin.routeId)))
         }
         val walk = if (from == null) walkTo(origin) else 0
         val plans = router.plan(start, target, from ?: leaveNow(origin), 4, stoppedRoutes)
@@ -1112,6 +1109,7 @@ fun AppRoot() {
                     halfFare = layout.halfFare,
                     access = layout.access,
                     onOpenFareGuide = { fareGuideOpen = true },
+                    mondayReturn = { repo.mondayReturn(it.stopId, it.routeId) },
                 )
                 // Como os cartões da viagem: uma estação aberta (no começo, a mais perto)
                 // e as outras compactas; tocar numa compacta abre ela.
@@ -1437,6 +1435,7 @@ fun AppRoot() {
                     repo.departuresTomorrow(stop.id, route.id, direction.id)
                 },
                 dayEndFor = { direction -> repo.dayEnd(stop.id, route.id, direction.id) },
+                mondayReturn = { repo.mondayReturn(stop.id, route.id) },
                 viaFor = { direction -> repo.via(stop.id, route.id, direction) },
                 onPlanJourney = {
                     journeyFrom = repo.station(stop.id, route.id)

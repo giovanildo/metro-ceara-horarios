@@ -1,6 +1,6 @@
 import {
   agora, bikeAgora, carregar, dataCurta, distancia, falta, hora, infoEstacao, janelasBike, metros, minutosAte, passagem,
-  diaEspecial, linhaParada, passagemDaLinha, fonteLinha, proximas, somarDias, veiculo,
+  diaEspecial, linhaParada, voltaDaSegunda, passagemDaLinha, fonteLinha, proximas, somarDias, veiculo,
 } from "./dados.js";
 import { PERFIS, Roteador } from "./roteiro.js";
 import { destinoIdaVolta, deveInverterRecente, escolherMetro } from "./idavolta.js";
@@ -164,6 +164,13 @@ function primeiroDeSegunda(linhaId, stopId) {
   if (!linha || !g.estacoes[stopId]) return undefined;
   const v = g.sentidosDePartida(linha, stopId).map((s) => g.partidas(s, stopId)[0]).filter((m) => m !== undefined);
   return v.length ? Math.min(...v) : undefined;
+}
+
+/** Como a linha volta na segunda, em frase; só faz sentido no domingo e na véspera dele. */
+function fraseDaSegunda(linhaId, stopId, verbo) {
+  const t = agora();
+  const data = somarDias(t.data, t.diaSemana === 6 ? 2 : 1);
+  return voltaDaSegunda(estado.dados.regras, data, estado.dados.grade.linha(linhaId)?.nome, primeiroDeSegunda(linhaId, stopId), verbo);
 }
 
 function partidasComAmanha(linha, sentido, stopId) {
@@ -347,7 +354,7 @@ function telaInicio() {
             <span class="linha-nome">${esc(linha.nome)}</span></h3>
           <span class="distancia">${metros(d)} em linha reta, sem contar ruas nem trânsito</span>
           ${avisoParada(linha, t)}
-          ${domingoSemOperacao(t) ? `<p class="dica fim-do-dia">${textoVoltaSegunda(primeiroDeSegunda(linha.id, id))}</p>` : sentidos.map((s) => {
+          ${domingoSemOperacao(t) ? `<p class="dica fim-do-dia">${textoVoltaSegunda(fraseDaSegunda(linha.id, id, "Volta"))}</p>` : sentidos.map((s) => {
             const { hoje, amanha } = partidasComAmanha(linha, s, id);
             const p = proximas(hoje, t.minutos, 1, amanha)[0];
             const fim = p ? "" : fimDoDia(linha, s, id);
@@ -440,7 +447,7 @@ function blocoIdaVolta(t) {
     <p class="iv-rota">${cores.map((l) => `<span class="ponto" style="background:${cor(l)}"></span>`).join("")}
       ${esc(semSufixo(grade.nome(eo)))} → ${esc(semSufixo(grade.nome(ed)))}</p>`;
   if (!e) {
-    const texto = dia?.domingo ? textoVoltaSegunda(primeiroDeSegunda(lo, eo)) : `Não há mais ${v} para lá hoje.`;
+    const texto = dia?.domingo ? textoVoltaSegunda(fraseDaSegunda(lo, eo, "Volta")) : `Não há mais ${v} para lá hoje.`;
     return `<div class="cartao iv">${topo}<p class="iv-sem">${texto}</p></div>`;
   }
   const a = alvo != null ? hora(alvo) : "";
@@ -862,7 +869,7 @@ function telaEstacao(linhaId, stopId, sentidoId) {
   const via = viaDoSentido(sentido, stopId);
   if (via) html += `<p class="dica via">${via}</p>`;
   // Domingo comum: nenhum horário; o metrô volta na segunda, então vale também a notícia de amanhã.
-  html += avisoDomingo(t, primeiroDeSegunda(linha.id, stopId)) + avisosMetrofor(!domingo) + avisoParada(linha, t);
+  html += avisoDomingo(t, fraseDaSegunda(linha.id, stopId)) + avisosMetrofor(!domingo) + avisoParada(linha, t);
   if (domingo) {
     html += avisoBike(linha, stopId, t);
     html += `<a class="botao secundario largo" href="#/viagem/${linha.id}/${stopId}">${LUPA} Ir daqui para outra estação</a>`;
@@ -1084,9 +1091,8 @@ function avisoAmanha(dia, lo, eo) {
       /^https:\/\//.test(link || "") ? ` <a href="${esc(link)}" target="_blank" rel="noopener">Ver o aviso do Metrofor ›</a>` : ""}</div>`;
   }
   if (dia.situacao === "domingo") {
-    const primeiro = primeiroDeSegunda(lo, eo);
-    return `<div class="aviso"><strong>Domingo não tem metrô nem VLT.</strong> ${primeiro !== undefined
-      ? `Voltam segunda, a partir das ${hora(primeiro)}.` : "Só há operação aos domingos quando o Metrofor anuncia."}</div>`;
+    return `<div class="aviso"><strong>Domingo não tem metrô nem VLT.</strong> ${fraseDaSegunda(lo, eo)
+      ?? "Só há operação aos domingos quando o Metrofor anuncia."}</div>`;
   }
   return `<div class="aviso"><strong>Ainda não temos os horários de amanhã.</strong> Eles saem depois da meia-noite.</div>`;
 }
@@ -1308,7 +1314,7 @@ function resultadoViagem(lo, eo, v, t) {
     <button class="chip ${v.amanha ? "sel" : ""}" id="v-amanha">${rotuloAmanha(t)}</button></div>`;
   if (amanha && amanha.situacao !== "previsao") return escolhaDia + avisoAmanha(amanha, lo, eo);
   // Domingo sem metrô: nenhum roteiro, só o aviso de quando volta.
-  if (!amanha && domingoSemOperacao(t)) return escolhaDia + avisoDomingo(t, primeiroDeSegunda(lo, eo));
+  if (!amanha && domingoSemOperacao(t)) return escolhaDia + avisoDomingo(t, fraseDaSegunda(lo, eo));
   const dia = amanha || diaDaViagem(t);
   if (!dia) {
     return escolhaDia + (estado.dados.proximoEspecial
@@ -1650,17 +1656,16 @@ function telaNaoAchei() {
   tela.innerHTML = `<p class="vazio">Não achei essa tela. <a href="#/">Voltar ao início</a></p>`;
 }
 
-function avisoDomingo(t, primeiro) {
+function avisoDomingo(t, frase) {
   // Domingo com operação anunciada pelo Metrofor: a notícia dela explica.
   if (!domingoSemOperacao(t)) return "";
-  return `<div class="aviso"><strong>Hoje é domingo: metrô e VLT não circulam.</strong> ${primeiro !== undefined
-    ? `Voltam segunda, a partir das ${hora(primeiro)}.`
-    : "Só há operação aos domingos quando o Metrofor anuncia (eleição, ENEM, eventos)."}</div>`;
+  return `<div class="aviso"><strong>Hoje é domingo: metrô e VLT não circulam.</strong> ${frase
+    ?? "Só há operação aos domingos quando o Metrofor anuncia (eleição, ENEM, eventos)."}</div>`;
 }
 
 /** No cartão da estação, num domingo sem operação: no lugar dos horários. */
-function textoVoltaSegunda(primeiro) {
-  return primeiro !== undefined ? `Hoje não circula. Volta segunda, a partir das ${hora(primeiro)}.` : "Hoje não circula.";
+function textoVoltaSegunda(frase) {
+  return frase ? `Hoje não circula. ${frase}` : "Hoje não circula.";
 }
 
 /** "O Metrofor avisou que esta linha não circula hoje", se for o caso. */

@@ -124,6 +124,19 @@ class ScheduleRepository(context: Context) {
         return DayEnd(last, next, tomorrowIsSunday, special)
     }
 
+    /**
+     * Como a linha volta em [stopId] na segunda: serve no domingo e na véspera dele,
+     * quando amanhã é domingo.
+     */
+    fun mondayReturn(stopId: String, routeId: String): MondayReturn {
+        val date = if (tomorrowIsSunday) ScheduleStore.dayAfterTomorrow() else ScheduleStore.tomorrow()
+        val first = (if (tomorrowIsSunday) mondayDb else tomorrowDb)?.let { monday ->
+            boardingDirections(stopId, routeId).mapNotNull { departuresIn(monday, stopId, routeId, it.id).firstOrNull() }.minOrNull()
+        }
+        val stopped = route(routeId)?.let { Regras.current.stopped(date, it.name) } == true
+        return mondayReturn(stopped, ScheduleStore.isSpecial(date), first)
+    }
+
     private fun departuresIn(
         db: android.database.sqlite.SQLiteDatabase,
         stopId: String,

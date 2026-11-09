@@ -55,6 +55,8 @@
     <string name="widget_locate_channel">Estação mais perto (widget)</string>
     <string name="widget_operation">Hoje: %1$s ›</string>
     <string name="widget_sunday">Domingo: metrô e VLT não circulam.</string>
+    <string name="widget_sunday_monday_stopped">Domingo: metrô e VLT não circulam. Esta linha não circula segunda.</string>
+    <string name="widget_sunday_monday_special">Domingo: metrô e VLT não circulam. Segunda: horário especial.</string>
     <string name="widget_sunday_back">Domingo: metrô e VLT não circulam. Voltam segunda às %1$s.</string>
     <string name="line_stopped_today">O Metrofor avisou que esta linha não circula hoje.</string>
     <string name="day_end_last">Último de hoje: %1$s</string>
@@ -84,6 +86,8 @@
     <string name="bike_boarding_no_more_today">Não há mais horário hoje para embarcar com bike no %1$s</string>
 
     <string name="sunday_warning">Hoje é domingo: metrô e VLT não circulam. Só há operação aos domingos quando o Metrofor anuncia (eleição, ENEM, eventos).</string>
+    <string name="sunday_off_monday_stopped">Hoje é domingo: metrô e VLT não circulam. O Metrofor avisou que esta linha também não circula segunda.</string>
+    <string name="sunday_off_monday_special">Hoje é domingo: metrô e VLT não circulam. Segunda o horário é especial e só sai depois da meia-noite.</string>
     <string name="sunday_off_back">Hoje é domingo: metrô e VLT não circulam. Voltam segunda, a partir das %1$s.</string>
 
     <string name="schedule_syncing">Baixando os horários de hoje do Metrofor…</string>
@@ -167,6 +171,8 @@
     <string name="journey_tomorrow_open_notice">Ver o aviso do Metrofor ›</string>
     <string name="journey_tomorrow_sunday_title">Domingo não tem metrô nem VLT</string>
     <string name="journey_tomorrow_sunday_back">Voltam segunda, a partir das %1$s.</string>
+    <string name="journey_tomorrow_sunday_stopped">O Metrofor avisou que esta linha também não circula segunda.</string>
+    <string name="journey_tomorrow_sunday_special">Segunda o horário é especial e só sai depois da meia-noite de domingo.</string>
     <string name="journey_tomorrow_sunday_unknown">Só há operação aos domingos quando o Metrofor anuncia.</string>
     <string name="journey_tomorrow_unknown_title">Ainda não temos os horários de amanhã</string>
     <string name="journey_tomorrow_unknown_text">Eles saem depois da meia-noite.</string>
