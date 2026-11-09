@@ -1,0 +1,29 @@
+# Uma vez por dia, confere se os dados publicados continuam vivos e coerentes e
+# abre uma issue (chega por e-mail) só no que precisa de gente. Ver tools/vigia.py.
+name: Vigia dos dados
+
+on:
+  schedule:
+    # 09:23 em Fortaleza. Pode atrasar algumas horas: para este aviso, não importa.
+    - cron: "23 12 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: vigia
+  cancel-in-progress: false
+
+jobs:
+  vigia:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Conferir os dados e atualizar as issues
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TZ: America/Fortaleza
+        run: python3 tools/vigia.py --issues
