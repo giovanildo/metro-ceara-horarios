@@ -13,18 +13,27 @@ O ffmpeg estático de johnvansickle.com funciona sem instalar nada.
   Início", tela inicial, pedido de localização), marcadas como "ilustração".
 
 - `gravar_viagem.sh` — grava no emulador, numa tomada só, a tela inicial, o
-  lembrete da hora de sair e a viagem São Benedito → Parangaba (notificação
-  fixa, tela bloqueada, aviso de descida, chegada), simulando relógio e GPS a
+  aviso da hora de sair e a viagem São Benedito → Parangaba pelo caminho da
+  1.94+ ("Para onde você vai?", Iniciar modo viagem, Direto, trilho,
+  notificação fixa, tela bloqueada, aviso de descida, resumo da chegada), simulando relógio e GPS a
   cada estação, e anota em `marcas.txt` o segundo em que cada cena começa. O
   "GPS perdido" vai a 5 min durante a gravação, para os saltos de relógio não
   mostrarem "Sem GPS", e volta a 1 min no fim. `DIA=MMDD` escolhe o dia: use
   um dia cuja grade o app já baixou, senão aparece o aviso de grade de outro
   dia.
+- `gravar_widget.sh` — a cena do ↻ do widget (Parangaba → São Benedito, com
+  "Procurando onde você está…" no próprio widget), em `widget.mp4` e
+  `marcas-widget.txt`. Precisa do widget na tela inicial. Grave **antes** da
+  viagem: o relógio só anda para a frente (07:20, depois 07:25). Depois de
+  muitos saltos de relógio o GPS do emulador pode parar de aceitar posições
+  (`dumpsys location` com a mesma posição de GPS antiga): reinicie o emulador.
 - `build_divulgacao.py` — `metro-ceara-divulgacao.mp4`, cortado dessa
   gravação pelas marcas, com o cartão final do QR da versão lite.
 - `build_fgs.py` — `tools/play/video-modo-viagem.mp4`, o vídeo da declaração
-  do serviço em primeiro plano na Play Store, da mesma gravação, com legendas
-  em inglês (para a análise da Google) e português.
+  do serviço em primeiro plano na Play Store, das duas gravações (modo viagem
+  e ↻ do widget, os dois usos do serviço), com legendas em inglês (para a
+  análise da Google) e português. Na legenda, nada de ↻: a fonte não tem o
+  símbolo.
 
 Os cortes partem das marcas com pequenos deslocamentos (a demora dos toques e
 das notificações); depois de gravar de novo, confira uma folha de quadros
@@ -37,6 +46,7 @@ pularia para o próximo.
   `qrcode.png`, todos levando à versão lite.
 
 ```
+VIDEO_WORK=/tmp/metro-video bash tools/video/gravar_widget.sh
 VIDEO_WORK=/tmp/metro-video bash tools/video/gravar_viagem.sh
 VIDEO_WORK=/tmp/metro-video python3 tools/video/build_divulgacao.py
 VIDEO_WORK=/tmp/metro-video python3 tools/video/build_fgs.py
@@ -81,6 +91,14 @@ As telas vêm do emulador Android, com o sistema em pt-BR
   horários de 29/10) e `date_weekday`/`synced_at_weekday` de
   `metrofor_schedules.xml` voltaram para 29/10 às 05:10; depois, a grade de hoje
   foi devolvida.
+  **Na 1.96 (10/11)** a 1, a 2, a 5, a 6 e o destaque foram refeitas no
+  `metrofor37` com `wm size 1080x1920`, sem internet e com o relógio numa terça
+  **depois** do Enem (17/11 às 07:25; a 2 às 10:00), para nenhum aviso de
+  operação especial aparecer: em `metrofor_schedules.xml`, `date_weekday` e
+  `normal_date_weekday` passaram a 2026-11-17 e `synced_at_weekday` às 05:10
+  desse dia (com `run-as … sed -i`, que mantém o dono), e voltaram depois. A 6 é
+  São Benedito → Papicu (destino digitado; a 2ª ocorrência de "Papicu" é a
+  estação). A 3, a 4 e a 7 continuam as de antes.
 - **App Android (gravação):** `adb shell screenrecord`, o modo demo do
   SystemUI para a barra de status, e a viagem simulada com `date` +
   `emu geo fix` a cada estação: é o que `gravar_viagem.sh` faz.

@@ -1,7 +1,8 @@
 #!/bin/bash
 # Grava no emulador a tomada usada pelo vídeo de divulgação e pelo da Play Store:
-# tela inicial, lembrete da hora de sair, modo viagem São Benedito → Parangaba
-# (metrô das 07:32), notificação fixa, tela bloqueada, aviso de descida e chegada.
+# tela inicial, aviso da hora de sair, "Para onde você vai?" São Benedito → Parangaba,
+# Iniciar modo viagem (metrô das 07:32), trilho, notificação fixa, tela bloqueada,
+# aviso de descida e chegada. Caminho da tela desde a 1.94 (barra de baixo, trilho).
 #
 #   VIDEO_WORK=/tmp/metro-video bash tools/video/gravar_viagem.sh
 #
@@ -34,6 +35,37 @@ gps_lost() { # segundos sem GPS até avisar (app parado); app recém-instalado a
     $A shell "run-as $PKG sh -c 'mkdir -p shared_prefs; echo \"<?xml version=\\\"1.0\\\" encoding=\\\"utf-8\\\" standalone=\\\"yes\\\" ?><map><int name=\\\"gps_lost_s\\\" value=\\\"$1\\\" /></map>\" > $f'"
   fi
 }
+contem() { # espera um texto que contenha $1 (até N tentativas de 0,5 s)
+  for _ in $(seq 1 "${2:-30}"); do dump; grep -q "text=\"[^\"]*$1" "$U" && return 0; sleep 0.5; done
+  echo "NAO APARECEU: $1"; return 1
+}
+toca_xy() { # toca no centro da N-ésima ocorrência (1, 2…) do texto exato $1
+  dump
+  local b; b=$(python3 - "$1" "${2:-1}" "$U" <<'PY'
+import re, sys
+alvo, n, t = sys.argv[1], int(sys.argv[2]), open(sys.argv[3]).read()
+achados = [m.group(0) for m in re.finditer(r'<node [^>]*>', t) if f'text="{alvo}"' in m.group(0)]
+if len(achados) >= n:
+    x1, y1, x2, y2 = map(int, re.search(r'bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', achados[n - 1]).groups())
+    print((x1 + x2) // 2, (y1 + y2) // 2)
+PY
+)
+  if [ -n "$b" ]; then $A shell input tap $b; echo "tap $1 ($2)"; else echo "NAO ACHEI: $1 ($2)"; fi
+}
+horario_da_lista() { # o N-ésimo horário (HH:MM) de "Próximas partidas"
+  dump
+  python3 - "${1:-3}" "$U" <<'PY'
+import re, sys
+n, t = int(sys.argv[1]), open(sys.argv[2]).read()
+t = t[t.find('text="Próximas partidas"'):]
+hs = re.findall(r'text="(\d\d:\d\d)"', t)
+print(hs[n - 1] if len(hs) >= n else "")
+PY
+}
+ao_inicio() { # volta até a barra de baixo e abre o Início
+  for _ in 1 2 3 4 5; do wait_text "Início" 2 >/dev/null && break; $A shell input keyevent BACK; sleep 1.5; done
+  tap "Início" >/dev/null; wait_text "Para onde você vai? ›" 10
+}
 marca() { echo "$1 $(python3 -c "import time; print(round(time.time() - $T0, 2))")" >> "$MARCAS"; echo "· $1"; }
 estacao() { # HHMM lon lat: o metrô chega à estação
   hora "$1"; for _ in 1 2 3; do gps "$2" "$3"; sleep 1; done
@@ -52,7 +84,7 @@ gps_lost 300
 hora 0725; demo 0725
 for _ in 1 2 3; do gps -38.5363 -3.7330; sleep 1; done
 $A shell monkey -p $PKG 1 >/dev/null 2>&1
-wait_text "Iniciar" 40
+wait_text "Para onde você vai? ›" 40
 sleep 3
 
 $A shell rm -f /sdcard/viagem.mp4
@@ -65,14 +97,18 @@ marca inicio; sleep 4
 
 marca lembrete
 tap "São Benedito"; wait_text "Próximas partidas"; sleep 2
-tap "07:50"; wait_text "Lembrar na agenda"; sleep 4
-tap "Cancelar"; sleep 1
-for _ in 1 2 3; do $A shell input keyevent BACK; wait_text "Iniciar" 6 && break; done; sleep 1.5
+H=$(horario_da_lista 3)
+tap "$H"; contem "Aviso às"; sleep 4
+tap "$H"; sleep 1.5                     # tocar de novo tira o aviso
+ao_inicio; sleep 1.5
 
-marca iniciar
-tap "Iniciar"; wait_text "Para qual estação você vai?"; sleep 2
 marca destino
-tap "Parangaba"; wait_text "Como você quer ir?"; sleep 3
+tap "Para onde você vai? ›"; wait_text "Estação ou lugar (ex.: Rodoviária)"; sleep 1.5
+$A shell input text "Parangaba"; sleep 2
+toca_xy "Parangaba" 2                   # a 1ª ocorrência é o próprio campo
+wait_text "Iniciar modo viagem"; sleep 3
+marca iniciar
+tap "Iniciar modo viagem"; wait_text "Como você quer ir?"; sleep 2.5
 tap "Direto"; sleep 3
 marca embarque
 hora 0732; sleep 3
