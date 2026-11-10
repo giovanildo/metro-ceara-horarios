@@ -93,11 +93,14 @@ Gratuito e de código aberto (GPL-3.0): github.com/giovanildo/metro-ceara-horari
 Tipo: **Localização** (`FOREGROUND_SERVICE_LOCATION`). Texto da justificativa:
 
 ```
-O modo viagem acompanha a viagem de metrô ou VLT que a pessoa iniciou e avisa duas estações antes do destino escolhido, inclusive com a tela desligada. Para isso usa a localização (GPS) num serviço em primeiro plano, com uma notificação fixa visível o tempo todo e um botão "Encerrar viagem". O serviço só roda depois que a pessoa escolhe o destino e toca em "Iniciar modo viagem", e termina sozinho ao chegar. A localização é usada só no aparelho e não é enviada para ninguém.
+O app usa a localização num serviço em primeiro plano em duas funções, sempre iniciadas por um toque da pessoa:
+1) Modo viagem: depois que a pessoa escolhe o destino e toca em "Iniciar modo viagem", o app acompanha a viagem de metrô ou VLT pelo GPS e avisa duas estações antes do destino, inclusive com a tela desligada. Uma notificação fixa mostra a estação atual e o botão "Encerrar viagem", e o serviço termina sozinho ao chegar.
+2) Botão ↻ do widget da tela inicial: ao tocar, o app pega a localização uma vez (no máximo 20 segundos, com a notificação "Procurando onde você está…") para mostrar no widget os horários da estação mais perto, e encerra em seguida.
+A localização é usada só no aparelho e não é enviada para ninguém. O app não pede a localização "o tempo todo".
 ```
 
 - **Vídeo:** link do YouTube (não listado) com `tools/play/video-modo-viagem.mp4`.
-- Impacto se a tarefa for adiada/interrompida: a pessoa perde o aviso de descida.
+- Impacto se a tarefa for adiada/interrompida: no modo viagem, a pessoa perde o aviso de descida; no widget, ele continua mostrando a estação anterior, de onde a pessoa já saiu.
 
 ## Assinatura (Configuração > Integridade do app)
 
