@@ -20,6 +20,11 @@ data class ActiveTrip(
     val progress: TripProgress,
     val alerted: Boolean,
     val arrived: Boolean,
+    /**
+     * Quando o metrô saiu da origem da viagem (do primeiro trecho, num roteiro
+     * com integração), corrigido pelo GPS; `null` = ainda não saiu.
+     */
+    val departedMinutes: Double? = null,
 )
 
 /** A viagem que acabou de chegar ao destino, para a tela de chegada. */
@@ -47,7 +52,10 @@ data class TripArrival(
                 routeId = plan.routeId,
                 origin = plan.journey?.originName ?: JourneyPlanner.plainName(plan.origin.name),
                 destination = JourneyPlanner.plainName(plan.destination.name),
-                departure = plan.journey?.legs?.first()?.departure ?: plan.origin.scheduled,
+                // A saída de verdade (10/11: o resumo dizia o metrô planejado das
+                // 13:24, mas ele pegou o anterior, e a viagem "durou" 14 min).
+                departure = trip.departedMinutes?.let { kotlin.math.round(it).toInt() }
+                    ?: plan.journey?.legs?.first()?.departure ?: plan.origin.scheduled,
                 arrival = now,
                 stations = TripRail.build(plan, trip.progress, lineHex = "").stationsRidden,
                 simulated = plan.simulated,

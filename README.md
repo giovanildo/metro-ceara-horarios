@@ -525,7 +525,10 @@ estações · chegada ~H".
   atende; o toque não é registrado) e "Encerrar viagem", com confirmação. O
   voltar do celular só tira o app da frente; a viagem continua.
 - **Ao chegar**, uma tela curta com o horário, o tempo de viagem e as estações
-  (`TripArrival`). Quem encerra antes vai direto ao Início, e quem abre o app
+  (`TripArrival`). A saída é a do metrô que a pessoa pegou de fato (o horário
+  da grade corrigido pelo atraso medido na primeira estação depois da origem),
+  não a do planejado: em 10/11 ela pegou o metrô anterior ao escolhido e o
+  resumo dizia "14 min" numa viagem de 36. Quem encerra antes vai direto ao Início, e quem abre o app
   mais de 30 min depois de chegar não vê o resumo.
 
 Por trás da tela, o serviço segue a viagem assim:
@@ -553,16 +556,22 @@ Por trás da tela, o serviço segue a viagem assim:
   a chegada às estações **subterrâneas** (`"subterranea": true` no
   `regras.json`) é estimada **1,5 min antes**: o metrô recupera tempo entre
   Padre Cícero e Chico da Silva, e sem isso a estimativa ficou duas estações
-  atrás e o aviso "2 estações antes" saiu a 1 min de Chico. Ali também vale a
+  atrás e o aviso "2 estações antes" saiu a 1 min de Chico. O **destino** não
+  adianta (só se o aviso de descida for nele mesmo): em 10/11 o metrô não
+  recuperou tempo e "Você chegou a José de Alencar" saiu 1,5 min antes de ela
+  chegar. Assim o aviso de descida continua cedo e a chegada vem na hora, ou
+  antes, se a rede pegar a estação. Ali também vale a
   rede de celular com até 300 m de erro, só para andar para a frente. Uma
   posição de satélite solta depois de um tempo sem sinal (pode ser velha: veio
   uma de Padre Cícero com o metrô já perto de Chico) só conta a partir da
-  segunda seguida, e posições com mais de 30 s são ignoradas. As duas viagens
-  de 04/11 estão em `app/src/test/resources/campo/` e o `TripFieldReplayTest`
-  as repassa ao estimador.
+  segunda seguida, e posições com mais de 30 s são ignoradas. As viagens de
+  04/11 e 10/11 estão em `app/src/test/resources/campo/` e o
+  `TripFieldReplayTest` as repassa ao estimador.
 - **Quando o GPS é dado como perdido.** Depois de **1 minuto** sem nenhuma
   posição boa (12 tentativas, uma a cada 5 s) — menos que os ~2 min entre duas
-  estações. A partir daí a tela mostra um quadro em destaque, de fundo neutro
+  estações. Indo para uma estação **subterrânea**, bastam **30 s**: o sinal
+  some de vez ao entrar no túnel, e em 10/11 a tela ficou mais de 1 min com
+  "pelo GPS" em Padre Cícero com a pessoa já em Benfica. A partir daí a tela mostra um quadro em destaque, de fundo neutro
   e letra legível (ícone vermelho só para chamar atenção): "**Sem GPS há N
   min** — Posição estimada pela tabela de horários. Confira o nome das
   estações pela janela." A notificação fixa ganha

@@ -108,7 +108,8 @@ class TripService : Service() {
                 plan = next
                 estimator = TripEstimator(next, gpsLostMinutes = settings.gpsLostSeconds / 60.0)
                 announced = 0
-                trip = ActiveTrip(next, estimator.progress(nowMinutes()), alerted = false, arrived = false)
+                trip = ActiveTrip(next, estimator.progress(nowMinutes()), alerted = false, arrived = false,
+                    departedMinutes = trip.departedMinutes)
                 review?.onLeg()
                 DevLog.log(
                     "trip_leg", "reason" to reason, "line" to next.routeName, "from" to next.origin.name,
@@ -199,7 +200,10 @@ class TripService : Service() {
                     )
                 }
                 if (arrived && !trip.arrived) review?.onArrived(nowMinutes())
-                trip = trip.copy(progress = progress, alerted = alerted, arrived = arrived)
+                // A saída vale a do primeiro trecho do roteiro.
+                val departed = trip.departedMinutes
+                    ?: progress.departureMinutes?.takeIf { (plan.journey?.current ?: 0) == 0 }
+                trip = trip.copy(progress = progress, alerted = alerted, arrived = arrived, departedMinutes = departed)
                 review?.onUpdate(trip)
                 lastTrip = trip
                 // Chegou à integração: segue no próximo trecho, sem a pessoa tocar em nada.

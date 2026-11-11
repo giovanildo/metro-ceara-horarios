@@ -11,9 +11,16 @@ import org.junit.Test
  */
 class TripFieldReplayTest {
 
-    private class Replay(val plan: TripPlan, val reached: Map<Int, Double>)
+    private class Replay(
+        val plan: TripPlan,
+        val reached: Map<Int, Double>,
+        /** Quando a tela passou a dizer "posição estimada" (GPS perdido), por estação. */
+        val lostAt: Map<Int, Double>,
+        val departure: Double?,
+    )
 
-    private fun replay(file: String): Replay {
+    /** [until]: segue o relógio depois da última posição (o túnel não manda nenhuma). */
+    private fun replay(file: String, until: Double? = null): Replay {
         val lines = javaClass.classLoader!!.getResourceAsStream("campo/$file")!!
             .bufferedReader(Charsets.UTF_8).readLines().filter { !it.startsWith("#") }.map { it.split('\t') }
         val stops = lines.filter { it[0] == "stop" }
@@ -22,9 +29,13 @@ class TripFieldReplayTest {
         val plan = TripPlan("1", "Linha Sul", stops.last().name, stops)
         val estimator = TripEstimator(plan)
         val reached = mutableMapOf<Int, Double>()
+        val lostAt = mutableMapOf<Int, Double>()
+        var departure: Double? = null
         fun tick(now: Double) {
-            val index = estimator.progress(now).index
-            for (i in 0..index) reached.putIfAbsent(i, now)
+            val progress = estimator.progress(now)
+            for (i in 0..progress.index) reached.putIfAbsent(i, now)
+            if (progress.gpsSilentMinutes != null) lostAt.putIfAbsent(progress.index, now)
+            departure = progress.departureMinutes
         }
         var clock = fixes.first()[1].toDouble()
         tick(clock)
@@ -34,7 +45,8 @@ class TripFieldReplayTest {
             estimator.onLocation(fix[3].toDouble(), fix[4].toDouble(), fix[5].toFloat(), t, fromNetwork = fix[2] == "network")
             tick(t)
         }
-        return Replay(plan, reached)
+        if (until != null) while (clock < until) { clock += TICK; tick(clock) }
+        return Replay(plan, reached, lostAt, departure)
     }
 
     private fun Replay.at(name: String) = reached[plan.stops.indexOfFirst { it.name == name }]
@@ -58,6 +70,33 @@ class TripFieldReplayTest {
         assertTrue(log, r.at("José de Alencar")!! <= min(15, 52.5))
         // E não chega antes da hora: Chico só depois de José de Alencar real.
         assertTrue(log, r.at("Chico da Silva")!! >= min(15, 53.0))
+        // O metrô chegou a Chico 15:55; sem o adiantamento no destino, a chegada
+        // não pode ficar muito depois disso.
+        assertTrue(log, r.at("Chico da Silva")!! <= min(15, 57.0))
+    }
+
+    /**
+     * 10/11: plano no metrô das 13:24, ele pegou o anterior (~13:04). Superfície
+     * toda pelo GPS; o satélite sumiu às 13:35:34, saindo de Padre Cícero. Pelos
+     * prints: já em Benfica quando a tela ainda dizia Padre Cícero "pelo GPS";
+     * chegada real a José de Alencar ~13:40 (o app declarou 13:38:52).
+     */
+    @Test
+    fun `ida Carlito - José de Alencar, sem ganhar tempo no túnel`() {
+        val r = replay("2026-11-10-carlito-jose-de-alencar.tsv", until = min(13, 45.0))
+        val log = r.dump() + "\nperdido em: " + r.lostAt.mapKeys { r.plan.stops[it.key].name }.mapValues { hm(it.value) } +
+            "\nsaída: " + hm(r.departure)
+        // A saída é a do metrô que ele pegou, não a das 13:24.
+        assertTrue(log, r.departure!! in min(13, 3.0)..min(13, 6.0))
+        // Padre Cícero pelo GPS (13:34:43).
+        assertTrue(log, r.at("Padre Cícero")!! in min(13, 34.0)..min(13, 35.0))
+        // Saindo para o túnel, "estimada" logo (antes: 13:36:52, com ele já em Benfica).
+        val lost = r.lostAt.filterKeys { it >= r.plan.stops.indexOfFirst { s -> s.name == "Padre Cícero" } }.values.minOrNull()
+        assertTrue(log, lost != null && lost <= min(13, 36.5))
+        // Aviso de descida (Benfica) até quando ele estava lá.
+        assertTrue(log, r.at("Benfica")!! <= min(13, 36.75))
+        // A chegada não vem antes de o metrô chegar, nem muito depois.
+        assertTrue(log, r.at("José de Alencar")!! in min(13, 39.5)..min(13, 41.5))
     }
 
     /** Volta de 04/11 (Benfica → Carlito), que já tinha dado certo: continua igual. */

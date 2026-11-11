@@ -2,6 +2,7 @@ package io.github.giova.metroceara.data
 
 import org.json.JSONArray
 import org.json.JSONObject
+import kotlin.math.min
 
 /** Uma estação no caminho da viagem, com o horário programado nela. */
 data class TripStop(
@@ -215,6 +216,12 @@ data class TripProgress(
      * [TripEstimator.GPS_LOST_MINUTES]; `null` = GPS respondendo.
      */
     val gpsSilentMinutes: Double? = null,
+    /**
+     * Quando o metrô saiu da origem, em minutos desde a meia-noite: o horário da
+     * grade corrigido pelo atraso medido na primeira estação depois dela. `null`
+     * = ainda não saiu.
+     */
+    val departureMinutes: Double? = null,
 ) {
     /** A posição é presumida pela tabela de horários, não vista pelo GPS. */
     val presumed: Boolean get() = fix == TripFix.SCHEDULE
@@ -249,6 +256,15 @@ data class TripProgress(
  * - uma posição de satélite solta, depois de um tempo sem sinal, pode ser velha
  *   (veio uma de Padre Cícero com o metrô já perto de Chico): só conta a partir
  *   da segunda seguida.
+ *
+ * Lições do campo (10/11, Carlito → José de Alencar):
+ * - desta vez o metrô NÃO recuperou tempo no túnel: o adiantamento de
+ *   [TUNNEL_EARLY_MINUTES] vale para as estações do caminho (o aviso de descida
+ *   continua cedo), mas não para a chegada ao destino, que saiu 1,5 min antes
+ *   de a pessoa chegar;
+ * - saindo de Padre Cícero, o satélite sumiu e a tela ficou mais de 1 min com
+ *   "pelo GPS" com a pessoa já em Benfica: quando a próxima estação é
+ *   subterrânea, o GPS é dado como perdido em [TUNNEL_LOST_MINUTES].
  */
 class TripEstimator(
     private val plan: TripPlan,
@@ -268,11 +284,22 @@ class TripEstimator(
     private var seenAtStation = false
     /** A última estação em que o GPS viu a pessoa, e quando. */
     private var lastStationFix: Pair<Int, Double>? = null
+    /** Quando o metrô saiu da origem ([TripProgress.departureMinutes]). */
+    private var departedAt: Double? = null
+
+    /**
+     * Sem posição boa por este tempo, o GPS está perdido. Indo para uma estação
+     * subterrânea, o sinal some de vez ao entrar no túnel: não esperar o tempo todo.
+     */
+    private fun lostAfter(): Double {
+        val next = plan.stops.getOrNull(index + 1)
+        return if (seenAtStation && next?.underground == true) min(gpsLostMinutes, TUNNEL_LOST_MINUTES) else gpsLostMinutes
+    }
 
     /** Satélite respondendo agora, com pelo menos duas posições seguidas. */
     private fun satelliteAlive(nowMinutes: Double): Boolean {
         val last = lastSatellite ?: return false
-        return satelliteRun >= 2 && nowMinutes - last < gpsLostMinutes
+        return satelliteRun >= 2 && nowMinutes - last < lostAfter()
     }
 
     /**
@@ -335,7 +362,7 @@ class TripEstimator(
     private fun onLooseNetwork(lat: Double, lon: Double, nowMinutes: Double) {
         if (!seenAtStation) return
         val satellite = lastSatellite
-        if (satellite != null && nowMinutes - satellite < gpsLostMinutes) return
+        if (satellite != null && nowMinutes - satellite < lostAfter()) return
         val ahead = plan.stops.withIndex()
             .filter { (i, stop) ->
                 // Só debaixo da terra: na superfície a antena perto da estação já
@@ -374,7 +401,8 @@ class TripEstimator(
         // pessoa já embarcou: não passa da partida. Com o GPS respondendo longe
         // da linha (ela ainda vai até a estação), espera; só se o GPS sumir
         // (começou já no túnel) a grade volta a andar. Na simulação não há GPS.
-        val gpsAlive = nowMinutes - since < gpsLostMinutes
+        val lostLimit = lostAfter()
+        val gpsAlive = nowMinutes - since < lostLimit
         val waitingFirstFix = !plan.simulated && !seenAtStation && gpsAlive
         // Já embarcado e com o satélite respondendo, só o GPS faz a viagem andar:
         // cada estação aparece no raio dele. Enquanto o metrô não chega à
@@ -388,19 +416,24 @@ class TripEstimator(
         }
         // No túnel, sem satélite, depois de o GPS ter visto o metrô andando (já
         // fora da origem), adianta: o aviso tem de vir cedo, nunca tarde. Na
-        // superfície o GPS falha pouco e o metrô não recupera tempo assim.
+        // superfície o GPS falha pouco e o metrô não recupera tempo assim. O
+        // destino não adianta (10/11: "Você chegou" com a pessoa ainda no metrô),
+        // a não ser que o aviso de descida seja nele mesmo.
         val moving = (lastStationFix?.first ?: 0) >= 1
         val early = if (!plan.simulated && moving && !holding) TUNNEL_EARLY_MINUTES else 0.0
+        val lastIndex = plan.stops.lastIndex
+        fun earlyAt(i: Int) = if (plan.stops[i].underground && (i < lastIndex || plan.alertIndex >= lastIndex)) early else 0.0
         val bySchedule = when {
             waitingFirstFix || holding -> -1
-            else -> plan.stops.indexOfLast { it.scheduled + delay - (if (it.underground) early else 0.0) <= nowMinutes }
+            else -> plan.stops.indices.lastOrNull { plan.stops[it].scheduled + delay - earlyAt(it) <= nowMinutes } ?: -1
         }
         if (bySchedule > index) {
             index = bySchedule
             lastFix = if (plan.simulated) TripFix.SIMULATED else TripFix.SCHEDULE
         }
+        if (departedAt == null && index >= 1) departedAt = plan.stops[0].scheduled + delay
         val silent = if (plan.simulated) 0.0 else nowMinutes - since
-        val lost = silent >= gpsLostMinutes
+        val lost = silent >= lostLimit
         return TripProgress(
             index = index,
             // Sem GPS, a posição é presumida, mesmo que a estação tenha vindo dele.
@@ -408,6 +441,7 @@ class TripEstimator(
             delayMinutes = delay,
             arrivalMinutes = plan.destination.scheduled + delay,
             gpsSilentMinutes = silent.takeIf { lost },
+            departureMinutes = departedAt,
         )
     }
 
@@ -424,6 +458,8 @@ class TripEstimator(
         const val LOOSE_ACCURACY_METERS = 300f
         /** Sem satélite, a estimativa adianta isto (no túnel o metrô recupera tempo). */
         const val TUNNEL_EARLY_MINUTES = 1.5
+        /** Indo para estação subterrânea, sem posição boa por isto o GPS está perdido. */
+        const val TUNNEL_LOST_MINUTES = 0.5
         private const val STATION_RADIUS_METERS = 300.0
         private const val CONFIDENT_ACCURACY_METERS = 40f
         private const val CONFIDENT_RADIUS_METERS = 150.0
