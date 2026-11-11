@@ -1,0 +1,3 @@
+• Modo viagem: no trecho subterrâneo, "Você chegou" agora sai na hora certa, sem adiantar. O aviso para descer continua vindo antes.
+• Ao entrar no túnel, a tela passa mais cedo para "posição estimada".
+• O resumo da chegada mostra o horário em que o seu metrô saiu de verdade e o tempo certo da viagem.
