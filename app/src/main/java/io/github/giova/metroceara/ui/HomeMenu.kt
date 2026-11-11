@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Face
 import androidx.compose.material.icons.outlined.Repeat
 import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.ui.Alignment
@@ -52,7 +52,7 @@ class HomeMenuActions(
     val onNina: (() -> Unit)? = null,
     val onRoutines: () -> Unit = {},
     val onCommute: () -> Unit = {},
-    val onHomeSetup: () -> Unit = {},
+    val onProfile: () -> Unit = {},
     val onSettings: () -> Unit = {},
     val onSources: () -> Unit = {},
     val onAbout: () -> Unit = {},
@@ -111,7 +111,7 @@ fun HomeMoreSheet(actions: HomeMenuActions, onDismiss: () -> Unit) {
             MenuRow(Icons.Outlined.SwapHoriz, R.string.menu_commute, R.string.menu_commute_sub) { go(actions.onCommute) }
             MenuRow(Icons.Outlined.Repeat, R.string.routines_title, R.string.menu_routines_sub) { go(actions.onRoutines) }
             MenuGroup(R.string.menu_group_mine)
-            MenuRow(Icons.Outlined.Palette, R.string.menu_home_setup, R.string.menu_home_setup_sub) { go(actions.onHomeSetup) }
+            MenuRow(Icons.Outlined.Face, R.string.menu_profile, R.string.menu_profile_sub) { go(actions.onProfile) }
             MenuRow(Icons.Outlined.Settings, R.string.settings_title, R.string.menu_settings_sub) { go(actions.onSettings) }
             MenuGroup(R.string.menu_group_app)
             MenuRow(Icons.Outlined.TravelExplore, R.string.sources_title) { go(actions.onSources) }

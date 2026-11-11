@@ -7,7 +7,7 @@
 <li><b>Horários do dia:</b> a grade do próprio dia publicada pelo Metrofor, incluindo sábado e operações especiais (eleição, ENEM). Sem internet, usa a última grade guardada.</li>
 <li><b>ENEM, eleição e feriado:</b> o aviso do Metrofor aparece assim que a operação especial é anunciada, e o app manda uma notificação mesmo fechado. Tocar abre a notícia no site do Metrofor.</li>
 <li><b>Estações mais próximas:</b> pelo GPS, as duas estações mais perto de você, com o tempo que falta para o próximo metrô. Ou fixe a sua estação pela estrela.</li>
-<li><b>Sua tela inicial:</b> o jeito de ver os horários, bike, meia, elevador ou rampa e a ordem, sem cadastro.</li>
+<li><b>Conte sobre você:</b> perguntas rápidas na primeira abertura deixam a tela do seu jeito (bike, meia, elevador ou rampa, Casa e Trabalho, o jeito de ver os horários e a ordem), sem cadastro.</li>
 <li><b>Para onde você vai?:</b> escolha o destino e veja o roteiro, na mesma linha ou com integração, saindo agora, no horário que você escolher ou amanhã.</li>
 <li><b>Procure o lugar, não só a estação:</b> digite "Rodoviária", "HGF" ou "UFC" e veja a estação mais perto, a caminhada até a porta e a hora de chegar. Na tela de cada estação, o que tem perto: hospitais, universidades, shoppings.</li>
 <li><b>Elevador e rampa:</b> veja se a estação tem elevador, rampa ou plataforma elevatória. Com "cadeira de rodas", o roteiro avisa onde não tem elevador e onde pedir ajuda.</li>

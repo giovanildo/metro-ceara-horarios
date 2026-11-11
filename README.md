@@ -113,7 +113,7 @@ você vai?" e Casa e Trabalho), **Linhas** (a lista das linhas; tocar abre as
 estações) e **Mais**, uma lista que sobe de baixo por cima da tela
 ([`ui/HomeMenu.kt`](app/src/main/java/io/github/giova/metroceara/ui/HomeMenu.kt)):
 em quatro grupos: **Para a viagem** (Passagem, Nina), **Seu dia a dia** (Sua ida e
-volta, Suas rotinas), **Do seu jeito** (Sua tela inicial, Configurações) e **O app** (De
+volta, Suas rotinas), **Do seu jeito** (Conte sobre você, Configurações) e **O app** (De
 onde vem cada informação, Sobre o app, Compartilhar o app). Na lite, só os que
 ela tem. Ícone sem nome não serve para
 todo mundo, por isso cada botão diz o que faz; com letra grande, "Planeje sua
@@ -138,7 +138,7 @@ acontecendo, o Metrofor orienta procurar um funcionário); isso fica na fonte,
 em "De onde vem cada informação", e não no menu, a pedido, para não alarmar
 quem olha a tela.
 
-### Sua tela inicial: jeito dos horários, o que você usa e ordem
+### Conte sobre você: perguntas, jeito dos horários e ordem
 
 O app faz muita coisa, mas o propósito é simples: a pessoa ver logo quando
 passa o próximo metrô. Por isso a tela inicial é uma lista de blocos e, no
@@ -170,14 +170,28 @@ padrão, segue o perfil da maioria (quem vai e volta do trabalho ou da escola):
 tela inicial (`HomeBlock.inRoutes`); uma ordem guardada antes disso continua
 valendo para os outros blocos.
 
-**Sua tela inicial** (no Mais; `HomeSetupScreen` em `ui/HomeLayoutScreens.kt`) junta
-o jeito de mostrar os horários ("Como os horários aparecem", com **Trocar**), a
-ordem e, em **O que você usa**, os interruptores: são, sem cadastro e sem "perfil" (que lembra login): **Vou ao
-trabalho ou à escola** (Trabalho e Casa aparecem), **Levo bike** (a regra da
-bike no cartão e o Bicicletar; desligado no padrão), **Pago meia ou tenho
-gratuidade** (a passagem e o guia da meia no cartão), **Preciso de elevador ou
-rampa** (a acessibilidade da estação no cartão). A tela da estação continua
-mostrando tudo.
+**Conte sobre você** (no Mais; [`ui/ProfileScreens.kt`](app/src/main/java/io/github/giova/metroceara/ui/ProfileScreens.kt),
+v1.98) junta tudo o que deixa a tela inicial do jeito da pessoa, sem cadastro e
+sem "perfil" (que lembra login). Na **primeira abertura depois de instalar**
+(`HomeLayoutStore.shouldAskProfile`: `firstInstallTime == lastUpdateTime`; quem
+atualiza de uma versão anterior não vê), uma apresentação e **6 perguntas**, uma
+por tela, com **Pular** em todas e cada resposta gravada na hora:
+
+1. **Com que frequência você anda de metrô ou VLT?** (`RideFrequency`): *Todo dia
+   ou quase* mostra Trabalho e Casa e as rotinas; *Estou conhecendo a cidade*
+   esconde os dois; *Às vezes* não muda nada;
+2. **Você vai ao trabalho ou à escola…?** O "Sim" mostra Trabalho e Casa e já
+   pede as duas estações ali mesmo;
+3. **Você leva bicicleta?** (a regra da bike no cartão e o Bicicletar; desligado no padrão);
+4. **Você paga meia ou tem gratuidade?** (a passagem e o guia da meia no cartão);
+5. **Você precisa de elevador ou rampa?** (a acessibilidade da estação no cartão);
+6. **Como você quer ver os horários?** (a prévia em cima e os seis jeitos).
+
+No fim, e depois pelo Mais, o resumo "Pronto! Seu app ficou assim", onde tudo muda
+ali mesmo: a frequência (**Mudar**), os interruptores, Casa e Trabalho, o jeito dos
+horários e a **Ordem da tela inicial**. A pergunta "qual linha você mais usa"
+chegou a existir e saiu: só mudava a ordem das estações num caso raro, e Casa e
+Trabalho já dizem a linha. A tela da estação continua mostrando tudo.
 
 **Ordem da tela inicial** tem a prévia da tela inicial em cima, na largura toda
 e sem receber toques, e embaixo cada bloco com liga/desliga à esquerda e **↑ ↓**
@@ -301,7 +315,7 @@ mesma tela saindo dali.
   feitas ("Benfica → Parangaba"). Tocar abre Planeje sua viagem já preenchida, e
   **Outro destino** abre com o "De" preenchido e o "Para" vazio. Sem metrô agora,
   mostra só o destino, sem inventar a chegada.
-- **Como os horários aparecem** (no Mais, em Sua tela inicial → Trocar; `HomeStyle`, `HomeStyleScreen`,
+- **Como os horários aparecem** (no Mais, em Conte sobre você → Mudar, e na última pergunta; `HomeStyle`, `HomeStyleScreen`,
   `ui/HomeStationStyles.kt`; na lite, `#/personalizar`, `corpoEstilo`): seis jeitos de
   mostrar os horários da estação aberta, com um exemplo em cima, porque cada pessoa
   entende melhor um. **Trilho** (padrão: a linha na cor dela, os dois sentidos e o
@@ -665,7 +679,7 @@ capacidade de vagas, que o banco também guarda, não aparece: não é quantas
 bicicletas há agora e confundia.
 
 - **Na tela inicial**, num cartão próprio, para quem ligou **Levo bike** em
-  "Sua tela inicial". Com GPS, a
+  "Conte sobre você". Com GPS, a
   distância é medida a partir de **você**, até 3 km — acima disso (fora de
   Fortaleza, por exemplo) o cartão some. Com estação fixada, é medida a partir
   da estação, até 600 m.
@@ -1553,8 +1567,12 @@ registro de testes — esses ficam só no app de Android. A tela inicial segue a
 mesma ordem padrão do app (Trabalho e Casa, o aviso do Metrofor de hoje, as duas
 estações mais próximas com o tempo que falta grande, os avisos dos próximos
 dias — toda operação anunciada, desde o dia em que a notícia sai),
-sem os interruptores de "O que você usa" nem a escolha da ordem (Mais → Sua tela inicial só escolhe o jeito dos horários). A mesma barra de baixo do app:
-Início, Planeje sua viagem (`#/rotas`), Linhas (`#/linhas`) e Mais (Passagem, Sua ida e volta,
+sem a escolha da ordem. **Conte sobre você** (`#/sobre-voce`; na primeira
+visita, `#/sobre-voce/inicio`, com Pular) tem 3 perguntas numa tela só, gravadas em
+`localStorage["sobre-voce"]`: a frequência (*conhecendo a cidade* esconde os atalhos
+de Casa e Trabalho), bike e meia ("Sim" põe a regra da bike e a passagem no cartão
+aberto da tela inicial), e o link para o jeito dos horários. A mesma barra de baixo do app:
+Início, Planeje sua viagem (`#/rotas`), Linhas (`#/linhas`) e Mais (Passagem, Sua ida e volta, Conte sobre você,
 Nina, De onde vem cada informação, Sobre, Compartilhar; um `<dialog>` que sobe
 de baixo). O navegador não consegue baixar
 o GTFS direto do Metrofor — o site não libera acesso a partir de outras

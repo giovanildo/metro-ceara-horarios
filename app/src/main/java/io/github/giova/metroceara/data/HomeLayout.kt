@@ -37,6 +37,18 @@ enum class HomeBlock(val key: String) {
     val inRoutes: Boolean get() = this == SEARCH || this == LINES
 }
 
+/** "Com que frequência você anda de metrô ou VLT?", do Conte sobre você. */
+enum class RideFrequency(val key: String) {
+    DAILY("todo_dia"),
+    SOMETIMES("as_vezes"),
+    VISITOR("conhecendo"),
+    ;
+
+    companion object {
+        fun of(key: String?): RideFrequency? = entries.firstOrNull { it.key == key }
+    }
+}
+
 /** O jeito de mostrar os horários na estação aberta. Cada pessoa entende melhor um. */
 enum class HomeStyle(val key: String) {
     RAIL("trilho"),
@@ -55,7 +67,7 @@ enum class HomeStyle(val key: String) {
 
 /**
  * A tela inicial de cada pessoa: a ordem dos blocos, os escondidos e os ajustes
- * de "Ajustar para mim". Fica só no aparelho.
+ * de "Conte sobre você". Fica só no aparelho.
  */
 data class HomeLayout(
     val order: List<HomeBlock> = DEFAULT_ORDER,
@@ -68,6 +80,8 @@ data class HomeLayout(
     val access: Boolean = false,
     /** Como os horários aparecem na estação aberta (Personalizar a tela inicial). */
     val style: HomeStyle = HomeStyle.DEFAULT,
+    /** Resposta de "Com que frequência…"; null = não respondeu. */
+    val frequency: RideFrequency? = null,
 ) {
     /** O bloco aparece na tela inicial. */
     fun shows(block: HomeBlock): Boolean = when {
@@ -83,6 +97,16 @@ data class HomeLayout(
 
     /** Os blocos da tela inicial, na ordem da pessoa (sem os da aba Rotas). */
     val homeOrder: List<HomeBlock> get() = order.filterNot { it.inRoutes }
+
+    /**
+     * Quem anda todo dia vê Casa, Trabalho e as rotinas; quem está conhecendo a
+     * cidade, não. "Às vezes" não muda nada.
+     */
+    fun withFrequency(answer: RideFrequency): HomeLayout = when (answer) {
+        RideFrequency.DAILY -> withVisible(HomeBlock.PLACES, true).withVisible(HomeBlock.ROUTINES, true)
+        RideFrequency.VISITOR -> withVisible(HomeBlock.PLACES, false).withVisible(HomeBlock.ROUTINES, false)
+        RideFrequency.SOMETIMES -> this
+    }.copy(frequency = answer)
 
     fun withVisible(block: HomeBlock, visible: Boolean): HomeLayout =
         if (block.fixed) this else copy(hidden = if (visible) hidden - block else hidden + block)
@@ -145,6 +169,7 @@ object HomeLayoutStore {
             putBoolean("half_fare", layout.halfFare)
             putBoolean("access", layout.access)
             putString("style", layout.style.key)
+            putString("frequency", layout.frequency?.key)
         }
         state.value = layout
     }
@@ -176,8 +201,30 @@ object HomeLayoutStore {
             halfFare = p.getBoolean("half_fare", false),
             access = p.getBoolean("access", false),
             style = HomeStyle.of(p.getString("style", null)),
+            frequency = RideFrequency.of(p.getString("frequency", null)),
         )
     }
+
+    /**
+     * O Conte sobre você aparece sozinho só na primeira abertura depois de instalar.
+     * Quem atualiza de uma versão anterior já arrumou o app do seu jeito: não pergunta.
+     */
+    fun shouldAskProfile(context: Context): Boolean {
+        val p = prefs(context)
+        if (p.getBoolean(KEY_PROFILE_SEEN, false)) return false
+        val fresh = runCatching {
+            val info = context.packageManager.getPackageInfo(context.packageName, 0)
+            info.firstInstallTime == info.lastUpdateTime
+        }.getOrDefault(false)
+        if (!fresh) markProfileSeen(context)
+        return fresh
+    }
+
+    fun markProfileSeen(context: Context) {
+        prefs(context).edit { putBoolean(KEY_PROFILE_SEEN, true) }
+    }
+
+    private const val KEY_PROFILE_SEEN = "profile_seen"
 
     // Arquivo próprio: "Restaurar padrões" das configurações não mexe aqui.
     private fun prefs(context: Context) =

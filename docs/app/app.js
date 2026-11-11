@@ -313,7 +313,9 @@ function telaInicio() {
   // Com a ida e volta pronta, o bloco dela; sem Casa nem Trabalho, a viagem mais
   // recente vai para o cartão da estação aberta, no lugar dos atalhos.
   const ultima = ultimaViagemGuardada();
-  html += blocoIdaVolta(t) ?? (ultima ? "" : atalhosLugares(t));
+  // Quem está conhecendo a cidade não precisa dos atalhos de Casa e Trabalho.
+  const visitante = lerSobreVoce().frequencia === "conhecendo";
+  html += blocoIdaVolta(t) ?? (ultima || visitante ? "" : atalhosLugares(t));
 
   if (!estado.pos) {
     html += `<div class="cartao">
@@ -365,14 +367,20 @@ function telaInicio() {
           ${domingo ? `<p class="dica fim-do-dia">${textoVoltaSegunda(fraseDaSegunda(linha.id, id, "Volta"))}</p>` : ""}`;
       const estacao = `${linha.id}|${id}`;
       const estilo = estiloInicio();
+      // Conte sobre você: a regra da bike e a passagem, para quem respondeu "Sim".
+      const sv = lerSobreVoce();
+      const tarifa = sv.meia ? passagemDaLinha(estado.dados.regras, linha.nome) : null;
+      const extras = (sv.bike && !domingo ? avisoBike(linha, id, t) : "")
+        + (tarifa ? `<p class="dica">Passagem: ${esc(tarifa)}${estado.dados.regras?.guia_passagem
+          ? ` · <a class="link-guia" href="#/passagem">Meia e gratuidade ›</a>` : ""}</p>` : "");
       if (estilo === "classico") {
         html += `<div class="cartao">
         <a class="cabeca" href="#/estacao/${linha.id}/${id}">${cabeca}
           ${filas.map((f) => `<div class="partida">${sentidoNoCartao(f.s, linha)}${partidaGrande(f.p, t.minutos, f.s)}</div>`
             + (f.fim ? `<p class="dica fim-do-dia">${f.fim}</p>` : "")).join("")}
-        </a>${faixaViagem(t, ultima, estacao)}</div>`;
+        </a>${extras}${faixaViagem(t, ultima, estacao)}</div>`;
       } else {
-        html += `<div class="cartao"><a class="cabeca" href="#/estacao/${linha.id}/${id}">${cabeca}</a>
+        html += `<div class="cartao"><a class="cabeca" href="#/estacao/${linha.id}/${id}">${cabeca}</a>${extras}
           <div data-ir="#/estacao/${linha.id}/${id}">${corpoEstilo(estilo, {
             linha, estacao, filas, minutos: t.minutos, aqui: d <= AQUI_METROS ? "Você está aqui" : esc(grade.nome(id)),
             viagens: ultima ? viagensDaEstacao(t, ultima, estacao) : [],
@@ -555,7 +563,7 @@ function faixaViagem(t, ultima, estacao) {
   return ultima ? faixaDe(viagensDaEstacao(t, ultima, estacao), Boolean(estacao)) : "";
 }
 
-// ---------- o jeito de mostrar os horários (Sua tela inicial; como no app)
+// ---------- o jeito de mostrar os horários (no Conte sobre você; como no app)
 
 const ESTILOS = [
   ["trilho", "Trilho (padrão)", "A linha desenhada, com os dois sentidos e o seu destino nela"],
@@ -689,7 +697,7 @@ function telaPersonalizar() {
   const exemplo = atual === "classico"
     ? `${c.filas.map((f) => `<div class="partida">${sentidoNoCartao(f.s, linha)}${partidaGrande(f.p, m, f.s)}</div>`).join("")}${faixaDe(c.viagens, true)}`
     : corpoEstilo(atual, c);
-  tela.innerHTML = `<h2 class="titulo-aba">Sua tela inicial</h2>
+  tela.innerHTML = `<h2 class="titulo-aba">Como os horários aparecem</h2>
     <p class="dica">Escolha o jeito que fica mais fácil para você. Dá para trocar quando quiser.</p>
     <p class="grupo">Como fica</p>
     <div class="cartao exemplo" aria-hidden="true"><h3>Benfica <span class="linha-nome">Linha Sul</span></h3>${exemplo}</div>
@@ -698,6 +706,42 @@ function telaPersonalizar() {
   tela.querySelectorAll('input[name="estilo"]').forEach((i) => i.addEventListener("change", () => {
     try { localStorage.setItem("estilo-inicio", i.value); } catch { /* segue */ }
     telaPersonalizar();
+  }));
+}
+
+// ---------- conte sobre você (as 3 perguntas da lite; só neste navegador)
+
+function lerSobreVoce() {
+  try { return JSON.parse(localStorage.getItem("sobre-voce") || "{}"); } catch { return {}; }
+}
+
+const FREQUENCIAS = [["todo-dia", "Todo dia ou quase"], ["as-vezes", "Às vezes"], ["conhecendo", "Estou conhecendo a cidade"]];
+
+/**
+ * Item do Mais e primeira visita (inicio = true, com "Pular"). Cada toque já grava.
+ * Todo dia: nada muda; conhecendo a cidade: sem os atalhos de Casa e Trabalho.
+ * Bike e meia: a regra da bike e a passagem no cartão aberto da tela inicial.
+ */
+function telaSobreVoce(inicio) {
+  const r = lerSobreVoce();
+  const op = (campo, valor, rotulo) =>
+    `<button type="button" class="sv-op ${r[campo] === valor ? "sel" : ""}" data-campo="${campo}" data-valor="${esc(JSON.stringify(valor))}">${esc(rotulo)}</button>`;
+  const simNao = (campo) => op(campo, true, "Sim") + op(campo, false, "Não");
+  tela.innerHTML = `<h2 class="titulo-aba">${inicio ? "Vamos deixar do seu jeito?" : "Conte sobre você"}</h2>
+    <p class="dica">${inicio ? "3 perguntas rápidas. " : ""}Fica só neste aparelho. Não tem cadastro.</p>
+    <h4 class="sv-pergunta">Com que frequência você anda de metrô ou VLT?</h4>
+    <div class="sv-ops">${FREQUENCIAS.map(([v, n]) => op("frequencia", v, n)).join("")}</div>
+    <h4 class="sv-pergunta">Você leva bicicleta?</h4>
+    <div class="sv-ops">${simNao("bike")}</div>
+    <h4 class="sv-pergunta">Você paga meia ou tem gratuidade?</h4>
+    <div class="sv-ops">${simNao("meia")}</div>
+    ${inicio ? "" : `<a class="iv-linha" href="#/personalizar"><span>🎨 Como os horários aparecem</span><b>${esc(ESTILOS.find(([id]) => id === estiloInicio())?.[1] ?? "")} ›</b></a>`}
+    <div class="sv-rodape">${inicio ? `<a class="sv-pular" href="#/">Pular</a>` : "<span></span>"}<a class="botao" href="#/">Pronto</a></div>`;
+  tela.querySelectorAll(".sv-op").forEach((b) => b.addEventListener("click", () => {
+    const atual = lerSobreVoce();
+    atual[b.dataset.campo] = JSON.parse(b.dataset.valor);
+    try { localStorage.setItem("sobre-voce", JSON.stringify(atual)); } catch { /* segue */ }
+    telaSobreVoce(inicio);
   }));
 }
 
@@ -868,7 +912,7 @@ function abrirMais() {
     ${nina ? `<a href="${nina}" target="_blank" rel="noopener" aria-label="Nina: abre o WhatsApp da Super NINA"><span class="ic">${ROSTO_NINA}</span>Nina</a>` : ""}
     <h4>Do seu jeito</h4>
     <a href="#/ida-volta"><span class="ic">⇄</span><span>Sua ida e volta<small>casa, trabalho ou faculdade e seus horários</small></span></a>
-    <a href="#/personalizar"><span class="ic">🎨</span><span>Sua tela inicial<small>o jeito de mostrar os horários</small></span></a>
+    <a href="#/sobre-voce"><span class="ic">🙋</span><span>Conte sobre você<small>o visual e o que você usa</small></span></a>
     <h4>O app</h4>
     <a href="#/fontes"><span class="ic">🔎</span>De onde vem cada informação</a>
     <a href="#/sobre"><span class="ic">ⓘ</span>Sobre o app</a>
@@ -1949,6 +1993,7 @@ function render() {
   else if (partes[0] === "lugar") telaLugar(partes[1], partes[2]);
   else if (partes[0] === "ida-volta") telaIdaVolta();
   else if (partes[0] === "personalizar") telaPersonalizar();
+  else if (partes[0] === "sobre-voce") telaSobreVoce(partes[1] === "inicio");
   else if (partes[0] === "ir") irParaLugar(partes[1]);
   else if (partes[0] === "rotas") telaRotas();
   else if (partes[0] === "linhas") telaLinhas();
@@ -1980,7 +2025,10 @@ function status() {
 }
 
 async function iniciar() {
+  // Primeira visita: as 4 perguntas do Conte sobre você, uma vez só.
+  const primeira = lerNumero("visitas") === 0 && !location.hash.replace(/^#\/?/, "");
   try { localStorage.setItem("visitas", String(lerNumero("visitas") + 1)); } catch { /* segue */ }
+  if (primeira) history.replaceState(null, "", "#/sobre-voce/inicio");
   try {
     estado.dados = await carregar();
   } catch {

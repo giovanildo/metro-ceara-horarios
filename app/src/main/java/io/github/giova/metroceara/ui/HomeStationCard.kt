@@ -57,7 +57,7 @@ fun HomeStationCard(
     onOpenStation: (Station) -> Unit,
     modifier: Modifier = Modifier,
     showRefresh: Boolean = true,
-    /** O que a pessoa ligou em "Ajustar para mim": bike, meia, acessibilidade. */
+    /** O que a pessoa ligou em "Conte sobre você": bike, meia, acessibilidade. */
     extras: HomeCardExtras = HomeCardExtras(),
     /** Compacto: só nome, linha e distância; tocar abre ([onExpand]). */
     compact: Boolean = false,
@@ -329,7 +329,7 @@ private fun CompactSummary(
     }
 }
 
-/** O que entra no cartão da estação conforme "Ajustar para mim". */
+/** O que entra no cartão da estação conforme "Conte sobre você". */
 data class HomeCardExtras(
     val bike: Boolean = false,
     val halfFare: Boolean = false,

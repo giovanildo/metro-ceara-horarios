@@ -558,7 +558,7 @@
     <string name="direction_via_next">"Próxima estação: "</string>
     <string name="direction_via_last">", a última"</string>
 
-    <!-- Ajustar para mim e ordem da tela inicial (v1.74) -->
+    <!-- Conte sobre você (antes "Ajustar para mim", v1.74) e ordem da tela inicial -->
     <string name="adjust_commute">Vou ao trabalho ou à escola</string>
     <string name="adjust_commute_desc">Casa e Trabalho no topo, com a hora de chegada</string>
     <string name="adjust_bike">Levo bike</string>
@@ -646,11 +646,43 @@
     <string name="station_integration_to">Integração em %1$s · para %2$s · chega às %3$s</string>
     <string name="station_integration_short">Integração em %1$s · %2$s</string>
     <string name="station_via_vehicle">Via %1$s · %2$s das %3$s</string>
-    <string name="menu_home_setup">Sua tela inicial</string>
-    <string name="menu_home_setup_sub">o jeito dos horários, o que aparece e a ordem</string>
+    <string name="menu_profile">Conte sobre você</string>
+    <string name="menu_profile_sub">o visual, a ordem da tela e o que você usa</string>
+    <string name="profile_intro_title">Vamos deixar o app do seu jeito?</string>
+    <string name="profile_intro_text">São 6 perguntas rápidas. Com elas, o app mostra primeiro o que você mais usa.</string>
+    <string name="profile_intro_later">Você pode mudar depois em Mais › Conte sobre você.</string>
+    <string name="profile_start">Começar</string>
+    <string name="profile_skip">Pular</string>
+    <string name="profile_next">Continuar</string>
+    <string name="profile_finish">Terminar</string>
+    <string name="profile_step">%1$d de %2$d</string>
+    <string name="profile_q_frequency">Com que frequência você anda de metrô ou VLT?</string>
+    <string name="profile_daily">Todo dia ou quase</string>
+    <string name="profile_daily_desc">Casa, Trabalho e suas rotinas na tela inicial</string>
+    <string name="profile_sometimes">Às vezes</string>
+    <string name="profile_sometimes_desc">As estações perto de você primeiro</string>
+    <string name="profile_visitor">Estou conhecendo a cidade</string>
+    <string name="profile_visitor_desc">Sem Casa e Trabalho; procure lugares em Planeje sua viagem</string>
+    <string name="profile_q_commute">Você vai ao trabalho ou à escola de metrô ou VLT?</string>
+    <string name="profile_home_station">Estação perto de casa</string>
+    <string name="profile_work_station">Estação perto do trabalho ou da escola</string>
+    <string name="profile_q_bike">Você leva bicicleta?</string>
+    <string name="profile_q_half_fare">Você paga meia ou tem gratuidade?</string>
+    <string name="profile_q_half_fare_sub">Estudante, professor, idoso, pessoa com deficiência…</string>
+    <string name="profile_q_access">Você precisa de elevador ou rampa?</string>
+    <string name="profile_q_access_sub">Também vale para quem anda com carrinho de bebê ou mala.</string>
+    <string name="profile_q_style">Como você quer ver os horários?</string>
+    <string name="profile_yes">Sim</string>
+    <string name="profile_no">Não</string>
+    <string name="profile_done_title">Pronto! Seu app ficou assim</string>
+    <string name="profile_done_sub">Toque para mudar o que quiser.</string>
+    <string name="profile_see_times">Ver meus horários</string>
+    <string name="profile_change">Mudar</string>
+    <string name="profile_frequency_row">Com que frequência você anda</string>
+    <string name="profile_style_row">Como os horários aparecem</string>
+    <string name="profile_not_answered">Não respondido</string>
     <string name="style_title">Como os horários aparecem</string>
     <string name="style_change">Trocar</string>
-    <string name="adjust_section">O que você usa</string>
     <string name="style_intro">Escolha o jeito que fica mais fácil para você. Dá para trocar quando quiser.</string>
     <string name="style_preview">Como fica</string>
     <string name="style_rail">Trilho (padrão)</string>

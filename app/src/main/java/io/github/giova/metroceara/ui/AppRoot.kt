@@ -216,8 +216,10 @@ fun AppRoot() {
     var fareGuideOpen by rememberSaveable { mutableStateOf(false) }
     var sourcesOpen by rememberSaveable { mutableStateOf(false) }
     var accessOpen by rememberSaveable { mutableStateOf(false) }
-    // "Ajustar para mim" e "Ordem da tela inicial".
-    var homeSetupOpen by rememberSaveable { mutableStateOf(false) }
+    // "Conte sobre você": as perguntas (sozinhas na primeira abertura) e o resumo.
+    var profileQuestions by rememberSaveable { mutableStateOf(HomeLayoutStore.shouldAskProfile(context)) }
+    var profileOpen by rememberSaveable { mutableStateOf(false) }
+    var profileJustFinished by rememberSaveable { mutableStateOf(false) }
     var fineSettingsOpen by rememberSaveable { mutableStateOf(false) }
     var styleOpen by rememberSaveable { mutableStateOf(false) }
     var orderOpen by rememberSaveable { mutableStateOf(false) }
@@ -517,7 +519,8 @@ fun AppRoot() {
             fareGuideOpen = false
             sourcesOpen = false
             accessOpen = false
-            homeSetupOpen = false
+            profileOpen = false
+            profileQuestions = false
             styleOpen = false
             orderOpen = false
             routeId = route
@@ -545,7 +548,8 @@ fun AppRoot() {
             fareGuideOpen = false
             sourcesOpen = false
             accessOpen = false
-            homeSetupOpen = false
+            profileOpen = false
+            profileQuestions = false
             styleOpen = false
             orderOpen = false
             journeyOpen = true
@@ -1299,6 +1303,24 @@ fun AppRoot() {
             onStop = { TripTracker.stop(context) },
         )
 
+        profileQuestions -> ProfileQuestionsScreen(
+            layout = homeLayout,
+            homeName = places?.get(Place.HOME)?.let(::placeName),
+            workName = places?.get(Place.WORK)?.let(::placeName),
+            onChange = { HomeLayoutStore.save(context, it) },
+            onPickPlace = { placeEditing = it },
+            onSkip = {
+                HomeLayoutStore.markProfileSeen(context)
+                profileQuestions = false
+            },
+            onFinish = {
+                HomeLayoutStore.markProfileSeen(context)
+                profileQuestions = false
+                profileJustFinished = true
+                profileOpen = true
+            },
+        )
+
         orderOpen -> {
             BackHandler { orderOpen = false }
             HomeOrderScreen(
@@ -1318,14 +1340,22 @@ fun AppRoot() {
             )
         }
 
-        homeSetupOpen -> {
-            BackHandler { homeSetupOpen = false }
-            HomeSetupScreen(
+        profileOpen -> {
+            fun close() {
+                profileOpen = false
+                profileJustFinished = false
+            }
+            BackHandler { close() }
+            ProfileScreen(
                 layout = homeLayout,
+                homeName = places?.get(Place.HOME)?.let(::placeName),
+                workName = places?.get(Place.WORK)?.let(::placeName),
+                justFinished = profileJustFinished,
                 onChange = { HomeLayoutStore.save(context, it) },
+                onPickPlace = { placeEditing = it },
                 onOpenStyle = { styleOpen = true },
                 onOpenOrder = { orderOpen = true },
-                onBack = { homeSetupOpen = false },
+                onBack = ::close,
             )
         }
 
@@ -1583,7 +1613,7 @@ fun AppRoot() {
                 onNina = ninaOpener(homeState.station?.routeName),
                 onRoutines = { routinesOpen = true },
                 onCommute = { commuteOpen = true },
-                onHomeSetup = { homeSetupOpen = true },
+                onProfile = { profileOpen = true },
                 onSettings = { showSettings = true },
                 onSources = { sourcesOpen = true },
                 onAbout = { showAbout = true },

@@ -86,94 +86,8 @@ fun homeBlockName(block: HomeBlock): String = stringResource(
     },
 )
 
-/** "Sua tela inicial": o jeito dos horários, o que a pessoa usa e a ordem, num lugar só. */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeSetupScreen(
-    layout: HomeLayout,
-    onChange: (HomeLayout) -> Unit,
-    onOpenStyle: () -> Unit,
-    onOpenOrder: () -> Unit,
-    onBack: () -> Unit,
-) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.menu_home_setup)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
-                    }
-                },
-            )
-        },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-        ) {
-            SetupTitle(R.string.style_title)
-            Card(
-                onClick = onOpenStyle,
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(16.dp)) {
-                    Icon(Icons.Outlined.Palette, contentDescription = null, modifier = Modifier.padding(end = 14.dp))
-                    Column(Modifier.weight(1f).padding(end = 8.dp)) {
-                        Text(stringResource(layout.style.title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                        Text(stringResource(layout.style.description), style = MaterialTheme.typography.bodySmall)
-                    }
-                    Text(stringResource(R.string.style_change) + " ›", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
-                }
-            }
-            SetupTitle(R.string.adjust_section, Modifier.padding(top = 16.dp))
-            AdjustSwitch("💼", R.string.adjust_commute, R.string.adjust_commute_desc, layout.commute) {
-                onChange(layout.withVisible(HomeBlock.PLACES, it))
-            }
-            AdjustSwitch("🚲", R.string.adjust_bike, R.string.adjust_bike_desc, layout.bike) {
-                onChange(layout.copy(bike = it))
-            }
-            AdjustSwitch("🎫", R.string.adjust_half_fare, R.string.adjust_half_fare_desc, layout.halfFare) {
-                onChange(layout.copy(halfFare = it))
-            }
-            AdjustSwitch("♿", R.string.adjust_access, R.string.adjust_access_desc, layout.access) {
-                onChange(layout.copy(access = it))
-            }
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(onClick = onOpenOrder)
-                    .padding(vertical = 14.dp),
-            ) {
-                Text("↕", style = MaterialTheme.typography.titleLarge, modifier = Modifier.width(36.dp))
-                Column(Modifier.weight(1f)) {
-                    Text(stringResource(R.string.adjust_order), style = MaterialTheme.typography.bodyLarge)
-                    Text(
-                        text = stringResource(R.string.adjust_order_desc),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-            }
-            HorizontalDivider()
-            Text(
-                text = stringResource(R.string.adjust_private),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 14.dp),
-            )
-        }
-    }
-}
-
-@Composable
-private fun SetupTitle(text: Int, modifier: Modifier = Modifier) {
+internal fun SetupTitle(text: Int, modifier: Modifier = Modifier) {
     Text(
         text = stringResource(text),
         style = MaterialTheme.typography.labelLarge,
@@ -183,7 +97,7 @@ private fun SetupTitle(text: Int, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun AdjustSwitch(emoji: String, title: Int, description: Int, checked: Boolean, onChange: (Boolean) -> Unit) {
+internal fun AdjustSwitch(emoji: String, title: Int, description: Int, checked: Boolean, onChange: (Boolean) -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -414,7 +328,7 @@ private fun OrderRow(
     HorizontalDivider()
 }
 
-private val HomeStyle.title: Int get() = when (this) {
+internal val HomeStyle.title: Int get() = when (this) {
     HomeStyle.RAIL -> R.string.style_rail
     HomeStyle.TRIP_FIRST -> R.string.style_trip
     HomeStyle.SIDES -> R.string.style_sides
@@ -423,7 +337,7 @@ private val HomeStyle.title: Int get() = when (this) {
     HomeStyle.CLASSIC -> R.string.style_classic
 }
 
-private val HomeStyle.description: Int get() = when (this) {
+internal val HomeStyle.description: Int get() = when (this) {
     HomeStyle.RAIL -> R.string.style_rail_desc
     HomeStyle.TRIP_FIRST -> R.string.style_trip_desc
     HomeStyle.SIDES -> R.string.style_sides_desc
@@ -489,7 +403,7 @@ fun HomeStyleScreen(layout: HomeLayout, onChange: (HomeLayout) -> Unit, onBack: 
 
 /** Um exemplo fixo, para ver o jeito mesmo sem localização ou sem viagem guardada. */
 @Composable
-private fun StylePreview(style: HomeStyle, modifier: Modifier = Modifier) {
+internal fun StylePreview(style: HomeStyle, modifier: Modifier = Modifier) {
     val now = 480
     val station = Station(stopId = "exemplo", stopName = "Benfica", routeId = "exemplo", routeName = "Linha Sul", routeColor = "CE0F2E", lat = 0.0, lon = 0.0)
     val trip = StationTrip(

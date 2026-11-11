@@ -361,7 +361,7 @@ dialog.folha[open] { animation: sobe .25s ease-out; }
 .iv-linha b { color: var(--cartao-texto); }
 .iv-linha input { font: inherit; color: var(--texto); background: var(--fundo); border: 1px solid var(--borda); border-radius: 8px; padding: 4px 8px; }
 
-/* Personalizar a tela inicial: os jeitos de mostrar os horários. */
+/* Como os horários aparecem: os jeitos de mostrar os horários. */
 .via-sentido { display: block; font-size: inherit; color: inherit; line-height: 1.25; }
 .toque-viagem { font: inherit; color: var(--menta-texto); background: var(--menta); border: 0; border-radius: 12px; text-align: left; cursor: pointer; }
 .faixa-outro.link-outro { color: var(--cartao-texto); padding: 12px 0 2px; display: block; }
@@ -400,3 +400,11 @@ dialog.folha[open] { animation: sobe .25s ease-out; }
 .exemplo { pointer-events: none; }
 .estilo { display: flex; align-items: center; gap: 12px; padding: 12px 4px; border-bottom: 1px solid var(--borda); cursor: pointer; }
 .estilo strong, .estilo small { display: block; } .estilo strong { font-weight: 500; } .estilo small { color: var(--texto-2); font-size: .82rem; }
+
+/* Conte sobre você */
+.sv-pergunta { font-size: 1.02rem; margin: 20px 0 8px; }
+.sv-ops { display: flex; flex-wrap: wrap; gap: 8px; }
+.sv-op { font: inherit; font-size: .95rem; color: var(--texto); background: none; border: 1px solid var(--borda); border-radius: 20px; padding: 9px 14px; cursor: pointer; }
+.sv-op.sel { background: var(--cartao); border-color: var(--cartao-texto); color: var(--cartao-texto); font-weight: 700; }
+.sv-rodape { display: flex; justify-content: space-between; align-items: center; margin: 26px 0 8px; }
+.sv-pular { font-weight: 700; color: var(--cartao-texto); padding: 10px 4px; }
