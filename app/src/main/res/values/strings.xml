@@ -408,13 +408,13 @@
     <string name="about_privacy_link">Política de privacidade</string>
     <string name="about_link_copied">Link copiado</string>
     <string name="about_share_title">Compartilhe o app</string>
-    <string name="about_share_desc">Aponte a câmera de outro celular para abrir a versão lite na hora, no navegador. De lá, quem tem Android pode virar testador beta do app completo.</string>
+    <string name="about_share_desc">Aponte a câmera de outro celular para abrir a versão lite na hora, no navegador. De lá, quem tem Android pode baixar o app completo na Play Store.</string>
     <string name="about_lite_title">Versão lite, para qualquer celular</string>
     <string name="about_lite">Tem iPhone ou não quer instalar nada? A versão lite abre no navegador de qualquer celular, com a estação mais perto, os horários, a integração e o lembrete da hora de sair. Dá para pôr na tela inicial como um app. Só o modo viagem, com o aviso antes de descer, é exclusivo deste app.</string>
     <string name="about_lite_open">Abrir a versão lite</string>
     <string name="about_share_qr">QR code para abrir o app no navegador</string>
     <string name="about_share_button">Divulgar o app</string>
-    <string name="about_share_message">🚇 Quando passa o próximo metrô?\n\nO Metrô Ceará responde na hora: abra o link e veja os próximos metrôs e VLTs da estação mais perto de você, em Fortaleza, no Cariri e em Sobral.\n\n📍 Diga para onde vai, até o nome de um lugar, como Mercado Central, e veja o roteiro com as integrações\n⚠️ Fique sabendo das operações especiais do Metrofor, como no ENEM\n🏠 Guarde Casa e Trabalho e confira o horário com um toque\n\nFunciona no navegador, sem instalar nada. Grátis, sem anúncios e sem cadastro. App não oficial.\n\n📲 Tem Android? Seja testador beta do app completo, que avisa a hora de descer até com a tela desligada. O convite está no link.\n\n👉 %1$s</string>
+    <string name="about_share_message">🚇 Quando passa o próximo metrô?\n\nO Metrô Ceará responde na hora: abra o link e veja os próximos metrôs e VLTs da estação mais perto de você, em Fortaleza, no Cariri e em Sobral.\n\n📍 Diga para onde vai, até o nome de um lugar, como Mercado Central, e veja o roteiro com as integrações\n⚠️ Fique sabendo das operações especiais do Metrofor, como no ENEM\n🏠 Guarde Casa e Trabalho e confira o horário com um toque\n\nFunciona no navegador, sem instalar nada. Grátis, sem anúncios e sem cadastro. App não oficial.\n\n📲 Tem Android? Baixe o app completo na Play Store, que avisa a hora de descer até com a tela desligada. O link está na página.\n\n👉 %1$s</string>
     <string name="dev_unlocked">Opções de desenvolvedor ativadas</string>
     <string name="dev_title">Opções de desenvolvedor</string>
     <string name="dev_log">Registro de testes</string>
