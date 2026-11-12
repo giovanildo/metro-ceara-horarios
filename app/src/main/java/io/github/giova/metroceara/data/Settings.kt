@@ -33,6 +33,12 @@ data class AppSettings(
     val homeFixHoldSeconds: Int = 120,
     /** O modo viagem ainda pega o trem que saiu há até este tempo. */
     val lateBoardingMinutes: Int = 2,
+    /**
+     * Quem está na estação de partida vê, em "Planeje sua viagem", o metrô que
+     * devia ter saído há até este tempo ("pode estar atrasado") e pode começar o
+     * modo viagem nele (11/11: o das 15:14 em Carlito atrasou e sumiu). 0 = não mostrar.
+     */
+    val delayedTrainMinutes: Int = 10,
     /** A viagem encerra sozinha se passar tanto assim da chegada prevista. */
     val tripGiveUpMinutes: Int = 30,
     /**
@@ -97,6 +103,7 @@ object SettingsStore {
             putInt("home_gps_s", settings.homeGpsSeconds)
             putInt("home_fix_hold_s", settings.homeFixHoldSeconds)
             putInt("late_boarding_min", settings.lateBoardingMinutes)
+            putInt("delayed_train_min", settings.delayedTrainMinutes)
             putInt("trip_give_up_min", settings.tripGiveUpMinutes)
             putInt("seated_max_stations", settings.seatedMaxStations)
             putInt("theme_mode", settings.themeMode)
@@ -134,6 +141,7 @@ object SettingsStore {
             homeGpsSeconds = p.getInt("home_gps_s", d.homeGpsSeconds),
             homeFixHoldSeconds = p.getInt("home_fix_hold_s", d.homeFixHoldSeconds),
             lateBoardingMinutes = p.getInt("late_boarding_min", d.lateBoardingMinutes),
+            delayedTrainMinutes = p.getInt("delayed_train_min", d.delayedTrainMinutes),
             tripGiveUpMinutes = p.getInt("trip_give_up_min", d.tripGiveUpMinutes),
             seatedMaxStations = p.getInt("seated_max_stations", d.seatedMaxStations),
             themeMode = p.getInt("theme_mode", d.themeMode),

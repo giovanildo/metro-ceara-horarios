@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import io.github.giova.metroceara.R
 import io.github.giova.metroceara.data.TransferFare
 import io.github.giova.metroceara.data.formatTime
+import io.github.giova.metroceara.data.vehicleName
 import io.github.giova.metroceara.ui.theme.routeColor
 
 /** Espera numa integração a partir da qual o cartão avisa ("espera 12 min"). */
@@ -87,6 +88,8 @@ fun JourneyOptionCard(
                 )
                 if (next) Pill(stringResource(R.string.option_next), MaterialTheme.colorScheme.secondaryContainer,
                     MaterialTheme.colorScheme.onSecondaryContainer)
+                if (view.maybeDelayed) Pill(stringResource(R.string.option_maybe_delayed),
+                    MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer)
                 // Espera longa na integração: vale saber mesmo no próximo.
                 if (wait >= LONG_WAIT_MINUTES) Pill(stringResource(R.string.option_wait, wait),
                     MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer)
@@ -120,6 +123,18 @@ fun JourneyOptionCard(
             }
             if (expanded) {
                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                if (view.maybeDelayed) {
+                    val first = view.legs.first()
+                    Text(
+                        text = stringResource(R.string.journey_delayed_hint, vehicleName(first.routeName), formatTime(first.departure)),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.tertiaryContainer, RoundedCornerShape(8.dp))
+                            .padding(10.dp),
+                    )
+                }
                 RouteCard(view, finalWalk = finalWalk)
                 content()
             }

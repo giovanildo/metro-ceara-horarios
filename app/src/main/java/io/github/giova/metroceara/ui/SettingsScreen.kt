@@ -259,6 +259,13 @@ fun FineSettingsScreen(
                 description = R.string.settings_late_boarding_desc,
                 value = settings.lateBoardingMinutes, range = 0..10, step = 1, format = { "$it min" },
             ) { onChange(settings.copy(lateBoardingMinutes = it)) }
+            val delayedOff = stringResource(R.string.settings_delayed_train_off)
+            SettingSlider(
+                title = R.string.settings_delayed_train,
+                description = R.string.settings_delayed_train_desc,
+                value = settings.delayedTrainMinutes, range = 0..20, step = 1,
+                format = { if (it == 0) delayedOff else "$it min" },
+            ) { onChange(settings.copy(delayedTrainMinutes = it)) }
             SettingSlider(
                 title = R.string.settings_give_up,
                 description = R.string.settings_give_up_desc,

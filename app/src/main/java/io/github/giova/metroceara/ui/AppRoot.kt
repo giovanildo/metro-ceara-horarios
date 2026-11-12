@@ -443,12 +443,17 @@ fun AppRoot() {
         }
     }
 
-    fun startTrip(routeId: String, direction: Direction, origin: Stop, destination: Stop, chosen: ItineraryLeg, placeName: String?) {
+    fun startTrip(
+        routeId: String, direction: Direction, origin: Stop, destination: Stop, chosen: ItineraryLeg, placeName: String?,
+        /** O escolhido é o que "pode estar atrasado": vale até o limite dele, não só a margem de sempre. */
+        delayed: Boolean = false,
+    ) {
         val route = repo.route(routeId) ?: return
         val earliest = nowMinutes() - settings.lateBoardingMinutes
         val next = repo.nextTrip(origin.id, routeId, direction.id, earliest)?.second
         // O metrô que a pessoa escolheu; se já passou (tela aberta há tempo), o próximo.
-        val times = if (chosen.departure >= earliest) repo.tripTimes(chosen.tripId, routeId) else next
+        val accepted = if (delayed) nowMinutes() - settings.delayedTrainMinutes else earliest
+        val times = if (chosen.departure >= accepted) repo.tripTimes(chosen.tripId, routeId) else next
         val direct = times
             ?.let { leg(routeId, direction.id, origin.id, destination.id, it) }
             ?.takeIf { it.size >= 2 }
@@ -465,7 +470,8 @@ fun AppRoot() {
         // no outro sentido): num horário mais à frente, parte dali em diante.
         val from = seatedSearchFrom(earliest, next?.get(origin.id), chosen.departure)
         val seated = run {
-            if (settings.seatedMaxStations <= 0) return@run null
+            // No atrasado, a pessoa vai nele, ali mesmo: sem ir ao terminal.
+            if (delayed || settings.seatedMaxStations <= 0) return@run null
             val back = repo.directions(routeId).firstOrNull { it.id != direction.id } ?: return@run null
             val toTerminal = repo.stops(routeId, back.id).dropWhile { it.id != origin.id }
             val terminal = toTerminal.lastOrNull() ?: return@run null
@@ -681,7 +687,23 @@ fun AppRoot() {
 
     // Os roteiros de [origin] até [target]: saindo agora ([from] null) ou no horário
     // escolhido; num domingo sem metrô, nenhum: só o aviso de quando o metrô volta.
-    fun planJourney(origin: Station, target: RoutePoint, from: Int?, tomorrow: Boolean = false): JourneyResult {
+    // Na estação de partida, o metrô que já devia ter saído, mas pode ter atrasado
+    // e ainda estar lá (11/11, Carlito: o das 15:14 atrasou e sumiu da lista).
+    // Só o de há mais que a margem de sempre e até [AppSettings.delayedTrainMinutes].
+    fun delayedOption(origin: Station, start: RoutePoint, target: RoutePoint, leave: Int, plans: List<Itinerary>): Itinerary? {
+        if (settings.delayedTrainMinutes <= 0) return null
+        val distance = userDistanceTo(origin.lat, origin.lon) ?: return null
+        if (ceil(distance / WALK_METERS_PER_MINUTE) > ORIGIN_WALK_FREE_MINUTES) return null
+        val now = nowMinutes()
+        return router.plan(start, target, now - settings.delayedTrainMinutes, 1, stoppedRoutes).firstOrNull()
+            ?.takeIf { late -> late.departure < leave && late.departure < now && plans.none { it.departure == late.departure } }
+    }
+
+    fun planJourney(
+        origin: Station, target: RoutePoint, from: Int?, tomorrow: Boolean = false,
+        /** Em "Planeje sua viagem": oferecer também o metrô que pode estar atrasado. */
+        withDelayed: Boolean = false,
+    ): JourneyResult {
         val start = RoutePoint(origin.routeId, origin.stopId)
         val name = JourneyPlanner.plainName(repo.stop(target.stopId)?.name.orEmpty())
         if (tomorrow) {
@@ -716,11 +738,15 @@ fun AppRoot() {
             return JourneyResult(emptyList(), monday = true, sundayOffText(context, repo.mondayReturn(origin.stopId, origin.routeId)))
         }
         val walk = if (from == null) walkTo(origin) else 0
-        val plans = router.plan(start, target, from ?: leaveNow(origin), 4, stoppedRoutes)
-        val message = if (plans.isNotEmpty()) null else router.lastDeparture(start, target, stoppedRoutes)
+        val leave = from ?: leaveNow(origin)
+        val plans = router.plan(start, target, leave, 4, stoppedRoutes)
+        val delayed = if (from == null && withDelayed) delayedOption(origin, start, target, leave, plans) else null
+        val options = listOfNotNull(delayed?.let { routeView(it, walk = walk).copy(maybeDelayed = true) }) +
+            plans.map { routeView(it, walk = walk) }
+        val message = if (options.isNotEmpty()) null else router.lastDeparture(start, target, stoppedRoutes)
             ?.let { context.getString(R.string.route_none_after, name, formatTime(it)) }
             ?: context.getString(R.string.route_none_today, name)
-        return JourneyResult(plans.map { routeView(it, walk = walk) }, monday = false, message)
+        return JourneyResult(options, monday = false, message)
     }
 
     // A chegada de quem sai agora, em cada estação da lista ("linha:estação").
@@ -934,7 +960,8 @@ fun AppRoot() {
         val direction = single?.let { leg -> repo.directions(leg.routeId).firstOrNull { it.id == leg.directionId } }
         val destination = single?.let { repo.stop(it.toStop) }
         if (single != null && direction != null && destination != null) {
-            startTrip(single.routeId, direction, Stop(origin.stopId, origin.stopName, seq = 0), destination, single, placeName)
+            startTrip(single.routeId, direction, Stop(origin.stopId, origin.stopName, seq = 0), destination, single, placeName,
+                delayed = view.maybeDelayed)
             return
         }
         val plan = JourneyPlanner.plan(repo, view.itinerary, settings, simulated = false)?.copy(placeName = placeName)
@@ -1480,7 +1507,7 @@ fun AppRoot() {
                     stations = remember(repo) { repo.stations() },
                     linesFor = ::journeyLines,
                     arrivalsFor = ::journeyArrivals,
-                    plan = ::planJourney,
+                    plan = { o, t, f, tm -> planJourney(o, t, f, tm, withDelayed = true) },
                     tomorrowBlocked = { tomorrowStatusNow() != TomorrowStatus.FORECAST },
                     // Modo viagem só com metrô hoje e perto o bastante da estação.
                     canStartTrip = { !sundayOff && tripAllowedFrom(it.lat, it.lon) },

@@ -182,6 +182,8 @@
     <string name="journey_at">Sair às %1$s</string>
     <!-- Cada horário da viagem como cartão. -->
     <string name="option_next">Próximo</string>
+    <string name="option_maybe_delayed">Pode estar atrasado</string>
+    <string name="journey_delayed_hint">Este %1$s já deveria ter saído às %2$s. Se ele ainda estiver na estação, comece o modo viagem: o app acompanha pelo GPS e conta o atraso.</string>
     <string name="option_wait">espera %1$d min</string>
     <string name="option_transfers">Integrações: %1$s</string>
     <string name="option_direct">Direto</string>
@@ -359,6 +361,9 @@
     <string name="settings_gps_lost_desc">Sem sinal de GPS por esse tempo, o app avisa que a posição está sendo calculada pela tabela de horários.</string>
     <string name="settings_late_boarding">Contar o metrô ou VLT que saiu há até</string>
     <string name="settings_late_boarding_desc">Se você começar a viagem já embarcado, o app ainda considera o metrô ou VLT que saiu da estação até esse tempo atrás.</string>
+    <string name="settings_delayed_train">Mostrar o metrô ou VLT atrasado de até</string>
+    <string name="settings_delayed_train_desc">Na estação de partida, "Planeje sua viagem" mostra também o que já deveria ter saído há até esse tempo, marcado "pode estar atrasado". Se ele ainda estiver na estação, dá para começar o modo viagem nele.</string>
+    <string name="settings_delayed_train_off">não mostrar</string>
     <string name="settings_give_up">Encerrar a viagem sozinho depois de</string>
     <string name="settings_give_up_desc">Se passar esse tempo da chegada prevista sem você chegar ao destino, a viagem é encerrada.</string>
     <string name="settings_home_gps">Atualizar sua posição a cada</string>

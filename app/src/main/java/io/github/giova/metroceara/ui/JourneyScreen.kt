@@ -656,7 +656,8 @@ private fun JourneyResultSheet(
     onSwap: (() -> Unit)? = null,
 ) {
     var time by remember { mutableStateOf<Int?>(null) }
-    var selected by remember { mutableStateOf(0) }
+    // -1: o padrão, o primeiro que não é o "pode estar atrasado".
+    var selected by remember { mutableStateOf(-1) }
     var pickingTime by remember { mutableStateOf(false) }
     // Hoje ou amanhã. O relógio aberto vale para [pickForTomorrow] até a pessoa confirmar.
     var tomorrow by remember { mutableStateOf(false) }
@@ -670,7 +671,8 @@ private fun JourneyResultSheet(
     LeaveToggleHost(leaveToggle)
     val leaveAlerts by LeaveStore.alerts(context).collectAsState()
     val result = remember(time, tomorrow) { plan(time, tomorrow) }
-    val view = result.options.getOrNull(selected.coerceAtMost(result.options.lastIndex))
+    val firstRegular = result.options.indexOfFirst { !it.maybeDelayed }.coerceAtLeast(0)
+    val view = result.options.getOrNull((if (selected < 0) firstRegular else selected).coerceAtMost(result.options.lastIndex))
 
     Column(
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -694,14 +696,14 @@ private fun JourneyResultSheet(
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FilterChip(
                 selected = !tomorrow,
-                onClick = { tomorrow = false; time = null; selected = 0 },
+                onClick = { tomorrow = false; time = null; selected = -1 },
                 label = { Text(stringResource(R.string.journey_today)) },
             )
             FilterChip(
                 selected = tomorrow,
                 onClick = {
                     if (noTomorrowPlan) {
-                        tomorrow = true; time = null; selected = 0
+                        tomorrow = true; time = null; selected = -1
                     } else {
                         pickForTomorrow = true; pickingTime = true
                     }
@@ -723,7 +725,7 @@ private fun JourneyResultSheet(
             if (!tomorrow) {
                 FilterChip(
                     selected = time == null,
-                    onClick = { time = null; selected = 0 },
+                    onClick = { time = null; selected = -1 },
                     label = { Text(stringResource(R.string.journey_now)) },
                 )
             }
@@ -754,7 +756,7 @@ private fun JourneyResultSheet(
                     number = i + 1,
                     view = option,
                     finalWalk = finalWalk,
-                    next = i == 0 && time == null,
+                    next = i == firstRegular && time == null && !option.maybeDelayed,
                     expanded = option === view,
                     onClick = { selected = i },
                 ) {
@@ -822,7 +824,7 @@ private fun JourneyResultSheet(
                 TextButton(onClick = {
                     time = state.hour * 60 + state.minute
                     tomorrow = pickForTomorrow
-                    selected = 0
+                    selected = -1
                     pickingTime = false
                 }) { Text("OK") }
             },

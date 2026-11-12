@@ -58,6 +58,11 @@ data class RouteView(
     val warnings: List<String> = emptyList(),
     /** Informações sem alerta, como os elevadores das estações (cadeira de rodas). */
     val notes: List<String> = emptyList(),
+    /**
+     * Já devia ter saído (há mais que a margem de "Contar o metrô que saiu há
+     * até"), mas a pessoa está na estação: pode ser que ele atrasou e ainda esteja lá.
+     */
+    val maybeDelayed: Boolean = false,
 ) {
     val originName get() = legs.first().fromName
     val destinationName get() = legs.last().toName
