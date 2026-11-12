@@ -1,0 +1,1 @@
+• Modo viagem: na estação, "Planeje sua viagem" mostra também o metrô ou VLT que já deveria ter saído há até 10 min, marcado "Pode estar atrasado". Se ele ainda estiver lá, comece a viagem nele: o app conta o atraso.
