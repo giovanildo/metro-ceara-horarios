@@ -510,7 +510,15 @@ navegadores não permitem.
 
 O modo viagem começa pelo resultado da busca **"Para onde você vai?"**
 ([acima](#para-onde-você-vai-roteiro-na-mesma-linha-ou-com-integração)): escolhido
-o destino e saindo agora, o botão **Iniciar modo viagem**. Durante a viagem, a
+o destino e saindo agora, o botão **Iniciar modo viagem**. Quem está na estação
+de partida (até ~3 min a pé) vê também o metrô que **pode estar atrasado**: o
+que devia ter saído há mais que "Contar o trem que saiu há até" (2 min) e até
+"Mostrar o metrô ou VLT atrasado de até" (10 min), com a marca **"Pode estar
+atrasado"** e a explicação ao abrir; o "Próximo" continua aberto por padrão.
+Iniciado nele, o modo viagem segue esse metrô (sem oferecer ir sentado pelo
+terminal) e o atraso medido pelo GPS entra nos horários (11/11/2026: o das 15:14
+em Carlito Benevides atrasou, ainda estava na estação e tinha sumido da lista).
+A tela inicial e a lite não mudam. Durante a viagem, a
 tela inteira vira o **trilho** e um serviço em
 primeiro plano, com notificação fixa, segue a viagem com a tela desligada (o
 ícone pequeno das notificações é a silhueta do trem, `drawable/ic_notification.xml`:
@@ -1010,6 +1018,7 @@ próprias cores, em vermelho). Nas outras seções:
 | Somar a caminhada até a estação até | 3 km | 1 – 10 km |
 | Considerar o GPS perdido depois de | 1 min | 30 s – 5 min |
 | Contar o trem que saiu há até | 2 min | 0 – 10 min |
+| Mostrar o metrô ou VLT atrasado de até | 10 min | 0 (não mostrar) – 20 min |
 | Encerrar a viagem sozinho depois de | 30 min | 10 – 60 min |
 | Oferecer ir sentado pelo terminal até | 3 estações | 0 (não oferecer) – 5 |
 | Atualizar sua posição (tela inicial) a cada | 10 s | 5 – 60 s |
