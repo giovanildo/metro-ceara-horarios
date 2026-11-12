@@ -13,10 +13,11 @@ caso, com a grade que vem no APK.
 instalar, para quem não é programador); gera uma prévia bonita ao colar o link
 no WhatsApp.
 
-**Na Play Store, em fase de testes:** para ser testador beta, mande o Gmail
-da sua conta da Play Store pelo WhatsApp (85 99761-9295) ou por e-mail para
-giovanildos@gmail.com. A página do app oferece só esse caminho (e a
-versão lite); o APK abaixo fica para quem chega pelo GitHub.
+**[▶ Baixar na Play Store](https://play.google.com/store/apps/details?id=io.github.giova.metroceara)** — publicado em 11/11/2026, grátis,
+Android 7 ou mais novo (por enquanto só no Brasil). A página do app oferece
+esse caminho (e a versão lite); o APK abaixo fica para quem chega pelo GitHub.
+Quem instalou o APK e quer passar para a loja precisa desinstalar antes: as
+assinaturas são diferentes.
 
 **[⬇ Baixar a última versão (APK)](https://github.com/giovanildo/metro-ceara-horarios/releases/latest)**
 — Android 7 ou mais novo. Ao abrir o arquivo, permita instalar apps dessa fonte;
@@ -1750,17 +1751,17 @@ mostra avisos que espantam o usuário comum; a versão lite abre na hora, sem
 nenhum. Por isso o botão principal da página é **"Horários agora"**
 (`app/`), e o secundário, **"App para Android"**, desce até o bloco
 `#baixar`. A página não oferece mais instalar o APK direto (desde 27/10):
-o bloco `#baixar` da seção "Como instalar o app completo" diz que o app está em
-fase de testes na Play Store e convida a virar testador beta: o botão **"Quero
-ser testador beta"** abre o WhatsApp (`wa.me/5585997619295`) com a mensagem
-pronta pedindo o Gmail da Play Store (é ele que entra na lista de testadores do
-Console), e o e-mail fica como alternativa.
+o bloco `#baixar` da seção "Como instalar o app completo" leva à Play Store
+(botão **"▶ Baixar na Play Store"**, desde 11/11/2026, quando o app foi
+publicado; antes convidava a ser testador beta pelo WhatsApp) e avisa quem
+tem o APK do GitHub que precisa desinstalar antes de instalar pela loja.
 O vídeo de instalação do Android saiu da página; o do iPhone ficou. O QR e o "Divulgar o app" do app Android também levam à
-versão lite. Dentro dela, uma linha fixa no topo da tela inicial convida a ser
-testador ("No app completo, o celular avisa a hora de descer. Seja testador beta ›"
-no Android, com ✕ para fechar; "Tem Android? Seja testador beta do app completo ›"
-nos outros aparelhos, sem ✕) e abre o WhatsApp com a mesma mensagem pronta do
-`#baixar`. Tem
+versão lite. Dentro dela, uma linha fixa no topo da tela inicial convida a
+baixar o app completo ("No app completo, o celular avisa a hora de descer. Baixe
+na Play Store ›" no Android, com ✕ para fechar; "Tem Android? Baixe o app
+completo na Play Store ›" nos outros aparelhos, sem ✕) e abre a página da loja
+(`PLAY_STORE` em `docs/app/app.js`; a dica de Sua viagem, o Mais e o texto de
+compartilhar também levam a ela). Tem
 as marcações que o Google e as redes sociais leem (título, descrição, Open
 Graph com `img/previa.png` de 1200×630 para a prévia do link no WhatsApp,
 dados estruturados `SoftwareApplication`, `robots.txt` e `sitemap.xml`).
@@ -1794,7 +1795,15 @@ gh release create vX.Y metro-ceara.apk --notes-file notas.md
 O arquivo vai sempre com o nome `metro-ceara.apk`, para o link
 `releases/latest/download/metro-ceara.apk` (e o QR code) nunca mudarem.
 
-## Publicação na Play Store (em preparação)
+## Publicação na Play Store
+
+**No ar desde 11/11/2026**, em produção, só no Brasil: <https://play.google.com/store/apps/details?id=io.github.giova.metroceara>.
+O acesso à produção foi concedido no dia seguinte ao pedido (depois dos 14 dias
+de teste fechado com 12 testadores); a 1.98 foi aprovada em ~25 min. O teste
+fechado continua, com os mesmos testadores, para receber versões antes de
+todo mundo. O Console avisa que o AAB não tem símbolos de depuração nativos:
+a única biblioteca nativa é a do AndroidX (`libandroidx.graphics.path.so`), que
+já vem sem símbolos, então não há o que enviar.
 
 O material para o Play Console fica em [`tools/play/`](tools/play/):
 
