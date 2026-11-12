@@ -11,10 +11,9 @@ const PERTO_A_PE = 3000; // "Sua ida e volta": até aqui, a pessoa está na esta
 const PERTO_METROS = 3000; // a segunda estação mais perto aparece até esta distância (padrão do app)
 const LINK = "https://giovanildo.github.io/metro-ceara-horarios/app/";
 /** O texto de "Compartilhar o app": o link vem logo depois (o mesmo texto do app). */
-const TEXTO_DIVULGAR = "🚇 Quando passa o próximo metrô?\n\nO Metrô Ceará responde na hora: abra o link e veja os próximos metrôs e VLTs da estação mais perto de você, em Fortaleza, no Cariri e em Sobral.\n\n📍 Diga para onde vai, até o nome de um lugar, como Mercado Central, e veja o roteiro com as integrações\n⚠️ Fique sabendo das operações especiais do Metrofor, como no ENEM\n🏠 Guarde Casa e Trabalho e confira o horário com um toque\n\nFunciona no navegador, sem instalar nada. Grátis, sem anúncios e sem cadastro. App não oficial.\n\n📲 Tem Android? Seja testador beta do app completo, que avisa a hora de descer até com a tela desligada. O convite está no link.\n\n👉";
-const PAGINA_INSTALAR = "../#baixar"; // direto no convite para testar pela Play Store
-// O convite da lite abre o WhatsApp com a mensagem pronta (o mesmo botão da página, em #baixar).
-const WHATSAPP_TESTADOR = "https://wa.me/5585997619295?text=Ol%C3%A1%21%20Quero%20ser%20testador%20beta%20do%20app%20Metr%C3%B4%20Cear%C3%A1.%20Meu%20Gmail%20da%20Play%20Store%20%C3%A9%3A%20";
+const TEXTO_DIVULGAR = "🚇 Quando passa o próximo metrô?\n\nO Metrô Ceará responde na hora: abra o link e veja os próximos metrôs e VLTs da estação mais perto de você, em Fortaleza, no Cariri e em Sobral.\n\n📍 Diga para onde vai, até o nome de um lugar, como Mercado Central, e veja o roteiro com as integrações\n⚠️ Fique sabendo das operações especiais do Metrofor, como no ENEM\n🏠 Guarde Casa e Trabalho e confira o horário com um toque\n\nFunciona no navegador, sem instalar nada. Grátis, sem anúncios e sem cadastro. App não oficial.\n\n📲 Tem Android? Baixe o app completo na Play Store, que avisa a hora de descer até com a tela desligada. O link está na página.\n\n👉";
+// O app completo está na Play Store desde 11/11/2026: os convites da lite levam direto à loja.
+const PLAY_STORE = "https://play.google.com/store/apps/details?id=io.github.giova.metroceara";
 const PIX = "giovanildos@gmail.com";
 const ANDROID = /Android/i.test(navigator.userAgent);
 const IPHONE = /iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -1047,16 +1046,16 @@ function telaLugar(chave, de) {
 }
 
 /**
- * A versão lite é a porta de entrada: uma linha fixa no topo convida a ser
- * testador do app completo, com o WhatsApp e a mensagem pronta. Fora do
+ * A versão lite é a porta de entrada: uma linha fixa no topo convida a baixar
+ * o app completo na Play Store. Fora do
  * Android, pergunta antes se a pessoa tem Android; no Android, diz o que a lite
  * não faz e pode ser fechada.
  */
 function convite() {
-  if (!ANDROID) return `<a class="convite" href="${WHATSAPP_TESTADOR}" target="_blank" rel="noopener">📲 Tem Android? Seja testador beta do app completo ›</a>`;
+  if (!ANDROID) return `<a class="convite" href="${PLAY_STORE}" target="_blank" rel="noopener">📲 Tem Android? Baixe o app completo na Play Store ›</a>`;
   // No Android, o que a lite não faz, e dá para fechar (fica fechado neste navegador).
   try { if (localStorage.getItem("convite-fechado")) return ""; } catch { /* segue */ }
-  return `<div class="convite convite-android"><a href="${WHATSAPP_TESTADOR}" target="_blank" rel="noopener">📲 No app completo, o celular avisa a hora de descer. Seja testador beta ›</a>
+  return `<div class="convite convite-android"><a href="${PLAY_STORE}" target="_blank" rel="noopener">📲 No app completo, o celular avisa a hora de descer. Baixe na Play Store ›</a>
     <button id="fechar-convite" aria-label="Fechar o convite">✕</button></div>`;
 }
 
@@ -1596,7 +1595,7 @@ function resultadoViagem(lo, eo, v, t) {
   html += `<label class="campo">Como você se desloca<select id="perfil">${PERFIS.map((x) =>
     `<option value="${x.chave}" ${x.chave === perfil ? "selected" : ""}>${esc(x.nome)}</option>`).join("")}</select></label>`;
   html += `<p class="dica">${ANDROID ? "No" : "Tem Android? No"} app completo, o <strong>modo viagem</strong> avisa antes da sua estação,
-    com a tela desligada. <a href="${WHATSAPP_TESTADOR}" target="_blank" rel="noopener">Seja testador beta ›</a></p>`;
+    com a tela desligada. <a href="${PLAY_STORE}" target="_blank" rel="noopener">Baixe na Play Store ›</a></p>`;
   return html;
 }
 
@@ -1754,7 +1753,7 @@ function telaSobre() {
     <p>O <strong>app completo para Android</strong> acrescenta o <strong>modo viagem</strong>: escolha o destino e guarde
       o celular, que ele avisa antes da sua estação, mesmo com a tela desligada.
       ${ANDROID ? "" : "No iPhone, use esta versão lite."}</p>
-    ${ANDROID ? `<a class="botao" href="${PAGINA_INSTALAR}">Conhecer o app completo</a>` : ""}
+    ${ANDROID ? `<a class="botao" href="${PLAY_STORE}" target="_blank" rel="noopener">Baixar na Play Store</a>` : ""}
 
     ${INSTALADA ? "" : `<h2>Na tela inicial</h2>
     ${pedidoInstalar ? `<p>Deixe o app com ícone na tela inicial, como os outros apps:</p>

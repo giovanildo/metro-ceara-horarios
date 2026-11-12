@@ -839,7 +839,7 @@ def pagina_faq(d):
          f'<p>Para ver os horários, não precisa instalar nada. A <a href="{raiz}app/">versão lite</a> abre no navegador de qualquer celular, '
          "iPhone também, e pode ficar com um ícone na tela inicial. Depois de aberta uma vez, ela funciona sem internet, com os últimos horários guardados.</p>"
          f'<p>O <a href="{raiz}#baixar">app para Android</a> acrescenta o modo viagem, que avisa antes da sua estação mesmo com a tela desligada. '
-         "Ele está em fase de testes na Play Store.</p>"
+         "Ele é grátis e está na Play Store.</p>"
          + (f"<p>Em {esc(juntar(subterraneas))}, que são estações subterrâneas, o sinal do celular costuma falhar. "
             "Leve dinheiro ou deixe o Pix aberto antes de descer.</p>" if subterraneas else ""),
          ["subterranea"]),
