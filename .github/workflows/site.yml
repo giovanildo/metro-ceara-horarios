@@ -11,6 +11,7 @@ on:
       - tools/site.py
       - tools/site_fotos.json
       - tools/site_historia.json
+      - fastlane/metadata/android/pt-BR/changelogs/**
   schedule:
     # Segunda, 06:41 em Fortaleza.
     - cron: "41 9 * * 1"

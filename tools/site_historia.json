@@ -1,12 +1,16 @@
 {
-  "_sobre": "Linha do tempo do app (docs/historia/), gerada por tools/site.py. Cada parada é um dia; 'versao' vem das tags, 'commits' do git log por dia. Para atualizar: acrescente paradas e dias em 'commits'.",
-  "atualizado": "2026-11-13",
-  "commits": [["2026-09-24",2],["2026-10-04",7],["2026-10-07",4],["2026-10-08",2],["2026-10-09",22],["2026-10-10",14],["2026-10-11",7],["2026-10-14",8],["2026-10-15",15],["2026-10-16",5],["2026-10-21",11],["2026-10-22",5],["2026-10-23",21],["2026-10-24",3],["2026-10-25",58],["2026-10-26",6],["2026-10-27",8],["2026-10-28",3],["2026-10-29",11],["2026-10-30",4],["2026-10-31",7],["2026-11-01",8],["2026-11-02",47],["2026-11-03",18],["2026-11-04",6],["2026-11-06",7],["2026-11-07",11],["2026-11-08",58],["2026-11-09",26],["2026-11-10",3],["2026-11-11",8],["2026-11-12",3],["2026-11-13",2]],
+  "_sobre": "Linha do tempo do app (docs/historia/), gerada por tools/site.py. Cada parada é um dia; 'versao' vem das tags; 'marcos' são os números grandes do topo. As versões depois da última daqui entram sozinhas: o site.py lê fastlane/.../changelogs/<versionCode>.txt (data = commit que criou o arquivo) e põe na 'fase_automatica'. Para reescrever à mão, mova a versão para uma fase daqui.",
+  "marcos": [
+    {"data": "2026-09-24", "nome": "Primeira versão"},
+    {"data": "2026-10-15", "nome": "Versão lite, no navegador"},
+    {"data": "2026-11-07", "nome": "Este site"},
+    {"data": "2026-11-11", "nome": "Na Play Store"}
+  ],
   "fases": [
     {
       "nome": "Nascimento",
       "cor": "#CE0F2E", "cor_escuro": "#CE0F2E",
-      "texto": "Começou como uso pessoal: uma tela com o próximo metrô para o Carlito Benevides, no lugar da planilha e da tabela impressa na estação.",
+      "texto": "Do horário na tela ao app que acompanha a viagem: Bicicletar, aviso de domingo, modo viagem com voz e a troca de linha.",
       "paradas": [
         {"data": "2026-09-24", "versao": "1.0", "destaque": true, "itens": ["Primeira versão: os horários do metrô de Fortaleza no celular, como software livre."]},
         {"data": "2026-10-04", "versao": "1.1", "itens": ["Bicicletar mais perto e se dá para embarcar com a bike agora.", "Aviso de que metrô e VLT normalmente não circulam aos domingos.", "Horários do dia baixados direto do Metrofor."]},
@@ -63,9 +67,13 @@
       "cor": "#8E2470", "cor_escuro": "#e07bc4",
       "texto": "Depois de 14 dias de teste com passageiros que se ofereceram para ajudar, o app chega à loja.",
       "paradas": [
-        {"data": "2026-11-11", "versao": "1.97 – 1.99", "destaque": true, "itens": ["Na Play Store!", "\"Conte sobre você\": perguntas rápidas deixam a tela inicial do seu jeito.", "Chegada no túnel avisada na hora certa."]},
-        {"data": "2026-11-12", "versao": "1.100", "itens": ["Metrô que pode estar atrasado: o que já deveria ter saído há até 10 minutos aparece como opção."]}
+        {"data": "2026-11-11", "versao": "1.97 – 1.99", "destaque": true, "itens": ["Na Play Store!", "\"Conte sobre você\": perguntas rápidas deixam a tela inicial do seu jeito.", "Chegada no túnel avisada na hora certa."]}
       ]
     }
-  ]
+  ],
+  "fase_automatica": {
+    "nome": "Depois da Play Store",
+    "cor": "#8E2470", "cor_escuro": "#e07bc4",
+    "texto": "As novidades de cada versão, desde a chegada à loja."
+  }
 }

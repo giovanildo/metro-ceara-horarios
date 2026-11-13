@@ -28,6 +28,7 @@ import json
 import os
 import re
 import statistics
+import subprocess
 import sys
 import unicodedata
 import urllib.request
@@ -39,6 +40,7 @@ DOCS = os.path.join(RAIZ, "docs")
 REGRAS = os.path.join(RAIZ, "app", "src", "main", "assets", "regras.json")
 FOTOS = os.path.join(RAIZ, "tools", "site_fotos.json")
 HISTORIA = os.path.join(RAIZ, "tools", "site_historia.json")
+CHANGELOGS = os.path.join(RAIZ, "fastlane", "metadata", "android", "pt-BR", "changelogs")
 FOTOS_NO_TOPO = 4  # as outras fotos da estação ficam no fim da página e só carregam ao rolar
 RAW = "https://raw.githubusercontent.com/giovanildo/metro-ceara-horarios/dados/"
 SITE = "https://giovanildo.github.io/metro-ceara-horarios/"
@@ -883,62 +885,54 @@ def data_curta(iso):
     return f"{int(iso[8:10])} {MESES[int(iso[5:7]) - 1]}"
 
 
-def grafico_commits(commits, inicio, fim):
-    """Barras com os commits de cada dia, de inicio a fim (ISO), em SVG que segue o tema."""
-    um_dia = timedelta(days=1)
-    d0 = datetime.strptime(inicio, "%Y-%m-%d")
-    dias = (datetime.strptime(fim, "%Y-%m-%d") - d0).days + 1
-    por_dia = dict(commits)
-    maior = max(por_dia.values())
-    teto = max(20, -(-maior // 20) * 20)
-    W, H, L, R, T, B = 820, 170, 30, 6, 14, 26
-    cw = (W - L - R) / dias
-    alt = lambda n: (H - T - B) * n / teto
-    p = [f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="Commits por dia; o dia com mais teve {maior}">']
-    for v in range(0, teto + 1, 20):
-        y = H - B - alt(v)
-        p.append(f'<line x1="{L}" x2="{W - R}" y1="{y:.1f}" y2="{y:.1f}" class="grade"/>'
-                 f'<text x="{L - 6}" y="{y + 4:.1f}" text-anchor="end">{v}</text>')
-    for i in range(dias):
-        dia = d0 + i * um_dia
-        iso = dia.strftime("%Y-%m-%d")
-        n = por_dia.get(iso, 0)
-        x = L + i * cw
-        if n:
-            classe = "barra pico" if n >= teto * 2 / 3 else "barra"
-            p.append(f'<rect x="{x + 1:.1f}" y="{H - B - alt(n):.1f}" width="{max(cw - 2, 2):.1f}" height="{alt(n):.1f}" rx="1.5" class="{classe}">'
-                     f"<title>{data_curta(iso)}: {n} commits</title></rect>")
-            if n == maior:
-                p.append(f'<text x="{x + cw / 2:.1f}" y="{H - B - alt(n) - 4:.1f}" text-anchor="middle" class="forte">{n}</text>')
-        if i == 0 or dia.day in (1, 15):
-            p.append(f'<text x="{x + cw / 2:.1f}" y="{H - 8}" text-anchor="middle">{data_curta(iso)}</text>')
-    p.append("</svg>")
-    return "".join(p)
+def versoes_novas(depois_de):
+    """Versões depois da 1.<depois_de>, lidas dos changelogs do fastlane (versionCode N = versão 1.(N-1)).
+    A data é a do commit que criou o arquivo, que entra junto com o bump. Versões do mesmo dia viram uma parada só."""
+    por_dia = defaultdict(list)
+    for nome in os.listdir(CHANGELOGS):
+        if not re.fullmatch(r"\d+\.txt", nome) or int(nome[:-4]) - 1 <= depois_de:
+            continue
+        caminho = os.path.join(CHANGELOGS, nome)
+        try:
+            data = subprocess.run(["git", "log", "--diff-filter=A", "-1", "--format=%ad", "--date=short", "--", caminho],
+                                  cwd=RAIZ, capture_output=True, text=True, check=True).stdout.strip()
+        except (OSError, subprocess.CalledProcessError):
+            data = ""
+        if not data:  # ainda sem commit: a parada entra quando o bump for commitado
+            continue
+        with open(caminho, encoding="utf-8") as fh:
+            itens = [l.lstrip("•").strip() for l in fh if l.strip()]
+        por_dia[data].append((int(nome[:-4]) - 1, itens))
+    paradas = []
+    for data in sorted(por_dia):
+        vs = sorted(por_dia[data])
+        versao = f"1.{vs[0][0]}" + (f" – 1.{vs[-1][0]}" if len(vs) > 1 else "")
+        paradas.append({"data": data, "versao": versao, "itens": [i for _, itens in vs for i in itens]})
+    return paradas
 
 
 def pagina_historia():
     with open(HISTORIA, encoding="utf-8") as fh:
         h = json.load(fh)
     raiz = "../"
-    commits = h["commits"]
-    inicio, fim = commits[0][0], h["atualizado"]
-    dias = (datetime.strptime(fim, "%Y-%m-%d") - datetime.strptime(inicio, "%Y-%m-%d")).days + 1
-    ultima = h["fases"][-1]["paradas"][-1]["versao"].split()[-1]
-    atualizacoes = int(ultima.split(".")[1])
-    numeros = [(dias, "dias de projeto"), (len(commits), "dias de trabalho"),
-               (sum(n for _, n in commits), "mudanças no código (commits)"), (atualizacoes, f"atualizações, da 1.1 à {ultima}")]
+    fases = list(h["fases"])
+    ultima = max(int(p["versao"].split()[-1].split(".")[1]) for f in fases for p in f["paradas"] if p.get("versao"))
+    novas = versoes_novas(ultima)
+    if novas:
+        fases.append({**h["fase_automatica"], "paradas": novas})
     corpo = ['<header class="faixa" style="--cor:#CE0F2E;--cor-escuro:#CE0F2E"><div class="largura">',
              migalhas(raiz, [("História do app", None)]),
              '<h1>História do app</h1>',
-             f'<p class="endereco">Do primeiro dia, em {data_curta(inicio)}, à Play Store: o que entrou no Metrô Ceará, dia a dia.</p>',
+             '<p class="endereco">Começou com uma tela só, o próximo metrô para o Carlito Benevides, para não depender mais da planilha '
+             'nem da tabela impressa na estação. Feito por um passageiro, foi crescendo com as ideias e as sugestões de quem usa.</p>',
              '<div class="numeros claros">']
-    corpo += [f'<p class="numero"><strong>{n}</strong><span>{esc(t)}</span></p>' for n, t in numeros]
-    corpo += ['</div></div></header><main id="conteudo" class="largura">',
-              '<section class="ritmo"><h2>Ritmo de trabalho</h2><div class="grafico">', grafico_commits(commits, inicio, fim), '</div>',
-              '<p class="dica">Cada barra é um dia, com o número de mudanças salvas no código. Toque numa barra para ver o dia.</p></section>']
-    for f in h["fases"]:
+    corpo += [f'<p class="numero"><strong>{data_curta(m["data"])}</strong><span>{esc(m["nome"])}</span></p>' for m in h["marcos"]]
+    corpo += ['</div></div></header><main id="conteudo" class="largura">']
+    for f in fases:
         paradas = f["paradas"]
-        periodo = f"{data_curta(paradas[0]['data'])} a {data_curta(paradas[-1]['data'])}"
+        periodo = data_curta(paradas[0]["data"])
+        if paradas[-1]["data"] != paradas[0]["data"]:
+            periodo += f" a {data_curta(paradas[-1]['data'])}"
         corpo.append(f'<section class="fase" style="--cor:{f["cor"]};--cor-escuro:{f["cor_escuro"]}">'
                      f'<h2>{esc(f["nome"])} <span class="periodo">{periodo}</span></h2><p class="fase-texto">{esc(f["texto"])}</p><ol class="linha-tempo">')
         for s in paradas:
@@ -947,7 +941,7 @@ def pagina_historia():
             classe = ' class="destaque"' if s.get("destaque") else ""
             corpo.append(f'<li{classe}><p class="dia"><time datetime="{s["data"]}">{data_curta(s["data"])}</time>{versao}</p><ul>{itens}</ul></li>')
         corpo.append("</ol></section>")
-    corpo.append('<p class="dica">As datas vêm do histórico do <a href="https://github.com/giovanildo/metro-ceara-horarios" target="_blank" rel="noopener">código aberto</a> do app.</p>')
+    corpo.append('<p class="dica">A página ganha uma parada a cada versão nova. As datas vêm do histórico do <a href="https://github.com/giovanildo/metro-ceara-horarios" target="_blank" rel="noopener">código aberto</a> do app.</p>')
     corpo.append(chamada_app(raiz))
     corpo.append("</main>")
     return corpo
