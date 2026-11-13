@@ -1,6 +1,11 @@
 package io.github.giova.metroceara.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -50,7 +55,10 @@ import io.github.giova.metroceara.data.HomeBlock
 import io.github.giova.metroceara.data.Route
 import io.github.giova.metroceara.ui.theme.routeColor
 
-/** Os botões da barra de baixo (Início, Planeje sua viagem, Linhas); Mais não é aba, abre a lista por cima. */
+/**
+ * Os botões da barra de baixo (Início, Planeje sua viagem, Linhas). Nina e Mais não
+ * são abas: a Nina abre o WhatsApp e o Mais abre a lista por cima.
+ */
 enum class HomeTab { HOME, ROUTES, LINES }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -101,10 +109,26 @@ fun RoutesScreen(
         },
         bottomBar = {
             NavigationBar {
-                TabItem(tab == HomeTab.HOME, Icons.Outlined.Home, R.string.tab_home) { onTab(HomeTab.HOME) }
-                TabItem(tab == HomeTab.ROUTES, Icons.Outlined.Explore, R.string.tab_routes) { onTab(HomeTab.ROUTES) }
-                TabItem(tab == HomeTab.LINES, Icons.Outlined.DirectionsSubway, R.string.routes_lines) { onTab(HomeTab.LINES) }
-                TabItem(moreOpen, Icons.Filled.Menu, R.string.tab_more) { moreOpen = true }
+                // Com cinco botões, a letra diminui um pouco para "Planeje sua viagem"
+                // continuar em duas linhas mesmo com a letra grande do celular.
+                val five = menu.onNina != null
+                TabItem(tab == HomeTab.HOME, Icons.Outlined.Home, R.string.tab_home, five) { onTab(HomeTab.HOME) }
+                TabItem(tab == HomeTab.ROUTES, Icons.Outlined.Explore, R.string.tab_routes, five) { onTab(HomeTab.ROUTES) }
+                TabItem(tab == HomeTab.LINES, Icons.Outlined.DirectionsSubway, R.string.routes_lines, five) { onTab(HomeTab.LINES) }
+                // A Nina também fica na barra (e no Mais): um toque abre direto o WhatsApp
+                // da Super NINA. Some onde ela não atende (Sobral, Cariri).
+                menu.onNina?.let { onNina ->
+                    val description = stringResource(R.string.menu_nina_desc)
+                    NavigationBarItem(
+                        selected = false,
+                        onClick = onNina,
+                        // Cores próprias do desenho: sem tingir.
+                        icon = { Image(painterResource(R.drawable.ic_nina), contentDescription = null, modifier = Modifier.size(24.dp)) },
+                        label = { TabLabel(R.string.menu_nina, five) },
+                        modifier = Modifier.semantics { contentDescription = description },
+                    )
+                }
+                TabItem(moreOpen, Icons.Filled.Menu, R.string.tab_more, five) { moreOpen = true }
             }
         },
     ) { padding ->
@@ -148,13 +172,25 @@ fun RoutesScreen(
 }
 
 @Composable
-private fun RowScope.TabItem(selected: Boolean, icon: ImageVector, label: Int, onClick: () -> Unit) {
+private fun RowScope.TabItem(selected: Boolean, icon: ImageVector, label: Int, small: Boolean, onClick: () -> Unit) {
     NavigationBarItem(
         selected = selected,
         onClick = onClick,
         icon = { Icon(icon, contentDescription = null) },
-        // "Planeje sua viagem" quebra em duas linhas em vez de virar "Planeje…".
-        label = { Text(stringResource(label), textAlign = TextAlign.Center, maxLines = 2, lineHeight = 14.sp) },
+        label = { TabLabel(label, small) },
+    )
+}
+
+/** "Planeje sua viagem" quebra em duas linhas em vez de virar "Planeje…". */
+@Composable
+private fun TabLabel(label: Int, small: Boolean) {
+    Text(
+        text = stringResource(label),
+        textAlign = TextAlign.Center,
+        maxLines = 2,
+        lineHeight = if (small) 13.sp else 14.sp,
+        fontSize = if (small) 11.sp else MaterialTheme.typography.labelMedium.fontSize,
+        letterSpacing = if (small) 0.sp else MaterialTheme.typography.labelMedium.letterSpacing,
     )
 }
 
