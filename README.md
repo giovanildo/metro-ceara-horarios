@@ -1698,11 +1698,16 @@ Google já conhece, em pastas próprias — a lite em `docs/app/` não é tocada
   fica em `pagina_faq`. Link em "Dúvidas" no menu do computador e no rodapé.
 - **[História do app](docs/historia/index.html)**: a linha do tempo das
   versões, dia a dia, em cinco fases (cada uma com a cor de uma linha do mapa),
-  com os números do projeto e o gráfico de commits por dia. O conteúdo fica em
-  [`tools/site_historia.json`](tools/site_historia.json), escrito para o
-  passageiro (sem bastidores): cada parada é um dia, com a versão das tags e o
-  que entrou; `commits` traz o `git log` por dia. Para atualizar, acrescente as
-  paradas e os dias e rode o `site.py`. Link no rodapé de todas as páginas.
+  com quatro marcos no topo (primeira versão, lite, site, Play Store). O
+  conteúdo fica em [`tools/site_historia.json`](tools/site_historia.json),
+  escrito para o passageiro (sem bastidores nem números de commits), até a
+  1.99. **As versões seguintes entram sozinhas a cada bump**: o `site.py` lê
+  `fastlane/metadata/android/pt-BR/changelogs/<versionCode>.txt` das versões
+  que ainda não estão no JSON (data = commit que criou o arquivo; versões do
+  mesmo dia viram uma parada) e põe na fase `fase_automatica`. Por isso o
+  changelog do bump também é o texto do site. Para reescrever uma versão à mão,
+  mova-a para uma fase do JSON. A tarefa `site.yml` roda quando muda um
+  changelog. Link no rodapé de todas as páginas.
 - **Gerado por [`tools/site.py`](tools/site.py)**, a partir do `regras.json`
   e da grade comum (`normais`) de dia útil e sábado do ramo `dados`. O que é
   fixo vai escrito no HTML; as próximas partidas e os avisos cada página busca
