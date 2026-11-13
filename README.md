@@ -111,14 +111,16 @@ Embaixo, uma barra com ícone e nome em cada botão
 ([`ui/RoutesScreen.kt`](app/src/main/java/io/github/giova/metroceara/ui/RoutesScreen.kt)):
 **Início** (a tela inicial, só horário), **Planeje sua viagem** ("Para onde
 você vai?" e Casa e Trabalho), **Linhas** (a lista das linhas; tocar abre as
-estações) e **Mais**, uma lista que sobe de baixo por cima da tela
+estações), **Nina** (abre direto o WhatsApp da Super NINA; ver
+[Nina](#nina-super-nina)) e **Mais**, uma lista que sobe de baixo por cima da tela
 ([`ui/HomeMenu.kt`](app/src/main/java/io/github/giova/metroceara/ui/HomeMenu.kt)):
 em quatro grupos: **Para a viagem** (Passagem, Nina), **Seu dia a dia** (Sua ida e
 volta, Suas rotinas), **Do seu jeito** (Conte sobre você, Configurações) e **O app** (De
 onde vem cada informação, Sobre o app, Compartilhar o app). Na lite, só os que
 ela tem. Ícone sem nome não serve para
 todo mundo, por isso cada botão diz o que faz; com letra grande, "Planeje sua
-viagem" quebra em duas linhas. A aba aberta volta depois de abrir uma linha.
+viagem" quebra em duas linhas (com a Nina são cinco botões, e a letra da barra
+fica um pouco menor para continuar em duas linhas). A aba aberta volta depois de abrir uma linha.
 Durante o modo viagem, a barra e as abas dão lugar à tela do trilho; ao terminar
 ou encerrar a viagem, o app volta ao Início.
 
@@ -127,13 +129,13 @@ ou encerrar a viagem, o app volta ao Início.
 A **Super NINA** é o canal de denúncia de importunação sexual pelo WhatsApp
 ((85) 93300-7001), do Metrofor com a Etufor e a Secretaria das Mulheres; desde
 dez/2025 vale no metrô e nos VLTs de Fortaleza, Caucaia, Maracanaú e Pacatuba
-(não em Sobral e no Cariri). No Mais, o item é só um **rostinho** (desenho do
+(não em Sobral e no Cariri). Na barra de baixo (desde a 1.101) e no Mais, o item é só um **rostinho** (desenho do
 app, `res/drawable/ic_nina.xml`, não a personagem da campanha) e o nome
 **Nina**: nenhuma palavra que chame atenção de quem olha a tela. O toque abre
 direto a conversa (`wa.me`); o TalkBack lê "Nina: abre o WhatsApp da Super
 NINA". O toque não fica registrado em lugar nenhum. O número e as linhas
 atendidas vêm do `regras.json` ("nina", com a fonte), então mudam sem versão
-nova; perto de uma estação de Sobral ou do Cariri, o item some. A Super NINA
+nova; perto de uma estação de Sobral ou do Cariri, o botão da barra e o item do Mais somem. A Super NINA
 registra a denúncia mas não manda ajuda na hora (com a importunação
 acontecendo, o Metrofor orienta procurar um funcionário); isso fica na fonte,
 em "De onde vem cada informação", e não no menu, a pedido, para não alarmar
@@ -166,6 +168,16 @@ padrão, segue o perfil da maioria (quem vai e volta do trabalho ou da escola):
    **última viagem a partir dali**;
 4. as **rotinas**;
 5. o **Bicicletar** (só com "Levo bike").
+
+**Esconder / Mostrar** (1.101; [`ui/CollapsibleRow.kt`](app/src/main/java/io/github/giova/metroceara/ui/CollapsibleRow.kt)),
+como o saldo escondido dos apps de banco: o bloco de Casa e Trabalho (ou Sua ida e
+volta) tem em cima "Seus lugares · **Esconder ˄**"; escondido, vira uma linha fina
+"🏠 💼 Casa e Trabalho · **Mostrar ˅**". A última viagem dentro da estação aberta
+tem o mesmo controle ("Sua última viagem"), que vale para todos os jeitos dos
+horários (no trilho, as marcas da viagem também somem). A escolha fica guardada
+(`HomeLayout.placesCollapsed` e `tripsCollapsed`) até a pessoa tocar de novo; os
+avisos e as estações nunca se escondem. Na aba Planeje sua viagem, Casa e Trabalho
+aparecem sempre. Na lite é igual (`localStorage["recolhido"]`).
 
 "Para onde você vai?" e as linhas ficam nas abas da barra de baixo, não na
 tela inicial (`HomeBlock.inRoutes`); uma ordem guardada antes disso continua
@@ -1583,7 +1595,8 @@ visita, `#/sobre-voce/inicio`, com Pular) tem 3 perguntas numa tela só, gravada
 `localStorage["sobre-voce"]`: a frequência (*conhecendo a cidade* esconde os atalhos
 de Casa e Trabalho), bike e meia ("Sim" põe a regra da bike e a passagem no cartão
 aberto da tela inicial), e o link para o jeito dos horários. A mesma barra de baixo do app:
-Início, Planeje sua viagem (`#/rotas`), Linhas (`#/linhas`) e Mais (Passagem, Sua ida e volta, Conte sobre você,
+Início, Planeje sua viagem (`#/rotas`), Linhas (`#/linhas`), Nina (o link do WhatsApp, só onde a
+Super NINA atende) e Mais (Passagem, Sua ida e volta, Conte sobre você,
 Nina, De onde vem cada informação, Sobre, Compartilhar; um `<dialog>` que sobe
 de baixo). O navegador não consegue baixar
 o GTFS direto do Metrofor — o site não libera acesso a partir de outras
