@@ -1139,6 +1139,23 @@ fun AppRoot() {
         when (block) {
             HomeBlock.PLACES -> Column {
                 val view = commuteView
+                // Na tela inicial, Casa e Trabalho podem ficar recolhidos numa linha
+                // "Mostrar" (como o saldo dos bancos); a escolha fica guardada.
+                if (!inRoutes) {
+                    val first = stringResource(placeLabel(Place.HOME, commuteKind))
+                    val second = stringResource(placeLabel(Place.WORK, commuteKind))
+                    val collapsed = layout.placesCollapsed
+                    CollapseToggle(
+                        title = if (collapsed) {
+                            placeEmoji(Place.HOME, commuteKind) + " " + placeEmoji(Place.WORK, commuteKind) + "  " +
+                                stringResource(R.string.home_places_collapsed, first, second)
+                        } else stringResource(R.string.home_places_title),
+                        collapsed = collapsed,
+                        onToggle = { HomeLayoutStore.save(context, layout.copy(placesCollapsed = !collapsed)) },
+                        modifier = Modifier.padding(bottom = if (collapsed) 0.dp else 4.dp),
+                    )
+                    if (collapsed) return@Column
+                }
                 when {
                     !inRoutes && commuteReady && !commuteMissing -> view?.let {
                         CommuteCard(
@@ -1197,6 +1214,8 @@ fun AppRoot() {
                 val styled = StationStyle(
                     style = layout.style,
                     trips = trips.orEmpty(),
+                    tripsCollapsed = layout.tripsCollapsed,
+                    onToggleTrips = { HomeLayoutStore.save(context, layout.copy(tripsCollapsed = !layout.tripsCollapsed)) },
                     onOpen = ::openRecent,
                     onOther = { station ->
                         journeyFrom = station

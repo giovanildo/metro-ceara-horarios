@@ -82,6 +82,13 @@ data class HomeLayout(
     val style: HomeStyle = HomeStyle.DEFAULT,
     /** Resposta de "Com que frequência…"; null = não respondeu. */
     val frequency: RideFrequency? = null,
+    /**
+     * Casa e Trabalho (ou a ida e volta) recolhidos numa linha "Mostrar", como o
+     * saldo escondido dos apps de banco: fica assim até a pessoa tocar de novo.
+     */
+    val placesCollapsed: Boolean = false,
+    /** A última viagem na estação aberta recolhida numa linha "Mostrar". */
+    val tripsCollapsed: Boolean = false,
 ) {
     /** O bloco aparece na tela inicial. */
     fun shows(block: HomeBlock): Boolean = when {
@@ -170,6 +177,8 @@ object HomeLayoutStore {
             putBoolean("access", layout.access)
             putString("style", layout.style.key)
             putString("frequency", layout.frequency?.key)
+            putBoolean("places_collapsed", layout.placesCollapsed)
+            putBoolean("trips_collapsed", layout.tripsCollapsed)
         }
         state.value = layout
     }
@@ -202,6 +211,8 @@ object HomeLayoutStore {
             access = p.getBoolean("access", false),
             style = HomeStyle.of(p.getString("style", null)),
             frequency = RideFrequency.of(p.getString("frequency", null)),
+            placesCollapsed = p.getBoolean("places_collapsed", false),
+            tripsCollapsed = p.getBoolean("trips_collapsed", false),
         )
     }
 

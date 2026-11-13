@@ -47,6 +47,10 @@ data class StationStyle(
     val trips: List<StationTrip> = emptyList(),
     val onOpen: (RecentTrip) -> Unit = {},
     val onOther: (Station) -> Unit = {},
+    /** A última viagem recolhida numa linha "Mostrar" (só a tela inicial passa isto). */
+    val tripsCollapsed: Boolean = false,
+    /** Abre ou recolhe a última viagem; null = sem o controle (prévias). */
+    val onToggleTrips: (() -> Unit)? = null,
 )
 
 /**
@@ -56,27 +60,41 @@ data class StationStyle(
  */
 @Composable
 internal fun StyledDepartures(styled: StationStyle, station: Station, hereLabel: String, departures: List<HomeDeparture>, now: Int) {
-    val onRows = styled.trips.filter { trip ->
+    val toggle = styled.onToggleTrips.takeIf { styled.trips.isNotEmpty() }
+    // Recolhida, a última viagem some de todo jeito (trilho, frases, faixa) e fica só a linha "Mostrar".
+    val shown = if (toggle != null && styled.tripsCollapsed) styled.copy(trips = emptyList()) else styled
+    val tripsTitle = stringResource(if (styled.trips.size > 1) R.string.home_trips_title_many else R.string.home_trips_title)
+    val onRows = shown.trips.filter { trip ->
         trip.fromStation && trip.times != null && departures.any { it.directionId == trip.directionId && it.departure != null }
     }
-    val rest = styled.trips - onRows.toSet()
-    val view = StyleView(station, hereLabel, departures, onRows, now, styled.onOpen)
-    val classic = styled.style == HomeStyle.CLASSIC
+    val rest = shown.trips - onRows.toSet()
+    val view = StyleView(station, hereLabel, departures, onRows, now, shown.onOpen)
+    val classic = shown.style == HomeStyle.CLASSIC
     Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
-        if (departures.isNotEmpty()) when (styled.style) {
+        if (departures.isNotEmpty()) when (shown.style) {
             HomeStyle.RAIL -> RailStyle(view)
             HomeStyle.TRIP_FIRST -> TripFirstStyle(view)
             HomeStyle.SIDES -> SidesStyle(view)
-            HomeStyle.ASK_FIRST -> AskFirstStyle(view) { styled.onOther(station) }
+            HomeStyle.ASK_FIRST -> AskFirstStyle(view) { shown.onOther(station) }
             HomeStyle.PHRASES -> PhrasesStyle(view)
             HomeStyle.CLASSIC -> departures.forEach { SentidoRow(view, it, showVia = false, leaves = false) }
         }
+        if (toggle != null) {
+            CollapseToggle(
+                title = tripsTitle,
+                collapsed = styled.tripsCollapsed,
+                onToggle = toggle,
+                color = LocalContentColor.current,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+            if (styled.tripsCollapsed) return@Column
+        }
         when {
-            classic && styled.trips.isNotEmpty() -> StationTrips(styled.trips, styled.onOpen) { styled.onOther(station) }
-            rest.isNotEmpty() -> StationTrips(rest, styled.onOpen) { styled.onOther(station) }
+            classic && shown.trips.isNotEmpty() -> StationTrips(shown.trips, shown.onOpen) { shown.onOther(station) }
+            rest.isNotEmpty() -> StationTrips(rest, shown.onOpen) { shown.onOther(station) }
             classic -> Unit
-            styled.style == HomeStyle.ASK_FIRST && departures.isNotEmpty() -> Unit
-            else -> OtherLink(styled.trips.isNotEmpty()) { styled.onOther(station) }
+            shown.style == HomeStyle.ASK_FIRST && departures.isNotEmpty() -> Unit
+            else -> OtherLink(shown.trips.isNotEmpty()) { shown.onOther(station) }
         }
     }
 }

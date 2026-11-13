@@ -617,6 +617,15 @@
     <string name="lines_subtitle">Toque numa linha para ver as estações</string>
     <string name="menu_share">Compartilhar o app</string>
     <!-- Super NINA (regras.json "nina"): só o nome, sem palavra que chame atenção de quem olha a tela. -->
+    <string name="collapse_hide">Esconder</string>
+    <string name="collapse_show">Mostrar</string>
+    <string name="collapse_open">aberto</string>
+    <string name="collapse_closed">escondido</string>
+    <string name="home_places_title">Seus lugares</string>
+    <!-- Casa e Trabalho escondidos: "🏠 💼 Casa e Trabalho" -->
+    <string name="home_places_collapsed">%1$s e %2$s</string>
+    <string name="home_trips_title">Sua última viagem</string>
+    <string name="home_trips_title_many">Suas últimas viagens</string>
     <string name="menu_nina">Nina</string>
     <!-- Só o TalkBack lê. -->
     <string name="menu_nina_desc">Nina: abre o WhatsApp da Super NINA</string>
