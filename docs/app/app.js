@@ -314,7 +314,16 @@ function telaInicio() {
   const ultima = ultimaViagemGuardada();
   // Quem está conhecendo a cidade não precisa dos atalhos de Casa e Trabalho.
   const visitante = lerSobreVoce().frequencia === "conhecendo";
-  html += blocoIdaVolta(t) ?? (ultima || visitante ? "" : atalhosLugares(t));
+  const lugares = blocoIdaVolta(t) ?? (ultima || visitante ? "" : atalhosLugares(t));
+  // Casa e Trabalho podem ficar recolhidos numa linha "Mostrar", como o saldo dos
+  // bancos; a escolha fica guardada até a pessoa tocar de novo.
+  if (lugares) {
+    const fechado = lerRecolhido().lugares;
+    const [a, b] = lugaresAtuais();
+    html += fechado
+      ? botaoRecolher("lugares", `${a.emoji} ${b.emoji} ${a.nome} e ${b.nome}`, true)
+      : botaoRecolher("lugares", "Seus lugares", false) + lugares;
+  }
 
   if (!estado.pos) {
     html += `<div class="cartao">
@@ -372,17 +381,21 @@ function telaInicio() {
       const extras = (sv.bike && !domingo ? avisoBike(linha, id, t) : "")
         + (tarifa ? `<p class="dica">Passagem: ${esc(tarifa)}${estado.dados.regras?.guia_passagem
           ? ` · <a class="link-guia" href="#/passagem">Meia e gratuidade ›</a>` : ""}</p>` : "");
+      // A última viagem também pode ficar recolhida numa linha "Mostrar".
+      const viagens = ultima ? viagensDaEstacao(t, ultima, estacao) : [];
+      const viagemFechada = viagens.length > 0 && lerRecolhido().viagem;
+      const alternar = botaoRecolher("viagem", viagens.length > 1 ? "Suas últimas viagens" : "Sua última viagem", viagemFechada);
       if (estilo === "classico") {
         html += `<div class="cartao">
         <a class="cabeca" href="#/estacao/${linha.id}/${id}">${cabeca}
           ${filas.map((f) => `<div class="partida">${sentidoNoCartao(f.s, linha)}${partidaGrande(f.p, t.minutos, f.s)}</div>`
             + (f.fim ? `<p class="dica fim-do-dia">${f.fim}</p>` : "")).join("")}
-        </a>${extras}${faixaViagem(t, ultima, estacao)}</div>`;
+        </a>${extras}${viagens.length ? alternar : ""}${viagemFechada ? "" : faixaDe(viagens, true)}</div>`;
       } else {
         html += `<div class="cartao"><a class="cabeca" href="#/estacao/${linha.id}/${id}">${cabeca}</a>${extras}
           <div data-ir="#/estacao/${linha.id}/${id}">${corpoEstilo(estilo, {
             linha, estacao, filas, minutos: t.minutos, aqui: d <= AQUI_METROS ? "Você está aqui" : esc(grade.nome(id)),
-            viagens: ultima ? viagensDaEstacao(t, ultima, estacao) : [],
+            viagens: viagemFechada ? [] : viagens, alternar: viagens.length ? alternar : "", recolhida: viagemFechada,
           })}</div></div>`;
       }
     }
@@ -392,6 +405,13 @@ function telaInicio() {
     html += `<p><button class="botao secundario" id="instalar">📲 Adicionar à tela inicial</button></p>`;
   }
   tela.innerHTML = html;
+  tela.querySelectorAll("[data-recolher]").forEach((b) => b.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const r = lerRecolhido();
+    r[b.dataset.recolher] = !r[b.dataset.recolher];
+    try { localStorage.setItem("recolhido", JSON.stringify(r)); } catch { /* segue */ }
+    render();
+  }));
   document.getElementById("localizar")?.addEventListener("click", localizar);
   document.getElementById("instalar")?.addEventListener("click", instalar);
   document.getElementById("fechar-convite")?.addEventListener("click", () => {
@@ -542,6 +562,18 @@ const primeiraMaiuscula = (t) => t.replace(/^./, (c) => c.toUpperCase());
 /** O que falta dizer depois do metrô a pegar: a troca logo aqui já veio antes. */
 const notasFaixa = (v) => primeiraMaiuscula(v.integAqui ? (v.aPe ? "a pé no fim" : "") : v.notas);
 
+/** { lugares: true, viagem: true }: o que a pessoa recolheu na tela inicial. */
+function lerRecolhido() {
+  try { return JSON.parse(localStorage.getItem("recolhido") || "{}"); } catch { return {}; }
+}
+
+/** A linha "Esconder ˄" (aberto) ou a linha fina "Mostrar ˅" (recolhido). */
+function botaoRecolher(chave, titulo, fechado) {
+  return `<button type="button" class="recolher${fechado ? " fechado" : ""}" data-recolher="${chave}" aria-expanded="${!fechado}">
+    <span>${esc(titulo)}</span><span class="acao">${fechado ? "Mostrar" : "Esconder"}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${fechado
+      ? "M7.4 8.6 12 13.2l4.6-4.6L18 10l-6 6-6-6z" : "M7.4 15.4 12 10.8l4.6 4.6L18 14l-6-6-6 6z"}"/></svg></span></button>`;
+}
+
 /** A faixa de sempre, em cor própria, com o botão de outro destino. */
 function faixaDe(viagens, comEstacao) {
   if (!viagens.length) return "";
@@ -677,7 +709,8 @@ function corpoEstilo(estilo, c) {
   const rodape = resto.length ? faixaDe(resto, true)
     : estilo === "pergunta" && c.filas.length ? ""
     : `<button class="faixa-outro link-outro" data-origem="${c.estacao}">${c.viagens.length ? "Outro destino" : "Para onde você vai?"} ›</button>`;
-  return miolo + rodape;
+  // Com a última viagem recolhida, fica só a linha "Mostrar", como no app.
+  return miolo + (c.alternar ?? "") + (c.recolhida ? "" : rodape);
 }
 
 /** Item do Mais: o exemplo em cima e os jeitos embaixo. */
@@ -930,6 +963,16 @@ function abrirMais() {
   folha.showModal();
 }
 document.getElementById("abrir-mais").addEventListener("click", () => estado.dados && abrirMais());
+
+/** A Nina também na barra de baixo (e no Mais); some onde a Super NINA não atende. */
+function abaNina() {
+  const a = document.getElementById("aba-nina");
+  const link = estado.dados ? linkNina() : null;
+  if (!a.innerHTML) a.innerHTML = `${ROSTO_NINA}Nina`;
+  if (link) a.href = link;
+  a.hidden = !link;
+  document.querySelector(".barra").classList.toggle("cinco", Boolean(link));
+}
 
 /** Marca na barra de baixo a aba da tela aberta. */
 function marcarAba(parte) {
@@ -1998,6 +2041,7 @@ function render() {
   else if (partes[0] === "linhas") telaLinhas();
   else telaInicio();
   marcarAba(partes[0]);
+  abaNina();
   status();
 }
 

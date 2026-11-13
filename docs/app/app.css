@@ -255,6 +255,11 @@ body { padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
 .barra svg { width: 24px; height: 24px; fill: currentColor; padding: 4px 20px; box-sizing: content-box; border-radius: 16px; }
 .barra .ativa { color: var(--cartao-texto); font-weight: 700; }
 .barra .ativa svg { background: var(--destaque); }
+/* Com a Nina são cinco botões: a letra e a folga diminuem um pouco. */
+.barra.cinco a, .barra.cinco button { font-size: .72rem; }
+.barra.cinco svg { padding: 4px 12px; }
+.barra .nina svg { padding: 0; width: 32px; height: 32px; border-radius: 8px; }
+.barra a[hidden] { display: none; }
 
 /* O Mais: sobe de baixo por cima da tela, que escurece. */
 dialog.folha {
@@ -408,3 +413,15 @@ dialog.folha[open] { animation: sobe .25s ease-out; }
 .sv-op.sel { background: var(--cartao); border-color: var(--cartao-texto); color: var(--cartao-texto); font-weight: 700; }
 .sv-rodape { display: flex; justify-content: space-between; align-items: center; margin: 26px 0 8px; }
 .sv-pular { font-weight: 700; color: var(--cartao-texto); padding: 10px 4px; }
+
+/* Esconder / Mostrar, como o saldo dos apps de banco: Casa e Trabalho e a última viagem. */
+.recolher { display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%;
+  font: inherit; color: inherit; background: none; border: 0; cursor: pointer; text-align: left; padding: 6px 0; margin-top: 8px; }
+.recolher > span:first-child { font-size: .85rem; color: var(--texto-2); }
+.recolher .acao { font-weight: 700; font-size: .92rem; color: #43568f; white-space: nowrap; display: inline-flex; align-items: center; gap: 2px; }
+.recolher .acao svg { width: 20px; height: 20px; fill: currentColor; }
+.recolher.fechado { background: var(--neutro); border-radius: 12px; padding: 10px 12px 10px 14px; margin: 12px 0 0; }
+.recolher.fechado > span:first-child { font-size: .95rem; color: var(--texto); }
+.cartao .recolher > span:first-child, .cartao .recolher .acao { color: inherit; }
+.cartao .recolher.fechado { background: color-mix(in srgb, currentColor 8%, transparent); }
+@media (prefers-color-scheme: dark) { .recolher .acao { color: var(--cartao-texto); } }
