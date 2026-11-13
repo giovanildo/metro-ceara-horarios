@@ -27,8 +27,20 @@ O ffmpeg estático de johnvansickle.com funciona sem instalar nada.
   viagem: o relógio só anda para a frente (07:20, depois 07:25). Depois de
   muitos saltos de relógio o GPS do emulador pode parar de aceitar posições
   (`dumpsys location` com a mesma posição de GPS antiga): reinicie o emulador.
-- `build_divulgacao.py` — `metro-ceara-divulgacao.mp4`, cortado dessa
-  gravação pelas marcas, com o cartão final do QR da versão lite.
+- `build_divulgacao.py` — `metro-ceara-divulgacao.mp4` (~32 s), cortado dessa
+  gravação pelas marcas, com o cartão final do QR da Play Store. O resumo da
+  chegada é o último quadro da gravação: o script o repete por 5 s.
+
+No emulador Android 16 (`metrofor37`, nov/2026), o `screenrecord` morre
+(`INVALID_LAYER_STACK`) quando a tela desliga e para de gravar no desbloqueio:
+`gravar_viagem.sh` grava em três partes (até desligar, da tela bloqueada até
+desbloquear, e depois) e as junta, com preto no intervalo da tela desligada,
+para as marcas continuarem valendo. Na tela de bloqueio a tela apaga sozinha em
+~10 s; uma tecla `WAKEUP` a mantém acesa. As notificações do próprio emulador
+(teclado físico, console serial) somem da cortina com
+`cmd notification snooze --for 2592000000 '<key>'` (as chaves em
+`dumpsys notification --noredact`), por 30 dias, porque o relógio da gravação
+anda alguns dias para a frente.
 - `build_fgs.py` — `tools/play/video-modo-viagem.mp4`, o vídeo da declaração
   do serviço em primeiro plano na Play Store, das duas gravações (modo viagem
   e ↻ do widget, os dois usos do serviço), com legendas em inglês (para a

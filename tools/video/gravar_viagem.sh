@@ -83,15 +83,21 @@ done
 gps_lost 300
 hora 0725; demo 0725
 for _ in 1 2 3; do gps -38.5363 -3.7330; sleep 1; done
+$A shell input keyevent WAKEUP; $A shell wm dismiss-keyguard; sleep 1
 $A shell monkey -p $PKG 1 >/dev/null 2>&1
 wait_text "Para onde você vai? ›" 40
 sleep 3
 
-$A shell rm -f /sdcard/viagem.mp4
-$A shell screenrecord --bit-rate 12000000 /sdcard/viagem.mp4 &
-REC=$!
+agora() { python3 -c "import time; print(time.time())"; }
+grava() { # N: começa a gravação N (o screenrecord deste emulador morre quando a tela desliga)
+  $A shell rm -f /sdcard/viagem$1.mp4
+  $A shell screenrecord --bit-rate 12000000 /sdcard/viagem$1.mp4 &
+  REC=$!; eval "R$1=$(agora)"
+}
+para() { $A shell pkill -INT screenrecord || true; wait $REC 2>/dev/null || true; sleep 1; }
+grava 1
 sleep 1
-T0=$(python3 -c "import time; print(time.time())")
+T0=$(agora)
 : > "$MARCAS"
 marca inicio; sleep 4
 
@@ -120,23 +126,36 @@ $A shell cmd statusbar expand-notifications; sleep 4
 $A shell cmd statusbar collapse; sleep 1
 estacao 0736 -38.5458588 -3.7457007   # Padre Cícero
 marca bloqueio
+para                                  # a tela vai desligar: fecha a 1ª gravação
 $A shell input keyevent POWER; sleep 2
 estacao 0738 -38.55165 -3.7514799     # Porangabussu
-$A shell input keyevent WAKEUP; sleep 3
+$A shell input keyevent WAKEUP; sleep 0.5
+grava 2; sleep 2.5
 marca aviso
 estacao 0740 -38.5575385 -3.75734     # Couto Fernandes: aviso de descida
-sleep 8
+# Na tela de bloqueio a tela apaga em ~10 s (e a gravação morre): uma tecla a mantém acesa.
+sleep 4; $A shell input keyevent WAKEUP; sleep 4; $A shell input keyevent WAKEUP
 marca desbloqueio
-$A shell wm dismiss-keyguard; sleep 2
+para                                  # o desbloqueio também derruba a gravação
+$A shell wm dismiss-keyguard; sleep 0.5
+$A shell input swipe 540 1900 540 700 300; sleep 0.5   # às vezes só o dismiss não desbloqueia
+grava 3; sleep 1.5
 estacao 0741 -38.5600252 -3.7662377   # Juscelino Kubitscheck
 marca chegada
 hora 0743; for _ in $(seq 1 12); do gps -38.5638658 -3.7757912; sleep 1; done   # Parangaba: chegada
 marca fim
 
-$A shell pkill -INT screenrecord || true
-wait $REC 2>/dev/null || true
-sleep 2
-$A pull /sdcard/viagem.mp4 "$VIDEO_WORK/viagem.mp4" >/dev/null
+para; sleep 1
+for n in 1 2 3; do $A pull /sdcard/viagem$n.mp4 "$VIDEO_WORK/viagem$n.mp4" >/dev/null; done
+# Junta as três, cada uma completada até o início da seguinte (a 1ª com preto,
+# tela desligada; a 2ª repetindo o último quadro), para as marcas (contadas do
+# início da 1ª) continuarem valendo.
+D1=$(python3 -c "print(round($R2 - $R1, 3))"); D2=$(python3 -c "print(round($R3 - $R2, 3))")
+${FFMPEG:-ffmpeg} -v error -y -i "$VIDEO_WORK/viagem1.mp4" -i "$VIDEO_WORK/viagem2.mp4" -i "$VIDEO_WORK/viagem3.mp4" -filter_complex \
+  "[0:v]fps=30,tpad=stop_mode=add:color=black:stop_duration=60,trim=duration=$D1,setpts=PTS-STARTPTS[a];\
+   [1:v]fps=30,tpad=stop_mode=clone:stop_duration=60,trim=duration=$D2,setpts=PTS-STARTPTS[b];\
+   [2:v]fps=30,setpts=PTS-STARTPTS[c];[a][b][c]concat=n=3:v=1[v]" \
+  -map "[v]" -c:v libx264 -crf 16 -pix_fmt yuv420p "$VIDEO_WORK/viagem.mp4"
 gps_lost 60
 $A shell settings put global auto_time 1
 echo "$VIDEO_WORK/viagem.mp4"; cat "$MARCAS"
