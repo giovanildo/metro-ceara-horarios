@@ -193,3 +193,31 @@ main section { margin: 44px 0 0; }
 .grade-fotos figcaption { font-size: .8rem; color: var(--suave); margin-top: 5px; overflow-wrap: anywhere; }
 .grade-fotos figcaption a { color: inherit; }
 #fotos, #mais-fotos { scroll-margin-top: 72px; }
+
+/* ---------- história do app (linha do tempo das versões) */
+.ritmo { margin-top: 40px; }
+.grafico { overflow-x: auto; background: var(--papel); border-radius: var(--raio); box-shadow: var(--sombra); padding: 16px 12px 8px; }
+.grafico svg { display: block; width: 100%; min-width: 620px; height: auto; }
+.grafico text { fill: var(--suave); font-size: 11px; font-variant-numeric: tabular-nums; }
+.grafico text.forte { fill: var(--texto); font-weight: 700; }
+.grafico .grade { stroke: var(--linha); stroke-width: 1; }
+.grafico .barra { fill: var(--suave); opacity: .55; }
+.grafico .barra.pico { fill: var(--destaque); opacity: 1; }
+.fase { --cor: #777; margin-top: 48px; }
+.fase h2 { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin-bottom: 6px; }
+.fase .periodo { font-family: system-ui, sans-serif; font-size: .95rem; font-weight: 600; color: var(--suave); letter-spacing: 0; }
+.fase-texto { color: var(--suave); max-width: 64ch; margin: 0 0 12px; }
+.linha-tempo { list-style: none; margin: 0; padding: 0 0 0 34px; position: relative; }
+.linha-tempo::before { content: ""; position: absolute; left: 10px; top: 14px; bottom: 14px; width: 6px; border-radius: 3px; background: var(--cor); }
+.linha-tempo > li { position: relative; padding: 10px 0 12px; }
+.linha-tempo > li::before {
+  content: ""; position: absolute; left: -29px; top: 15px;
+  width: 12px; height: 12px; border-radius: 50%; background: var(--papel); border: 3px solid var(--cor);
+}
+.linha-tempo > li.destaque::before { width: 16px; height: 16px; left: -31px; top: 13px; background: var(--cor); }
+.linha-tempo .dia { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 0; }
+.linha-tempo time { font-family: var(--titulo); font-weight: 800; font-size: 1.1rem; }
+.linha-tempo .versao { font-size: .82rem; font-variant-numeric: tabular-nums; background: var(--papel); border: 1px solid var(--linha); border-radius: 999px; padding: 1px 9px; color: var(--suave); }
+.linha-tempo ul { margin: 4px 0 0; padding-left: 18px; max-width: 68ch; }
+.linha-tempo ul li { margin: 2px 0; }
+@media (prefers-color-scheme: dark) { .fase { --cor: var(--cor-escuro) !important; } }

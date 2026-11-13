@@ -38,6 +38,7 @@ RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DOCS = os.path.join(RAIZ, "docs")
 REGRAS = os.path.join(RAIZ, "app", "src", "main", "assets", "regras.json")
 FOTOS = os.path.join(RAIZ, "tools", "site_fotos.json")
+HISTORIA = os.path.join(RAIZ, "tools", "site_historia.json")
 FOTOS_NO_TOPO = 4  # as outras fotos da estação ficam no fim da página e só carregam ao rolar
 RAW = "https://raw.githubusercontent.com/giovanildo/metro-ceara-horarios/dados/"
 SITE = "https://giovanildo.github.io/metro-ceara-horarios/"
@@ -293,7 +294,7 @@ RODAPE = """<footer class="rodape"><div class="largura">
   <p><strong>Metrô Ceará</strong> é um guia independente, feito por um passageiro. <strong>Não é o site oficial do Metrofor</strong>
   nem do Governo do Ceará. Os horários vêm do GTFS que o Metrofor publica; endereços, passagem e acessibilidade, do site
   do Metrofor (conferidos em {conferido}). Lugares por perto: © colaboradores do OpenStreetMap. Fotos das estações: Wikimedia Commons, com o autor e a licença em cada uma.</p>
-  <p>Viu algo errado? <a href="{whats}">Conte pelo WhatsApp</a> · <a href="{raiz}perguntas-frequentes/">Perguntas frequentes</a> · <a href="{raiz}">Sobre o app</a> · <a href="{raiz}privacidade.html">Privacidade</a></p>
+  <p>Viu algo errado? <a href="{whats}">Conte pelo WhatsApp</a> · <a href="{raiz}perguntas-frequentes/">Perguntas frequentes</a> · <a href="{raiz}">Sobre o app</a> · <a href="{raiz}historia/">História do app</a> · <a href="{raiz}privacidade.html">Privacidade</a></p>
   <p class="gerado">Página gerada em {gerado}.</p>
 </div></footer>
 {scripts}</body>
@@ -872,6 +873,86 @@ def pagina_faq(d):
                   corpo="\n".join(h), extra=ld)
 
 
+# ---------- história do app (linha do tempo das versões)
+
+MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"]
+
+
+def data_curta(iso):
+    """"2026-10-25" -> "25 out"."""
+    return f"{int(iso[8:10])} {MESES[int(iso[5:7]) - 1]}"
+
+
+def grafico_commits(commits, inicio, fim):
+    """Barras com os commits de cada dia, de inicio a fim (ISO), em SVG que segue o tema."""
+    um_dia = timedelta(days=1)
+    d0 = datetime.strptime(inicio, "%Y-%m-%d")
+    dias = (datetime.strptime(fim, "%Y-%m-%d") - d0).days + 1
+    por_dia = dict(commits)
+    maior = max(por_dia.values())
+    teto = max(20, -(-maior // 20) * 20)
+    W, H, L, R, T, B = 820, 170, 30, 6, 14, 26
+    cw = (W - L - R) / dias
+    alt = lambda n: (H - T - B) * n / teto
+    p = [f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="Commits por dia; o dia com mais teve {maior}">']
+    for v in range(0, teto + 1, 20):
+        y = H - B - alt(v)
+        p.append(f'<line x1="{L}" x2="{W - R}" y1="{y:.1f}" y2="{y:.1f}" class="grade"/>'
+                 f'<text x="{L - 6}" y="{y + 4:.1f}" text-anchor="end">{v}</text>')
+    for i in range(dias):
+        dia = d0 + i * um_dia
+        iso = dia.strftime("%Y-%m-%d")
+        n = por_dia.get(iso, 0)
+        x = L + i * cw
+        if n:
+            classe = "barra pico" if n >= teto * 2 / 3 else "barra"
+            p.append(f'<rect x="{x + 1:.1f}" y="{H - B - alt(n):.1f}" width="{max(cw - 2, 2):.1f}" height="{alt(n):.1f}" rx="1.5" class="{classe}">'
+                     f"<title>{data_curta(iso)}: {n} commits</title></rect>")
+            if n == maior:
+                p.append(f'<text x="{x + cw / 2:.1f}" y="{H - B - alt(n) - 4:.1f}" text-anchor="middle" class="forte">{n}</text>')
+        if i == 0 or dia.day in (1, 15):
+            p.append(f'<text x="{x + cw / 2:.1f}" y="{H - 8}" text-anchor="middle">{data_curta(iso)}</text>')
+    p.append("</svg>")
+    return "".join(p)
+
+
+def pagina_historia():
+    with open(HISTORIA, encoding="utf-8") as fh:
+        h = json.load(fh)
+    raiz = "../"
+    commits = h["commits"]
+    inicio, fim = commits[0][0], h["atualizado"]
+    dias = (datetime.strptime(fim, "%Y-%m-%d") - datetime.strptime(inicio, "%Y-%m-%d")).days + 1
+    ultima = h["fases"][-1]["paradas"][-1]["versao"].split()[-1]
+    atualizacoes = int(ultima.split(".")[1])
+    numeros = [(dias, "dias de projeto"), (len(commits), "dias de trabalho"),
+               (sum(n for _, n in commits), "mudanças no código (commits)"), (atualizacoes, f"atualizações, da 1.1 à {ultima}")]
+    corpo = ['<header class="faixa" style="--cor:#CE0F2E;--cor-escuro:#CE0F2E"><div class="largura">',
+             migalhas(raiz, [("História do app", None)]),
+             '<h1>História do app</h1>',
+             f'<p class="endereco">Do primeiro dia, em {data_curta(inicio)}, à Play Store: o que entrou no Metrô Ceará, dia a dia.</p>',
+             '<div class="numeros claros">']
+    corpo += [f'<p class="numero"><strong>{n}</strong><span>{esc(t)}</span></p>' for n, t in numeros]
+    corpo += ['</div></div></header><main id="conteudo" class="largura">',
+              '<section class="ritmo"><h2>Ritmo de trabalho</h2><div class="grafico">', grafico_commits(commits, inicio, fim), '</div>',
+              '<p class="dica">Cada barra é um dia, com o número de mudanças salvas no código. Toque numa barra para ver o dia.</p></section>']
+    for f in h["fases"]:
+        paradas = f["paradas"]
+        periodo = f"{data_curta(paradas[0]['data'])} a {data_curta(paradas[-1]['data'])}"
+        corpo.append(f'<section class="fase" style="--cor:{f["cor"]};--cor-escuro:{f["cor_escuro"]}">'
+                     f'<h2>{esc(f["nome"])} <span class="periodo">{periodo}</span></h2><p class="fase-texto">{esc(f["texto"])}</p><ol class="linha-tempo">')
+        for s in paradas:
+            versao = f'<span class="versao">v{esc(s["versao"])}</span>' if s.get("versao") else ""
+            itens = "".join(f"<li>{esc(i)}</li>" for i in s["itens"])
+            classe = ' class="destaque"' if s.get("destaque") else ""
+            corpo.append(f'<li{classe}><p class="dia"><time datetime="{s["data"]}">{data_curta(s["data"])}</time>{versao}</p><ul>{itens}</ul></li>')
+        corpo.append("</ol></section>")
+    corpo.append('<p class="dica">As datas vêm do histórico do <a href="https://github.com/giovanildo/metro-ceara-horarios" target="_blank" rel="noopener">código aberto</a> do app.</p>')
+    corpo.append(chamada_app(raiz))
+    corpo.append("</main>")
+    return corpo
+
+
 # ---------- mapa (posições reais das estações) e página principal
 
 # Estações com nome escrito no mapa; as outras só têm o ponto (o nome aparece ao tocar).
@@ -982,7 +1063,11 @@ def main():
     pasta = sys.argv[1] if len(sys.argv) > 1 else None
     d, util, sabado = carregar_dados(pasta)
 
-    caminhos = list(FIXAS) + ["estacoes/", "linhas/", "perguntas-frequentes/"]
+    caminhos = list(FIXAS) + ["estacoes/", "linhas/", "perguntas-frequentes/", "historia/"]
+    escrever(os.path.join(DOCS, "historia", "index.html"),
+             pagina(d, caminho="historia/", titulo="História do app | Metrô Ceará",
+                    descricao="Como o Metrô Ceará foi feito: as versões do app de horários de metrô e VLT do Ceará, dia a dia, do primeiro dia à Play Store.",
+                    corpo="\n".join(pagina_historia())))
     escrever(os.path.join(DOCS, "perguntas-frequentes", "index.html"), pagina_faq(d))
     escrever(os.path.join(DOCS, "estacoes", "index.html"), indice_estacoes(d))
     escrever(os.path.join(DOCS, "linhas", "index.html"), indice_linhas(d))

@@ -1,0 +1,71 @@
+{
+  "_sobre": "Linha do tempo do app (docs/historia/), gerada por tools/site.py. Cada parada é um dia; 'versao' vem das tags, 'commits' do git log por dia. Para atualizar: acrescente paradas e dias em 'commits'.",
+  "atualizado": "2026-11-13",
+  "commits": [["2026-09-24",2],["2026-10-04",7],["2026-10-07",4],["2026-10-08",2],["2026-10-09",22],["2026-10-10",14],["2026-10-11",7],["2026-10-14",8],["2026-10-15",15],["2026-10-16",5],["2026-10-21",11],["2026-10-22",5],["2026-10-23",21],["2026-10-24",3],["2026-10-25",58],["2026-10-26",6],["2026-10-27",8],["2026-10-28",3],["2026-10-29",11],["2026-10-30",4],["2026-10-31",7],["2026-11-01",8],["2026-11-02",47],["2026-11-03",18],["2026-11-04",6],["2026-11-06",7],["2026-11-07",11],["2026-11-08",58],["2026-11-09",26],["2026-11-10",3],["2026-11-11",8],["2026-11-12",3],["2026-11-13",2]],
+  "fases": [
+    {
+      "nome": "Nascimento",
+      "cor": "#CE0F2E", "cor_escuro": "#CE0F2E",
+      "texto": "Começou como uso pessoal: uma tela com o próximo metrô para o Carlito Benevides, no lugar da planilha e da tabela impressa na estação.",
+      "paradas": [
+        {"data": "2026-09-24", "versao": "1.0", "destaque": true, "itens": ["Primeira versão: os horários do metrô de Fortaleza no celular, como software livre."]},
+        {"data": "2026-10-04", "versao": "1.1", "itens": ["Bicicletar mais perto e se dá para embarcar com a bike agora.", "Aviso de que metrô e VLT normalmente não circulam aos domingos.", "Horários do dia baixados direto do Metrofor."]},
+        {"data": "2026-10-07", "versao": "1.2 – 1.3", "destaque": true, "itens": ["Modo viagem: o app acompanha a viagem pelo GPS."]},
+        {"data": "2026-10-08", "versao": "1.4", "itens": ["Modo viagem fala o nome de cada estação."]},
+        {"data": "2026-10-09", "versao": "1.5 – 1.13", "destaque": true, "itens": ["Primeira versão para baixar, com QR code para divulgar.", "Tela de Configurações; a localização que falhava na primeira vez foi corrigida.", "Integração entre linhas, com a troca paga ou grátis em cada sentido.", "Ir sentado: perto do terminal, ir até ele e voltar no mesmo metrô."]}
+      ]
+    },
+    {
+      "nome": "Divulgação e versão lite",
+      "cor": "#01823F", "cor_escuro": "#2FA866",
+      "texto": "O app sai do bolso de uma pessoa só: página na internet, versão que abre no navegador, lembretes e o nome Metrô Ceará.",
+      "paradas": [
+        {"data": "2026-10-10", "versao": "1.14 – 1.18", "destaque": true, "itens": ["Página do app na internet.", "O app passa a dizer \"metrô\" e \"VLT\", não \"trem\"; tema claro e escuro; lembrete para não esquecer os pertences."]},
+        {"data": "2026-10-11", "versao": "1.19 – 1.20", "itens": ["Botão para divulgar o app pelo WhatsApp."]},
+        {"data": "2026-10-14", "versao": "1.21 – 1.23", "itens": ["Lembrete da hora de sair, na agenda do celular."]},
+        {"data": "2026-10-15", "versao": "1.24 – 1.25", "destaque": true, "itens": ["Versão lite: os horários no navegador de qualquer celular, iPhone também, até sem internet."]},
+        {"data": "2026-10-16", "versao": "1.26 – 1.27", "itens": ["Ao chegar ao destino, a viagem termina sozinha com o aviso \"Você chegou\"."]},
+        {"data": "2026-10-21", "versao": "1.28 – 1.30", "itens": ["Horários baixados de uma cópia publicada todo dia de madrugada, mais confiável."]},
+        {"data": "2026-10-23", "versao": "1.33 – 1.37", "destaque": true, "itens": ["Novo nome, Metrô Ceará, com um ícone da renda de bilro e da jandaia, para lembrar o Ceará inteiro."]}
+      ]
+    },
+    {
+      "nome": "Avisos do Metrofor e integração",
+      "cor": "#014687", "cor_escuro": "#3D7FD1",
+      "texto": "O app aprende a ler sozinho o que o Metrofor publica: operação especial, linha parada, regras de bike. Chegam o roteiro com troca de linha e o widget.",
+      "paradas": [
+        {"data": "2026-10-24", "versao": "1.38", "itens": ["Horários do dia baixados toda vez que o app abre."]},
+        {"data": "2026-10-25", "versao": "1.39 – 1.51", "destaque": true, "itens": ["Avisos do Metrofor na tela inicial, como ENEM, eleição e feriado, lidos das notícias oficiais.", "Endereço e passagem de cada estação; estações de Sobral e do Cariri no lugar certo.", "Roteiro até outra linha, com a integração e a hora de chegada.", "Widget com os próximos horários na tela inicial do celular."]},
+        {"data": "2026-10-26", "versao": "1.52 – 1.53", "itens": ["Viagem com integração do começo ao fim, seguindo sozinha para o próximo trecho."]},
+        {"data": "2026-10-27", "versao": "1.54", "itens": ["Botões que não ficam espremidos com letra grande."]},
+        {"data": "2026-10-28", "versao": "1.55", "itens": ["Avisos da viagem fáceis de ler no relógio."]},
+        {"data": "2026-10-29", "versao": "1.56 – 1.57", "itens": ["Aviso para levar dinheiro nas estações subterrâneas, onde o sinal falha e o Pix fica difícil."]},
+        {"data": "2026-10-31", "versao": "1.58 – 1.59", "itens": ["Cada linha com a cor do mapa das estações."]},
+        {"data": "2026-11-01", "versao": "1.60", "destaque": true, "itens": ["\"Para onde você vai?\": origem, destino e roteiro numa tela só, no app e na lite."]}
+      ]
+    },
+    {
+      "nome": "Planejar a viagem",
+      "cor": "#FF8402", "cor_escuro": "#FF8402",
+      "texto": "Do horário à rotina: aviso da hora de sair, Casa e Trabalho, lugares, acessibilidade, uma navegação nova e a tela inicial do seu jeito. Este site também nasce aqui.",
+      "paradas": [
+        {"data": "2026-11-02", "versao": "1.61 – 1.70", "destaque": true, "itens": ["O app avisa a hora de sair de casa, até com a tela bloqueada.", "Guia da passagem: quem paga meia, quem não paga e onde tirar o cartão.", "Casa e Trabalho; busca de lugares como HGF, UFC e Rodoviária.", "Elevador e rampa de cada estação; cada informação diz de onde vem."]},
+        {"data": "2026-11-03", "versao": "1.71 – 1.75", "destaque": true, "itens": ["Sentido desenhado como um trilho na tela da estação.", "Tela inicial nova, com Casa e Trabalho e as duas estações mais perto."]},
+        {"data": "2026-11-04", "versao": "1.76", "itens": ["Horários direto do site do Metrofor, com as mudanças feitas durante o dia; modo viagem mais certo no túnel."]},
+        {"data": "2026-11-06", "versao": "1.77 – 1.78", "itens": ["Notificação quando o Metrofor anuncia uma operação especial, mesmo com o app fechado."]},
+        {"data": "2026-11-07", "versao": "1.79", "destaque": true, "itens": ["Este site-guia: 62 estações, 7 linhas, mapa e fotos.", "Modo viagem mostra a próxima parada."]},
+        {"data": "2026-11-08", "versao": "1.80 – 1.91", "destaque": true, "itens": ["Barra com Início, Planeje sua viagem, Linhas e Mais; atalho para a Super NINA.", "Modo viagem vira um trilho com a estação em que você está e as próximas.", "Sua ida e volta e a viagem de amanhã.", "Domingo comum sem horário nenhum, só quando o metrô volta."]},
+        {"data": "2026-11-09", "versao": "1.92 – 1.96", "destaque": true, "itens": ["Seis jeitos de ver a tela inicial; cada sentido mostra a próxima estação.", "Menu Mais e Configurações mais simples."]}
+      ]
+    },
+    {
+      "nome": "Play Store",
+      "cor": "#8E2470", "cor_escuro": "#e07bc4",
+      "texto": "Depois de 14 dias de teste com passageiros que se ofereceram para ajudar, o app chega à loja.",
+      "paradas": [
+        {"data": "2026-11-11", "versao": "1.97 – 1.99", "destaque": true, "itens": ["Na Play Store!", "\"Conte sobre você\": perguntas rápidas deixam a tela inicial do seu jeito.", "Chegada no túnel avisada na hora certa."]},
+        {"data": "2026-11-12", "versao": "1.100", "itens": ["Metrô que pode estar atrasado: o que já deveria ter saído há até 10 minutos aparece como opção."]}
+      ]
+    }
+  ]
+}

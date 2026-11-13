@@ -10,6 +10,7 @@ on:
       - app/src/main/assets/regras.json
       - tools/site.py
       - tools/site_fotos.json
+      - tools/site_historia.json
   schedule:
     # Segunda, 06:41 em Fortaleza.
     - cron: "41 9 * * 1"
