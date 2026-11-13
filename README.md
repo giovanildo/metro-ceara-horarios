@@ -1472,6 +1472,7 @@ tools/paginas.py                     páginas oficiais das regras, comparadas co
 tools/site.py                        site: páginas das estações e linhas, mapas e sitemap em docs/
 tools/site_previa.py                 prévia de link do site (docs/img/previa.png) com o mapa
 tools/site_fotos.py                  fotos das estações do Wikimedia Commons (docs/img/estacoes/)
+tools/site_historia.json             linha do tempo das versões (página História do app)
 app/src/main/assets/metrofor.db      banco gerado (não editar à mão)
 app/src/main/assets/regras.json      regras fora do GTFS: bike, integrações, passagem,
                                      guia da passagem, endereços, acessibilidade, cores,
@@ -1695,6 +1696,13 @@ Google já conhece, em pastas próprias — a lite em `docs/app/` não é tocada
   de cada resposta (`fontes` do `regras.json`) e dados estruturados `FAQPage`.
   Passagem, integração, bike e horários saem dos dados; o texto das outras
   fica em `pagina_faq`. Link em "Dúvidas" no menu do computador e no rodapé.
+- **[História do app](docs/historia/index.html)**: a linha do tempo das
+  versões, dia a dia, em cinco fases (cada uma com a cor de uma linha do mapa),
+  com os números do projeto e o gráfico de commits por dia. O conteúdo fica em
+  [`tools/site_historia.json`](tools/site_historia.json), escrito para o
+  passageiro (sem bastidores): cada parada é um dia, com a versão das tags e o
+  que entrou; `commits` traz o `git log` por dia. Para atualizar, acrescente as
+  paradas e os dias e rode o `site.py`. Link no rodapé de todas as páginas.
 - **Gerado por [`tools/site.py`](tools/site.py)**, a partir do `regras.json`
   e da grade comum (`normais`) de dia útil e sábado do ramo `dados`. O que é
   fixo vai escrito no HTML; as próximas partidas e os avisos cada página busca
