@@ -83,7 +83,7 @@ private const val PRIVACY_URL = "https://giovanildo.github.io/metro-ceara-horari
  */
 private const val SITE_URL = "https://giovanildo.github.io/metro-ceara-horarios/app/"
 
-/** Sobre o app: aviso de não oficial, fontes dos dados, licença e doação. */
+/** Sobre o app: aviso de app independente, fontes dos dados, licença e doação. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(onBack: () -> Unit, onOpenSources: () -> Unit = {}) {

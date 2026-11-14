@@ -6,7 +6,7 @@ Console.
 
 ## Criar app
 
-- **Nome do app:** Metrô Ceará (não oficial)
+- **Nome do app:** Metrô Ceará
 - **Idioma padrão:** Português (Brasil) – pt-BR
 - **App ou jogo:** App
 - **Gratuito ou pago:** Gratuito
@@ -17,7 +17,7 @@ Console.
 **Nome (até 30 caracteres):**
 
 ```
-Metrô Ceará (não oficial)
+Metrô Ceará
 ```
 
 **Descrição curta (até 80 caracteres):**
@@ -29,7 +29,7 @@ Horários do metrô e VLT de Fortaleza, Cariri e Sobral e aviso antes da estaç�
 **Descrição completa (até 4.000 caracteres):**
 
 ```
-App NÃO OFICIAL, sem vínculo com o Metrofor nem com o Governo do Ceará. Os horários são os que o próprio Metrofor publica.
+App independente, feito por um passageiro, sem vínculo com o Metrofor nem com o Governo do Ceará. Os horários são os que o próprio Metrofor publica.
 
 Que horas passa o próximo metrô? Abra o app e veja a estação mais perto de você e as próximas partidas em cada sentido — do metrô e dos VLTs de Fortaleza, Sobral e Cariri.
 
@@ -121,5 +121,5 @@ GitHub, e quem já instalou recebe as atualizações da loja.
 **Mensagem para convidar testadores:**
 
 ```
-Oi! Fiz um app gratuito com os horários do metrô e do VLT de Fortaleza (não oficial), e preciso de testadores para publicá-lo na Play Store. É só: 1) me passar o e-mail da sua conta Google; 2) tocar no link que eu mandar e em "Tornar-se testador"; 3) instalar pela Play Store e deixar instalado por 14 dias, abrindo de vez em quando. Se puder, me conte o que achou. Valeu!
+Oi! Fiz um app gratuito com os horários do metrô e do VLT de Fortaleza (independente, sem vínculo com o Metrofor), e preciso de testadores para publicá-lo na Play Store. É só: 1) me passar o e-mail da sua conta Google; 2) tocar no link que eu mandar e em "Tornar-se testador"; 3) instalar pela Play Store e deixar instalado por 14 dias, abrindo de vez em quando. Se puder, me conte o que achou. Valeu!
 ```

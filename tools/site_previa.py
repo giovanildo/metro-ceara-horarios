@@ -46,7 +46,7 @@ PAGINA = """<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><style
     <h1>Metrô e VLT<br>do Ceará</h1>
     <p class="lead">Horários, estações, integração<br>e o que tem perto</p>
     <p class="numeros">{estacoes} estações · {linhas} linhas<br>Fortaleza · Cariri · Sobral</p>
-    <span class="selo">grátis · sem anúncios · não oficial</span>
+    <span class="selo">grátis · sem anúncios · independente</span>
   </div>
   <div class="painel">{mapa}</div>
 </body></html>"""

@@ -4,7 +4,7 @@ import org.json.JSONObject
 
 /**
  * De onde vem uma informação mostrada ao usuário e quando foi conferida (seção
- * `fontes` do regras.json). O app não é oficial: dizer a fonte e até quando ela
+ * `fontes` do regras.json). O app é independente: dizer a fonte e até quando ela
  * foi verificada é o que permite à pessoa confiar e conferir.
  */
 data class InfoSource(

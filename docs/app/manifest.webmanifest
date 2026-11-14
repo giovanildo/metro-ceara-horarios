@@ -1,7 +1,7 @@
 {
   "name": "Metrô Ceará — horários",
   "short_name": "Metrô Ceará",
-  "description": "Horários de metrô e VLT no celular. App não oficial.",
+  "description": "Horários de metrô e VLT no celular. App independente.",
   "lang": "pt-BR",
   "start_url": "./",
   "scope": "./",
