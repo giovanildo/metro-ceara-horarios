@@ -18,9 +18,11 @@ os.makedirs(OUT, exist_ok=True)
 CAPS = os.path.join(ROOT, "fastlane/metadata/android/pt-BR/images/phoneScreenshots")
 
 W, H = 1080, 1350
-RED = (237, 28, 36)
 WHITE = (255, 255, 255)
-PINK = (255, 220, 222)
+# Cor pela função do post: azul para mostrar o que o app faz, vermelho (a cor da
+# marca, Theme.kt) para avisos (domingo, operação especial). Escolha de 14/11/2026.
+AZUL = dict(bg=(47, 69, 120), sub=(217, 226, 255))  # azul dos títulos do app nas capturas
+AVISO = dict(bg=(237, 28, 36), sub=(255, 220, 222))
 BOLD = "/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf"
 REG = "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf"
 ICON = os.path.join(ROOT, "docs", "img", "icon.png")
@@ -51,8 +53,8 @@ def rounded(im, r):
     return out
 
 
-def card(name, title, sub, shot, crop_frac=(0.0, 1.0)):
-    im = Image.new("RGB", (W, H), RED)
+def card(name, title, sub, shot, crop_frac=(0.0, 1.0), tema=AZUL):
+    im = Image.new("RGB", (W, H), tema["bg"])
     d = ImageDraw.Draw(im)
     y = 56
     ft = f(BOLD, 74)
@@ -62,7 +64,7 @@ def card(name, title, sub, shot, crop_frac=(0.0, 1.0)):
     fs = f(REG, 40)
     y += 6
     for line in wrap(d, sub, fs, W - 140):
-        d.text(((W - d.textlength(line, font=fs)) / 2, y), line, font=fs, fill=PINK)
+        d.text(((W - d.textlength(line, font=fs)) / 2, y), line, font=fs, fill=tema["sub"])
         y += 52
     y += 30
     # Captura: recorta a faixa pedida e encaixa até o rodapé.
@@ -94,7 +96,7 @@ def card(name, title, sub, shot, crop_frac=(0.0, 1.0)):
     x0 = (W - (96 + 24 + tw)) / 2
     im.paste(ic, (int(x0), fy), ic)
     d.text((x0 + 120, fy - 2), t1, font=fn, fill=WHITE)
-    d.text((x0 + 120, fy + 54), t2, font=fc, fill=PINK)
+    d.text((x0 + 120, fy + 54), t2, font=fc, fill=tema["sub"])
     path = os.path.join(OUT, name)
     im.save(path, optimize=True)
     print(path)
@@ -105,7 +107,7 @@ card("post1-apresentacao.png", "Quando passa o próximo metrô?",
      os.path.join(CAPS, "1.png"), (0.0, 0.70))
 card("post2-domingo.png", "Domingo não tem metrô",
      "O app avisa e diz a hora que volta na segunda",
-     os.path.join(SCR, "domingo-1.100.png"), (0.0, 0.56))
+     os.path.join(SCR, "domingo-1.100.png"), (0.0, 0.56), tema=AVISO)
 card("post3-hora-de-descer.png", "Cochila no metrô?",
      "O celular avisa antes da sua estação, até com a tela desligada",
      os.path.join(CAPS, "3.png"), ((0.0, 0.16), (0.44, 0.80)))

@@ -57,7 +57,8 @@ ilustrações marcadas como tal.
 Para páginas e grupos do Facebook há o
 [`divulgacao/kit-pagina-bairro/`](divulgacao/kit-pagina-bairro/): quatro posts
 para publicar um a cada 1 ou 2 semanas (apresentação, "domingo não tem metrô",
-hora de descer e widget), em imagens 1080×1350, mais um corte de 18 s do vídeo
+hora de descer e widget), em imagens 1080×1350 — azul nas que mostram o que o
+app faz e o vermelho da marca nas de aviso (domingo, operação especial) —, mais um corte de 18 s do vídeo
 com o aviso de descida e os textos prontos em `textos.txt`, inclusive um
 modelo para o dia em que o Metrofor anunciar operação especial. Os links da
 Play Store levam `utm_source=pagina-bairro`, para separar no Play Console as
