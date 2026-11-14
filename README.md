@@ -1,6 +1,6 @@
 # Metrô Ceará — horários
 
-App Android **não oficial** com os horários das linhas do Metrofor (Fortaleza,
+App Android **independente**, feito por um passageiro, com os horários das linhas do Metrofor (Fortaleza,
 Sobral e Cariri). Sempre que é aberto, o app **baixa os horários do dia
 publicados pelo Metrofor** (veja [Horários do dia](#horários-do-dia)). Sem internet,
 tudo continua funcionando com a última cópia guardada no aparelho e, em último
@@ -1856,7 +1856,7 @@ já vem sem símbolos, então não há o que enviar.
 O material para o Play Console fica em [`tools/play/`](tools/play/):
 
 - [`loja.md`](tools/play/loja.md) — tudo o que o Console pede, pronto para
-  colar: nome ("Metrô Ceará (não oficial)"), descrições curta e completa,
+  colar: nome ("Metrô Ceará"; o aviso de que não tem vínculo com o Metrofor abre a descrição), descrições curta e completa,
   categoria e contato, e as respostas de cada formulário de "Conteúdo do app"
   (política de privacidade, anúncios, classificação, público-alvo 13+,
   segurança dos dados — **não coleta dados** —, app governamental — não —, e a
@@ -1940,7 +1940,7 @@ próprios termos:
 - **Estações do Bicicletar** — GeoJSON publicado pela AMC no
   [portal de dados abertos da Prefeitura de Fortaleza](https://dados.fortaleza.ce.gov.br/organization/amc).
 
-Este é um app **não oficial**, sem vínculo com o Metrofor, a AMC, a Prefeitura
+Este é um app **independente**, feito por um passageiro, sem vínculo com o Metrofor, a AMC, a Prefeitura
 de Fortaleza ou o Governo do Ceará.
 
 ### Sobre o nome e a marca
@@ -1948,7 +1948,9 @@ de Fortaleza ou o Governo do Ceará.
 "Metrofor" é o nome da Companhia Cearense de Transportes Metropolitanos. O app
 cita o nome **só para dizer de onde vêm os dados** (uso nominativo): ele se
 chama "Metrô Ceará", não usa "Metrofor" no nome nem no ícone, não reproduz
-o logotipo, e traz o aviso de não oficial na tela inicial e na tela Sobre. As
+o logotipo, e traz o aviso de app independente, sem vínculo com o Metrofor, na tela
+inicial e na tela Sobre. Desde a 1.102 o app se apresenta como
+"independente" em vez de "não oficial": diz quem fez, não só o que não é. As
 cores das linhas são as do mapa afixado nas estações e servem só para
 identificá-las. Quem for publicar o app em loja deve manter esses cuidados —
 nome, ícone e descrição sem sugerir vínculo oficial.
