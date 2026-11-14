@@ -54,6 +54,18 @@ da Samsung, "App não instalado"). As telas foram gravadas no emulador em
 pt-BR; os avisos do navegador e do Play Protect, que não aparecem lá, são
 ilustrações marcadas como tal.
 
+Para páginas e grupos do Facebook há o
+[`divulgacao/kit-pagina-bairro/`](divulgacao/kit-pagina-bairro/): quatro posts
+para publicar um a cada 1 ou 2 semanas (apresentação, "domingo não tem metrô",
+hora de descer e widget), em imagens 1080×1350, mais um corte de 18 s do vídeo
+com o aviso de descida e os textos prontos em `textos.txt`, inclusive um
+modelo para o dia em que o Metrofor anunciar operação especial. Os links da
+Play Store levam `utm_source=pagina-bairro`, para separar no Play Console as
+instalações que vieram dali. As imagens saem de
+[`tools/video/kit_pagina_bairro.py`](tools/video/kit_pagina_bairro.py), a partir
+das capturas da loja e de uma captura de domingo comum
+(`tools/video/capturas/domingo-1.100.png`).
+
 Para iPhone, `metro-ceara-como-instalar-iphone.mp4` (~39 s) ensina a pôr a
 [versão lite](#versão-lite-web) na tela inicial pelo Safari: as telas
 do app são reais, as do iPhone são desenhadas e marcadas como "ilustração". Os
