@@ -1,4 +1,4 @@
-<p><b>App independente</b>, feito por um passageiro, sem vínculo com o Metrofor nem com o Governo do Ceará. Os horários vêm do GTFS público publicado pelo Metrofor. Fonte oficial: https://www.ce.gov.br/metrofor/</p>
+<p><b>App não oficial</b>, sem vínculo com o Metrofor nem com o Governo do Ceará. Os horários vêm do GTFS público publicado pelo Metrofor. Fonte oficial: https://www.ce.gov.br/metrofor/</p>
 
 <p>Horários das linhas de metrô e VLT de Fortaleza (Sul, Oeste, Nordeste e VLT Aeroporto), Sobral e Cariri, com a próxima partida da estação mais perto de você.</p>
 

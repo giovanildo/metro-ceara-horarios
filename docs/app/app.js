@@ -11,7 +11,7 @@ const PERTO_A_PE = 3000; // "Sua ida e volta": até aqui, a pessoa está na esta
 const PERTO_METROS = 3000; // a segunda estação mais perto aparece até esta distância (padrão do app)
 const LINK = "https://giovanildo.github.io/metro-ceara-horarios/app/";
 /** O texto de "Compartilhar o app": o link vem logo depois (o mesmo texto do app). */
-const TEXTO_DIVULGAR = "🚇 Quando passa o próximo metrô?\n\nO Metrô Ceará responde na hora: abra o link e veja os próximos metrôs e VLTs da estação mais perto de você, em Fortaleza, no Cariri e em Sobral.\n\n📍 Diga para onde vai, até o nome de um lugar, como Mercado Central, e veja o roteiro com as integrações\n⚠️ Fique sabendo das operações especiais do Metrofor, como no ENEM\n🏠 Guarde Casa e Trabalho e confira o horário com um toque\n\nFunciona no navegador, sem instalar nada. Grátis, sem anúncios e sem cadastro. App independente, feito por um passageiro.\n\n📲 Tem Android? Baixe o app completo na Play Store, que avisa a hora de descer até com a tela desligada. O link está na página.\n\n👉";
+const TEXTO_DIVULGAR = "🚇 Quando passa o próximo metrô?\n\nO Metrô Ceará responde na hora: abra o link e veja os próximos metrôs e VLTs da estação mais perto de você, em Fortaleza, no Cariri e em Sobral.\n\n📍 Diga para onde vai, até o nome de um lugar, como Mercado Central, e veja o roteiro com as integrações\n⚠️ Fique sabendo das operações especiais do Metrofor, como no ENEM\n🏠 Guarde Casa e Trabalho e confira o horário com um toque\n\nFunciona no navegador, sem instalar nada. Grátis, sem anúncios e sem cadastro. App não oficial.\n\n📲 Tem Android? Baixe o app completo na Play Store, que avisa a hora de descer até com a tela desligada. O link está na página.\n\n👉";
 // O app completo está na Play Store desde 11/11/2026: os convites da lite levam direto à loja.
 const PLAY_STORE = "https://play.google.com/store/apps/details?id=io.github.giova.metroceara";
 const PIX = "giovanildos@gmail.com";
@@ -1787,7 +1787,7 @@ function telaSobre() {
   const { indice } = estado.dados;
   tela.innerHTML = `<div class="sobre">
     <h2 style="font-size:1.4rem">Sobre</h2>
-    <div class="aviso"><strong>App independente.</strong> Feito por um passageiro, sem vínculo com o Metrofor nem com o
+    <div class="aviso"><strong>App não oficial.</strong> Feito por um passageiro, sem ligação com o Metrofor nem com o
       Governo do Ceará. Os horários são os que o próprio Metrofor publica.</div>
 
     <h2>Versão lite e app completo</h2>
@@ -1922,7 +1922,7 @@ function telaFontes() {
   const hoje = grade.data === t.data;
   const horaBaixada = indice.tipos?.[grade.tipo]?.atualizado?.slice(11, 16);
   let html = `<h2 style="font-size:1.4rem">De onde vem cada informação</h2>
-    <p>Este app é independente. Para você poder confiar e conferir, cada informação diz de onde vem e quando foi conferida.
+    <p>Este app não é oficial. Para você poder confiar e conferir, cada informação diz de onde vem e quando foi conferida.
       A próxima conferência é a data em que vamos olhar a fonte de novo; até lá, nenhuma notícia do Metrofor indicou
       mudança. Estimativas do app não são dados do Metrofor.</p>
     <div class="fonte-item"><strong>Horários</strong>

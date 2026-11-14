@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Metrô Ceará</string>
-    <string name="subtitle">Fortaleza · Cariri · Sobral · app independente</string>
-    <string name="unofficial">App independente, feito por um passageiro. Dados do GTFS público do Metrofor.</string>
+    <string name="subtitle">Fortaleza · Cariri · Sobral · app não oficial</string>
+    <string name="unofficial">App não oficial. Dados do GTFS público do Metrofor.</string>
     <string name="back">Voltar</string>
     <string name="next_departures">Próximas partidas</string>
     <string name="all_departures">Todos os horários</string>
@@ -317,7 +317,7 @@
     <string name="trip_station_presumed">Provavelmente %1$s</string>
     <string name="about_title">Sobre</string>
     <string name="about_version">Versão %1$s</string>
-    <string name="about_unofficial">Este é um app independente, feito por um passageiro, sem vínculo com o Metrofor nem com o Governo do Ceará. Os horários são os publicados pelo Metrofor e podem não refletir atrasos ou mudanças de última hora. Em caso de dúvida, confira os canais oficiais.</string>
+    <string name="about_unofficial">Este app NÃO é oficial e não tem ligação com o Metrofor nem com o Governo do Ceará. Os horários são os publicados pelo Metrofor e podem não refletir atrasos ou mudanças de última hora. Em caso de dúvida, confira os canais oficiais.</string>
     <string name="about_sources_title">De onde vêm os dados</string>
     <string name="about_sources">• Horários e estações: GTFS público do Metrofor (info.metrofor.ce.gov.br), atualizado várias vezes por dia.\n• Endereços e passagens: páginas das linhas no site do Metrofor. Posição de algumas estações de Sobral e do Cariri, que o GTFS põe no lugar errado: © colaboradores do OpenStreetMap.\n• Lugares da busca e de \"Perto desta estação\" (hospitais, universidades, terminais…), com a caminhada pelas ruas: © colaboradores do OpenStreetMap, conferidos com os pontos de referência das estações no site do Metrofor.\n• Estações do Bicicletar: dados abertos da Prefeitura de Fortaleza (AMC).\n• Regras de bicicleta no metrô e VLT: regulamento "Bike é bem-vinda no metrô" do Metrofor.</string>
     <string name="about_license_title">Licença</string>
@@ -419,7 +419,7 @@
     <string name="about_lite_open">Abrir a versão lite</string>
     <string name="about_share_qr">QR code para abrir o app no navegador</string>
     <string name="about_share_button">Divulgar o app</string>
-    <string name="about_share_message">🚇 Quando passa o próximo metrô?\n\nO Metrô Ceará responde na hora: abra o link e veja os próximos metrôs e VLTs da estação mais perto de você, em Fortaleza, no Cariri e em Sobral.\n\n📍 Diga para onde vai, até o nome de um lugar, como Mercado Central, e veja o roteiro com as integrações\n⚠️ Fique sabendo das operações especiais do Metrofor, como no ENEM\n🏠 Guarde Casa e Trabalho e confira o horário com um toque\n\nFunciona no navegador, sem instalar nada. Grátis, sem anúncios e sem cadastro. App independente, feito por um passageiro.\n\n📲 Tem Android? Baixe o app completo na Play Store, que avisa a hora de descer até com a tela desligada. O link está na página.\n\n👉 %1$s</string>
+    <string name="about_share_message">🚇 Quando passa o próximo metrô?\n\nO Metrô Ceará responde na hora: abra o link e veja os próximos metrôs e VLTs da estação mais perto de você, em Fortaleza, no Cariri e em Sobral.\n\n📍 Diga para onde vai, até o nome de um lugar, como Mercado Central, e veja o roteiro com as integrações\n⚠️ Fique sabendo das operações especiais do Metrofor, como no ENEM\n🏠 Guarde Casa e Trabalho e confira o horário com um toque\n\nFunciona no navegador, sem instalar nada. Grátis, sem anúncios e sem cadastro. App não oficial.\n\n📲 Tem Android? Baixe o app completo na Play Store, que avisa a hora de descer até com a tela desligada. O link está na página.\n\n👉 %1$s</string>
     <string name="dev_unlocked">Opções de desenvolvedor ativadas</string>
     <string name="dev_title">Opções de desenvolvedor</string>
     <string name="dev_log">Registro de testes</string>
@@ -546,7 +546,7 @@
     <string name="route_access_ramp_short">rampa</string>
     <!-- De onde vem cada informação (regras.json "fontes"). -->
     <string name="sources_title">De onde vem cada informação</string>
-    <string name="sources_intro">Este app é independente. Para você poder confiar e conferir, cada informação diz de onde vem e quando foi conferida. A próxima conferência é a data em que vamos olhar a fonte de novo; até lá, nenhuma notícia do Metrofor indicou mudança. Estimativas do app não são dados do Metrofor.</string>
+    <string name="sources_intro">Este app não é oficial. Para você poder confiar e conferir, cada informação diz de onde vem e quando foi conferida. A próxima conferência é a data em que vamos olhar a fonte de novo; até lá, nenhuma notícia do Metrofor indicou mudança. Estimativas do app não são dados do Metrofor.</string>
     <string name="sources_schedule_title">Horários</string>
     <string name="sources_schedule_today">Fonte: GTFS do Metrofor · baixados hoje às %1$s · valem só para hoje</string>
     <string name="sources_schedule_other">Fonte: GTFS do Metrofor · grade de %1$s · o Metrofor publica a grade de cada dia</string>
@@ -597,7 +597,7 @@
     <string name="block_bike_sub">só com “Levo bike” ligado</string>
     <string name="block_lines">Linhas</string>
     <!-- Barra de baixo (Início, Rotas, Mais) e a lista do Mais. -->
-    <string name="unofficial_short">app independente</string>
+    <string name="unofficial_short">app não oficial</string>
     <string name="menu_home">Início</string>
     <string name="menu_fare">Passagem</string>
     <string name="menu_about">Sobre o app</string>

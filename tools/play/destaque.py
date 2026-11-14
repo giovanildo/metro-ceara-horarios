@@ -41,7 +41,7 @@ def main():
     reg = fr.font(fr.REG, 28)
     d.text((62, 342), "Horários do metrô e VLT da estação", font=reg, fill=fr.WHITE)
     d.text((62, 378), "mais perto e aviso antes de descer", font=reg, fill=fr.WHITE)
-    d.text((62, 430), "Grátis · sem anúncios · independente", font=fr.font(fr.BOLD, 24), fill=(255, 220, 222))
+    d.text((62, 430), "Grátis · sem anúncios · não oficial", font=fr.font(fr.BOLD, 24), fill=(255, 220, 222))
 
     destino = os.path.join(IMG, "destaque-1024x500.png")
     im.save(destino, optimize=True)

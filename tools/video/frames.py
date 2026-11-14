@@ -55,7 +55,7 @@ def text_block(draw, text, fnt, y, width=W - 120, fill=WHITE, gap=10, center=Tru
 
 def footer(draw):
     f = font(REG, 30)
-    t = "App independente, sem vínculo com o Metrofor."
+    t = "App não oficial, sem vínculo com o Metrofor."
     draw.text(((W - draw.textlength(t, font=f)) / 2, H - 70), t, font=f, fill=(255, 220, 222))
 
 
