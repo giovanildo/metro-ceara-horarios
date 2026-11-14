@@ -21,7 +21,9 @@ Metrô Ceará Fortaleza horários
 ```
 
 Na busca da loja, o título é o que mais pesa: por isso "Fortaleza" e "horários"
-(antes, "Metrô Ceará (não oficial)" não aparecia ao procurar "metrô fortaleza").
+("Metrô Ceará (não oficial)" não aparecia ao procurar "metrô fortaleza"). O
+"não oficial" saiu só do título, onde alarmava mais do que informava; o aviso
+continua no começo da descrição, no destaque e no app.
 
 **Descrição curta (até 80 caracteres):**
 
@@ -32,6 +34,8 @@ Horários do metrô e VLT de Fortaleza, Cariri e Sobral e aviso antes da estaç�
 **Descrição completa (até 4.000 caracteres):**
 
 ```
+App NÃO OFICIAL, sem vínculo com o Metrofor nem com o Governo do Ceará. Os horários são os que o próprio Metrofor publica.
+
 Que horas passa o próximo metrô? Abra o app e veja a estação mais perto de você e as próximas partidas em cada sentido — do metrô de Fortaleza (Linha Sul, Linha Oeste, Linha Nordeste e VLT Aeroporto) e dos VLTs de Sobral e do Cariri.
 
 • Próxima partida da estação mais perto, pelo GPS, com as outras linhas que passam a até 3 km.
@@ -49,13 +53,8 @@ Transparência: cada informação diz de onde vem e quando foi conferida, com o 
 
 Privacidade: sem anúncios, sem cadastro, sem rastreadores. A localização é usada só no celular; nada é enviado para ninguém.
 
-Sobre o app: o Metrô Ceará é feito por um passageiro, sem vínculo com o Metrofor nem com o Governo do Ceará, e não representa nenhum órgão público. Fontes: horários e regras publicados pelo Metrofor (GTFS público e https://www.ce.gov.br/metrofor/) e dados abertos da Prefeitura de Fortaleza (AMC) para o Bicicletar. Gratuito e de código aberto (GPL-3.0): github.com/giovanildo/metro-ceara-horarios
+Gratuito e de código aberto (GPL-3.0): github.com/giovanildo/metro-ceara-horarios
 ```
-
-O aviso de que o app não tem vínculo fica no **fim** da descrição, de propósito: a
-política do Google para apps com informação de governo pede as fontes e esse aviso
-em lugar fácil de ver na descrição, mas não no título nem no começo. Se a revisão
-recusar, subir o parágrafo "Sobre o app" para o começo.
 
 **Gráficos:**
 
