@@ -1,6 +1,4 @@
-<p><b>App não oficial</b>, sem vínculo com o Metrofor nem com o Governo do Ceará. Os horários vêm do GTFS público publicado pelo Metrofor. Fonte oficial: https://www.ce.gov.br/metrofor/</p>
-
-<p>Horários das linhas de metrô e VLT de Fortaleza (Sul, Oeste, Nordeste e VLT Aeroporto), Sobral e Cariri, com a próxima partida da estação mais perto de você.</p>
+<p>Horário do metrô de Fortaleza na palma da mão: Linha Sul, Linha Oeste, Linha Nordeste e VLT Aeroporto, além dos VLTs de Sobral e do Cariri, com a próxima partida da estação mais perto de você, de Parangaba, Benfica, José de Alencar e Chico da Silva a Pacatuba, Caucaia e Juazeiro do Norte.</p>
 
 <p><b>Recursos</b></p>
 <ul>
@@ -27,4 +25,4 @@
 
 <p><b>Privacidade:</b> sem anúncios, sem rastreadores, sem conta. A localização só é usada no aparelho. A internet serve apenas para baixar os horários do site do Metrofor e as regras do app (passagem, integrações, avisos) do GitHub do projeto, sem enviar nada sobre você.</p>
 
-<p>Software livre (GPL-3.0). Fontes dos dados: GTFS do Metrofor e dados abertos da Prefeitura de Fortaleza (AMC) para o Bicicletar.</p>
+<p><b>Sobre o app:</b> o Metrô Ceará é feito por um passageiro, sem vínculo com o Metrofor nem com o Governo do Ceará, e não representa nenhum órgão público. Fontes: horários e regras publicados pelo Metrofor (GTFS público e https://www.ce.gov.br/metrofor/) e dados abertos da Prefeitura de Fortaleza (AMC) para o Bicicletar. Software livre (GPL-3.0).</p>
