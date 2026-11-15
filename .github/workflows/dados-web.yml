@@ -35,6 +35,7 @@ on:
 
 permissions:
   contents: write
+  issues: write  # a issue de cada notícia nova (tools/vigia.py --so-noticias)
 
 concurrency:
   group: dados-web
@@ -73,3 +74,13 @@ jobs:
             git commit -q -m "Horários de $(date +%F)"
             git push origin dados
           fi
+
+      # Cada notícia nova do Metrofor vira uma issue (chega por e-mail) dizendo o que o
+      # leitor de operação entendeu dela. Aqui, e não só no vigia diário, para o aviso
+      # chegar em meia hora. Falhar aqui não derruba a rodada de dados.
+      - name: Avisar notícia nova
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TZ: America/Fortaleza
+        run: python3 tools/vigia.py --so-noticias --issues

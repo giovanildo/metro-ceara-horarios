@@ -9,7 +9,8 @@ aparece. Este script olha o que foi publicado no ramo "dados" e abre uma issue
     grade         a grade de horários não atualiza há mais de 24 h
     fonte:*       uma fonte não é lida com sucesso há dias
     noticias      nenhuma notícia nova há tempo demais (o site pode ter mudado)
-    noticia:*     notícia que parece de operação especial e o leitor não entendeu
+    noticia:*     toda notícia nova do Metrofor, com o que o leitor de operação entendeu dela
+                  ("entendi", "NÃO entendi" quando parece de operação, ou "nada muda")
     estacao:*     estação do feed sem dados no regras.json, ou com outro nome
     linha:*       linha do feed sem cor no regras.json (linha nova?)
     pagina:*      página oficial diferente da versão conferida (tools/paginas.py)
@@ -21,6 +22,9 @@ Falha isolada não é problema (o site do Metrofor às vezes não responde e vol
 na rodada seguinte): por isso os limites olham a última leitura BOA, gravada pela
 rodada em indice.json ("saude"). Quando o problema some, a issue fecha sozinha.
 
+A rodada de dados também roda só a parte das notícias (--so-noticias), para o aviso
+de notícia nova chegar em poucas horas, e não só no dia seguinte.
+
 Notícia e página alterada são um aviso só: a issue fica aberta até alguém fechar e não volta depois.
 Para calar um alerta de estação ou linha que não é problema, feche a issue como
 "não planejado" (close as not planned). Os outros não se calam assim: fechados,
@@ -29,6 +33,7 @@ voltam no dia seguinte se o problema continuar.
     python3 tools/vigia.py               # só mostra o que encontrou
     python3 tools/vigia.py PASTA         # usa os arquivos de uma pasta local
     python3 tools/vigia.py --issues      # abre e fecha as issues (precisa do gh)
+    python3 tools/vigia.py --so-noticias --issues   # só a issue de cada notícia nova
 
 Sai com 1 se não conseguir ler os dados publicados (aí nem dá para vigiar).
 """
@@ -69,6 +74,12 @@ FONTES = {
 DIAS_SEM_NOTICIA = 60
 # Recente o bastante para ainda dar tempo de corrigir antes do dia da operação.
 DIAS_NOTICIA_NAO_ENTENDIDA = 10
+# Texto que fala de horário de um dia, mesmo com manchete de outro jeito: o leitor
+# devia ter entendido ("Segundo domingo de Enem terá metrô e VLT gratuitamente", 12/11/2026).
+PARECE_OPERACAO_TEXTO = re.compile(
+    r"hor[áa]rios? (aproximad|especia)|opera[çc][ãa]o (especial|gratuita|comercial ser[áa] encerrada)"
+    r"|viagens especiais|encerrad\w* mais cedo|n[ãa]o (haver[áa]|ter[áa]) opera", re.I)
+SEMANA = ["segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo"]
 # Nas 32 notícias com estes títulos desde 2023, o leitor tirou a data de todas:
 # se uma não sair, é sinal de que o site passou a escrever de outro jeito.
 PARECE_OPERACAO = re.compile(
@@ -100,8 +111,9 @@ COMO_CORRIGIR = {
              "[Dados da versão web](https://github.com/giovanildo/metro-ceara-horarios/actions/workflows/dados-web.yml).",
     "noticias": "Confira se o [site do Metrofor](https://www.ce.gov.br/metrofor/) publicou algo nesse período. "
                 "Se publicou, o endereço do feed mudou. Se não, não precisa fazer nada: esta issue fecha sozinha na próxima notícia.",
-    "noticia": "Se a notícia anuncia um dia especial, ponha o dia em `operacoes` no `app/src/main/assets/regras.json` "
-               "e ajuste `tools/operacoes.py`. Se não anuncia, feche como \"não planejado\".",
+    "noticia": "Confira se o aviso acima bate com a notícia e feche esta issue. Se o leitor errou ou não entendeu "
+               "uma notícia de operação, ponha o dia em `operacoes` no `app/src/main/assets/regras.json` (ganha do "
+               "leitor) e ajuste `tools/operacoes.py`.",
     "estacao": "Enquanto isso, o app e o site mostram a estação sem endereço, acessibilidade e avisos. "
                "Acerte `estacoes` no `app/src/main/assets/regras.json` (a chave é o id do feed). "
                "Se ela não precisa de dados próprios, feche como \"não planejado\".",
@@ -196,20 +208,47 @@ def ver_noticias(noticias, hoje):
     return {"noticias": problema(f"Nenhuma notícia do Metrofor há mais de {DIAS_SEM_NOTICIA} dias", detalhe)}
 
 
-def ver_noticias_nao_entendidas(posts):
+def _dia(iso):
+    d = date.fromisoformat(iso)
+    return f"{SEMANA[d.weekday()]}, {d:%d/%m}"
+
+
+def entendido(ops):
+    """O que o leitor tirou da notícia, dia por dia, como o app vai mostrar."""
+    linhas = []
+    for dia, o in sorted(ops.items()):
+        como = "funcionamento normal" if o.get("normal") else "operação especial"
+        linhas.append(f"- **{_dia(dia)}**: {como}. Aviso no app: “Metrofor, {_dia(dia)}: {o['titulo']}”")
+        if o.get("paradas"):
+            linhas.append(f"  - Não circulam: {', '.join(o['paradas'])}")
+        for nome, (ini, fim) in o.get("horarios", {}).items():
+            linhas.append(f"  - {nome}: {ini} às {fim}")
+    return "\n".join(linhas)
+
+
+def ver_noticias_novas(posts):
+    """Uma issue por notícia nova: o que o leitor de operação entendeu, ou que não entendeu."""
     saida = {}
     for p in posts:
         titulo = de._limpo(p["title"]["rendered"])
-        if not PARECE_OPERACAO.search(titulo):
-            continue
+        conteudo = p["content"]["rendered"]
         publicada = date.fromisoformat(p["date"][:10])
-        if operacoes.extrair(titulo, p["content"]["rendered"], publicada, p.get("link", "")):
-            continue
         link = p.get("link", "")
+        ops = operacoes.extrair(titulo, conteudo, publicada, link)
+        if ops:
+            ops = {d: {k: v for k, v in o.items() if k != "principal"} for d, o in ops.items()}
+            rotulo = "entendi"
+            corpo = f"O leitor entendeu assim:\n\n{entendido(ops)}"
+        elif PARECE_OPERACAO.search(titulo) or PARECE_OPERACAO_TEXTO.search(de._limpo(conteudo)):
+            rotulo = "NÃO entendi"
+            corpo = ("Parece notícia de operação (horário de um dia), mas o leitor não tirou nenhum dia dela: "
+                     "o app não vai avisar.")
+        else:
+            rotulo = "nada muda"
+            corpo = "Não parece de operação especial: o app não mostra nada."
         chave = "noticia:" + (link.rstrip("/").rsplit("/", 1)[-1] or p["date"][:10])
-        saida[chave] = problema(f"Notícia que o leitor não entendeu: {titulo[:80]}",
-                                f"Publicada em {publicada:%d/%m/%Y}: {titulo}\n\n{link}\n\n"
-                                "O título parece de operação especial, mas não saiu nenhuma data dela.")
+        saida[chave] = problema(f"Notícia do Metrofor ({rotulo}): {titulo[:80]}",
+                                f"Publicada em {publicada:%d/%m/%Y}: **{titulo}**\n\n{link}\n\n{corpo}")
     return saida
 
 
@@ -336,7 +375,7 @@ def verificar(pasta):
     except Exception as e:  # noqa: BLE001 - site fora do ar é assunto do fonte:*, não daqui
         print(f"notícias: não deu para ler hoje ({e}); fica para amanhã")
         return problemas
-    problemas.update(ver_noticias_nao_entendidas(posts))
+    problemas.update(ver_noticias_novas(posts))
     problemas.update(ver_noticias_de_regras(posts))
     return problemas
 
@@ -349,7 +388,12 @@ def rodape(chave):
     return COMO_CORRIGIR[chave.split(":")[0]]
 
 
-def sincronizar(problemas):
+def so_noticias():
+    """Só as notícias recentes, para a rodada de dados (várias vezes por dia)."""
+    return ver_noticias_novas(de.posts_recentes(agora_fortaleza().date(), DIAS_NOTICIA_NAO_ENTENDIDA))
+
+
+def sincronizar(problemas, fechar=True):
     gh("label", "create", ROTULO, "--color", "B60205", "--description", "Aberta pelo vigia dos dados", "--force")
     lista = json.loads(gh("issue", "list", "--label", ROTULO, "--state", "all", "--limit", "500",
                           "--json", "number,state,stateReason,body"))
@@ -372,7 +416,7 @@ def sincronizar(problemas):
             print(f"nova: {p['titulo']}: {gh('issue', 'create', '--title', p['titulo'], '--body', corpo, '--label', ROTULO, '--assignee', DONO).strip()}")
 
     for chave, issue in existentes.items():
-        if issue["state"] == "OPEN" and chave not in problemas and not chave.startswith(UNICOS):
+        if fechar and issue["state"] == "OPEN" and chave not in problemas and not chave.startswith(UNICOS):
             gh("issue", "close", str(issue["number"]), "--comment", "O vigia não vê mais este problema.")
             print(f"fechada (#{issue['number']}): {chave}")
 
@@ -381,7 +425,19 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("pasta", nargs="?", help="arquivos do ramo dados numa pasta local")
     parser.add_argument("--issues", action="store_true", help="abre e fecha as issues")
+    parser.add_argument("--so-noticias", action="store_true", help="só a issue de cada notícia nova (não fecha nada)")
     args = parser.parse_args()
+    if args.so_noticias:
+        try:
+            problemas = so_noticias()
+        except Exception as e:  # noqa: BLE001 - site fora do ar: fica para a próxima rodada
+            print(f"notícias: não deu para ler agora ({e}); fica para a próxima")
+            return 0
+        for chave, p in sorted(problemas.items()):
+            print(f"[{chave}] {p['titulo']}")
+        if args.issues:
+            sincronizar(problemas, fechar=False)
+        return 0
     try:
         problemas = verificar(args.pasta)
     except (OSError, ValueError, KeyError) as e:

@@ -1341,12 +1341,18 @@ só no que precisa de gente:
 | Grade parada | mais de 24 h sem grade válida |
 | Fonte sem leitura | notícias, operações e regras de bike há 3 dias; Bicicletar há 7 |
 | Silêncio nas notícias | mais de 60 dias sem notícia nova (o site pode ter mudado) |
-| Notícia não entendida | título de operação especial, nos últimos 10 dias, sem data que o leitor consiga tirar |
+| Notícia nova | **toda** notícia do Metrofor dos últimos 10 dias, uma issue cada, com o que o leitor de operação entendeu: "(entendi)" lista os dias, o aviso que o app vai mostrar e o horário de cada linha; "(NÃO entendi)" quando o título ou o texto parece de operação e nenhum dia saiu; "(nada muda)" no resto. Desde 2023 seriam ~5 por mês, 5 delas "NÃO entendi" |
 | Estação ou linha | estação do feed fora do `regras.json` ou com outro nome; linha sem cor |
 | Página oficial | tarifas, gratuidades, meia, bike ou Cariri diferente da versão conferida, ou sem leitura há 7 dias |
 | Notícia sobre regra | título sobre passagem, gratuidade, bike, linha nova ou Nina, nos últimos 10 dias |
 | Página alterada | outra página do site, nos últimos 10 dias, sobre passagem, cartão, bike, linhas, estações ou horários (fora licitação, publicidade e relatórios) |
 | Conferência vencendo | fonte do `regras.json` que vence neste mês ou no próximo |
+
+A parte das notícias também roda na rodada de dados, a cada 30 minutos de dia
+(`vigia.py --so-noticias --issues`, sem fechar nada e sem derrubar a rodada se
+falhar): a notícia nova chega por e-mail em meia hora. Foi pedida em 14/11/2026,
+quando a notícia de 12/11 ("Segundo domingo de Enem terá metrô e VLT
+gratuitamente") passou sem o leitor entender e ninguém viu.
 
 Uma falha isolada não vira alerta: o site do Metrofor às vezes não responde e
 volta na rodada seguinte. Por isso os limites olham a última leitura **boa** de
@@ -1361,6 +1367,7 @@ calam assim: voltam no dia seguinte se continuar errado.
 python3 tools/vigia.py            # só mostra o que encontrou
 python3 tools/vigia.py /tmp/d     # usa uma pasta gerada pelo build_web_data.py
 python3 tools/vigia.py --issues   # abre e fecha as issues (precisa do gh)
+python3 tools/vigia.py --so-noticias   # só a issue de cada notícia nova
 ```
 
 ### Páginas oficiais conferidas
