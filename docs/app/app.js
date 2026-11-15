@@ -1081,7 +1081,7 @@ function telaLugar(chave, de) {
   const mostrar = (busca) => {
     const agulha = semAcento(busca.trim());
     lista.innerHTML = grade.linhas.map((l) => {
-      const ests = grade.estacoesDaLinha(l).filter((id) => !agulha || semAcento(semSufixo(grade.nome(id))).includes(agulha));
+      const ests = grade.estacoesDaLinha(l).filter((id) => !agulha || semAcento(semSufixo(grade.nomeBusca(id))).includes(agulha));
       return ests.length ? `<p class="grupo"><span class="ponto" style="background:${cor(l)}"></span>${esc(l.nome)}</p>
         ${ests.map((id) => `<button class="destino" data-v="${l.id}|${id}"><span>${esc(semSufixo(grade.nome(id)))}</span>
           ${atual === `${l.id}|${id}` ? "<small>escolhida</small>" : ""}</button>`).join("")}` : "";
@@ -1513,7 +1513,7 @@ function listaDestinos(lo, eo, busca, t) {
     const via = !lo ? "" : !caminho.length ? " · mesma linha"
       : caminho.length === 1 ? ` · integração em ${semSufixo(grade.nome(caminho[0].deEst))}` : ` · ${caminho.length} integrações`;
     const ests = grade.estacoesDaLinha(l).filter((id) => id !== chegaA && !(l.id === lo && id === eo))
-      .filter((id) => !agulha || semAcento(semSufixo(grade.nome(id))).includes(agulha));
+      .filter((id) => !agulha || semAcento(semSufixo(grade.nomeBusca(id))).includes(agulha));
     if (!ests.length) return "";
     return `<p class="grupo"><span class="ponto" style="background:${cor(l)}"></span>${esc(l.nome)}${parada ? " · não circula" : via}</p>
       ${ests.map((id) => {

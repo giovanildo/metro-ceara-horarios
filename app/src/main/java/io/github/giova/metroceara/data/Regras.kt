@@ -152,7 +152,7 @@ class Regras(
      * renumerar as estações, a informação fica de fora em vez de ir para a estação errada.
      */
     fun station(stopId: String, name: String): StationInfo? =
-        stations[stopId]?.takeIf { plain(it.name) == plain(name) }
+        stations[stopId]?.takeIf { plain(StationNames.official(it.name)) == plain(StationNames.official(name)) }
 
     fun fare(routeName: String): String? = fares[routeName.trim().lowercase()]
 
@@ -371,7 +371,7 @@ class Regras(
                     city = o.optString("cidade"),
                     lat = position.getDouble(0),
                     lon = position.getDouble(1),
-                    station = o.getString("estacao"),
+                    station = StationNames.official(o.getString("estacao")),
                     walkMeters = o.getInt("a_pe_m"),
                 )
             }.getOrNull()

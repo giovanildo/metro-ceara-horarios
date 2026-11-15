@@ -63,6 +63,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import io.github.giova.metroceara.data.RecentTrip
+import io.github.giova.metroceara.data.StationNames
 import io.github.giova.metroceara.data.LeaveStore
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -425,7 +426,7 @@ private fun StationList(
     onPickRecent: (RecentDest) -> Unit = {},
 ) {
     val needle = plainText(query)
-    val shown = lines.map { line -> line to line.stops.filter { needle.isEmpty() || plainText(it.name).contains(needle) } }
+    val shown = lines.map { line -> line to line.stops.filter { needle.isEmpty() || plainText(StationNames.searchText(it.name)).contains(needle) } }
         .filter { it.second.isNotEmpty() }
     // Cada lugar com a linha e a estação da lista (ou nenhuma: é a de onde se sai).
     val placeRows = if (needle.isNotEmpty()) emptyList() else places.mapNotNull { (place, saved) ->

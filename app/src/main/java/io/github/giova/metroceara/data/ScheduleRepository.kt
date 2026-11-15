@@ -44,7 +44,7 @@ class ScheduleRepository(context: Context) {
     fun stop(id: String): Stop? = db.rawQuery(
         "SELECT stop_id, name FROM stop WHERE stop_id = ?",
         arrayOf(id),
-    ).map { Stop(it.getString(0), it.getString(1), seq = 0) }.firstOrNull()
+    ).map { Stop(it.getString(0), StationNames.official(it.getString(1)), seq = 0) }.firstOrNull()
 
     fun stationCount(routeId: String): Int = db.rawQuery(
         "SELECT COUNT(DISTINCT stop_id) FROM route_stop WHERE route_id = ?",
@@ -88,7 +88,7 @@ class ScheduleRepository(context: Context) {
         ORDER BY rs.seq
         """.trimIndent(),
         arrayOf(routeId, directionId.toString()),
-    ).map { Stop(it.getString(0), it.getString(1), it.getInt(2)) }
+    ).map { Stop(it.getString(0), StationNames.official(it.getString(1)), it.getInt(2)) }
 
     /**
      * Por onde passa [direction] a partir de [stopId]. O sentido que o Metrofor
@@ -270,7 +270,7 @@ class ScheduleRepository(context: Context) {
     ).map {
         TransferTarget(
             stopId = it.getString(0),
-            stopName = it.getString(1),
+            stopName = StationNames.official(it.getString(1)),
             walkMinutes = it.getInt(2),
             routeId = it.getString(3),
             routeName = it.getString(4),
@@ -311,7 +311,7 @@ class ScheduleRepository(context: Context) {
         val fix = Regras.current.station(it.getString(0), it.getString(1))
         Station(
             stopId = it.getString(0),
-            stopName = it.getString(1),
+            stopName = StationNames.official(it.getString(1)),
             lat = fix?.lat ?: it.getDouble(2),
             lon = fix?.lon ?: it.getDouble(3),
             routeId = it.getString(4),

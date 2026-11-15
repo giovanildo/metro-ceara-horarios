@@ -89,6 +89,7 @@ export async function carregar() {
     json("regras.json").catch(() => null),
     json("bicicletar.json").catch(() => []),
   ]);
+  for (const l of regras?.lugares?.lista || []) l.estacao = nomeOficial(l.estacao);
   // Onde o GTFS põe a estação no lugar errado (Sobral, Escola do Cariri), vale a posição de regras.json.
   for (const [id, e] of Object.entries(grade?.estacoes || {})) {
     const posicao = infoEstacao(regras, id, e.nome)?.posicao;
@@ -118,6 +119,16 @@ export async function carregar() {
   };
 }
 
+// ---------- estações renomeadas por lei (o GTFS do Metrofor ainda traz o nome antigo)
+
+// Jereissati → Francisco Alves Marinho: Lei estadual 19.272, de 05/06/2025. O mesmo no app (StationNames.kt).
+// A regras.json continua com o nome do GTFS; as comparações passam pelos dois.
+const RENOMEADAS = { "Jereissati": "Francisco Alves Marinho" };
+const ANTIGOS = Object.fromEntries(Object.entries(RENOMEADAS).map(([antigo, novo]) => [novo, antigo]));
+export const nomeOficial = (nome) => RENOMEADAS[(nome || "").trim()] ?? nome;
+/** O nome antigo de uma estação renomeada ("Jereissati"), ou undefined. */
+export const nomeAntigo = (nome) => ANTIGOS[(nome || "").replace(/\s+-\s+(AE|NE)$/i, "").trim()];
+
 // ---------- a grade de um dia
 
 export class Grade {
@@ -126,6 +137,7 @@ export class Grade {
     this.tipo = g.tipo;
     this.linhas = g.linhas;
     this.estacoes = g.estacoes;
+    for (const e of Object.values(this.estacoes || {})) e.nome = nomeOficial(e.nome);
     this.integracoes = g.integracoes || [];
     // A grade do dia às vezes só traz a ida (Linha Norte de Sobral, nos dias úteis):
     // a volta entra sem viagens, para a tela dizer que o Metrofor não a publicou.
@@ -150,6 +162,8 @@ export class Grade {
 
   linha(id) { return this.linhas.find((l) => l.id === id); }
   nome(stopId) { return this.estacoes[stopId]?.nome ?? stopId; }
+  /** O nome e o nome antigo, para a busca achar pelos dois. */
+  nomeBusca(stopId) { const n = this.nome(stopId); const a = nomeAntigo(n); return a ? `${n} ${a}` : n; }
 
   /** Estações de uma linha, na ordem do primeiro sentido (a mais longa). */
   estacoesDaLinha(linha) {
@@ -220,7 +234,7 @@ const simples = (s) => s.normalize("NFD").replace(/[^A-Za-z0-9]/g, "").toLowerCa
  */
 export function infoEstacao(regras, stopId, nome) {
   const e = regras?.estacoes?.[stopId];
-  return e && simples(e.nome) === simples(nome) ? e : null;
+  return e && simples(nomeOficial(e.nome)) === simples(nomeOficial(nome)) ? e : null;
 }
 
 /** O Metrofor avisou que esta linha não circula neste dia? */
