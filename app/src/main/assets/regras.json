@@ -312,6 +312,13 @@
     }
   },
 
+  "avisos_das_linhas": {
+    "_sobre": "Avisos que valem para todas as estações de uma linha, mostrados na tela da estação (app e versão lite), embaixo da passagem, cada um com o seu link \"Fonte ›\" (\"fonte\" = chave em \"fontes\"). A chave é o nome da linha como no GTFS. Muda sem versão nova do app.",
+    "Linha Sul": [
+      {"texto": "Vagão feminino: 2 vagões só para mulheres, cis e trans, o dia todo. Ficam sinalizados.", "fonte": "vagao_feminino"}
+    ]
+  },
+
   "nina": {
     "_sobre": "Super NINA: canal de denúncia de importunação sexual pelo WhatsApp, do Metrofor com a Etufor e a Secretaria das Mulheres. No menu do app e da versão lite, o item \"Nina\" (só o rostinho e o nome, sem palavra que chame atenção) abre direto a conversa. \"whatsapp\": o número com DDI e DDD, só dígitos. \"linhas\": onde a Super NINA atende; quem está perto de estação de outra linha (Sobral, Cariri) não vê o item. Sem este bloco, o item some.",
     "whatsapp": "5585933007001",
@@ -841,6 +848,16 @@
       "link": "https://dados.fortaleza.ce.gov.br/",
       "conferido": "2026-11",
       "revisar_em_meses": 6
+    },
+    "vagao_feminino": {
+      "titulo": "Vagão feminino da Linha Sul",
+      "tipo": "metrofor",
+      "fonte": "notícias do Metrofor",
+      "link": "https://www.ce.gov.br/metrofor/2026/07/03/metrofor-implanta-vagoes-femininos-na-linha-sul/",
+      "desde": "na Linha Sul desde 03/07/2026",
+      "conferido": "2026-11",
+      "revisar_em_meses": 6,
+      "detalhe": "Dois vagões, um terço do metrô, sinalizados, exclusivos para mulheres cis e trans, durante toda a operação; a mulher pode usar qualquer vagão, e homem não pode ficar no feminino (notícias de 03/07 e 21/10/2026). Nos domingos do Enem 2026 o Metrofor confirmou que o vagão feminino continua valendo."
     },
     "nina": {
       "titulo": "Nina (Super NINA, denúncia pelo WhatsApp)",

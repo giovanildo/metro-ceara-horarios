@@ -79,6 +79,9 @@ data class Nina(val whatsapp: String, val lines: Set<String>) {
     fun serves(routeName: String?): Boolean = routeName == null || routeName.trim().lowercase() in lines
 }
 
+/** Aviso que vale para todas as estações de uma linha (regras.json "avisos_das_linhas"), com a chave da fonte. */
+data class LineNotice(val text: String, val source: String?)
+
 /** Cor de uma linha ("ce0f2e") no tema claro e no tema escuro. */
 data class LineColor(val light: String, val dark: String)
 
@@ -134,7 +137,11 @@ class Regras(
     val sources: Map<String, InfoSource> = emptyMap(),
     /** Super NINA; sem o bloco no arquivo, o item do menu some. */
     val nina: Nina? = null,
+    /** Avisos de cada linha (nome em minúsculas), como o do vagão feminino da Linha Sul. */
+    val lineNotices: Map<String, List<LineNotice>> = emptyMap(),
 ) {
+    fun lineNotices(routeName: String): List<LineNotice> = lineNotices[routeName.trim().lowercase()].orEmpty()
+
     fun source(id: String?): InfoSource? = id?.let { sources[it] }
 
     /** A partida cai num horário de pico (metrô costuma ir cheio)? */
@@ -336,8 +343,20 @@ class Regras(
                     Nina(number, (0 until lines.length()).map { lines.getString(it).trim().lowercase() }.toSet())
                         .takeIf { number.length >= 12 }
                 },
+                lineNotices = root.optJSONObject("avisos_das_linhas")?.let(::lineNotices).orEmpty(),
             )
         }
+
+        /** Um aviso com erro (sem texto) fica de fora sem derrubar os outros. */
+        internal fun lineNotices(o: JSONObject): Map<String, List<LineNotice>> =
+            o.keys().asSequence().filterNot { it.startsWith("_") }.associate { line ->
+                val list = o.optJSONArray(line) ?: JSONArray()
+                line.trim().lowercase() to (0 until list.length()).mapNotNull { i ->
+                    val n = list.optJSONObject(i) ?: return@mapNotNull null
+                    val text = n.optString("texto").trim().takeIf { it.isNotEmpty() } ?: return@mapNotNull null
+                    LineNotice(text, n.optString("fonte").trim().takeIf { it.isNotEmpty() })
+                }
+            }.filterValues { it.isNotEmpty() }
 
         /** Um lugar com erro (sem posição, sem estação) fica de fora sem derrubar os outros. */
         private fun landmarks(list: JSONArray?): List<Landmark> = (0 until (list?.length() ?: 0)).mapNotNull { i ->

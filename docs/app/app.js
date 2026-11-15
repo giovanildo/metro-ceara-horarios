@@ -1,6 +1,6 @@
 import {
   agora, bikeAgora, carregar, dataCurta, distancia, falta, hora, infoEstacao, janelasBike, metros, minutosAte, passagem,
-  diaEspecial, linhaParada, voltaDaSegunda, passagemDaLinha, fonteLinha, proximas, somarDias, veiculo,
+  diaEspecial, linhaParada, voltaDaSegunda, passagemDaLinha, fonteLinha, proximas, somarDias, veiculo, avisosDaLinha,
 } from "./dados.js";
 import { PERFIS, Roteador } from "./roteiro.js";
 import { destinoIdaVolta, escolherMetro, escolherVia, mesmaEstacao, viagensSugeridas } from "./idavolta.js";
@@ -1163,6 +1163,10 @@ function telaEstacao(linhaId, stopId, sentidoId) {
   }
   // Aviso livre da estação (regras.json), como o de estação subterrânea.
   if (info?.aviso) html += `<p class="aviso">${esc(info.aviso)}</p>${info.subterranea ? fonte("subterranea", "margin-top:-6px") : ""}`;
+  // Avisos da linha toda (regras.json), como o do vagão feminino da Linha Sul.
+  for (const a of avisosDaLinha(estado.dados.regras, linha.nome)) {
+    html += `<p class="dica">${esc(a.texto)}</p>${a.fonte ? fonte(a.fonte, "margin-top:-8px") : ""}`;
+  }
   html += linhaAcesso(info?.acesso, `#/acesso/${linha.id}/${stopId}`);
   html += trilhoDeSentidos(linha, stopId, sentidos, sentido);
   const via = viaDoSentido(sentido, stopId);

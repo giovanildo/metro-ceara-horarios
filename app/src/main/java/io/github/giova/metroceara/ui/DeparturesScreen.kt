@@ -238,7 +238,10 @@ fun DeparturesScreen(
                 val address = info?.address
                 val fare = Regras.current.fare(route.name)
                 val wheelchair = SettingsStore.get(context).mobility == Mobility.WHEELCHAIR
-                if (address != null || fare != null || info?.notice != null || info?.access != null || wheelchair) {
+                val lineNotices = Regras.current.lineNotices(route.name)
+                if (address != null || fare != null || info?.notice != null || info?.access != null || wheelchair ||
+                    lineNotices.isNotEmpty()
+                ) {
                     item {
                         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             listOfNotNull(address, fare?.let { stringResource(R.string.station_fare, it) }).forEach {
@@ -274,6 +277,16 @@ fun DeparturesScreen(
                                 )
                             }
                             if (info?.notice != null && info.underground) SourceLine("subterranea")
+                            // Avisos da linha toda (regras.json), como o do vagão feminino da Linha Sul.
+                            lineNotices.forEach { notice ->
+                                Text(
+                                    text = notice.text,
+                                    modifier = Modifier.padding(top = 4.dp),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                SourceLine(notice.source)
+                            }
                             StationAccessLine(info?.access, wheelchair, onOpen = onOpenAccess)
                         }
                     }

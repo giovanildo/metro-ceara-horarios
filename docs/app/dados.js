@@ -238,6 +238,13 @@ export function voltaDaSegunda(regras, data, nomeLinha, primeiro, verbo = "Volta
   return primeiro === undefined ? null : `${verbo} segunda, a partir das ${hora(primeiro)}.`;
 }
 
+/** Avisos da linha toda (regras.json "avisos_das_linhas"), como o do vagão feminino da Linha Sul. */
+export function avisosDaLinha(regras, nomeLinha) {
+  const [, lista] = Object.entries(regras?.avisos_das_linhas || {})
+    .find(([k]) => !k.startsWith("_") && k.trim().toLowerCase() === nomeLinha.trim().toLowerCase()) || [];
+  return (Array.isArray(lista) ? lista : []).filter((a) => a && typeof a.texto === "string" && a.texto.trim());
+}
+
 /** "R$ 3,60 (meia R$ 1,80) · dinheiro ou Pix", ou null. */
 export function passagemDaLinha(regras, nomeLinha) {
   const [, texto] = Object.entries(regras?.passagem || {})

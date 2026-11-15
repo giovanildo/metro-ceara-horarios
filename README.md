@@ -810,6 +810,14 @@ descer." Nesse trecho o GPS também some: nos registros de 14 a 21/10, as
 posições lá embaixo vieram da rede (25–100 m de precisão), o que bastou para
 marcar as estações; num caso, 2 min sem posição, e o app seguiu pela tabela.
 
+**Avisos da linha toda.** O que vale para todas as estações de uma linha fica
+em `avisos_das_linhas` (por nome da linha, cada aviso com `texto` e a chave da
+sua `fonte`), e aparece na tela da estação, abaixo do guia da passagem, com o
+seu "Fonte ›", no app e na lite. O primeiro é o **vagão feminino** da Linha Sul
+(desde 03/07/2026, notícias do Metrofor): "Vagão feminino: 2 vagões só para
+mulheres, cis e trans, o dia todo. Ficam sinalizados." Mudar o texto ou pôr um
+aviso em qualquer linha chega sem versão nova; o app lê o bloco desde a 1.103.
+
 Na mesma seção `estacoes`, `posicao` corrige as estações que o **GTFS põe no
 lugar errado**. Conferindo as cinco linhas com mapas do Google My Maps e com o
 OpenStreetMap (as duas fontes concordam, a até 70 m), Fortaleza bate com o
