@@ -67,6 +67,9 @@ instalações que vieram dali. As imagens saem de
 das capturas da loja e de uma captura de domingo comum
 (`tools/video/capturas/domingo-1.100.png`).
 
+Para o perfil do app no Instagram, nome, bio e link prontos estão em
+[`divulgacao/instagram-bio.md`](divulgacao/instagram-bio.md).
+
 Para iPhone, `metro-ceara-como-instalar-iphone.mp4` (~39 s) ensina a pôr a
 [versão lite](#versão-lite-web) na tela inicial pelo Safari: as telas
 do app são reais, as do iPhone são desenhadas e marcadas como "ilustração". Os
@@ -1856,7 +1859,10 @@ já vem sem símbolos, então não há o que enviar.
 O material para o Play Console fica em [`tools/play/`](tools/play/):
 
 - [`loja.md`](tools/play/loja.md) — tudo o que o Console pede, pronto para
-  colar: nome ("Metrô Ceará (não oficial)"), descrições curta e completa,
+  colar: nome ("Metrô Ceará Fortaleza horários" desde 14/11/2026: o título é o
+  que mais pesa na busca, e "Metrô Ceará (não oficial)" não aparecia ao procurar
+  "metrô fortaleza"; o "não oficial" saiu só do título e continua na descrição
+  curta, no começo da completa, no destaque e no app), descrições curta e completa,
   categoria e contato, e as respostas de cada formulário de "Conteúdo do app"
   (política de privacidade, anúncios, classificação, público-alvo 13+,
   segurança dos dados — **não coleta dados** —, app governamental — não —, e a
