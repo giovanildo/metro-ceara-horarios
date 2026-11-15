@@ -31,7 +31,7 @@
       "VLT Sobral - Linha Sul": "vlt-sobral-2025"
     },
     "operacoes": {
-    "_sobre": "Dias de operação especial (feriado, domingo de ENEM ou eleição, Carnaval, véspera com encerramento mais cedo). O espelho acrescenta sozinho os que acha nas notícias do Metrofor (tools/operacoes.py); os escritos aqui ganham. Nesse dia, o app e a lite mostram a notícia (no lugar do aviso de domingo) e avisam nas linhas paradas. Formato: \"AAAA-MM-DD\": {\"titulo\", \"link\", \"publicada\", \"normal\" (true = a notícia diz que o horário não muda), \"paradas\": [linhas que não circulam, nomes como no app]}."
+    "_sobre": "Dias de operação especial (feriado, domingo de ENEM ou eleição, Carnaval, véspera com encerramento mais cedo). O espelho acrescenta sozinho os que acha nas notícias do Metrofor (tools/operacoes.py); os escritos aqui ganham. Nesse dia, o app e a lite mostram a notícia (no lugar do aviso de domingo) e avisam nas linhas paradas. Formato: \"AAAA-MM-DD\": {\"titulo\", \"link\", \"publicada\", \"normal\" (true = a notícia diz que o horário não muda), \"paradas\": [linhas que não circulam, nomes como no app], \"horarios\": {linha: [\"HH:MM\" primeira, \"HH:MM\" última], aproximados, da tabela da notícia}}."
   },
   "estacoes": {
       "_sobre": "Exceções: estação com regra diferente da sua linha (nome da estação → regulamento). Vazio hoje."

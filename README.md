@@ -1238,7 +1238,13 @@ Detalhes que valem saber:
   A tarefa do espelho lê as notícias dos últimos 45 dias pela API do site
   ([`tools/operacoes.py`](tools/operacoes.py)) e publica em `operacoes` do
   `regras.json`: por data, a manchete, o link, se o horário segue normal e as
-  linhas paradas. O leitor pega só títulos de operação ("horários especiais",
+  linhas paradas. **Quando a notícia traz a tabela de horários** ("Linha Sul:
+  10h30 às 19h10", "VLT de Sobral – Linha Norte: 10h30 às 19h33"), o leitor
+  guarda a primeira e a última hora de cada linha em `horarios` e troca a
+  manchete por um aviso que responde se vai ter metrô: "**Metrofor, amanhã:**
+  Tem metrô e VLT de graça, das 10:30 às 19:33 (varia por linha), na operação
+  do Enem." (com "menos VLT de Sobral e VLT do Cariri" quando alguma linha
+  para). Como vem no `regras.json`, chega também a versões antigas do app. O leitor pega só títulos de operação ("horários especiais",
   "operação especial", "funcionamento normal", "não altera horários"), deixa de
   fora mudança que vale dali em diante ("novos horários", "passa a operar",
   "volta a operar") e tira as datas de "(21/4)", "19 de março", "sexta-feira

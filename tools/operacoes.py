@@ -126,6 +126,51 @@ def datas(texto, publicada):
                   | {d for d in conferidas if d and -30 <= (d - publicada).days <= 60})
 
 
+# "Linha Sul: 10h30 às 19h10", "VLT de Sobral – Linha Norte: 10h30 às 19h33" (tabela da noticia).
+HORARIO_LINHA = re.compile(r"^([^:]{3,60}):\s*(\d{1,2})h(\d{2})?\s*(?:[àa]s|a|-|–|até)\s*(\d{1,2})h(\d{2})?\b", re.I)
+
+
+def linha_exata(nome):
+    """A linha de um item da tabela de horarios; o VLT de Sobral tem Linha Norte e Linha Sul."""
+    t = nome.lower()
+    if "sobral" in t:
+        if "norte" in t:
+            return ["VLT Sobral - Linha Norte"]
+        if re.search(r"\bsul\b", t):
+            return ["VLT Sobral - Linha Sul"]
+        return ["VLT Sobral - Linha Norte", "VLT Sobral - Linha Sul"]
+    return linhas(nome)[:1] if len(linhas(nome)) == 1 else []
+
+
+def horario_linha(linha):
+    """("Linha Sul", "10:30", "19:10") de um item da tabela, ou None."""
+    m = HORARIO_LINHA.match(linha.strip())
+    if not m:
+        return None
+    ls = linha_exata(m.group(1))
+    ini, fim = f"{int(m.group(2)):02d}:{m.group(3) or '00'}", f"{int(m.group(4)):02d}:{m.group(5) or '00'}"
+    return (ls, ini, fim) if ls and ini < fim else None
+
+
+CURTO = {"VLT Sobral - Linha Norte": "VLT de Sobral", "VLT Sobral - Linha Sul": "VLT de Sobral", "VLT Cariri": "VLT do Cariri"}
+
+
+def aviso_com_horario(titulo, horarios, paradas, gratuita):
+    """O aviso que responde "vai ter metro?": "Tem metrô e VLT de graça, das 10:30 às 19:33
+    (varia por linha), na operação do Enem." No app, cada linha mostra o seu horário."""
+    motivo = next((m for p, m in ((r"\benem\b", "do Enem"), (r"elei[çc]", "da eleição"), (r"carnaval", "de Carnaval"))
+                   if re.search(p, titulo, re.I)), None)
+    ini = min(h[0] for h in horarios.values())
+    fim = max(h[1] for h in horarios.values())
+    varia = len({tuple(h) for h in horarios.values()}) > 1
+    texto = f"Tem metrô e VLT{' de graça' if gratuita else ''}, das {ini} às {fim}"
+    texto += " (varia por linha)" if varia else " (aproximado)"
+    nomes = list(dict.fromkeys(CURTO.get(n, n) for n in paradas))
+    if nomes:
+        texto += ", menos " + (", ".join(nomes[:-1]) + " e " + nomes[-1] if len(nomes) > 1 else nomes[0])
+    return texto + (f", na operação {motivo}." if motivo else ".")
+
+
 def linhas(texto):
     t = texto.lower()
     achadas = [nome for nome, padrao in LINHAS.items() if re.search(padrao, t)]
@@ -166,6 +211,7 @@ def extrair(titulo, conteudo, publicada, link=""):
     if not TITULO.search(titulo) and not (ABERTURA.search(abertura) and datas(abertura, publicada)):
         return {}
     especial, normal, paradas, citadas = set(), set(), {}, set()
+    horarios = {}  # dia -> {linha: [inicio, fim]}
     frase_de = {}
     contexto, linhas_contexto, geral = [], [], False
 
@@ -212,6 +258,12 @@ def extrair(titulo, conteudo, publicada, link=""):
             linhas_contexto = linhas(linha)
         elif linha.endswith(":") and datas(linha, publicada):
             linhas_contexto = []
+        item = horario_linha(linha)
+        if item and contexto:
+            for d in contexto:
+                for nome in item[0]:
+                    horarios.setdefault(d, {})[nome] = [item[1], item[2]]
+            continue
         for frase in frases:
             for d in datas(frase, publicada):
                 frase_de.setdefault(d, frase)
@@ -243,6 +295,10 @@ def extrair(titulo, conteudo, publicada, link=""):
             e["titulo"] = frase
         if d in paradas:
             e["paradas"] = [n for n in TODAS if n in paradas[d]]
+        if d in especial and d in horarios:
+            e["horarios"] = {n: horarios[d][n] for n in TODAS if n in horarios[d]}
+            gratuita = bool(re.search(r"gratuit|de gra[çc]a", titulo + " " + abertura, re.I))
+            e["titulo"] = aviso_com_horario(titulo, e["horarios"], e.get("paradas", []), gratuita)
         out[d.isoformat()] = e
     return out
 
