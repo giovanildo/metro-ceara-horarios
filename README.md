@@ -1544,7 +1544,7 @@ tools/site_previa.py                 prévia de link do site (docs/img/previa.pn
 tools/site_fotos.py                  fotos das estações do Wikimedia Commons (docs/img/estacoes/)
 tools/site_historia.json             linha do tempo das versões (página História do app)
 tools/site_videos.json               vídeos do YouTube nas páginas das linhas e estações
-tools/site_literatura.json           o trem na literatura cearense (página e trechos nas estações)
+tools/site_literatura.json           o trem na literatura e nas artes (página e blocos nas estações)
 app/src/main/assets/metrofor.db      banco gerado (não editar à mão)
 app/src/main/assets/regras.json      regras fora do GTFS: bike, integrações, passagem,
                                      guia da passagem, endereços, acessibilidade, cores,
@@ -1852,6 +1852,14 @@ Google já conhece, em pastas próprias — a lite em `docs/app/` não é tocada
   literatura" com um trecho por dia (`trecho_do_dia` no `site.py`, a troca
   diária fica no `docs/site/inicio.js`); "Literatura" no menu do topo
   (só no computador). Posts em `divulgacao/literatura/`.
+  **Artes** (desde 15/11): no mesmo JSON, `artes` (murais, exposições,
+  trens pintados, estações antigas que viraram espaço de arte, música;
+  `grupo` estacoes | trens | espacos | musica, sempre com data e fonte,
+  porque exposição acaba e mural desbota) e `quem_da_nome` (Chico da Silva,
+  Rachel de Queiroz, José de Alencar), que aparece na faixa do topo no lugar
+  da epígrafe. A página virou "O trem na literatura e nas artes" (mesmo
+  endereço `literatura/`) e as estações ganham o bloco "Na arte"; no
+  trilho, a marca virou "📖 cultura".
 - **Prévia de link** (a imagem que aparece ao mandar o endereço no WhatsApp):
   `docs/img/previa.png`, 1200×630, com o nome e o mapa de Fortaleza. Sai de
   [`tools/site_previa.py`](tools/site_previa.py), que monta a página com o

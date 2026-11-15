@@ -1,5 +1,5 @@
 {
-  "_sobre": "O trem na literatura cearense (tools/site.py): página literatura/ e o bloco 'Na literatura' nas páginas das linhas e estações. Cada trecho foi conferido no texto original; citação curta com autor e fonte (Lei 9.610, art. 46, III). grupo: romances | cronicas | cordel. linhas/estacoes: slugs das páginas onde o trecho aparece. dominio_publico: o link leva ao texto inteiro. epigrafe: slugs de estações/linhas onde o trecho abre a página, logo abaixo do nome (um por página).",
+  "_sobre": "O trem na literatura cearense (tools/site.py): página literatura/ e o bloco 'Na literatura' nas páginas das linhas e estações. Cada trecho foi conferido no texto original; citação curta com autor e fonte (Lei 9.610, art. 46, III). grupo: romances | cronicas | cordel. linhas/estacoes: slugs das páginas onde o trecho aparece. dominio_publico: o link leva ao texto inteiro. epigrafe: slugs de estações/linhas onde o trecho abre a página, logo abaixo do nome (um por página). artes: arte nas estações e nos trens, estações antigas que viraram espaço de arte e música (grupo: estacoes | trens | espacos | musica); exposições e murais entram como história, com a data, porque podem ter acabado ou sido apagados. quem_da_nome: quem a estação homenageia, na faixa do topo.",
   "obras": [
     {
       "id": "iracema-porangaba",
@@ -254,6 +254,252 @@
       "data": "2011-12",
       "texto": "Minibiblioteca na Estação João Felipe, com 2.263 livros, revistas e quadrinhos para ler enquanto o trem não vinha.",
       "link": "https://www.ce.gov.br/metrofor/2011/12/05/passageiros-do-metrofor-tem-acesso-a-minibiblioteca-e-computadores-ligados-a-internet/"
+    }
+  ],
+  "quem_da_nome": [
+    {
+      "estacao": "chico-da-silva",
+      "texto": "O nome homenageia o pintor Chico da Silva (1910–1985), que recebeu menção honrosa na Bienal de Veneza de 1966. Obras dele estão no acervo da Pinacoteca do Ceará, a uns 500 metros daqui.",
+      "link": "https://pt.wikipedia.org/wiki/Esta%C3%A7%C3%A3o_Central-Chico_da_Silva"
+    },
+    {
+      "estacao": "raquel-de-queiroz",
+      "texto": "O nome homenageia a escritora Rachel de Queiroz (1910–2003), autora de O Quinze e primeira mulher eleita para a Academia Brasileira de Letras.",
+      "link": "https://www.ce.gov.br/metrofor/2021/11/17/rachel-de-queiroz-escritora-que-da-nome-a-estacao-do-metrofor-completaria-hoje-111-anos/"
+    },
+    {
+      "estacao": "jose-de-alencar",
+      "texto": "A estação fica na praça que homenageia o escritor José de Alencar (1829–1877), autor de Iracema, nascido no Ceará.",
+      "link": "https://pt.wikisource.org/wiki/Iracema"
+    }
+  ],
+  "artes": [
+    {
+      "id": "parangaba-grafite",
+      "grupo": "estacoes",
+      "titulo": "Marias-fumaça, índios e a lagoa nos muros",
+      "quando": "2014",
+      "texto": "Os muros do elevado da Parangaba foram grafitados com a história das ferrovias e do bairro: as antigas marias-fumaça, os índios de Porangaba e a lagoa. Moradores do entorno ajudaram no mutirão (ONG Terra da Luz e Metrofor).",
+      "link": "https://www.ce.gov.br/metrofor/2014/05/20/urbanizacao-da-linha-sul-ganha-cores-com-grafitagem/",
+      "fonte": "Metrofor",
+      "linhas": [],
+      "estacoes": [
+        "parangaba"
+      ]
+    },
+    {
+      "id": "wesley-padre-cicero",
+      "grupo": "estacoes",
+      "titulo": "Padre Cícero e uma índia, por Wesley Rocha",
+      "quando": "2020",
+      "texto": "Painel do artista cearense Wesley Rocha perto da estação, parte dos murais que a Secretaria da Infraestrutura levou ao entorno do metrô e do VLT.",
+      "link": "https://www.ce.gov.br/metrofor/2020/03/03/arte-urbana-colore-entorno-das-estacoes-do-metro-e-do-vlt/",
+      "fonte": "Metrofor",
+      "linhas": [],
+      "estacoes": [
+        "padre-cicero"
+      ]
+    },
+    {
+      "id": "wesley-iracema",
+      "grupo": "estacoes",
+      "titulo": "Iracema, por Wesley Rocha",
+      "quando": "2020",
+      "texto": "Nas praças ao lado da estação do VLT, Wesley Rocha pintou a índia Iracema em meio à natureza e um morador querido da comunidade.",
+      "link": "https://www.ce.gov.br/metrofor/2020/03/03/arte-urbana-colore-entorno-das-estacoes-do-metro-e-do-vlt/",
+      "fonte": "Metrofor",
+      "linhas": [],
+      "estacoes": [
+        "sao-joao-do-tauape"
+      ]
+    },
+    {
+      "id": "wesley-mucuripe",
+      "grupo": "estacoes",
+      "titulo": "O fundo do mar e o mestre Jerônimo, por Wesley Rocha",
+      "quando": "2020",
+      "texto": "Às margens dos trilhos no Mucuripe, Wesley Rocha pintou o fundo do mar e uma homenagem ao mestre Jerônimo, pescador que fez história no bairro.",
+      "link": "https://www.ce.gov.br/metrofor/2020/03/03/arte-urbana-colore-entorno-das-estacoes-do-metro-e-do-vlt/",
+      "fonte": "Metrofor",
+      "linhas": [],
+      "estacoes": [
+        "mucuripe"
+      ]
+    },
+    {
+      "id": "conjunto-ceara-grafite",
+      "grupo": "estacoes",
+      "titulo": "Grafite no acesso da estação",
+      "quando": "2020",
+      "texto": "O projeto 4Town Grafite, com o Porto Iracema das Artes, grafitou as paredes do acesso à estação com artistas de Fortaleza e Caucaia.",
+      "link": "https://www.ce.gov.br/metrofor/2020/10/15/artistas-visuais-farao-grafite-na-estacao-conjunto-ceara-do-metrofor/",
+      "fonte": "Metrofor",
+      "linhas": [],
+      "estacoes": [
+        "conjunto-ceara"
+      ]
+    },
+    {
+      "id": "benfica-gadelha",
+      "grupo": "estacoes",
+      "titulo": "Descartes Gadelha, ferroviário",
+      "quando": "2025",
+      "texto": "Exposição sobre o pintor cearense Descartes Gadelha, que trabalhou 29 anos (1957–1986) como desenhista da Rede Ferroviária, fazendo cartazes de segurança para passageiros e ferroviários.",
+      "link": "https://www.ce.gov.br/metrofor/2025/03/31/estacao-benfica-recebe-exposicao-que-destaca-o-trabalho-ferroviario-de-descartes-gadelha/",
+      "fonte": "Metrofor",
+      "linhas": [],
+      "estacoes": [
+        "benfica"
+      ]
+    },
+    {
+      "id": "benfica-linha-sul",
+      "grupo": "estacoes",
+      "titulo": "“Linha Sul”, de Léo Silva",
+      "quando": "2025",
+      "texto": "O artista Léo Silva, de Maracanaú, transformou as viagens que faz desde criança entre Maracanaú e Fortaleza, primeiro de trem e depois de metrô, em vídeo, fotografia, performance e instalação.",
+      "link": "https://www.ce.gov.br/metrofor/2025/11/03/artista-transforma-deslocamentos-na-linha-sul-em-reflexoes-sobre-corpo-territorio-e-memoria/",
+      "fonte": "Metrofor",
+      "linhas": [
+        "linha-sul"
+      ],
+      "estacoes": [
+        "benfica"
+      ]
+    },
+    {
+      "id": "sob-os-trilhos",
+      "grupo": "estacoes",
+      "titulo": "“Sob os trilhos”: fotografias do metrô",
+      "quando": "2021",
+      "texto": "Fotografias de estudantes sobre o dia a dia do metrô, expostas nas estações Benfica e José de Alencar.",
+      "link": "https://www.ce.gov.br/metrofor/2021/08/19/metrofor-lanca-exposicao-fotografica-nas-estacoes-jose-de-alencar-e-benfica/",
+      "fonte": "Metrofor",
+      "linhas": [],
+      "estacoes": [
+        "benfica",
+        "jose-de-alencar"
+      ]
+    },
+    {
+      "id": "efemero",
+      "grupo": "estacoes",
+      "titulo": "Festival Efêmero de fotografia",
+      "quando": "2023",
+      "texto": "Fotografias em tamanho grande no saguão da José de Alencar, um painel na fachada da Parangaba e lambe-lambes nos muros da Linha Sul no Mondubim, em frente ao Minimuseu Firmeza.",
+      "link": "https://www.ce.gov.br/metrofor/2023/09/25/metrofor-e-palco-de-festival-de-fotografia-de-26-9-a-1o-10/",
+      "fonte": "Metrofor",
+      "linhas": [],
+      "estacoes": [
+        "jose-de-alencar",
+        "parangaba",
+        "mondubim"
+      ]
+    },
+    {
+      "id": "estacao-cultura",
+      "grupo": "estacoes",
+      "titulo": "Coral de Natal na estação",
+      "quando": "2017",
+      "texto": "O projeto Estação Cultura, do Metrofor com a Secretaria da Cultura, abriu com um coral de crianças cantando para os passageiros na hora de maior movimento.",
+      "link": "https://www.ce.gov.br/metrofor/2017/12/18/coral-natalino-na-estacao-jose-de-alencar-abre-programacao-do-estacao-cultura/",
+      "fonte": "Metrofor",
+      "linhas": [],
+      "estacoes": [
+        "jose-de-alencar"
+      ]
+    },
+    {
+      "id": "estacao-da-alegria",
+      "grupo": "estacoes",
+      "titulo": "Do metrô à Pinacoteca",
+      "quando": "2023",
+      "texto": "No Dia das Crianças, alunos da Escola Moura Brasil, vizinha da estação, foram conhecer o metrô e a Pinacoteca do Ceará (projeto Estação da Alegria, do Metrofor com a Pinacoteca).",
+      "link": "https://www.ce.gov.br/metrofor/2023/10/11/criancas-comemoram-seu-dia-com-visita-ao-metro-e-a-pinacoteca-do-ceara/",
+      "fonte": "Metrofor",
+      "linhas": [],
+      "estacoes": [
+        "chico-da-silva"
+      ]
+    },
+    {
+      "id": "wholetrain",
+      "grupo": "trens",
+      "titulo": "Trens pintados por OsGemeos e artistas cearenses",
+      "quando": "2017",
+      "texto": "No projeto Wholetrain, OsGemeos, ISE e 13 convidados, entre eles os cearenses Grud, Solrac, Doug, Leo BDSS e o coletivo Acidum, pintaram trens da Linha Sul e VLTs da Linha Oeste.",
+      "link": "https://www.ceara.gov.br/2017/05/04/artistas-apresentam-resultado-de-intervencoes-em-grafitagem-nos-trens-urbanos-de-fortaleza/",
+      "fonte": "Governo do Ceará",
+      "linhas": [
+        "linha-sul",
+        "linha-oeste"
+      ],
+      "estacoes": []
+    },
+    {
+      "id": "belchior",
+      "grupo": "trens",
+      "titulo": "Belchior no VLT de Sobral",
+      "quando": "2017",
+      "texto": "Os VLTs de Sobral ganharam o rosto e uma frase de Belchior, que nasceu na cidade, uma semana depois da morte do cantor.",
+      "link": "https://www.ce.gov.br/metrofor/2017/05/09/grafitagem-de-trens-chega-a-sobral-com-homenagem-a-belchior/",
+      "fonte": "Metrofor",
+      "linhas": [
+        "vlt-sobral-linha-norte",
+        "vlt-sobral-linha-sul"
+      ],
+      "estacoes": []
+    },
+    {
+      "id": "trem-do-samba",
+      "grupo": "trens",
+      "titulo": "Trem do Samba",
+      "quando": "2006–2013",
+      "texto": "No Dia Nacional do Samba, grupos tocavam na Estação João Felipe e dentro dos vagões, numa viagem de ida e volta até Caucaia, pelo preço da passagem.",
+      "link": "https://www.ce.gov.br/metrofor/2013/12/05/a-festa-em-comemoracao-ao-dia-nacional-do-samba-ja-esta-em-sua-oitava-edicao-com-muito-samba-de-raiz/",
+      "fonte": "Metrofor",
+      "linhas": [
+        "linha-oeste"
+      ],
+      "estacoes": []
+    },
+    {
+      "id": "estacao-das-artes",
+      "grupo": "espacos",
+      "titulo": "Estação João Felipe, hoje Estação das Artes",
+      "quando": "desde 2022",
+      "texto": "A estação de 1880, de onde partiam os trens do Centro, virou um complexo cultural com a Pinacoteca do Ceará e o Museu Ferroviário. Lá está o painel de azulejos que Descartes Gadelha fez em 1970 para o centenário da ferrovia, “Trem para o Futuro”, da maria-fumaça ao diesel.",
+      "link": "https://diariodonordeste.verdesmares.com.br/verso/nos-trilhos-da-estacao-das-artes-as-memorias-da-ferrovia-e-o-sonho-de-novos-encontros-em-fortaleza-1.3216734",
+      "fonte": "Diário do Nordeste",
+      "linhas": [],
+      "estacoes": [
+        "chico-da-silva",
+        "jose-de-alencar"
+      ]
+    },
+    {
+      "id": "crato-araripe",
+      "grupo": "espacos",
+      "titulo": "Estação do Crato, hoje Centro Cultural do Araripe",
+      "quando": "estação de 1926",
+      "texto": "A antiga estação ferroviária do Crato, aberta em 1926 e fechada em 1989, virou espaço de cultura, com auditório e galeria de exposições.",
+      "link": "http://geoparkararipe.blogspot.com/2009/08/estacao-crato.html",
+      "fonte": "Geopark Araripe",
+      "linhas": [
+        "vlt-cariri"
+      ],
+      "estacoes": []
+    },
+    {
+      "id": "trem-de-ferro",
+      "grupo": "musica",
+      "titulo": "“Trem de Ferro”, de Lauro Maia",
+      "quando": "1943",
+      "texto": "Marcha do compositor de Fortaleza que criou o balanceio. Gravada pelos Quatro Azes e um Coringa em 1943 e depois por João Gilberto, Fagner e Nonato Luiz.",
+      "link": "https://dicionariompb.com.br/artista/lauro-maia/",
+      "fonte": "Dicionário Cravo Albin",
+      "linhas": [],
+      "estacoes": []
     }
   ]
 }

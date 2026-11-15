@@ -162,10 +162,13 @@ class Dados:
             with open(VIDEOS, encoding="utf-8") as fh:
                 self.videos = json.load(fh).get("videos", [])
         self.literatura, self.leitura = [], []  # tools/site_literatura.json: trechos conferidos no texto original
+        self.artes, self.quem_da_nome = [], {}
         if os.path.exists(LITERATURA):
             with open(LITERATURA, encoding="utf-8") as fh:
                 lit = json.load(fh)
             self.literatura, self.leitura = lit.get("obras", []), lit.get("leitura_no_metrofor", [])
+            self.artes = lit.get("artes", [])
+            self.quem_da_nome = {q["estacao"]: q for q in lit.get("quem_da_nome", [])}
 
     def cor(self, linha, escuro=False):
         c = self.cores.get(linha["nome"])
@@ -299,7 +302,7 @@ CABECA = """<!doctype html>
 <a class="pular" href="#conteudo">Pular para o conteúdo</a>
 <nav class="topo"><div class="largura">
   <a class="marca" href="{raiz}"><img src="{raiz}img/icon.png" alt="" width="32" height="32"><span class="marca-nome">Metrô Ceará</span></a>
-  <span class="menu"><a href="{raiz}estacoes/">Estações</a><a href="{raiz}linhas/">Linhas</a><a class="opcional" href="{raiz}perguntas-frequentes/">Dúvidas</a><a class="opcional" href="{raiz}literatura/">Literatura</a><a class="abrir" href="{raiz}app/">Horários agora</a></span>
+  <span class="menu"><a href="{raiz}estacoes/">Estações</a><a href="{raiz}linhas/">Linhas</a><a class="opcional" href="{raiz}perguntas-frequentes/">Dúvidas</a><a class="opcional" href="{raiz}literatura/">Literatura e artes</a><a class="abrir" href="{raiz}app/">Horários agora</a></span>
 </div></nav>
 """
 
@@ -307,7 +310,7 @@ RODAPE = """<footer class="rodape"><div class="largura">
   <p><strong>Metrô Ceará</strong> é um guia independente, feito por um passageiro. <strong>Não é o site oficial do Metrofor</strong>
   nem do Governo do Ceará. Os horários vêm do GTFS que o Metrofor publica; endereços, passagem e acessibilidade, do site
   do Metrofor (conferidos em {conferido}). Lugares por perto: © colaboradores do OpenStreetMap. Fotos das estações: Wikimedia Commons, com o autor e a licença em cada uma. Vídeos: YouTube, com o canal de cada um.</p>
-  <p>Viu algo errado? <a href="{whats}">Conte pelo WhatsApp</a> · <a href="{raiz}perguntas-frequentes/">Perguntas frequentes</a> · <a href="{raiz}">Sobre o app</a> · <a href="{raiz}historia/">História do app</a> · <a href="{raiz}literatura/">O trem na literatura</a> · <a href="{raiz}privacidade.html">Privacidade</a></p>
+  <p>Viu algo errado? <a href="{whats}">Conte pelo WhatsApp</a> · <a href="{raiz}perguntas-frequentes/">Perguntas frequentes</a> · <a href="{raiz}">Sobre o app</a> · <a href="{raiz}historia/">História do app</a> · <a href="{raiz}literatura/">Literatura e artes</a> · <a href="{raiz}privacidade.html">Privacidade</a></p>
   <p class="gerado">Página gerada em {gerado}.</p>
 </div></footer>
 {scripts}</body>
@@ -370,7 +373,8 @@ def pagina_estacao(d, grupo):
          f'<p class="sobretitulo">Estação de {veic} · {esc(grupo["sistema"])}</p>',
          f"<h1>{esc(nome)}</h1>",
          '<p class="selos">' + "".join(selo(d, l, raiz) for l in linhas) + "</p>"]
-    h.append(epigrafe(d, grupo["slug"]))
+    # Quem dá nome à estação entra no lugar da epígrafe (o trecho continua em "Na literatura")
+    h.append(quem_da_nome(d, grupo["slug"]) or epigrafe(d, grupo["slug"]))
     if info.get("endereco"):
         h.append(f'<p class="endereco">📍 {esc(info["endereco"])}</p>')
     lat, lon = grupo["posicao"]
@@ -632,7 +636,7 @@ def citacao(o, raiz, *, completa=False):
         h.append(f'<p class="dica"><a href="{esc(o["link"])}" target="_blank" rel="noopener">{esc(o["link_texto"])} ›</a>'
                  + (" · domínio público, texto completo" if o.get("dominio_publico") else "") + "</p>")
     else:
-        h.append(f'<p class="dica"><a href="{raiz}literatura/#{o["id"]}">O trem na literatura cearense ›</a></p>')
+        h.append(f'<p class="dica"><a href="{raiz}literatura/#{o["id"]}">Literatura e artes ›</a></p>')
     h.append("</article>")
     return "".join(h)
 
@@ -647,18 +651,51 @@ def epigrafe(d, alvo):
 
 
 def tem_literatura(d, estacao):
-    return any(estacao in o.get("estacoes", []) for o in d.literatura)
+    return any(estacao in o.get("estacoes", []) for o in d.literatura + d.artes)
+
+
+def quem_da_nome(d, estacao):
+    q = d.quem_da_nome.get(estacao)
+    if not q:
+        return ""
+    return f'<p class="quem-da-nome"><strong>Quem dá nome à estação</strong>{esc(q["texto"])} <a href="{esc(q["link"])}" target="_blank" rel="noopener">Saiba mais ›</a></p>'
+
+
+def cartao_arte(a, raiz, *, completa=False):
+    h = [f'<article class="arte" id="{a["id"]}"><p class="arte-quando">{esc(a["quando"])}</p><h3>{esc(a["titulo"])}</h3>',
+         f'<p>{esc(a["texto"])}</p>']
+    if completa:
+        h.append(f'<p class="dica">Fonte: <a href="{esc(a["link"])}" target="_blank" rel="noopener">{esc(a["fonte"])} ›</a></p>')
+    else:
+        h.append(f'<p class="dica"><a href="{esc(a["link"])}" target="_blank" rel="noopener">{esc(a["fonte"])} ›</a> · '
+                 f'<a href="{raiz}literatura/#{a["id"]}">Literatura e artes ›</a></p>')
+    h.append("</article>")
+    return "".join(h)
 
 
 def literatura_de(d, raiz, *, linha=None, estacao=None):
-    itens = [o for o in d.literatura if (linha and linha in o.get("linhas", [])) or (estacao and estacao in o.get("estacoes", []))]
-    if not itens:
-        return ""
-    return ('<section class="literatura" id="literatura"><h2>Na literatura</h2><div class="grade-citacoes">'
-            + "".join(citacao(o, raiz) for o in itens) + "</div></section>")
+    def daqui(o):
+        return (linha and linha in o.get("linhas", [])) or (estacao and estacao in o.get("estacoes", []))
+    itens = [o for o in d.literatura if daqui(o)]
+    artes = [a for a in d.artes if daqui(a)]
+    h = []
+    if itens:
+        h.append('<section class="literatura" id="literatura"><h2>Na literatura</h2><div class="grade-citacoes">'
+                 + "".join(citacao(o, raiz) for o in itens) + "</div></section>")
+    if artes:
+        h.append(f'<section class="literatura" id="{"artes" if itens else "literatura"}"><h2>Na arte</h2><div class="grade-citacoes">'
+                 + "".join(cartao_arte(a, raiz) for a in artes) + "</div></section>")
+    return "".join(h)
 
 
 GRUPOS_LITERATURA = [("romances", "Nos romances"), ("cronicas", "Nas crônicas"), ("cordel", "No cordel")]
+GRUPOS_ARTES = [
+    ("estacoes", "arte-estacoes", "Arte nas estações",
+     "Murais, exposições e música nas estações e ao redor delas. Exposições acabam e murais desbotam: as datas dizem quando foi."),
+    ("trens", "arte-trens", "Arte nos trens", ""),
+    ("espacos", "arte-espacos", "Estações antigas que viraram espaço de arte", ""),
+    ("musica", "musica", "Na música", ""),
+]
 
 
 def pagina_literatura(d):
@@ -666,16 +703,20 @@ def pagina_literatura(d):
     nomes_linhas = {slug(l["nome"]): nome_linha(l["nome"]) for l in d.linhas}
     por_slug = {g["slug"]: g for g in d.estacoes}
     h = ['<header class="faixa" style="--cor:#CE0F2E;--cor-escuro:#CE0F2E"><div class="largura">',
-         migalhas(raiz, [("O trem na literatura", None)]),
-         '<h1>O trem na literatura cearense</h1>'
+         migalhas(raiz, [("O trem na literatura e nas artes", None)]),
+         '<h1>O trem na literatura e nas artes</h1>'
          '<p class="endereco">O metrô e os VLTs do Ceará andam, em boa parte, sobre as linhas dos trens antigos. '
-         'Esses trens passaram por romances, crônicas e cordéis. Aqui estão alguns trechos, cada um conferido no texto original.</p>',
+         'Esses trens passaram por romances, crônicas e cordéis, e as estações ganharam murais, exposições e música. '
+         'Cada trecho foi conferido no texto original; cada obra de arte, numa fonte.</p>',
+         '<nav aria-label="Nesta página" class="selos-texto"><a href="#romances">Romances</a> · <a href="#cronicas">Crônicas</a> · '
+         '<a href="#cordel">Cordel</a> · <a href="#arte-estacoes">Arte nas estações</a> · <a href="#arte-trens">Nos trens</a> · '
+         '<a href="#arte-espacos">Estações que viraram arte</a> · <a href="#musica">Música</a></nav>',
          '</div></header><main id="conteudo" class="largura">']
     for grupo, titulo in GRUPOS_LITERATURA:
         obras = [o for o in d.literatura if o.get("grupo") == grupo]
         if not obras:
             continue
-        h.append(f'<section><h2>{titulo}</h2><div class="grade-citacoes">')
+        h.append(f'<section id="{grupo}"><h2>{titulo}</h2><div class="grade-citacoes">')
         for o in obras:
             onde = [f'<a href="{raiz}estacoes/{e}/">Estação {esc(por_slug[e]["nome"])}</a>' for e in o.get("estacoes", []) if e in por_slug]
             onde += [f'<a href="{raiz}linhas/{l}/">{esc(nomes_linhas[l])}</a>' for l in o.get("linhas", []) if l in nomes_linhas]
@@ -684,19 +725,38 @@ def pagina_literatura(d):
                 bloco = bloco.replace("</article>", f'<p class="selos-texto">No site: {" · ".join(onde)}</p></article>')
             h.append(bloco)
         h.append("</div></section>")
+    for grupo, ident, titulo, intro in GRUPOS_ARTES:
+        artes = [a for a in d.artes if a.get("grupo") == grupo]
+        if not artes:
+            continue
+        h.append(f'<section id="{ident}"><h2>{titulo}</h2>' + (f"<p>{intro}</p>" if intro else "") + '<div class="grade-citacoes">')
+        for a in artes:
+            onde = [f'<a href="{raiz}estacoes/{e}/">Estação {esc(por_slug[e]["nome"])}</a>' for e in a.get("estacoes", []) if e in por_slug]
+            onde += [f'<a href="{raiz}linhas/{l}/">{esc(nomes_linhas[l])}</a>' for l in a.get("linhas", []) if l in nomes_linhas]
+            bloco = cartao_arte(a, raiz, completa=True)
+            if onde:
+                bloco = bloco.replace("</article>", f'<p class="selos-texto">No site: {" · ".join(onde)}</p></article>')
+            h.append(bloco)
+        h.append("</div></section>")
+    if d.quem_da_nome:
+        h.append('<section id="nomes"><h2>Quem dá nome às estações</h2><ul class="lista">')
+        for e, q in d.quem_da_nome.items():
+            if e in por_slug:
+                h.append(f'<li><a href="{raiz}estacoes/{e}/"><strong>Estação {esc(por_slug[e]["nome"])}</strong></a> · {esc(q["texto"])}</li>')
+        h.append("</ul></section>")
     if d.leitura:
         h.append('<section><h2>Leitura nas estações</h2><p>O próprio Metrofor já levou livros para os passageiros:</p><ul class="lista">')
         for x in d.leitura:
             h.append(f'<li><strong>{mes_ano(x["data"])}</strong> · {esc(x["texto"])} '
                      f'<a href="{esc(x["link"])}" target="_blank" rel="noopener">Notícia do Metrofor ›</a></li>')
         h.append("</ul></section>")
-    h.append('<section><h2>Conhece outro?</h2><p>Um poema, conto, cordel ou crônica que fale do metrô, do VLT ou dos trens do Ceará? '
+    h.append('<section><h2>Conhece outro?</h2><p>Um poema, conto, cordel, crônica, mural, música ou filme que fale do metrô, do VLT ou dos trens do Ceará? '
              f'<a href="{esc(WHATSAPP + "Metrô Ceará · literatura: ")}">Conte pelo WhatsApp</a>. '
              'As citações são trechos curtos, com o autor e a fonte; para ler a obra, siga o link de cada uma.</p></section>')
     h.append(chamada_app(raiz))
     h.append("</main>")
-    return pagina(d, caminho="literatura/", titulo="O trem na literatura cearense | Metrô Ceará",
-                  descricao="Iracema, O Quinze, Luzia-Homem, crônicas e cordel: trechos da literatura cearense sobre os trens que viraram o metrô e os VLTs de Fortaleza, Cariri e Sobral.",
+    return pagina(d, caminho="literatura/", titulo="O trem na literatura e nas artes do Ceará | Metrô Ceará",
+                  descricao="Iracema, O Quinze, crônicas e cordel; murais, trens pintados, Chico da Silva, Belchior e a Estação das Artes: a cultura cearense nos trilhos do metrô e dos VLTs.",
                   corpo="\n".join(h))
 
 
@@ -752,7 +812,7 @@ def pagina_linha(d, linha):
         if g["info"].get("acesso", {}).get("elevador"):
             marcas.append('<span class="marca-texto">elevador</span>')
         if tem_literatura(d, g["slug"]):
-            marcas.append(f'<a class="marca-texto marca-livro" href="{raiz}estacoes/{g["slug"]}/#literatura" title="Aparece na literatura">📖 literatura</a>')
+            marcas.append(f'<a class="marca-texto marca-livro" href="{raiz}estacoes/{g["slug"]}/#literatura" title="Aparece na literatura ou na arte">📖 cultura</a>')
         classe = ' class="ponta"' if j in (0, len(ordem) - 1) else ""
         h.append(f'<li{classe}><a href="{raiz}estacoes/{g["slug"]}/">{esc(g["nome"])}</a> {" ".join(marcas)}</li>')
     h.append("</ol></section>")
@@ -1205,7 +1265,7 @@ def trecho_do_dia(d):
             f'<blockquote><p>“{esc(p["trecho"])}”</p></blockquote>'
             f'<p class="citacao-autor">— <strong>{esc(p["autor"])}</strong>, <cite>{esc(p["obra"])}</cite> ({p["ano"]})</p>'
             f'<p class="acoes-texto"><a class="onde" href="{p["url"]}">{esc(p["onde"])} ›</a> · '
-            f'<a href="literatura/">O trem na literatura cearense ›</a></p></div>')
+            f'<a href="literatura/">Literatura e artes nos trilhos ›</a></p></div>')
 
 
 def preencher(caminho, trechos):

@@ -258,3 +258,15 @@ main section { margin: 44px 0 0; }
   line-height: 1.45; font-style: italic; }
 .trecho-do-dia .citacao-autor { margin: 0 0 10px; }
 .acoes-texto { margin: 0; font-size: .95rem; }
+/* Arte nos trilhos (artes em tools/site_literatura.json) e "Quem dá nome à estação" na faixa */
+.arte { background: var(--papel); border-radius: var(--raio); box-shadow: var(--sombra); padding: 20px; min-width: 0;
+  border-left: 6px solid #014687; scroll-margin-top: 72px; }
+.arte h3 { margin: 0 0 8px; font-size: 1.15rem; }
+.arte p { margin: 0 0 8px; }
+.arte-quando { color: var(--suave); font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+@media (prefers-color-scheme: dark) { .arte { border-left-color: #3D7FD1; } }
+.quem-da-nome { max-width: 46rem; margin: 4px 0 16px; color: #fff; line-height: 1.45; background: rgba(0,0,0,.14);
+  border-radius: 14px; padding: 12px 16px; }
+.quem-da-nome strong { display: block; font-size: .78rem; text-transform: uppercase; letter-spacing: .1em; opacity: .9; margin-bottom: 2px; }
+.quem-da-nome a { color: #fff; }
+#artes { scroll-margin-top: 72px; }
