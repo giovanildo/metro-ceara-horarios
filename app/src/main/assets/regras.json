@@ -315,7 +315,7 @@
   "avisos_das_linhas": {
     "_sobre": "Avisos que valem para todas as estações de uma linha, mostrados na tela da estação (app e versão lite), embaixo da passagem, cada um com o seu link \"Fonte ›\" (\"fonte\" = chave em \"fontes\"). A chave é o nome da linha como no GTFS. Muda sem versão nova do app.",
     "Linha Sul": [
-      {"texto": "Vagão feminino: 2 vagões só para mulheres, cis e trans, o dia todo. Ficam sinalizados.", "fonte": "vagao_feminino"}
+      {"texto": "Vagão feminino: o primeiro e o último vagão, só para mulheres, cis e trans, o dia todo. Também podem ir nele crianças até 12 anos com a mãe e quem leva bike, nos horários da bike.", "fonte": "vagao_feminino"}
     ]
   },
 
@@ -857,7 +857,7 @@
       "desde": "na Linha Sul desde 03/07/2026",
       "conferido": "2026-11",
       "revisar_em_meses": 6,
-      "detalhe": "Dois vagões, um terço do metrô, sinalizados, exclusivos para mulheres cis e trans, durante toda a operação; a mulher pode usar qualquer vagão, e homem não pode ficar no feminino (notícias de 03/07 e 21/10/2026). Nos domingos do Enem 2026 o Metrofor confirmou que o vagão feminino continua valendo."
+      "detalhe": "Dois vagões, um terço do metrô, sinalizados, exclusivos para mulheres cis e trans, durante toda a operação; a mulher pode usar qualquer vagão, e homem não pode ficar no feminino (notícias de 03/07 e 21/10/2026). Posição (sempre o primeiro e o último vagão) e exceções (ciclistas, nos horários em que a bike é permitida, porque é o vagão com espaço para ela; crianças até 12 anos com a mãe) vêm de reportagem em vídeo sobre o vagão feminino: https://www.youtube.com/watch?v=EAvBIQW1gQg (aos 0:37 e 1:02). Nos domingos do Enem 2026 o Metrofor confirmou que o vagão feminino continua valendo."
     },
     "nina": {
       "titulo": "Nina (Super NINA, denúncia pelo WhatsApp)",
