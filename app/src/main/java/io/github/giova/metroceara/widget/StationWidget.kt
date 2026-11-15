@@ -109,6 +109,8 @@ object StationWidget {
             val now = nowMinutes()
             // Hoje acabou e o próximo dia com metrô tem operação especial: a grade dele ainda não saiu.
             var nextSpecial: DayEnd? = null
+            // Hoje acabou e amanhã é domingo com operação (ENEM): o domingo vem antes do aviso de hoje.
+            var sundaySpecial: DayEnd? = null
             // Domingo sem operação: nenhum horário, só o aviso com a hora em que o metrô volta.
             val sundayOff = isSundayWithoutService()
             val monday = if (sundayOff) repo.mondayReturn(stopId, routeId) else MondayReturn.Unknown
@@ -116,6 +118,7 @@ object StationWidget {
                 val today = repo.departures(stopId, routeId, direction.id).filter { it >= now }.take(2)
                 val end = if (today.isEmpty()) repo.dayEnd(stopId, routeId, direction.id) else null
                 if (end?.nextSpecial == true) nextSpecial = end
+                if (end?.sundaySpecial == true) sundaySpecial = end
                 Row(
                     headsign = direction.headsign,
                     times = today.ifEmpty { listOfNotNull(end?.nextFirst) },
@@ -128,6 +131,11 @@ object StationWidget {
             val operation = Regras.current.operations[day]
             val (note, warning) = when {
                 Regras.current.stopped(day, station.routeName) -> context.getString(R.string.line_stopped_today) to true
+                sundaySpecial != null -> (
+                    sundaySpecial!!.sundayHours?.let { (start, last) ->
+                        context.getString(R.string.widget_sunday_hours, formatTime(start), formatTime(last))
+                    } ?: context.getString(R.string.widget_sunday_special)
+                    ) to false
                 operation != null -> context.getString(R.string.widget_operation, operation.title) to false
                 nextSpecial != null -> context.getString(
                     if (nextSpecial!!.nextIsMonday) R.string.widget_monday_special else R.string.widget_tomorrow_special,

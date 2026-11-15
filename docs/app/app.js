@@ -223,8 +223,20 @@ function fimDoDia(linha, sentido, stopId) {
   if (s) primeiro = g.partidas(s, stopId)[0];
   const partes = [];
   if (ultimo !== undefined) partes.push(`Último de hoje: ${hora(ultimo)}`);
+  // Amanhã é domingo com operação anunciada (ENEM, eleição) e esta linha roda: o domingo vem antes da segunda.
+  const domingo = somarDias(agora().data, 1);
+  const domingoEspecial = estado.dados.proximoEhSegunda && diaEspecial(estado.dados.regras, domingo)
+    && !linhaParada(estado.dados.regras, domingo, linha.nome || "");
+  if (domingoEspecial) {
+    const h = Object.entries(estado.dados.regras.operacoes[domingo].horarios || {})
+      .find(([n]) => n.trim().toLowerCase() === (linha.nome || "").trim().toLowerCase())?.[1];
+    const texto = h ? `amanhã (domingo): das ${h[0]} às ${h[1]}, aproximado`
+      : "amanhã (domingo) tem operação especial; o horário sai depois da meia-noite";
+    partes.push(partes.length ? texto : texto[0].toUpperCase() + texto.slice(1));
+  }
   if (primeiro !== undefined) {
-    partes.push(`${partes.length ? "p" : "P"}rimeiro de ${estado.dados.proximoEhSegunda ? "segunda" : "amanhã"}: ${hora(primeiro)}`
+    if (domingoEspecial) partes.push(`segunda: ${hora(primeiro)}`);
+    else partes.push(`${partes.length ? "p" : "P"}rimeiro de ${estado.dados.proximoEhSegunda ? "segunda" : "amanhã"}: ${hora(primeiro)}`
       + (estado.dados.proximoEhSegunda ? " (domingo, só em operação especial)" : ""));
   } else if (estado.dados.proximoEspecial) {
     const texto = estado.dados.proximoEhSegunda

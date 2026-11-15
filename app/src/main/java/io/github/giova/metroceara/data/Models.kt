@@ -40,9 +40,18 @@ data class Departure(
  * hoje não teve nenhum) e o primeiro do próximo dia com metrô — amanhã, ou a
  * segunda-feira quando amanhã é domingo ([nextIsMonday]); `null` se a grade
  * desse dia não é conhecida. [nextSpecial]: esse dia tem operação especial
- * anunciada, e a grade dele só sai depois da meia-noite.
+ * anunciada, e a grade dele só sai depois da meia-noite. [sundaySpecial]: amanhã
+ * é domingo e a linha roda (ENEM, eleição), com o horário aproximado da notícia em
+ * [sundayHours] quando ela traz — aí o domingo vem antes da segunda.
  */
-data class DayEnd(val lastToday: Int?, val nextFirst: Int?, val nextIsMonday: Boolean, val nextSpecial: Boolean = false)
+data class DayEnd(
+    val lastToday: Int?,
+    val nextFirst: Int?,
+    val nextIsMonday: Boolean,
+    val nextSpecial: Boolean = false,
+    val sundaySpecial: Boolean = false,
+    val sundayHours: Pair<Int, Int>? = null,
+)
 
 /**
  * Uma estação junto da linha que a serve.

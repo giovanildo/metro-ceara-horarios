@@ -1268,7 +1268,12 @@ Detalhes que valem saber:
   domingo: "Último de hoje: 17:12 · primeiro de segunda: 05:44 (domingo, só em
   operação especial)" (tela inicial,
   em cada sentido, e tela da estação; `ScheduleRepository.dayEnd`). A versão
-  lite faz igual.
+  lite faz igual. **Se amanhã for domingo com operação anunciada** (ENEM,
+  eleição) e a linha rodar, o domingo vem antes da segunda, com o horário
+  aproximado da linha tirado da notícia: "Último de hoje: 17:08 · amanhã
+  (domingo): das 10:30 às 19:10, aproximado · segunda: 05:30" (sem a tabela na
+  notícia, "amanhã (domingo) tem operação especial; o horário sai depois da
+  meia-noite"). O widget mostra "Amanhã (domingo): 10:30 às 19:10".
 - **Download ruim nunca substitui a grade boa.** A grade nova é montada num
   arquivo temporário e só entra no lugar da atual se passar por três checagens:
   o tamanho recebido bate com o anunciado pelo servidor e com o do índice

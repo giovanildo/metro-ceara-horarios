@@ -55,10 +55,18 @@ enum class AccessWay {
 
 /**
  * Um dia de operação especial anunciado numa notícia do Metrofor (feriado, ENEM,
- * eleição): a manchete, o link, se a notícia diz que o horário não muda, e as
- * linhas que não circulam (nomes em minúsculas).
+ * eleição): a manchete, o link, se a notícia diz que o horário não muda, as
+ * linhas que não circulam (nomes em minúsculas) e, quando a notícia traz, o
+ * horário aproximado de cada linha.
  */
-data class SpecialOperation(val title: String, val link: String?, val normal: Boolean, val stopped: Set<String>)
+data class SpecialOperation(
+    val title: String,
+    val link: String?,
+    val normal: Boolean,
+    val stopped: Set<String>,
+    /** Primeira e última hora de cada linha (nome em minúsculas), da tabela da notícia; aproximadas. */
+    val hours: Map<String, Pair<Int, Int>> = emptyMap(),
+)
 
 /**
  * Super NINA (regras.json "nina"): denúncia de importunação pelo WhatsApp. O menu
@@ -159,6 +167,10 @@ class Regras(
     /** O Metrofor avisou que [routeName] não circula em [day]? */
     fun stopped(day: String, routeName: String): Boolean =
         operations[day]?.stopped?.contains(routeName.trim().lowercase()) == true
+
+    /** O horário aproximado de [routeName] no dia de operação especial, quando a notícia traz. */
+    fun operationHours(day: String, routeName: String): Pair<Int, Int>? =
+        operations[day]?.hours?.get(routeName.trim().lowercase())
 
     companion object {
         /** Sem arquivo (ou com erro nele), o app segue sem avisos de bike e de passagem. */
@@ -282,6 +294,14 @@ class Regras(
                         link = op.optString("link").takeIf { it.startsWith("https://") },
                         normal = op.optBoolean("normal"),
                         stopped = (0 until stopped.length()).map { stopped.getString(it).trim().lowercase() }.toSet(),
+                        hours = op.optJSONObject("horarios")?.let { h ->
+                            h.keys().asSequence().mapNotNull { name ->
+                                val pair = h.optJSONArray(name) ?: return@mapNotNull null
+                                val start = clockMinutes(pair.optString(0)) ?: return@mapNotNull null
+                                val end = clockMinutes(pair.optString(1)) ?: return@mapNotNull null
+                                name.trim().lowercase() to (start to end)
+                            }.toMap()
+                        }.orEmpty(),
                     )
                 }
             }.orEmpty()
@@ -360,4 +380,10 @@ class Regras(
             return TransferRule(fare, reason)
         }
     }
+}
+
+/** "10:30" em minutos desde a meia-noite; `null` se não for uma hora. */
+private fun clockMinutes(text: String): Int? {
+    val (h, m) = text.trim().split(":").takeIf { it.size == 2 }?.map { it.toIntOrNull() ?: return null } ?: return null
+    return if (h in 0..23 && m in 0..59) h * 60 + m else null
 }

@@ -121,7 +121,13 @@ class ScheduleRepository(context: Context) {
         val last = departures(stopId, routeId, directionId).lastOrNull()
         val next = (if (tomorrowIsSunday) mondayDb else tomorrowDb)?.let { departuresIn(it, stopId, routeId, directionId).firstOrNull() }
         val special = ScheduleStore.isSpecial(if (tomorrowIsSunday) ScheduleStore.dayAfterTomorrow() else ScheduleStore.tomorrow())
-        return DayEnd(last, next, tomorrowIsSunday, special)
+        // Domingo com operação anunciada (ENEM, eleição) e esta linha rodando: ele vem antes da segunda.
+        val sunday = ScheduleStore.tomorrow()
+        val routeName = route(routeId)?.name
+        val sundaySpecial = tomorrowIsSunday && ScheduleStore.isSpecial(sunday) &&
+            routeName?.let { Regras.current.stopped(sunday, it) } != true
+        val sundayHours = if (sundaySpecial) routeName?.let { Regras.current.operationHours(sunday, it) } else null
+        return DayEnd(last, next, tomorrowIsSunday, special, sundaySpecial, sundayHours)
     }
 
     /**
