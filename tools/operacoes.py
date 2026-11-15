@@ -33,7 +33,8 @@ LINHAS = {
     "VLT Cariri": r"cariri",
 }
 GRUPOS = {
-    r"fortaleza e regi[ãa]o metropolitana|grande fortaleza": ["Linha Sul", "Linha Oeste", "Linha Nordeste", "VLT Aeroporto"],
+    # "Fortaleza, Região Metropolitana, e Interior do Estado" (São José de 2021) também.
+    r"fortaleza,?\s+(e\s+)?regi[ãa]o metropolitana|grande fortaleza": ["Linha Sul", "Linha Oeste", "Linha Nordeste", "VLT Aeroporto"],
     r"sobral e regi[ãa]o do cariri|no interior|interior do estado": ["VLT Sobral - Linha Norte", "VLT Sobral - Linha Sul", "VLT Cariri"],
 }
 TODAS = list(LINHAS)
@@ -45,7 +46,15 @@ TITULO = re.compile(
     r"|\b(metr[ôo]s?|vlts?|trens|linhas)\b[^.]{0,40}\b(circula|funciona|opera)|n[ãa]o altera hor|suspens[ãa]o d|veja os hor[áa]rios"
     r"|confira os hor[áa]rios|consulte aqui os hor[áa]rios|circula[çc][ãa]o de metr"
     # "Segundo domingo de Enem terá metrô e VLT gratuitamente" (12/11/2026)
-    r"|\bter[áa]o?\s+(metr[ôo]s?|vlts?)\b", re.I)
+    r"|\bter[áa]o?\s+(metr[ôo]s?|vlts?)\b"
+    # Achados na busca de 14/11/2026 nas notícias de 2019 a 2025: "Metrô e VLT terão catracas livres no
+    # próximo domingo (6/10)" (eleição de 2024), "Confira a programação do Metrô e VLTs durante o
+    # feriadão", "Não haverá operação de trens...", "Feriado de São José", "horário diferenciado",
+    # "Veja como será operação dos trens", "Operação de São João", "madrugadas", "horários das viagens".
+    # "Suspenso" fica de fora: as suspensões (pandemia) são períodos longos, com as datas como intervalo.
+    r"|n[ãa]o haver[áa] opera[çc][ãa]o|^feriado d[aeo]\b|hor[áa]rio diferenciado|como ser[áa] (a )?opera[çc][ãa]o"
+    r"|catracas? livres|programa[çc][ãa]o (de trens|do metr[ôo]|dos trens)|opera[çc][ãa]o de s[ãa]o jo[ãa]o"
+    r"|\bmadrugadas?\b|hor[áa]rios? das viagens", re.I)
 # Mudanca que vale dali em diante (linha nova, horario novo, volta depois de obra) ou assunto
 # que so cita a operacao (bike, campanha, decoracao): nao e aviso de um dia.
 NAO_E = re.compile(r"bicicleta|\bbikes?\b|novos hor[áa]rios|amplia|importuna|sanitiza|completa|lan[çc]a|parceria|vagas"

@@ -1257,10 +1257,18 @@ Detalhes que valem saber:
   Não haverá operação"). Quando duas notícias falam do mesmo dia, vale a que
   trata dele (o feriado de 15/11/2025, e não a do ENEM, que só cita a véspera),
   e as linhas paradas das duas se somam. **Conferido com todas as 1.168
-  notícias do site (2008–2026):** desde 2022, as 68 notícias de operação caem
-  nas 101 datas certas, incluindo os sábados de encerramento antecipado, como
+  notícias do site (2008–2026):** desde 2022, as 72 notícias de operação caem
+  nas 116 datas certas, incluindo os sábados de encerramento antecipado, como
   as vésperas do ENEM e os dois sábados da eleição de 2026. É conservador: sem
-  data clara, a notícia fica de fora. Uma data posta à mão em `operacoes` do
+  data clara, a notícia fica de fora. Em 14/11/2026, depois que a notícia do 2º
+  domingo do Enem escapou, uma busca nas notícias de 2019 a 2025 achou as
+  manchetes que escapavam ("Metrô e VLT terão catracas livres no próximo
+  domingo (6/10)", a eleição de 2024; "Confira a programação do Metrô e VLTs
+  durante o feriadão", a Páscoa de 2025; "Não haverá operação de trens…",
+  "Feriado de São José", "horário diferenciado", "Veja como será operação…",
+  "Operação de São João", "madrugadas"): 19 datas a mais desde 2020, todas
+  conferidas no texto, e nenhuma das antigas mudou. "Suspenso" ficou de fora (as
+  suspensões da pandemia vêm como intervalo de datas). Uma data posta à mão em `operacoes` do
   `regras.json` ganha da tirada das notícias.
 
   O `noticias.json` do espelho, com as últimas notícias sem filtro, continua
