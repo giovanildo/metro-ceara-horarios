@@ -1561,6 +1561,7 @@ tools/site_historia.json             linha do tempo das versões (página Histó
 tools/site_videos.json               vídeos do YouTube nas páginas das linhas e estações
 tools/site_literatura.json           o trem na literatura e nas artes (página e blocos nas estações)
 tools/site_nomes.json                por que cada estação tem esse nome (só o que tem fonte)
+tools/site_turismo.json              guia Fortaleza de metrô (roteiros) e a Linha Leste em obras
 app/src/main/assets/metrofor.db      banco gerado (não editar à mão)
 app/src/main/assets/regras.json      regras fora do GTFS: bike, integrações, passagem,
                                      guia da passagem, endereços, acessibilidade, cores,
@@ -1883,6 +1884,26 @@ Google já conhece, em pastas próprias — a lite em `docs/app/` não é tocada
   Diocese de Sobral): 33 das 62 estações. As origens prováveis sem fonte e as
   não encontradas ficam listadas em `pendentes`, e a página diz "ainda não
   achamos" e convida a contar pelo WhatsApp.
+- **Fortaleza de metrô** (desde 15/11): guia para quem visita em
+  `fortaleza-de-metro/` (no menu do computador e um atalho em "Explore" na
+  página inicial): antes de sair (domingo sem metrô, sábado mais curto,
+  passagens, sinal fraco no subterrâneo), chegando pelo aeroporto e pela
+  rodoviária, onde os trilhos chegam e onde não chegam, os roteiros
+  (`fortaleza-de-metro/aeroporto-mucuripe/` e `.../centro-historico/`) e
+  dois "em breve". Os textos ficam em
+  [`tools/site_turismo.json`](tools/site_turismo.json), mas tudo o que muda
+  vem de marcadores que o `site.py` preenche a cada geração: `{pe:Lugar}`
+  (minutos a pé, dos lugares do `regras.json`), `{km:Lugar}`,
+  `{intervalo:Linha}` (um sentido só), `{horario:Linha}`, `{sabado:Linha}`,
+  `{paradas:Linha|De|Até}` e `{passagem:Linha}`; marcador que não se resolve
+  derruba a geração, para não publicar dado errado. A história de cada
+  roteiro puxa da literatura, das artes e dos nomes; os vídeos, do
+  `site_videos.json`.
+- **Linha Leste (em obras)** em `linhas/linha-leste/` e um cartão na lista
+  de linhas e no guia: previsão (fim de 2028), andamento com data e fonte,
+  as 8 estações previstas (Sé, Luíza Távora e Leonardo Mota voltaram ao
+  projeto em 2026), a história da obra. Não tem horário nem passagem. A cada
+  notícia nova (o vigia abre issue), atualizar `linha_leste` no JSON.
 - **Prévia de link** (a imagem que aparece ao mandar o endereço no WhatsApp):
   `docs/img/previa.png`, 1200×630, com o nome e o mapa de Fortaleza. Sai de
   [`tools/site_previa.py`](tools/site_previa.py), que monta a página com o

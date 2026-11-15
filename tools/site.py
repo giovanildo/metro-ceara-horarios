@@ -43,6 +43,7 @@ HISTORIA = os.path.join(RAIZ, "tools", "site_historia.json")
 VIDEOS = os.path.join(RAIZ, "tools", "site_videos.json")
 LITERATURA = os.path.join(RAIZ, "tools", "site_literatura.json")
 NOMES_ESTACOES = os.path.join(RAIZ, "tools", "site_nomes.json")
+TURISMO = os.path.join(RAIZ, "tools", "site_turismo.json")
 CHANGELOGS = os.path.join(RAIZ, "fastlane", "metadata", "android", "pt-BR", "changelogs")
 FOTOS_NO_TOPO = 4  # as outras fotos da estação ficam no fim da página e só carregam ao rolar
 RAW = "https://raw.githubusercontent.com/giovanildo/metro-ceara-horarios/dados/"
@@ -172,6 +173,10 @@ class Dados:
                 self.videos = json.load(fh).get("videos", [])
         self.literatura, self.leitura = [], []  # tools/site_literatura.json: trechos conferidos no texto original
         self.artes, self.quem_da_nome = [], {}
+        self.turismo = {}  # tools/site_turismo.json: guia para quem visita e a Linha Leste
+        if os.path.exists(TURISMO):
+            with open(TURISMO, encoding="utf-8") as fh:
+                self.turismo = json.load(fh)
         self.nomes = {}  # tools/site_nomes.json: por que cada estação tem esse nome (só o que tem fonte)
         if os.path.exists(NOMES_ESTACOES):
             with open(NOMES_ESTACOES, encoding="utf-8") as fh:
@@ -315,7 +320,7 @@ CABECA = """<!doctype html>
 <a class="pular" href="#conteudo">Pular para o conteúdo</a>
 <nav class="topo"><div class="largura">
   <a class="marca" href="{raiz}"><img src="{raiz}img/icon.png" alt="" width="32" height="32"><span class="marca-nome">Metrô Ceará</span></a>
-  <span class="menu"><a href="{raiz}estacoes/">Estações</a><a href="{raiz}linhas/">Linhas</a><a class="opcional" href="{raiz}perguntas-frequentes/">Dúvidas</a><a class="opcional" href="{raiz}literatura/">Literatura e artes</a><a class="abrir" href="{raiz}app/">Horários agora</a></span>
+  <span class="menu"><a href="{raiz}estacoes/">Estações</a><a href="{raiz}linhas/">Linhas</a><a class="opcional" href="{raiz}perguntas-frequentes/">Dúvidas</a><a class="opcional" href="{raiz}fortaleza-de-metro/">Fortaleza de metrô</a><a class="opcional" href="{raiz}literatura/">Literatura e artes</a><a class="abrir" href="{raiz}app/">Horários agora</a></span>
 </div></nav>
 """
 
@@ -721,6 +726,280 @@ def pagina_redireciona(para, nome_antigo, nome_novo):
             f'<a href="../../{para}">{esc(nome_novo)}</a>.</p></body></html>\n')
 
 
+# ---------- Fortaleza de metrô: guia para quem visita (tools/site_turismo.json)
+
+AZUL_TURISMO = "#014687"
+
+
+def linha_por_nome(d, nome):
+    return next((l for l in d.linhas if l["nome"].strip().lower() == nome.strip().lower()), None)
+
+
+def lugar_por_nome(d, nome):
+    return next((l for l in d.regras.get("lugares", {}).get("lista", []) if l["nome"] == nome), None)
+
+
+def minutos_a_pe(m):
+    return max(1, -(-m // METROS_POR_MINUTO))
+
+
+def km(m):
+    return f"{m / 1000:.1f}".replace(".", ",") + " km"
+
+
+def partidas_da_linha(d, grade, linha):
+    """Todas as partidas da linha no dia, saindo da primeira estação de cada sentido."""
+    return sorted(m for s in linha["sentidos"] for m in d.partidas(grade, linha["id"], s["id"], s["estacoes"][0]))
+
+
+def preencher_turismo(d, texto):
+    """Troca os marcadores do site_turismo.json ({pe:...}, {intervalo:...}) pelo que a grade e o regras.json dizem hoje."""
+    def troca(m):
+        tipo, arg = m.group(1), m.group(2)
+        if tipo in ("pe", "km"):
+            l = lugar_por_nome(d, arg)
+            if not l:
+                raise SystemExit(f"site_turismo.json: lugar não achado no regras.json: {arg}")
+            return f"{minutos_a_pe(l['a_pe_m'])} min" if tipo == "pe" else km(l["a_pe_m"])
+        if tipo == "paradas":
+            nome, de, ate = arg.split("|")
+            linha = linha_por_nome(d, nome)
+            a, b = d.stop_pelo_nome(de), d.stop_pelo_nome(ate)
+            for sentido in linha["sentidos"]:
+                e = sentido["estacoes"]
+                if a in e and b in e and e.index(a) < e.index(b):
+                    return str(e.index(b) - e.index(a))
+            raise SystemExit(f"site_turismo.json: paradas não achadas: {arg}")
+        linha = linha_por_nome(d, arg)
+        if not linha:
+            raise SystemExit(f"site_turismo.json: linha não achada: {arg}")
+        if tipo == "passagem":
+            return (d.passagem(linha) or "").split(" (")[0].split(" ·")[0]
+        util = partidas_da_linha(d, d.util, linha)
+        if tipo == "intervalo":  # um sentido só: juntar os dois daria a metade do intervalo
+            s0 = max(linha["sentidos"], key=lambda s: len(s["viagens"]))
+            return texto_intervalo(d.partidas(d.util, linha["id"], s0["id"], s0["estacoes"][0])) or "algumas vezes por hora"
+        if tipo == "horario":
+            return f"das {hora_falada(hora(util[0]))} às {hora_falada(hora(util[-1]))}" if util else "sem horário publicado"
+        if tipo == "sabado":
+            sab = partidas_da_linha(d, d.sabado, linha)
+            return hora_falada(hora(sab[-1])) if sab else "(sem viagens no sábado)"
+        raise SystemExit(f"site_turismo.json: marcador desconhecido: {m.group(0)}")
+    return re.sub(r"\{(\w+):([^}]+)\}", troca, texto)
+
+
+def roda_no_sabado(d, nome):
+    linha = linha_por_nome(d, nome)
+    return bool(linha and partidas_da_linha(d, d.sabado, linha))
+
+
+def fatos_do_roteiro(d, r):
+    linhas = [linha_por_nome(d, n) for n in r["linhas"]]
+    pagas = [p for p in (d.passagem(l) for l in linhas) if p and not p.lower().startswith("gratuit")]
+    preco = pagas[0].split(" (")[0].split(" ·")[0] if pagas else "De graça"
+    dias = "Seg a sáb" if all(roda_no_sabado(d, n) for n in r["linhas"]) else "Seg a sex"
+    trocas = len(r["linhas"]) - 1
+    return [preco, dias] + ([f"{trocas} integraç{'ão' if trocas == 1 else 'ões'}"] if trocas else ["Sem integração"])
+
+
+def cartao_roteiro(d, r, raiz, *, breve=False):
+    cor = d.cor(linha_por_nome(d, r["cor"])) if linha_por_nome(d, r["cor"]) else AZUL_TURISMO
+    sobre = "Em breve" if breve else " + ".join(r["linhas"])
+    fatos = "" if breve else '<div class="tur-fatos">' + "".join(f'<span class="tur-fato">{esc(f)}</span>' for f in fatos_do_roteiro(d, r)) + "</div>"
+    tag = "div" if breve else "a"
+    href = "" if breve else f' href="{raiz}fortaleza-de-metro/{r["slug"]}/"'
+    return (f'<{tag} class="tur-roteiro{" tur-breve" if breve else ""}"{href} style="--cor:{cor}"><div class="tur-roteiro-topo">'
+            f'<small>{esc(sobre)}</small><h3>{esc(r["titulo"])}</h3></div><div class="tur-roteiro-corpo"><p>{esc(r["resumo"])}</p>{fatos}</div></{tag}>')
+
+
+def cartao_leste(d, raiz):
+    ll = d.turismo.get("linha_leste")
+    if not ll:
+        return ""
+    a = ll["andamento"]
+    return (f'<a class="tur-roteiro tur-leste" href="{raiz}linhas/linha-leste/"><div class="tur-roteiro-topo">'
+            f'<small>Em obras · prevista para o {esc(ll["previsao"])}</small><h3>Linha Leste: do Centro ao Papicu por baixo da Aldeota</h3></div>'
+            f'<div class="tur-roteiro-corpo"><p>{esc(ll["extensao"])}, quase toda subterrânea, em {esc(ll["tempo"].lstrip("~"))} do Centro ao Papicu. Vai levar à Catedral (Estação Sé), '
+            f'à Central de Artesanato (Luíza Távora) e ao Papicu, com integração com as linhas Sul, Oeste e Nordeste. Ainda não tem horário nem passagem.</p>'
+            f'<div class="tur-fatos"><span class="tur-fato">{esc(a["valor"])} pronta ({esc(a["data"])})</span>'
+            f'<span class="tur-fato">{len(ll["estacoes"])} estações previstas</span><span class="tur-fato">Ver a obra ›</span></div></div></a>')
+
+
+def pagina_turismo(d):
+    raiz = "../"
+    t = d.turismo
+    sul, oeste, nordeste, aero = (linha_por_nome(d, n) for n in ("Linha Sul", "Linha Oeste", "Linha Nordeste", "VLT Aeroporto"))
+    curto = lambda l: (d.passagem(l) or "").replace(" · ", ", ")
+    sub = [g["nome"] for g in d.estacoes if g["info"].get("subterranea")]
+    por_slug = {g["slug"]: g for g in d.estacoes}
+    aeroporto, rodoviaria = lugar_por_nome(d, "Aeroporto de Fortaleza (Pinto Martins)"), lugar_por_nome(d, "Rodoviária de Fortaleza")
+    h = [f'<header class="faixa" style="--cor:{AZUL_TURISMO};--cor-escuro:{AZUL_TURISMO}"><div class="largura">',
+         migalhas(raiz, [("Fortaleza de metrô", None)]),
+         '<p class="sobretitulo">Guia para quem visita</p><h1>Fortaleza de metrô</h1>',
+         '<p class="endereco">Do aeroporto à praia, do Centro histórico à lagoa de Iracema: o que dá para conhecer de metrô e VLT, '
+         'quanto custa, quando ir e onde os trilhos não chegam.</p>',
+         f'<p class="acoes"><a class="botao claro" href="#roteiros">Ver os roteiros</a><a class="botao vazado" href="{raiz}app/">Horários agora ›</a></p>',
+         '</div></header><main id="conteudo" class="largura">']
+    h.append('<section><h2>Antes de sair</h2><div class="tur-cards">'
+             '<div class="tur-card tur-alerta"><div class="tur-ico">📅</div><h3>Domingo não tem metrô</h3><p>Metrô e VLT rodam de segunda a sábado. '
+             'No domingo, só em dia especial, como eleição e Enem, quando o Metrofor anuncia. Programe o passeio para a semana.</p></div>'
+             f'<div class="tur-card tur-alerta"><div class="tur-ico">🕔</div><h3>Sábado acaba cedo</h3><p>No sábado a Linha Sul sai pela última vez às '
+             f'{preencher_turismo(d, "{sabado:Linha Sul}")}.' + ("" if roda_no_sabado(d, "VLT Aeroporto") else " O VLT do Aeroporto não roda no fim de semana.") + "</p></div>"
+             f'<div class="tur-card tur-ok"><div class="tur-ico">🎟️</div><h3>Quanto custa</h3><p>Linha Sul: {esc(curto(sul))}. Linha Oeste: {esc(curto(oeste))}. '
+             f'Linha Nordeste: {esc(curto(nordeste).lower())}. VLT do Aeroporto: {esc(curto(aero).lower())}.</p></div>'
+             f'<div class="tur-card tur-info"><div class="tur-ico">📶</div><h3>Sinal fraco no Centro</h3><p>Nas estações subterrâneas ({esc(juntar(sub))}) '
+             'o celular costuma falhar. Deixe o Pix aberto antes de descer.</p></div></div></section>')
+    h.append('<section><h2>Chegando na cidade</h2><div class="tur-duas">'
+             f'<div class="tur-card"><div class="tur-ico">✈️</div><h3>Do aeroporto</h3><p>A Estação Aeroporto fica a {minutos_a_pe(aeroporto["a_pe_m"])} min a pé do terminal. '
+             'O VLT vai até a Expedicionários, onde você troca, sem pagar de novo, para a Linha Nordeste (rumo ao Mucuripe ou à Parangaba).</p>'
+             f'<p><strong>Nos dias úteis, {preencher_turismo(d, "{horario:VLT Aeroporto}")}, {preencher_turismo(d, "{intervalo:VLT Aeroporto}")}.</strong> '
+             'À noite e no fim de semana não tem VLT: vá de ônibus ou aplicativo. '
+             f'<a href="{raiz}fortaleza-de-metro/aeroporto-mucuripe/">O roteiro até o Mucuripe ›</a></p></div>'
+             f'<div class="tur-card"><div class="tur-ico">🚌</div><h3>Da rodoviária</h3><p>A Rodoviária fica a {minutos_a_pe(rodoviaria["a_pe_m"])} min a pé '
+             f'da <a href="{raiz}estacoes/{slug(nome_estacao(rodoviaria["estacao"]))}/">Estação {esc(rodoviaria["estacao"])}</a>, da Linha Nordeste '
+             f'({esc(curto(nordeste).lower())}). De lá: Mucuripe para um lado; Parangaba e a Linha Sul para o outro.</p></div></div></section>')
+    chegam = "".join(f'<a class="tur-chip" href="{raiz}estacoes/{c["estacao"]}/">{c["emoji"]} {esc(c["nome"])} <small>· {esc(c.get("detalhe") or "Estação " + por_slug[c["estacao"]]["nome"])}</small></a>'
+                     for c in t.get("chegam", []))
+    fora = []
+    for nome in t.get("nao_chegam", []):
+        l = lugar_por_nome(d, nome)
+        if l:
+            fora.append(f'<span class="tur-chip tur-nao">{esc(nome)} <small>· {km(l["a_pe_m"])} a pé da {esc(nome_estacao(l["estacao"]))}</small></span>')
+    if t.get("linha_leste"):
+        fora.append(f'<a class="tur-chip tur-nao" href="{raiz}linhas/linha-leste/">Aldeota <small>· a Linha Leste vai chegar ({esc(t["linha_leste"]["previsao"])})</small></a>')
+    h.append(f'<section><h2>Onde os trilhos chegam</h2><div class="tur-chips">{chegam}</div>'
+             '<h3>E onde não chegam</h3><p class="dica">A estação mais perto e quanto falta. O resto do caminho é de ônibus ou aplicativo.</p>'
+             f'<div class="tur-chips">{"".join(fora)}</div></section>')
+    h.append(f"<section>{cartao_leste(d, raiz)}</section>")
+    h.append('<section id="roteiros"><h2>Roteiros</h2><div class="tur-duas">'
+             + "".join(cartao_roteiro(d, r, raiz) for r in t.get("roteiros", []))
+             + "".join(cartao_roteiro(d, {**r, "linhas": []}, raiz, breve=True) for r in t.get("em_breve", []))
+             + "</div></section>")
+    if t.get("temas"):
+        h.append('<section><h2>Passeios por tema <span class="dica">· em breve</span></h2><div class="tur-chips">'
+                 + "".join(f'<span class="tur-chip">{esc(x)}</span>' for x in t["temas"]) + "</div></section>")
+    h.append(f'<p class="dica">Os horários, as passagens e as distâncias desta página vêm da programação do Metrofor e são atualizados sozinhos. '
+             f'Viu algo errado ou tem uma dica de passeio? <a href="{esc(WHATSAPP + "Metrô Ceará · turismo: ")}">Conte pelo WhatsApp</a>.</p>')
+    h.append(chamada_app(raiz))
+    h.append("</main>")
+    return pagina(d, caminho="fortaleza-de-metro/", titulo="Fortaleza de metrô: guia para quem visita | Metrô Ceará",
+                  descricao="Do aeroporto à praia de VLT, o Centro histórico a pé: o que conhecer em Fortaleza de metrô, quanto custa, quando ir (domingo não tem) e onde os trilhos não chegam.",
+                  corpo="\n".join(h), tema=AZUL_TURISMO)
+
+
+def historia_do_roteiro(d, ref):
+    if "obra" in ref:
+        o = next((o for o in d.literatura if o["id"] == ref["obra"]), None)
+        return o and (f"📖 {o['obra']}", f"“{o['trecho']}” — {o['autor']} ({o['ano']})")
+    if "arte" in ref:
+        a = next((a for a in d.artes if a["id"] == ref["arte"]), None)
+        return a and (f"🎨 {a['titulo']}", f"{a['texto']} ({a['quando']})")
+    if "nome" in ref:
+        n = d.nomes.get(ref["nome"])
+        return n and ("🏷️ Por que esse nome?", n["texto"])
+    return None
+
+
+def pagina_roteiro(d, r):
+    raiz = "../../"
+    linha_cor = linha_por_nome(d, r["cor"])
+    cor = d.cor(linha_cor)
+    por_slug = {g["slug"]: g for g in d.estacoes}
+    fatos = fatos_do_roteiro(d, r)
+    h = [f'<header class="faixa" style="--cor:{cor};--cor-escuro:{d.cor(linha_cor, True)}"><div class="largura">',
+         migalhas(raiz, [("Fortaleza de metrô", "fortaleza-de-metro/"), (r["titulo"], None)]),
+         f'<p class="sobretitulo">Roteiro · {esc(" + ".join(r["linhas"]))}</p><h1>{esc(r["titulo"])}</h1>',
+         '<div class="numeros claros">' + "".join(f'<p class="numero"><strong>{esc(f)}</strong></p>' for f in fatos) + "</div>",
+         '</div></header><main id="conteudo" class="largura">']
+    if r.get("aviso"):
+        h.append(f'<p class="tur-aviso">{esc(preencher_turismo(d, r["aviso"]))}</p>')
+    passos = []
+    for i, p in enumerate(r["passos"], start=1):
+        c = d.cor(linha_por_nome(d, p["linha"]))
+        passos.append(f'<li style="--cl:{c}"><span class="tur-n">{i}</span><h3>{esc(p["titulo"])}</h3><p>{esc(preencher_turismo(d, p["texto"]))}</p>'
+                      + (f'<p class="dica">{esc(p["nota"])}</p>' if p.get("nota") else "") + "</li>")
+    partida = r.get("partida")
+    botao = ""
+    if partida:
+        g, l = por_slug[partida["estacao"]], linha_por_nome(d, partida["linha"])
+        stop = next(s for ln, s in g["linhas"] if ln["id"] == l["id"])
+        botao = (f'<p class="acoes"><a class="botao" href="{raiz}app/#/estacao/{l["id"]}/{stop}">Próxima partida agora ›</a>'
+                 f'<a class="botao vazado-escuro" href="{raiz}estacoes/{g["slug"]}/">Estação {esc(g["nome"])} ›</a></p>')
+    h.append(f'<section><h2>Passo a passo</h2><ol class="tur-passos">{"".join(passos)}</ol>{botao}</section>')
+    if r.get("leste"):
+        h.append(f'<p class="tur-aviso tur-aviso-leste">🚧 {esc(r["leste"])} '
+                 f'<a href="{raiz}linhas/linha-leste/">A Linha Leste ›</a></p>')
+    ver = r.get("ver", {})
+    if ver.get("tipos") or ver.get("longe"):
+        g = por_slug[ver["estacao"]]
+        itens = []
+        if ver.get("tipos"):
+            for l in d.lugares_perto(g):
+                if l["tipo"] in ver["tipos"]:
+                    emoji = LUGAR_TIPO.get(l["tipo"], ("📍", ""))[0]
+                    itens.append(f'<li><span>{emoji} {esc(l["nome"])}</span><span class="dica">{minutos_a_pe(l["a_pe_m"])} min a pé</span></li>')
+        for nome in ver.get("longe", []):
+            l = lugar_por_nome(d, nome)
+            if l:
+                itens.append(f'<li><span>🚌 {esc(nome)}</span><span class="dica">{km(l["a_pe_m"])} · ônibus ou aplicativo</span></li>')
+        titulo = f"O que ver perto da estação {esc(g['nome'])}" if ver.get("tipos") else "Perto, mas não a pé"
+        h.append(f'<section><h2>{titulo}</h2><ul class="tur-ver">{"".join(itens)}</ul></section>')
+    hist = [x for x in (historia_do_roteiro(d, ref) for ref in r.get("historia", [])) if x]
+    if hist:
+        h.append('<section><h2>A história no caminho</h2><div class="tur-duas">'
+                 + "".join(f'<div class="tur-card"><h3>{esc(a)}</h3><p>{esc(b)}</p></div>' for a, b in hist)
+                 + f'</div><p class="dica"><a href="{raiz}literatura/">Literatura e artes nos trilhos ›</a> · <a href="{raiz}nomes-das-estacoes/">Os nomes das estações ›</a></p></section>')
+    vids = [v for v in d.videos if v["id"] in r.get("videos", [])]
+    if vids:
+        h.append('<section class="videos"><h2>Veja antes de ir</h2><div class="grade-videos">' + "".join(video_tocador(v, raiz) for v in vids)
+                 + "</div>" + AVISO_VIDEOS + "</section>")
+    h.append(f'<p class="dica"><a href="{raiz}fortaleza-de-metro/">‹ Todos os roteiros</a></p>')
+    h.append(chamada_app(raiz))
+    h.append("</main>")
+    return pagina(d, caminho=f"fortaleza-de-metro/{r['slug']}/", titulo=f"{r['titulo']}: roteiro de metrô e VLT em Fortaleza | Metrô Ceará",
+                  descricao=f"{r['resumo']} Passo a passo, quanto custa, quando ir e o que ver.", corpo="\n".join(h), tema=cor,
+                  scripts=SCRIPT_VIDEO.format(raiz=raiz) if vids else "")
+
+
+def pagina_linha_leste(d):
+    raiz = "../../"
+    ll = d.turismo["linha_leste"]
+    cor = ll["cor"]
+    por_slug = {g["slug"]: g for g in d.estacoes}
+    a = ll["andamento"]
+    h = [f'<header class="faixa" style="--cor:{cor};--cor-escuro:{cor}"><div class="largura">',
+         migalhas(raiz, [("Linhas", "linhas/"), ("Linha Leste", None)]),
+         '<p class="sobretitulo">Metrô · Fortaleza · em obras</p><h1>Linha Leste</h1>',
+         '<p class="endereco">Centro – Papicu, por baixo da Aldeota. Ainda não funciona: não tem horário nem passagem.</p>',
+         '<div class="numeros claros">'
+         f'<p class="numero"><strong>{esc(ll["previsao"])}</strong><span>previsão de entrega</span></p>'
+         f'<p class="numero"><strong>{esc(a["valor"])}</strong><span>da obra pronta ({esc(a["data"])})</span></p>'
+         f'<p class="numero"><strong>{esc(ll["extensao"])}</strong><span>quase toda subterrânea</span></p>'
+         f'<p class="numero"><strong>{esc(ll["tempo"])}</strong><span>do Centro ao Papicu</span></p></div>',
+         '</div></header><main id="conteudo" class="largura">',
+         f'<p class="tur-aviso tur-aviso-leste">Os números da obra mudam a cada notícia; cada um aqui tem a data. Andamento: {esc(a["valor"])} em {esc(a["data"])}, '
+         f'segundo <a href="{esc(a["link"])}" target="_blank" rel="noopener">{esc(a["fonte"])}</a>.</p>']
+    itens = []
+    for i, e in enumerate(ll["estacoes"], start=1):
+        selo_linha = ""
+        if e.get("integra"):
+            l = linha_por_nome(d, e["integra"])
+            if l:
+                selo_linha = " " + selo(d, l, raiz)
+        nova = ' <span class="tur-fato">voltou ao projeto em 2026</span>' if e.get("nova") else ""
+        nome = (f'<a href="{raiz}estacoes/{e["estacao"]}/">{esc(e["nome"])}</a>' if e.get("estacao") in por_slug else esc(e["nome"]))
+        itens.append(f'<li style="--cl:{cor}"><span class="tur-n">{i}</span><h3>{nome}{selo_linha}{nova}</h3><p>{esc(e["texto"])}</p></li>')
+    h.append('<section><h2>Estações previstas</h2><p class="dica">Nomes e ordem previstos no projeto atual. Sé, Luíza Távora e Leonardo Mota tinham saído '
+             f'do projeto em 2018 e voltaram em 2026.</p><ol class="tur-passos">{"".join(itens)}</ol></section>')
+    h.append('<section><h2>A história da obra</h2><ul class="tur-ver">' + "".join(f"<li><span>{esc(x)}</span></li>" for x in ll["historia"]) + "</ul></section>")
+    h.append(f'<section><h2>Depois do Papicu</h2><p>{esc(ll["depois"])}</p></section>')
+    h.append(f'<p class="dica">Fontes: {links_fontes(ll["fontes"])}. Para o passeio de hoje, veja <a href="{raiz}fortaleza-de-metro/">Fortaleza de metrô</a>.</p>')
+    h.append("</main>")
+    return pagina(d, caminho="linhas/linha-leste/", titulo="Linha Leste do metrô de Fortaleza (em obras): estações e previsão | Metrô Ceará",
+                  descricao=f"A Linha Leste ligará o Centro ao Papicu em {ll['tempo'].lstrip('~')}: as estações previstas (Sé, Colégio Militar, Luíza Távora, Nunes Valente, Leonardo Mota), o andamento da obra e a previsão de entrega ({ll['previsao']}).",
+                  corpo="\n".join(h), tema=cor)
+
+
 def tem_literatura(d, estacao):
     return any(estacao in o.get("estacoes", []) for o in d.literatura + d.artes)
 
@@ -975,6 +1254,11 @@ def indice_linhas(d):
                      f'<h3>{esc(nome_linha(linha["nome"]))}</h3>'
                      f'<p>{esc(d.por_stop[ordem[0]]["nome"])} ⟷ {esc(d.por_stop[ordem[-1]]["nome"])}</p>'
                      f'<p class="dica">{len(ordem)} estações' + (f" · {esc(p.split(' ·')[0])}" if p else "") + "</p></a>")
+        if sistema == "Fortaleza" and d.turismo.get("linha_leste"):
+            ll = d.turismo["linha_leste"]
+            h.append(f'<a class="cartao cartao-link" style="--cor:{ll["cor"]};--cor-escuro:{ll["cor"]}" href="linha-leste/">'
+                     f'<p class="cartao-linha">Metrô · em obras</p><h3>Linha Leste</h3><p>Chico da Silva ⟷ Papicu</p>'
+                     f'<p class="dica">{len(ll["estacoes"])} estações previstas · {esc(ll["previsao"])}</p></a>')
         h.append("</div></section>")
     h.append("</main>")
     return pagina(d, caminho="linhas/", titulo="Linhas de metrô e VLT do Ceará | Metrô Ceará",
@@ -1381,6 +1665,15 @@ def main():
     escrever(os.path.join(DOCS, "perguntas-frequentes", "index.html"), pagina_faq(d))
     escrever(os.path.join(DOCS, "literatura", "index.html"), pagina_literatura(d))
     escrever(os.path.join(DOCS, "nomes-das-estacoes", "index.html"), pagina_nomes(d))
+    if d.turismo:
+        escrever(os.path.join(DOCS, "fortaleza-de-metro", "index.html"), pagina_turismo(d))
+        caminhos.append("fortaleza-de-metro/")
+        for r in d.turismo.get("roteiros", []):
+            escrever(os.path.join(DOCS, "fortaleza-de-metro", r["slug"], "index.html"), pagina_roteiro(d, r))
+            caminhos.append(f"fortaleza-de-metro/{r['slug']}/")
+        if d.turismo.get("linha_leste"):
+            escrever(os.path.join(DOCS, "linhas", "linha-leste", "index.html"), pagina_linha_leste(d))
+            caminhos.append("linhas/linha-leste/")
     for novo, antigo in ANTIGOS.items():  # o endereço antigo continua chegando à estação
         escrever(os.path.join(DOCS, "estacoes", slug(antigo), "index.html"), pagina_redireciona(f"estacoes/{slug(novo)}/", antigo, novo))
     escrever(os.path.join(DOCS, "estacoes", "index.html"), indice_estacoes(d))

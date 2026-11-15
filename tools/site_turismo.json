@@ -1,0 +1,85 @@
+{
+  "_sobre": "Guia para quem visita Fortaleza (tools/site.py: fortaleza-de-metro/, os roteiros e linhas/linha-leste/). O que muda (horário, intervalo, passagem, distância, número de paradas) NÃO fica escrito aqui: os textos usam marcadores que o site.py preenche com a grade e o regras.json a cada geração. Marcadores: {pe:Lugar} = minutos a pé do lugar até a estação dele; {km:Lugar} = distância a pé em km e a estação; {intervalo:Linha} = intervalo nos dias úteis; {horario:Linha} = primeira e última partida nos dias úteis; {sabado:Linha} = hora da última partida no sábado; {paradas:Linha|De|Até} = quantas paradas; {passagem:Linha}. O que é dito sobre lugares e história tem fonte nas páginas de literatura, artes e nomes.",
+  "chegam": [
+    {"nome": "Centro histórico", "estacao": "jose-de-alencar", "emoji": "🏛️"},
+    {"nome": "Mucuripe", "detalhe": "fim da Beira-Mar", "estacao": "mucuripe", "emoji": "🌊"},
+    {"nome": "Lagoa da Parangaba", "estacao": "parangaba", "emoji": "🌳"},
+    {"nome": "Benfica e Gentilândia", "estacao": "benfica", "emoji": "🎨"}
+  ],
+  "nao_chegam": ["Praia de Iracema", "Feirinha da Beira-Mar", "Praia do Meireles", "Praia do Futuro", "Centro Dragão do Mar"],
+  "roteiros": [
+    {
+      "slug": "aeroporto-mucuripe",
+      "titulo": "Do aeroporto ao Mucuripe",
+      "linhas": ["VLT Aeroporto", "Linha Nordeste"],
+      "cor": "VLT Aeroporto",
+      "resumo": "Da pista de pouso ao mar sem pagar nada: VLT do Aeroporto, Linha Nordeste e a ponta da Beira-Mar.",
+      "aviso": "À noite, aos sábados e domingos o VLT do Aeroporto não roda. Nesses horários, saia do aeroporto de ônibus ou aplicativo.",
+      "passos": [
+        {"linha": "VLT Aeroporto", "titulo": "Estação Aeroporto", "texto": "Fica a {pe:Aeroporto de Fortaleza (Pinto Martins)} a pé do terminal de passageiros. Pegue o VLT sentido Expedicionários; nos dias úteis passa {intervalo:VLT Aeroporto}, {horario:VLT Aeroporto}."},
+        {"linha": "Linha Nordeste", "titulo": "Expedicionários: troque de VLT", "texto": "Desça e pegue a Linha Nordeste sentido Iate, sem pagar de novo. Ela passa {intervalo:Linha Nordeste}: veja a próxima partida antes de sair.", "nota": "A avenida homenageia os pracinhas da Segunda Guerra."},
+        {"linha": "Linha Nordeste", "titulo": "Desça no Mucuripe", "texto": "São {paradas:Linha Nordeste|Expedicionários|Mucuripe} paradas depois da Expedicionários, passando pela Borges de Melo (a da rodoviária) e pelo Papicu."}
+      ],
+      "partida": {"linha": "VLT Aeroporto", "estacao": "aeroporto"},
+      "ver": {"estacao": "mucuripe", "tipos": ["igreja", "praca", "praia", "parque", "cultura", "museu", "mercado"], "longe": ["Feirinha da Beira-Mar"]},
+      "historia": [{"obra": "iracema-mocoribe"}, {"arte": "wesley-mucuripe"}, {"nome": "mucuripe"}],
+      "videos": ["NqruSJo9TGk", "k4u5ST-eo1w"]
+    },
+    {
+      "slug": "centro-historico",
+      "titulo": "Centro histórico a pé",
+      "linhas": ["Linha Sul"],
+      "cor": "Linha Sul",
+      "resumo": "Theatro José de Alencar, Praça do Ferreira, Pinacoteca, Estação das Artes, Catedral e Mercado Central.",
+      "aviso": "Desça na Estação José de Alencar. Ela é subterrânea e o sinal do celular falha: deixe o Pix aberto antes de entrar. No sábado a Linha Sul sai pela última vez às {sabado:Linha Sul}.",
+      "passos": [
+        {"linha": "Linha Sul", "titulo": "Praça e Theatro José de Alencar", "texto": "Saindo da estação, {pe:Theatro José de Alencar} a pé. O teatro é de 1910, com estrutura de ferro, e a praça tem a estátua do escritor.", "nota": "A estação ia se chamar Lagoinha; ganhou o nome da praça em 2010."},
+        {"linha": "Linha Sul", "titulo": "Praça do Ferreira e Cineteatro São Luiz", "texto": "{pe:Praça do Ferreira} a pé da estação. O coração do Centro."},
+        {"linha": "Linha Sul", "titulo": "Pinacoteca e Estação das Artes", "texto": "{pe:Pinacoteca do Ceará} a pé da estação. A antiga Estação João Felipe, de 1880, virou complexo cultural, com o painel de Descartes Gadelha sobre a ferrovia e obras de Chico da Silva no acervo da Pinacoteca."},
+        {"linha": "Linha Sul", "titulo": "Catedral e Mercado Central", "texto": "A Catedral fica a {pe:Catedral Metropolitana de Fortaleza} a pé da estação, e o Mercado Central, a {pe:Mercado Central de Fortaleza}. No mercado, artesanato, castanha e rendas."}
+      ],
+      "partida": {"linha": "Linha Sul", "estacao": "jose-de-alencar"},
+      "leste": "Em 2028, a Linha Leste terá a Estação Sé, ao lado da Catedral e perto do Mercado Central, e a Luíza Távora, na praça da Central de Artesanato. Este roteiro vai ficar mais curto.",
+      "ver": {"estacao": "jose-de-alencar", "tipos": [], "longe": ["Centro Dragão do Mar", "Praia de Iracema"]},
+      "historia": [{"nome": "jose-de-alencar"}, {"arte": "estacao-das-artes"}],
+      "videos": []
+    }
+  ],
+  "em_breve": [
+    {"titulo": "Iracema e a ferrovia", "cor": "Linha Sul", "resumo": "Benfica e Parangaba: a lagoa de Iracema, a estação de 1873 e os grafites das marias-fumaça."},
+    {"titulo": "Juazeiro e Crato · Sobral", "cor": "VLT Cariri", "resumo": "Padre Cícero de VLT; o Museu do Eclipse e o Arco de Sobral."}
+  ],
+  "temas": ["🎭 Cultura", "🌊 Praia e mar", "🛍️ Compras", "⛪ Fé", "⚽ Futebol", "📖 Literatura e artes"],
+  "linha_leste": {
+    "cor": "#B38F00",
+    "previsao": "fim de 2028",
+    "extensao": "7,3 km",
+    "tempo": "~15 min",
+    "andamento": {"valor": "41%", "data": "out/2026", "fonte": "Opinião CE (entrevista do secretário da Infraestrutura)", "link": "https://www.youtube.com/shorts/Ol0Ra8L_ZOU"},
+    "estacoes": [
+      {"nome": "Tirol-Moura Brasil", "integra": "Linha Oeste", "texto": "Na superfície. Integração com a Linha Oeste (VLT)."},
+      {"nome": "Chico da Silva", "integra": "Linha Sul", "estacao": "chico-da-silva", "texto": "Integração com a Linha Sul; a estação de hoje será ampliada."},
+      {"nome": "Sé", "nova": true, "texto": "Junto à Catedral Metropolitana e ao Paço Municipal; perto do Mercado Central."},
+      {"nome": "Colégio Militar", "texto": "Na Av. Santos Dumont. Cerca de 70% pronta (out/2026)."},
+      {"nome": "Luíza Távora", "nova": true, "texto": "Na praça da Central de Artesanato do Ceará (CeArt)."},
+      {"nome": "Nunes Valente", "texto": "“Bem adiantada”, segundo a Seinfra (out/2026)."},
+      {"nome": "Leonardo Mota", "nova": true, "texto": "Na região da Av. Santos Dumont."},
+      {"nome": "Papicu", "integra": "Linha Nordeste", "estacao": "papicu", "texto": "Debaixo do terminal de ônibus. Integração com a Linha Nordeste (VLT). Cerca de 25% pronta (out/2026)."}
+    ],
+    "historia": [
+      "2013 · chegam as duas tuneladoras (os “tatuzões”), vindas da China",
+      "2014 · a obra começa, ao lado da Estação Chico da Silva",
+      "2018 · o projeto é dividido em fases; o primeiro trecho vai até o Papicu, com cinco estações",
+      "2020 · o tatuzão já tinha cavado 700 m de túnel, a 34 m de profundidade",
+      "2026 · Sé, Luíza Távora e Leonardo Mota voltam ao projeto; a obra delas é contratada em setembro",
+      "out/2026 · “É final de 2028 e ponto final”, diz o secretário da Infraestrutura"
+    ],
+    "depois": "Uma segunda fase, sem data, levaria a linha do Papicu até o Edson Queiroz, pela Av. Washington Soares.",
+    "fontes": [
+      {"texto": "Opinião CE (out/2026)", "link": "https://www.youtube.com/shorts/Ol0Ra8L_ZOU"},
+      {"texto": "GCMais (set/2026)", "link": "https://gcmais.com.br/noticias/2026/09/19/linha-leste-do-metro-de-fortaleza-tera-tres-estacoes-subterraneas-construidas-por-empresa-espanhola"},
+      {"texto": "Wikipédia", "link": "https://pt.wikipedia.org/wiki/Linha_Leste_do_Metr%C3%B4_de_Fortaleza"},
+      {"texto": "Diário do Nordeste", "link": "https://diariodonordeste.verdesmares.com.br/negocios/linha-leste-do-metro-de-fortaleza-tera-mais-3-estacoes-veja-locais-1.3763489"}
+    ]
+  }
+}
