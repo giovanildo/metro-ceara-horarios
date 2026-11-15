@@ -229,3 +229,15 @@ main section { margin: 44px 0 0; }
 .video figcaption .dica a { color: inherit; }
 #videos { scroll-margin-top: 72px; }
 .visualmente-oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* O trem na literatura (tools/site_literatura.json): página literatura/ e "Na literatura" nas linhas e estações */
+.grade-citacoes { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+@media (max-width: 400px) { .grade-citacoes { grid-template-columns: minmax(0, 1fr); } }
+.citacao { background: var(--papel); border-radius: var(--raio); box-shadow: var(--sombra); padding: 20px; min-width: 0;
+  border-left: 6px solid var(--destaque); scroll-margin-top: 72px; }
+.citacao blockquote { margin: 0 0 10px; }
+.citacao blockquote p { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 1.15rem; line-height: 1.45; font-style: italic; }
+.citacao-autor { margin: 0 0 6px; }
+.citacao cite { font-style: italic; }
+.citacao .dica { margin: 6px 0 0; }
+.selos-texto { margin: 10px 0 0; font-size: .9rem; }
+#literatura { scroll-margin-top: 72px; }

@@ -1539,6 +1539,7 @@ tools/site_previa.py                 prévia de link do site (docs/img/previa.pn
 tools/site_fotos.py                  fotos das estações do Wikimedia Commons (docs/img/estacoes/)
 tools/site_historia.json             linha do tempo das versões (página História do app)
 tools/site_videos.json               vídeos do YouTube nas páginas das linhas e estações
+tools/site_literatura.json           o trem na literatura cearense (página e trechos nas estações)
 app/src/main/assets/metrofor.db      banco gerado (não editar à mão)
 app/src/main/assets/regras.json      regras fora do GTFS: bike, integrações, passagem,
                                      guia da passagem, endereços, acessibilidade, cores,
@@ -1830,6 +1831,16 @@ Google já conhece, em pastas próprias — a lite em `docs/app/` não é tocada
   política de privacidade diz isso. Para pôr um vídeo, acrescente o bloco no
   JSON, baixe a miniatura e rode o `site.py`; o site.yml também roda quando o
   JSON muda (mas não baixa a miniatura).
+- **O trem na literatura** (desde 15/11): página `literatura/` (link no rodapé)
+  e bloco "Na literatura" nas linhas e estações ligadas a cada trecho, de
+  [`tools/site_literatura.json`](tools/site_literatura.json): Iracema (notas
+  sobre Porangaba, Mocoribe e Pacatuba), O Quinze, Luzia-Homem, crônicas de
+  Rachel de Queiroz, Wilton Bezerra e Pedro Salgueiro, o cordel do centenário
+  da estação do Crato e as ações de leitura do Metrofor (das notícias). Cada
+  trecho foi conferido no texto original e é citação curta, com autor e
+  fonte; obras em domínio público levam ao texto inteiro (Wikisource). A
+  busca de 15/11 não achou literatura sobre o metrô e os VLTs atuais: tudo é
+  dos trens antigos que andavam nas mesmas linhas.
 - **Prévia de link** (a imagem que aparece ao mandar o endereço no WhatsApp):
   `docs/img/previa.png`, 1200×630, com o nome e o mapa de Fortaleza. Sai de
   [`tools/site_previa.py`](tools/site_previa.py), que monta a página com o

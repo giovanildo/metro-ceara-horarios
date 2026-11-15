@@ -41,6 +41,7 @@ REGRAS = os.path.join(RAIZ, "app", "src", "main", "assets", "regras.json")
 FOTOS = os.path.join(RAIZ, "tools", "site_fotos.json")
 HISTORIA = os.path.join(RAIZ, "tools", "site_historia.json")
 VIDEOS = os.path.join(RAIZ, "tools", "site_videos.json")
+LITERATURA = os.path.join(RAIZ, "tools", "site_literatura.json")
 CHANGELOGS = os.path.join(RAIZ, "fastlane", "metadata", "android", "pt-BR", "changelogs")
 FOTOS_NO_TOPO = 4  # as outras fotos da estação ficam no fim da página e só carregam ao rolar
 RAW = "https://raw.githubusercontent.com/giovanildo/metro-ceara-horarios/dados/"
@@ -160,6 +161,11 @@ class Dados:
         if os.path.exists(VIDEOS):
             with open(VIDEOS, encoding="utf-8") as fh:
                 self.videos = json.load(fh).get("videos", [])
+        self.literatura, self.leitura = [], []  # tools/site_literatura.json: trechos conferidos no texto original
+        if os.path.exists(LITERATURA):
+            with open(LITERATURA, encoding="utf-8") as fh:
+                lit = json.load(fh)
+            self.literatura, self.leitura = lit.get("obras", []), lit.get("leitura_no_metrofor", [])
 
     def cor(self, linha, escuro=False):
         c = self.cores.get(linha["nome"])
@@ -301,7 +307,7 @@ RODAPE = """<footer class="rodape"><div class="largura">
   <p><strong>Metrô Ceará</strong> é um guia independente, feito por um passageiro. <strong>Não é o site oficial do Metrofor</strong>
   nem do Governo do Ceará. Os horários vêm do GTFS que o Metrofor publica; endereços, passagem e acessibilidade, do site
   do Metrofor (conferidos em {conferido}). Lugares por perto: © colaboradores do OpenStreetMap. Fotos das estações: Wikimedia Commons, com o autor e a licença em cada uma. Vídeos: YouTube, com o canal de cada um.</p>
-  <p>Viu algo errado? <a href="{whats}">Conte pelo WhatsApp</a> · <a href="{raiz}perguntas-frequentes/">Perguntas frequentes</a> · <a href="{raiz}">Sobre o app</a> · <a href="{raiz}historia/">História do app</a> · <a href="{raiz}privacidade.html">Privacidade</a></p>
+  <p>Viu algo errado? <a href="{whats}">Conte pelo WhatsApp</a> · <a href="{raiz}perguntas-frequentes/">Perguntas frequentes</a> · <a href="{raiz}">Sobre o app</a> · <a href="{raiz}historia/">História do app</a> · <a href="{raiz}literatura/">O trem na literatura</a> · <a href="{raiz}privacidade.html">Privacidade</a></p>
   <p class="gerado">Página gerada em {gerado}.</p>
 </div></footer>
 {scripts}</body>
@@ -475,6 +481,7 @@ def pagina_estacao(d, grupo):
     videos = videos_da_estacao(d, grupo, raiz)
     if videos:
         h.append(videos)
+    h.append(literatura_de(d, raiz, estacao=grupo["slug"]))
     if fotos:
         h.append(fotos_do_fim(fotos, nome, raiz))
     h.append(chamada_app(raiz))
@@ -610,6 +617,75 @@ def videos_da_estacao(d, grupo, raiz):
     return "".join(h)
 
 
+def citacao(o, raiz, *, completa=False):
+    """Um trecho: a frase entre aspas, quem escreveu e onde ler. Na página da estação, sem o link de fora (fica na página literatura/)."""
+    h = [f'<article class="citacao" id="{o["id"]}">']
+    if o.get("trecho"):
+        h.append(f'<blockquote><p>“{esc(o["trecho"])}”</p></blockquote>')
+    h.append(f'<p class="citacao-autor"><strong>{esc(o["autor"])}</strong>, <cite>{esc(o["obra"])}</cite> ({o["ano"]}'
+             + (f', {esc(o["tipo"])}' if o.get("tipo") else "") + ")"
+             + (' <span class="dica">· grafia da época</span>' if o.get("grafia_antiga") else "") + "</p>")
+    if o.get("contexto"):
+        h.append(f'<p class="dica">{esc(o["contexto"])}</p>')
+    if completa:
+        h.append(f'<p class="dica"><a href="{esc(o["link"])}" target="_blank" rel="noopener">{esc(o["link_texto"])} ›</a>'
+                 + (" · domínio público, texto completo" if o.get("dominio_publico") else "") + "</p>")
+    else:
+        h.append(f'<p class="dica"><a href="{raiz}literatura/#{o["id"]}">O trem na literatura cearense ›</a></p>')
+    h.append("</article>")
+    return "".join(h)
+
+
+def literatura_de(d, raiz, *, linha=None, estacao=None):
+    itens = [o for o in d.literatura if (linha and linha in o.get("linhas", [])) or (estacao and estacao in o.get("estacoes", []))]
+    if not itens:
+        return ""
+    return ('<section class="literatura" id="literatura"><h2>Na literatura</h2><div class="grade-citacoes">'
+            + "".join(citacao(o, raiz) for o in itens) + "</div></section>")
+
+
+GRUPOS_LITERATURA = [("romances", "Nos romances"), ("cronicas", "Nas crônicas"), ("cordel", "No cordel")]
+
+
+def pagina_literatura(d):
+    raiz = "../"
+    nomes_linhas = {slug(l["nome"]): nome_linha(l["nome"]) for l in d.linhas}
+    por_slug = {g["slug"]: g for g in d.estacoes}
+    h = ['<header class="faixa" style="--cor:#CE0F2E;--cor-escuro:#CE0F2E"><div class="largura">',
+         migalhas(raiz, [("O trem na literatura", None)]),
+         '<h1>O trem na literatura cearense</h1>'
+         '<p class="endereco">O metrô e os VLTs do Ceará andam, em boa parte, sobre as linhas dos trens antigos. '
+         'Esses trens passaram por romances, crônicas e cordéis. Aqui estão alguns trechos, cada um conferido no texto original.</p>',
+         '</div></header><main id="conteudo" class="largura">']
+    for grupo, titulo in GRUPOS_LITERATURA:
+        obras = [o for o in d.literatura if o.get("grupo") == grupo]
+        if not obras:
+            continue
+        h.append(f'<section><h2>{titulo}</h2><div class="grade-citacoes">')
+        for o in obras:
+            onde = [f'<a href="{raiz}estacoes/{e}/">Estação {esc(por_slug[e]["nome"])}</a>' for e in o.get("estacoes", []) if e in por_slug]
+            onde += [f'<a href="{raiz}linhas/{l}/">{esc(nomes_linhas[l])}</a>' for l in o.get("linhas", []) if l in nomes_linhas]
+            bloco = citacao(o, raiz, completa=True)
+            if onde:
+                bloco = bloco.replace("</article>", f'<p class="selos-texto">No site: {" · ".join(onde)}</p></article>')
+            h.append(bloco)
+        h.append("</div></section>")
+    if d.leitura:
+        h.append('<section><h2>Leitura nas estações</h2><p>O próprio Metrofor já levou livros para os passageiros:</p><ul class="lista">')
+        for x in d.leitura:
+            h.append(f'<li><strong>{mes_ano(x["data"])}</strong> · {esc(x["texto"])} '
+                     f'<a href="{esc(x["link"])}" target="_blank" rel="noopener">Notícia do Metrofor ›</a></li>')
+        h.append("</ul></section>")
+    h.append('<section><h2>Conhece outro?</h2><p>Um poema, conto, cordel ou crônica que fale do metrô, do VLT ou dos trens do Ceará? '
+             f'<a href="{esc(WHATSAPP + "Metrô Ceará · literatura: ")}">Conte pelo WhatsApp</a>. '
+             'As citações são trechos curtos, com o autor e a fonte; para ler a obra, siga o link de cada uma.</p></section>')
+    h.append(chamada_app(raiz))
+    h.append("</main>")
+    return pagina(d, caminho="literatura/", titulo="O trem na literatura cearense | Metrô Ceará",
+                  descricao="Iracema, O Quinze, Luzia-Homem, crônicas e cordel: trechos da literatura cearense sobre os trens que viraram o metrô e os VLTs de Fortaleza, Cariri e Sobral.",
+                  corpo="\n".join(h))
+
+
 def chamada_app(raiz):
     return (f'<aside class="chamada"><div><h2>Leve no bolso</h2><p>Na <strong>versão lite</strong>, a próxima partida da estação mais perto, '
             f'em qualquer celular, sem instalar. No <strong>app para Android</strong>, o modo viagem avisa antes da sua estação.</p></div>'
@@ -689,6 +765,7 @@ def pagina_linha(d, linha):
     videos = videos_da_linha(d, linha, raiz)
     if videos:
         h.append(videos)
+    h.append(literatura_de(d, raiz, linha=slug(linha["nome"])))
     outras = [l for l in d.linhas if l["id"] != linha["id"]]
     h.append('<section><h2>Outras linhas</h2><p class="selos">' + "".join(selo(d, l, raiz) for l in outras) + "</p></section>")
     h.append(chamada_app(raiz))
@@ -1121,12 +1198,13 @@ def main():
     pasta = sys.argv[1] if len(sys.argv) > 1 else None
     d, util, sabado = carregar_dados(pasta)
 
-    caminhos = list(FIXAS) + ["estacoes/", "linhas/", "perguntas-frequentes/", "historia/"]
+    caminhos = list(FIXAS) + ["estacoes/", "linhas/", "perguntas-frequentes/", "historia/", "literatura/"]
     escrever(os.path.join(DOCS, "historia", "index.html"),
              pagina(d, caminho="historia/", titulo="História do app | Metrô Ceará",
                     descricao="Como o Metrô Ceará foi feito: as versões do app de horários de metrô e VLT do Ceará, dia a dia, do primeiro dia à Play Store.",
                     corpo="\n".join(pagina_historia())))
     escrever(os.path.join(DOCS, "perguntas-frequentes", "index.html"), pagina_faq(d))
+    escrever(os.path.join(DOCS, "literatura", "index.html"), pagina_literatura(d))
     escrever(os.path.join(DOCS, "estacoes", "index.html"), indice_estacoes(d))
     escrever(os.path.join(DOCS, "linhas", "index.html"), indice_linhas(d))
     for linha in d.linhas:
