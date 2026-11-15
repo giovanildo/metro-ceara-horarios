@@ -1,0 +1,2 @@
+• Na véspera de um domingo de Enem ou eleição, o app mostra o horário de domingo da sua linha (ex.: das 10:30 às 19:10) antes do primeiro de segunda, também no widget.
+• Os avisos do Metrofor dizem se vai ter metrô e em que horário, e não só a manchete da notícia.
