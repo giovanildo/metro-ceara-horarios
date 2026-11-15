@@ -11,6 +11,7 @@ on:
       - tools/site.py
       - tools/site_fotos.json
       - tools/site_historia.json
+      - tools/site_videos.json
       - fastlane/metadata/android/pt-BR/changelogs/**
   schedule:
     # Segunda, 06:41 em Fortaleza.

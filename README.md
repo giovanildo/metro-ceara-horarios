@@ -1538,6 +1538,7 @@ tools/site.py                        site: páginas das estações e linhas, map
 tools/site_previa.py                 prévia de link do site (docs/img/previa.png) com o mapa
 tools/site_fotos.py                  fotos das estações do Wikimedia Commons (docs/img/estacoes/)
 tools/site_historia.json             linha do tempo das versões (página História do app)
+tools/site_videos.json               vídeos do YouTube nas páginas das linhas e estações
 app/src/main/assets/metrofor.db      banco gerado (não editar à mão)
 app/src/main/assets/regras.json      regras fora do GTFS: bike, integrações, passagem,
                                      guia da passagem, endereços, acessibilidade, cores,
@@ -1814,6 +1815,21 @@ Google já conhece, em pastas próprias — a lite em `docs/app/` não é tocada
   ```bash
   python3 tools/site_fotos.py && python3 tools/site.py
   ```
+- **Vídeos do YouTube** (desde 15/11): 33 vídeos públicos, escolhidos à mão,
+  em [`tools/site_videos.json`](tools/site_videos.json). Cada vídeo tem `linhas`
+  (slug da página da linha onde aparece, na seção "Vídeos") e `capitulos`
+  (`inicio` em segundos e as `estacoes` cuja página ganha a seção "Em vídeo",
+  abrindo o vídeo naquele momento; `inicio` 0 sem `titulo` = vídeo inteiro da
+  estação). As viagens do canal Arlindo Pereira têm capítulo por estação (Linha
+  Sul, VLT Aeroporto e as duas de Sobral): 44 das 62 estações têm vídeo.
+  Critério: viagens e estações em operação, de preferência recentes; sem
+  reportagem de obra nem vídeo anterior a 2019. **Privacidade:** a miniatura
+  fica no site (`docs/img/videos/<id>.jpg`, a `hqdefault` do YouTube, baixada
+  uma vez à mão) e o [`docs/site/video.js`](docs/site/video.js) só troca pelo
+  vídeo (`youtube-nocookie.com`) no toque; sem JS, o link abre no YouTube. A
+  política de privacidade diz isso. Para pôr um vídeo, acrescente o bloco no
+  JSON, baixe a miniatura e rode o `site.py`; o site.yml também roda quando o
+  JSON muda (mas não baixa a miniatura).
 - **Prévia de link** (a imagem que aparece ao mandar o endereço no WhatsApp):
   `docs/img/previa.png`, 1200×630, com o nome e o mapa de Fortaleza. Sai de
   [`tools/site_previa.py`](tools/site_previa.py), que monta a página com o

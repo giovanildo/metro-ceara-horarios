@@ -1,0 +1,792 @@
+{
+  "_sobre": "Vídeos públicos do YouTube no site-guia (tools/site.py). linhas: slug da página da linha; capitulos: trecho do vídeo (inicio em segundos) e as estações cuja página ganha o link para ele. A miniatura fica em docs/img/videos/<id>.jpg (hqdefault, baixada uma vez).",
+  "videos": [
+    {
+      "id": "MHFuaZHb8co",
+      "titulo": "Viagem na cabine - Linha Sul do Metrofor. Bora nessa?",
+      "canal": "Metrofor",
+      "canal_url": "https://www.youtube.com/@oficialmetrofor",
+      "duracao": 887,
+      "data": "2024-06",
+      "linhas": [
+        "linha-sul"
+      ],
+      "resumo": "A viagem vista da cabine do maquinista, no canal oficial do Metrofor.",
+      "capitulos": []
+    },
+    {
+      "id": "xbXThzWjNbI",
+      "titulo": "Linha Sul de ponta a ponta: Chico da Silva ➜ Carlito Benevides",
+      "canal": "Arlindo Pereira",
+      "canal_url": "https://www.youtube.com/@ArlindoPereira",
+      "duracao": 2223,
+      "data": "2025-03",
+      "linhas": [
+        "linha-sul"
+      ],
+      "resumo": "A viagem inteira pela janela, com capítulo em cada estação.",
+      "capitulos": [
+        {
+          "inicio": 0,
+          "titulo": "Saindo de Chico da Silva",
+          "estacoes": [
+            "chico-da-silva"
+          ]
+        },
+        {
+          "inicio": 101,
+          "titulo": "Chegada em José de Alencar",
+          "estacoes": [
+            "jose-de-alencar"
+          ]
+        },
+        {
+          "inicio": 200,
+          "titulo": "Chegada em São Benedito",
+          "estacoes": [
+            "sao-benedito"
+          ]
+        },
+        {
+          "inicio": 296,
+          "titulo": "Chegada em Benfica",
+          "estacoes": [
+            "benfica"
+          ]
+        },
+        {
+          "inicio": 387,
+          "titulo": "Chegada em Padre Cícero",
+          "estacoes": [
+            "padre-cicero"
+          ]
+        },
+        {
+          "inicio": 482,
+          "titulo": "Chegada em Porangabussu",
+          "estacoes": [
+            "porangabussu"
+          ]
+        },
+        {
+          "inicio": 595,
+          "titulo": "Chegada em Couto Fernandes",
+          "estacoes": [
+            "couto-fernandes"
+          ]
+        },
+        {
+          "inicio": 697,
+          "titulo": "Chegada em Juscelino Kubitschek",
+          "estacoes": [
+            "juscelino-kubitscheck"
+          ]
+        },
+        {
+          "inicio": 807,
+          "titulo": "Chegada em Parangaba",
+          "estacoes": [
+            "parangaba"
+          ]
+        },
+        {
+          "inicio": 928,
+          "titulo": "Chegada em Vila Pery",
+          "estacoes": [
+            "vila-pery"
+          ]
+        },
+        {
+          "inicio": 1079,
+          "titulo": "Chegada em Manoel Sátiro",
+          "estacoes": [
+            "manoel-satiro"
+          ]
+        },
+        {
+          "inicio": 1186,
+          "titulo": "Chegada em Mondubim",
+          "estacoes": [
+            "mondubim"
+          ]
+        },
+        {
+          "inicio": 1304,
+          "titulo": "Chegada em Esperança",
+          "estacoes": [
+            "conjunto-esperanca"
+          ]
+        },
+        {
+          "inicio": 1427,
+          "titulo": "Chegada em Aracapé",
+          "estacoes": [
+            "aracape"
+          ]
+        },
+        {
+          "inicio": 1562,
+          "titulo": "Chegada em Alto Alegre",
+          "estacoes": [
+            "alto-alegre"
+          ]
+        },
+        {
+          "inicio": 1690,
+          "titulo": "Chegada em Rachel de Queiroz",
+          "estacoes": [
+            "raquel-de-queiroz"
+          ]
+        },
+        {
+          "inicio": 1853,
+          "titulo": "Chegada em Virgílio Távora",
+          "estacoes": [
+            "virgilio-tavora"
+          ]
+        },
+        {
+          "inicio": 1981,
+          "titulo": "Chegada em Maracanaú",
+          "estacoes": [
+            "maracanau"
+          ]
+        },
+        {
+          "inicio": 2077,
+          "titulo": "Chegada em Jereissati",
+          "estacoes": [
+            "jereissati"
+          ]
+        },
+        {
+          "inicio": 2219,
+          "titulo": "Chegada em Carlito Benevides",
+          "estacoes": [
+            "carlito-benevides"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "WW__YO57w-k",
+      "titulo": "Metrofor Linha Sul do Metrô de Fortaleza",
+      "canal": "NMC Service",
+      "canal_url": "https://www.youtube.com/@NMCService",
+      "duracao": 951,
+      "data": "2026-06",
+      "linhas": [
+        "linha-sul"
+      ],
+      "resumo": "Um passeio pela Linha Sul, de Chico da Silva a Carlito Benevides.",
+      "capitulos": []
+    },
+    {
+      "id": "aOT92mdZJt4",
+      "titulo": "Metrô de Fortaleza/Ceará (Metrofor) - Vídeo 5",
+      "canal": "THE RAILWAY",
+      "canal_url": "https://www.youtube.com/@canaltherailway",
+      "duracao": 737,
+      "data": "2025-01",
+      "linhas": [
+        "linha-sul"
+      ],
+      "resumo": "Trens em Parangaba, o trecho de Alto Alegre a Esperança, o subterrâneo de Chico da Silva a Benfica e o movimento em Benfica.",
+      "capitulos": [
+        {
+          "inicio": 9,
+          "titulo": "Trens em Parangaba",
+          "estacoes": [
+            "parangaba"
+          ]
+        },
+        {
+          "inicio": 54,
+          "titulo": "Trecho entre Alto Alegre e Esperança",
+          "estacoes": [
+            "alto-alegre",
+            "aracape",
+            "conjunto-esperanca"
+          ]
+        },
+        {
+          "inicio": 350,
+          "titulo": "Trecho entre Chico da Silva e Benfica",
+          "estacoes": [
+            "chico-da-silva",
+            "jose-de-alencar",
+            "sao-benedito"
+          ]
+        },
+        {
+          "inicio": 606,
+          "titulo": "Movimentação de trens em Benfica",
+          "estacoes": [
+            "benfica"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "boJvnaLPL2w",
+      "titulo": "Metrô de Fortaleza/Ceará (Metrofor)",
+      "canal": "THE RAILWAY",
+      "canal_url": "https://www.youtube.com/@canaltherailway",
+      "duracao": 1890,
+      "data": "2024-04",
+      "linhas": [
+        "linha-sul"
+      ],
+      "resumo": "Mais de meia hora com os trens do metrô de Fortaleza, de Carlito Benevides a Chico da Silva.",
+      "capitulos": []
+    },
+    {
+      "id": "9CgXSjDPtdk",
+      "titulo": "Estação Parangaba",
+      "canal": "THE RAILWAY",
+      "canal_url": "https://www.youtube.com/@canaltherailway",
+      "duracao": 544,
+      "data": "2025-01",
+      "linhas": [],
+      "resumo": "",
+      "capitulos": [
+        {
+          "inicio": 0,
+          "estacoes": [
+            "parangaba"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "EZluApeNoiE",
+      "titulo": "Estação Chico da Silva, no subterrâneo",
+      "canal": "BN imagens",
+      "canal_url": "https://www.youtube.com/@cidades_transportes",
+      "duracao": 389,
+      "data": "2025-07",
+      "linhas": [],
+      "resumo": "",
+      "capitulos": [
+        {
+          "inicio": 0,
+          "estacoes": [
+            "chico-da-silva"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "DHuWYV5-xFs",
+      "titulo": "Estação José de Alencar",
+      "canal": "Bus Maníaco",
+      "canal_url": "https://www.youtube.com/@busmaniacooficial",
+      "duracao": 853,
+      "data": "2020-12",
+      "linhas": [],
+      "resumo": "",
+      "capitulos": [
+        {
+          "inicio": 0,
+          "estacoes": [
+            "jose-de-alencar"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Tu_E1bBU4lU",
+      "titulo": "Estações São Benedito e Couto Fernandes",
+      "canal": "Bus Maníaco",
+      "canal_url": "https://www.youtube.com/@busmaniacooficial",
+      "duracao": 1029,
+      "data": "2021-07",
+      "linhas": [],
+      "resumo": "",
+      "capitulos": [
+        {
+          "inicio": 0,
+          "estacoes": [
+            "sao-benedito",
+            "couto-fernandes"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "IhOc5OhR128",
+      "titulo": "Estação Padre Cícero",
+      "canal": "Bus Maníaco",
+      "canal_url": "https://www.youtube.com/@busmaniacooficial",
+      "duracao": 791,
+      "data": "2021-06",
+      "linhas": [],
+      "resumo": "",
+      "capitulos": [
+        {
+          "inicio": 0,
+          "estacoes": [
+            "padre-cicero"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "p4fgTLIDN20",
+      "titulo": "Estações Benfica e José de Alencar, na hora do movimento",
+      "canal": "Bus Maníaco",
+      "canal_url": "https://www.youtube.com/@busmaniacooficial",
+      "duracao": 965,
+      "data": "2022-08",
+      "linhas": [],
+      "resumo": "",
+      "capitulos": [
+        {
+          "inicio": 0,
+          "estacoes": [
+            "benfica",
+            "jose-de-alencar"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pbQ_BRtQAqE",
+      "titulo": "Metrofor Linha Oeste do VLT de Fortaleza",
+      "canal": "NMC Service",
+      "canal_url": "https://www.youtube.com/@NMCService",
+      "duracao": 1996,
+      "data": "2026-06",
+      "linhas": [
+        "linha-oeste"
+      ],
+      "resumo": "A Linha Oeste, de Moura Brasil, no Centro, até Caucaia.",
+      "capitulos": []
+    },
+    {
+      "id": "6ainv2R2uaQ",
+      "titulo": "Viagem na cabine do VLT até Caucaia",
+      "canal": "gleidson nogueira dos santos",
+      "canal_url": "https://www.youtube.com/@gleidsonnogueiradossantos8313",
+      "duracao": 1990,
+      "data": "2021-03",
+      "linhas": [
+        "linha-oeste"
+      ],
+      "resumo": "A Linha Oeste vista da cabine, a caminho de Caucaia.",
+      "capitulos": []
+    },
+    {
+      "id": "jHmnxsQwMpQ",
+      "titulo": "VLT na Estação Moura Brasil",
+      "canal": "Matheus M. Santos - Veículos pesados.",
+      "canal_url": "https://www.youtube.com/@matheusdamatasantos998",
+      "duracao": 164,
+      "data": "2026-05",
+      "linhas": [],
+      "resumo": "",
+      "capitulos": [
+        {
+          "inicio": 0,
+          "estacoes": [
+            "moura-brasil"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q62gcVuPSrQ",
+      "titulo": "Passeio de VLT de São Miguel a Antônio Bezerra",
+      "canal": "VLT's De Fortaleza",
+      "canal_url": "https://www.youtube.com/@VLTdeFORTALEZA",
+      "duracao": 240,
+      "data": "2025-02",
+      "linhas": [],
+      "resumo": "",
+      "capitulos": [
+        {
+          "inicio": 0,
+          "estacoes": [
+            "sao-miguel",
+            "antonio-bezerra"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "4j4cKzePt7M",
+      "titulo": "Viagem de VLT de Araturi a Caucaia",
+      "canal": "Trilhos & Rodas",
+      "canal_url": "https://www.youtube.com/@TrilhosRodas",
+      "duracao": 392,
+      "data": "2024-12",
+      "linhas": [],
+      "resumo": "",
+      "capitulos": [
+        {
+          "inicio": 0,
+          "estacoes": [
+            "araturi",
+            "caucaia"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "FTF9JlunzSU",
+      "titulo": "VLT de Fortaleza - Linha Nordeste (Parangaba-Mucuripe)",
+      "canal": "THE RAILWAY",
+      "canal_url": "https://www.youtube.com/@canaltherailway",
+      "duracao": 2076,
+      "data": "2024-05",
+      "linhas": [
+        "linha-nordeste"
+      ],
+      "resumo": "Registros da Linha Nordeste, de Parangaba ao Mucuripe.",
+      "capitulos": []
+    },
+    {
+      "id": "OScqxa-Gatk",
+      "titulo": "Metrofor Linha Nordeste do VLT de Fortaleza",
+      "canal": "NMC Service",
+      "canal_url": "https://www.youtube.com/@NMCService",
+      "duracao": 1266,
+      "data": "2026-06",
+      "linhas": [
+        "linha-nordeste"
+      ],
+      "resumo": "Um passeio pela Linha Nordeste, do Mucuripe a Parangaba.",
+      "capitulos": []
+    },
+    {
+      "id": "AvvmTeOghag",
+      "titulo": "VLT de Fortaleza (Parangaba–Mucuripe)",
+      "canal": "Lucas Sousa",
+      "canal_url": "https://www.youtube.com/@LucasSousacls",
+      "duracao": 1122,
+      "data": "2023-04",
+      "linhas": [
+        "linha-nordeste"
+      ],
+      "resumo": "O VLT entre Parangaba e o Mucuripe.",
+      "capitulos": []
+    },
+    {
+      "id": "csUu0a1njkw",
+      "titulo": "Estações Papicu e Antônio Sales",
+      "canal": "Bus Maníaco",
+      "canal_url": "https://www.youtube.com/@busmaniacooficial",
+      "duracao": 1227,
+      "data": "2021-01",
+      "linhas": [],
+      "resumo": "",
+      "capitulos": [
+        {
+          "inicio": 0,
+          "estacoes": [
+            "papicu",
+            "antonio-sales"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LXrOOegCIQY",
+      "titulo": "Estações Mucuripe e Papicu",
+      "canal": "Bus Maníaco",
+      "canal_url": "https://www.youtube.com/@busmaniacooficial",
+      "duracao": 1018,
+      "data": "2021-01",
+      "linhas": [],
+      "resumo": "",
+      "capitulos": [
+        {
+          "inicio": 0,
+          "estacoes": [
+            "mucuripe",
+            "papicu"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mbCjFi3zAMg",
+      "titulo": "VLT saindo da Estação Iate",
+      "canal": "Bus Maníaco",
+      "canal_url": "https://www.youtube.com/@busmaniacooficial",
+      "duracao": 1503,
+      "data": "2022-08",
+      "linhas": [],
+      "resumo": "",
+      "capitulos": [
+        {
+          "inicio": 0,
+          "estacoes": [
+            "iate"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tfxlZqO4trI",
+      "titulo": "VLTs e aviões na Estação Expedicionários",
+      "canal": "ISRAEL MAIA 99",
+      "canal_url": "https://www.youtube.com/@israelmaia99",
+      "duracao": 2197,
+      "data": "2023-08",
+      "linhas": [],
+      "resumo": "",
+      "capitulos": [
+        {
+          "inicio": 0,
+          "estacoes": [
+            "expedicionarios"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "NqruSJo9TGk",
+      "titulo": "VLT Aeroporto: Aeroporto ➜ Expedicionários",
+      "canal": "Arlindo Pereira",
+      "canal_url": "https://www.youtube.com/@ArlindoPereira",
+      "duracao": 262,
+      "data": "2026-02",
+      "linhas": [
+        "vlt-aeroporto"
+      ],
+      "resumo": "O trajeto inteiro do VLT do Aeroporto, pela janela.",
+      "capitulos": [
+        {
+          "inicio": 0,
+          "titulo": "Saindo do Aeroporto",
+          "estacoes": [
+            "aeroporto"
+          ]
+        },
+        {
+          "inicio": 234,
+          "titulo": "Chegada em Expedicionários",
+          "estacoes": [
+            "expedicionarios"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "r7Y2Zgqj1IM",
+      "titulo": "Metrofor: o ramal do Aeroporto do VLT de Fortaleza",
+      "canal": "NMC Service",
+      "canal_url": "https://www.youtube.com/@NMCService",
+      "duracao": 1154,
+      "data": "2026-06",
+      "linhas": [
+        "vlt-aeroporto"
+      ],
+      "resumo": "O VLT entre Expedicionários e o Aeroporto Pinto Martins.",
+      "capitulos": []
+    },
+    {
+      "id": "k4u5ST-eo1w",
+      "titulo": "Do Aeroporto de Fortaleza até a Beira-Mar de VLT",
+      "canal": "Brenda na Viagem",
+      "canal_url": "https://www.youtube.com/@brendanaviagem",
+      "duracao": 1978,
+      "data": "2026-03",
+      "linhas": [
+        "vlt-aeroporto"
+      ],
+      "resumo": "Um guia do percurso: VLT do Aeroporto e integração com a Linha Nordeste.",
+      "capitulos": []
+    },
+    {
+      "id": "tzTzBZb6hQg",
+      "titulo": "Metrô do Cariri: percurso completo de Juazeiro do Norte ao Crato",
+      "canal": "Viagens com Arnaldo",
+      "canal_url": "https://www.youtube.com/@viagenscomarnaldo",
+      "duracao": 2990,
+      "data": "2026-10",
+      "linhas": [
+        "vlt-cariri"
+      ],
+      "resumo": "A viagem inteira do VLT do Cariri.",
+      "capitulos": []
+    },
+    {
+      "id": "3UhpCc_o4hw",
+      "titulo": "Andando no VLT do Cariri de Juazeiro do Norte ao Crato",
+      "canal": "Andre do Cariri",
+      "canal_url": "https://www.youtube.com/@AndredoCaririi",
+      "duracao": 927,
+      "data": "2024-10",
+      "linhas": [
+        "vlt-cariri"
+      ],
+      "resumo": "Como é a viagem de VLT entre Juazeiro do Norte e o Crato.",
+      "capitulos": []
+    },
+    {
+      "id": "Z9D6p1kENyA",
+      "titulo": "Metrô do Cariri pela cabine, do Crato a Juazeiro do Norte",
+      "canal": "PELAS VIAS DO CARIRI Simone Pauluke",
+      "canal_url": "https://www.youtube.com/@Simonepauluke",
+      "duracao": 941,
+      "data": "2022-07",
+      "linhas": [
+        "vlt-cariri"
+      ],
+      "resumo": "A viagem vista da cabine.",
+      "capitulos": []
+    },
+    {
+      "id": "6BldH2xqADs",
+      "titulo": "VLT na Estação Antônio Vieira",
+      "canal": "PELAS VIAS DO CARIRI Simone Pauluke",
+      "canal_url": "https://www.youtube.com/@Simonepauluke",
+      "duracao": 321,
+      "data": "2026-07",
+      "linhas": [],
+      "resumo": "",
+      "capitulos": [
+        {
+          "inicio": 0,
+          "estacoes": [
+            "antonio-vieira"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S0jJyCmJ9jw",
+      "titulo": "VLT de Sobral, Linha Norte: COHAB III ➜ Novo Recanto",
+      "canal": "Arlindo Pereira",
+      "canal_url": "https://www.youtube.com/@ArlindoPereira",
+      "duracao": 1152,
+      "data": "2025-04",
+      "linhas": [
+        "vlt-sobral-linha-norte"
+      ],
+      "resumo": "A Linha Norte inteira pela janela, com capítulo em cada estação.",
+      "capitulos": [
+        {
+          "inicio": 0,
+          "titulo": "Saindo de COHAB III",
+          "estacoes": [
+            "cohab-iii"
+          ]
+        },
+        {
+          "inicio": 166,
+          "titulo": "Chegada em José Euclides",
+          "estacoes": [
+            "jose-euclides"
+          ]
+        },
+        {
+          "inicio": 315,
+          "titulo": "Chegada em Junco",
+          "estacoes": [
+            "junco"
+          ]
+        },
+        {
+          "inicio": 548,
+          "titulo": "Chegada em Campo dos Velhos",
+          "estacoes": [
+            "campo-dos-velhos"
+          ]
+        },
+        {
+          "inicio": 764,
+          "titulo": "Chegada em Alto da Brasília",
+          "estacoes": [
+            "alto-da-brasilia"
+          ]
+        },
+        {
+          "inicio": 960,
+          "titulo": "Chegada em Grendene",
+          "estacoes": [
+            "grendene"
+          ]
+        },
+        {
+          "inicio": 1150,
+          "titulo": "Chegada em Novo Recanto",
+          "estacoes": [
+            "novo-recanto"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "4UDdIDTPSng",
+      "titulo": "VLT de Sobral, Linha Norte em 3 minutos (acelerado)",
+      "canal": "Arlindo Pereira",
+      "canal_url": "https://www.youtube.com/@ArlindoPereira",
+      "duracao": 209,
+      "data": "2025-04",
+      "linhas": [
+        "vlt-sobral-linha-norte"
+      ],
+      "resumo": "Novo Recanto ➜ COHAB III, em timelapse.",
+      "capitulos": []
+    },
+    {
+      "id": "kF6XAwXlgMg",
+      "titulo": "VLT de Sobral, Linha Sul: Sumaré ➜ COHAB II",
+      "canal": "Arlindo Pereira",
+      "canal_url": "https://www.youtube.com/@ArlindoPereira",
+      "duracao": 1152,
+      "data": "2025-04",
+      "linhas": [
+        "vlt-sobral-linha-sul"
+      ],
+      "resumo": "A Linha Sul de Sobral inteira pela janela, com capítulo em cada estação.",
+      "capitulos": [
+        {
+          "inicio": 0,
+          "titulo": "Saindo de Sumaré",
+          "estacoes": [
+            "sumare"
+          ]
+        },
+        {
+          "inicio": 130,
+          "titulo": "Chegada em Dom José",
+          "estacoes": [
+            "dom-jose"
+          ]
+        },
+        {
+          "inicio": 331,
+          "titulo": "Chegada em Campo dos Velhos",
+          "estacoes": [
+            "campo-dos-velhos"
+          ]
+        },
+        {
+          "inicio": 805,
+          "titulo": "Chegada em Boulevard do Arco",
+          "estacoes": [
+            "boulevar-do-arco"
+          ]
+        },
+        {
+          "inicio": 956,
+          "titulo": "Chegada em Dom Expedito",
+          "estacoes": [
+            "dom-expedito"
+          ]
+        },
+        {
+          "inicio": 1142,
+          "titulo": "Chegada em COHAB II",
+          "estacoes": [
+            "cohab-ii"
+          ]
+        }
+      ]
+    }
+  ]
+}

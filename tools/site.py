@@ -40,6 +40,7 @@ DOCS = os.path.join(RAIZ, "docs")
 REGRAS = os.path.join(RAIZ, "app", "src", "main", "assets", "regras.json")
 FOTOS = os.path.join(RAIZ, "tools", "site_fotos.json")
 HISTORIA = os.path.join(RAIZ, "tools", "site_historia.json")
+VIDEOS = os.path.join(RAIZ, "tools", "site_videos.json")
 CHANGELOGS = os.path.join(RAIZ, "fastlane", "metadata", "android", "pt-BR", "changelogs")
 FOTOS_NO_TOPO = 4  # as outras fotos da estação ficam no fim da página e só carregam ao rolar
 RAW = "https://raw.githubusercontent.com/giovanildo/metro-ceara-horarios/dados/"
@@ -155,6 +156,10 @@ class Dados:
         if os.path.exists(FOTOS):
             with open(FOTOS, encoding="utf-8") as fh:
                 self.fotos = json.load(fh)
+        self.videos = []  # tools/site_videos.json: vídeos públicos do YouTube, escolhidos à mão
+        if os.path.exists(VIDEOS):
+            with open(VIDEOS, encoding="utf-8") as fh:
+                self.videos = json.load(fh).get("videos", [])
 
     def cor(self, linha, escuro=False):
         c = self.cores.get(linha["nome"])
@@ -295,7 +300,7 @@ CABECA = """<!doctype html>
 RODAPE = """<footer class="rodape"><div class="largura">
   <p><strong>Metrô Ceará</strong> é um guia independente, feito por um passageiro. <strong>Não é o site oficial do Metrofor</strong>
   nem do Governo do Ceará. Os horários vêm do GTFS que o Metrofor publica; endereços, passagem e acessibilidade, do site
-  do Metrofor (conferidos em {conferido}). Lugares por perto: © colaboradores do OpenStreetMap. Fotos das estações: Wikimedia Commons, com o autor e a licença em cada uma.</p>
+  do Metrofor (conferidos em {conferido}). Lugares por perto: © colaboradores do OpenStreetMap. Fotos das estações: Wikimedia Commons, com o autor e a licença em cada uma. Vídeos: YouTube, com o canal de cada um.</p>
   <p>Viu algo errado? <a href="{whats}">Conte pelo WhatsApp</a> · <a href="{raiz}perguntas-frequentes/">Perguntas frequentes</a> · <a href="{raiz}">Sobre o app</a> · <a href="{raiz}historia/">História do app</a> · <a href="{raiz}privacidade.html">Privacidade</a></p>
   <p class="gerado">Página gerada em {gerado}.</p>
 </div></footer>
@@ -467,6 +472,9 @@ def pagina_estacao(d, grupo):
             h.append("</ul></div>")
         h.append("</div></section>")
 
+    videos = videos_da_estacao(d, grupo, raiz)
+    if videos:
+        h.append(videos)
     if fotos:
         h.append(fotos_do_fim(fotos, nome, raiz))
     h.append(chamada_app(raiz))
@@ -487,7 +495,7 @@ def pagina_estacao(d, grupo):
         {"@type": "ListItem", "position": 3, "name": nome}]})
     return pagina(d, caminho=f"estacoes/{grupo['slug']}/", titulo=f"Estação {nome} — horários do {veic} ({nomes_linhas}) | Metrô Ceará",
                   descricao=descricao, corpo="\n".join(h), tema=cor, extra=extra,
-                  scripts=f'<script type="module" src="{raiz}site/agora.js"></script>\n',
+                  scripts=f'<script type="module" src="{raiz}site/agora.js"></script>\n' + (SCRIPT_VIDEO.format(raiz=raiz) if videos else ""),
                   imagem=SITE + "img/estacoes/" + fotos[0].get("capa_jpg", fotos[0]["arquivo"]) if fotos else None)
 
 
@@ -548,6 +556,58 @@ def texto_integracoes(d, grupo, raiz):
         itens.append(f"<p><strong>Integração</strong>{onde}: {i['caminhada_min']} min a pé.</p><ul class=\"lista\">"
                      + frase_integracao(i, la, lb, "a_para_b") + frase_integracao(i, lb, la, "b_para_a") + "</ul>")
     return "".join(itens)
+
+
+def duracao_video(seg):
+    return f"{seg // 60} min" if seg >= 60 else f"{seg} s"
+
+
+def tempo_video(seg):
+    return f"{seg // 60}:{seg % 60:02d}"
+
+
+def video_tocador(v, raiz, *, inicio=0, legenda=""):
+    """Miniatura guardada no site com o botão ▶; o video.js troca pelo vídeo (youtube-nocookie) só no toque.
+    Sem JS, o link abre o vídeo no YouTube. Abrir a página não carrega nada do YouTube."""
+    url = f"https://www.youtube.com/watch?v={v['id']}" + (f"&amp;t={inicio}s" if inicio else "")
+    return (f'<figure class="video"><a class="video-tocar" href="{url}" target="_blank" rel="noopener" data-id="{v["id"]}"'
+            + (f' data-inicio="{inicio}"' if inicio else "")
+            + f'><img src="{raiz}img/videos/{v["id"]}.jpg" alt="" width="480" height="360" loading="lazy">'
+            f'<span class="video-play" aria-hidden="true">▶</span><span class="visualmente-oculto">Assistir: {esc(v["titulo"])}</span></a>'
+            f'<figcaption><strong>{esc(legenda or v["titulo"])}</strong><br>'
+            f'<span class="dica">{duracao_video(v["duracao"])}{" · " + v["data"][:4] if v.get("data") else ""} · <a href="{esc(v["canal_url"])}" target="_blank" rel="noopener">{esc(v["canal"])}</a>, no YouTube</span></figcaption></figure>')
+
+
+AVISO_VIDEOS = ('<p class="dica">Vídeos públicos do YouTube, de quem gravou e publicou; o crédito é de cada canal. '
+                'O vídeo só carrega do YouTube quando você toca para assistir.</p>')
+SCRIPT_VIDEO = '<script src="{raiz}site/video.js" defer></script>\n'
+
+
+def videos_da_linha(d, linha, raiz):
+    vs = [v for v in d.videos if slug(linha["nome"]) in v.get("linhas", [])]
+    if not vs:
+        return ""
+    h = [f'<section class="videos" id="videos"><h2>Vídeos <span class="dica">· {len(vs)}</span></h2><div class="grade-videos">']
+    for v in vs:
+        h.append(video_tocador(v, raiz))
+        if v.get("resumo"):
+            h[-1] = h[-1].replace("</figcaption>", f'<br><span class="dica">{esc(v["resumo"])}</span></figcaption>')
+    h.append("</div>" + AVISO_VIDEOS + "</section>")
+    return "".join(h)
+
+
+def videos_da_estacao(d, grupo, raiz):
+    trechos = [(v, c) for v in d.videos for c in v.get("capitulos", []) if grupo["slug"] in c.get("estacoes", [])]
+    if not trechos:
+        return ""
+    h = [f'<section class="videos" id="videos"><h2>Em vídeo{f" <span class=\"dica\">· {len(trechos)}</span>" if len(trechos) > 1 else ""}</h2><div class="grade-videos">']
+    for v, c in trechos:
+        legenda = c.get("titulo") or v["titulo"]
+        if c["inicio"]:
+            legenda += f' (a partir de {tempo_video(c["inicio"])})'
+        h.append(video_tocador(v, raiz, inicio=c["inicio"], legenda=legenda))
+    h.append("</div>" + AVISO_VIDEOS + "</section>")
+    return "".join(h)
 
 
 def chamada_app(raiz):
@@ -626,6 +686,9 @@ def pagina_linha(d, linha):
     h.append("<p class=\"dica\">Domingo: o metrô e o VLT só circulam em dias especiais (eleição, ENEM, eventos), "
              "quando o Metrofor anuncia.</p></section></div>")
 
+    videos = videos_da_linha(d, linha, raiz)
+    if videos:
+        h.append(videos)
     outras = [l for l in d.linhas if l["id"] != linha["id"]]
     h.append('<section><h2>Outras linhas</h2><p class="selos">' + "".join(selo(d, l, raiz) for l in outras) + "</p></section>")
     h.append(chamada_app(raiz))
@@ -635,7 +698,8 @@ def pagina_linha(d, linha):
     descricao = (f"{nome} ({'metrô' if veic == 'metrô' else 'VLT'} de {sistema}): as {len(ordem)} estações de {pontas}, "
                  f"primeiro e último horário, intervalo e passagem.")
     return pagina(d, caminho=f"linhas/{slug(linha['nome'])}/", titulo=f"{nome} — estações e horários | Metrô Ceará",
-                  descricao=descricao, corpo="\n".join(h), tema=cor)
+                  descricao=descricao, corpo="\n".join(h), tema=cor,
+                  scripts=SCRIPT_VIDEO.format(raiz=raiz) if videos else "")
 
 
 # ---------- índices
