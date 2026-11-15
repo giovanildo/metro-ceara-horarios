@@ -814,8 +814,13 @@ marcar as estações; num caso, 2 min sem posição, e o app seguiu pela tabela.
 em `avisos_das_linhas` (por nome da linha, cada aviso com `texto` e a chave da
 sua `fonte`), e aparece na tela da estação, abaixo do guia da passagem, com o
 seu "Fonte ›", no app e na lite. O primeiro é o **vagão feminino** da Linha Sul
-(desde 03/07/2026, notícias do Metrofor): "Vagão feminino: 2 vagões só para
-mulheres, cis e trans, o dia todo. Ficam sinalizados." Mudar o texto ou pôr um
+(desde 03/07/2026, notícias do Metrofor): "Vagão feminino: o primeiro e o
+último vagão, só para mulheres, cis e trans, o dia todo. Também podem ir nele
+crianças até 12 anos com a mãe e quem leva bike, nos horários da bike." A
+posição e as exceções não estão nas notícias; vêm de uma reportagem em vídeo
+(YouTube `EAvBIQW1gQg`, aos 0:37 e 1:02), citada no detalhe da fonte
+`vagao_feminino`. Quem leva bike pode ficar no feminino porque é o vagão com
+espaço para ela. Mudar o texto ou pôr um
 aviso em qualquer linha chega sem versão nova; o app lê o bloco desde a 1.103.
 
 Na mesma seção `estacoes`, `posicao` corrige as estações que o **GTFS põe no
