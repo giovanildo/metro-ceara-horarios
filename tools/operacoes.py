@@ -43,7 +43,9 @@ TITULO = re.compile(
     r"hor[áa]rios? (especia|alterad|normais|de funcionamento|do metr)|opera[çc][ãa]o (especial|gratuita|excepcional)"
     r"|funcionamento (especial|normal|excepcional|gratuito|no|do|das|dos|durante|em)|como (ser[áa]|vai) (a opera|o funciona)"
     r"|\b(metr[ôo]s?|vlts?|trens|linhas)\b[^.]{0,40}\b(circula|funciona|opera)|n[ãa]o altera hor|suspens[ãa]o d|veja os hor[áa]rios"
-    r"|confira os hor[áa]rios|consulte aqui os hor[áa]rios|circula[çc][ãa]o de metr", re.I)
+    r"|confira os hor[áa]rios|consulte aqui os hor[áa]rios|circula[çc][ãa]o de metr"
+    # "Segundo domingo de Enem terá metrô e VLT gratuitamente" (12/11/2026)
+    r"|\bter[áa]o?\s+(metr[ôo]s?|vlts?)\b", re.I)
 # Mudanca que vale dali em diante (linha nova, horario novo, volta depois de obra) ou assunto
 # que so cita a operacao (bike, campanha, decoracao): nao e aviso de um dia.
 NAO_E = re.compile(r"bicicleta|\bbikes?\b|novos hor[áa]rios|amplia|importuna|sanitiza|completa|lan[çc]a|parceria|vagas"
@@ -61,7 +63,8 @@ NORMAL = re.compile(r"\bnormal\b|normalmente|sem (qualquer )?altera|n[ãa]o alte
 # "Não haverá operação especial de São João", "não será realizado o esquema especial": nada muda.
 SEM_ESPECIAL = re.compile(r"n[ãa]o (haver[áa]|ter[áa]|ser[áa] realizad\w*)[^.]{0,30}(especial|esquema)", re.I)
 # Abertura que anuncia a operacao do dia ("Metro e VLTs ... terao operacao especial no dia 2 de novembro").
-ABERTURA = re.compile(r"(ter[ãa]o|ter[áa]|funcionar[ãa]o|funcionar[áa]|operar[ãa]o|operar[áa])\s+(opera[çc][ãa]o|hor[áa]rios?|funcionamento)"
+# "terão viagens especiais e gratuitas no dia 15 de novembro" (12/11/2026) também.
+ABERTURA = re.compile(r"(ter[ãa]o|ter[áa]|funcionar[ãa]o|funcionar[áa]|operar[ãa]o|operar[áa])\s+(opera[çc][ãa]o|hor[áa]rios?|funcionamento|viagens)"
                       r"\s+(especia|excepcion|alterad|diferenciad|gratuit)", re.I)
 GERAL = re.compile(r"aos domingos|\btrecho\b|bicicl|\bbikes?\b|n[ãa]o ser[áa] necess", re.I)
 
@@ -266,7 +269,7 @@ def extrair(titulo, conteudo, publicada, link=""):
             continue
         for frase in frases:
             for d in datas(frase, publicada):
-                frase_de.setdefault(d, frase)
+                frase_de.setdefault(d, []).append(frase)
             explicitas = nota(frase, datas(frase, publicada))
             if explicitas:
                 contexto = explicitas
@@ -289,9 +292,11 @@ def extrair(titulo, conteudo, publicada, link=""):
         # Data de passagem ("No proximo sabado, dia 31 de outubro, a operacao sera encerrada
         # mais cedo"): o aviso mostra a frase que fala dela, nao a manchete de outro dia.
         # So quando a noticia trata de outro dia e a frase diz como fica a operacao.
-        frase = frase_de.get(d, "").strip()
-        if (principais and not e["principal"] and frase.endswith(".") and 30 <= len(frase) <= 160
-                and (FECHADA.search(frase) or ESPECIAL.search(frase) or NORMAL.search(frase))):
+        # A primeira frase que serve: um intertítulo ("Atenção ao encerramento antecipado no
+        # sábado (14)") cita o dia antes da frase que explica (notícia de 12/11/2026).
+        frase = next((f.strip() for f in frase_de.get(d, []) if f.strip().endswith(".") and 30 <= len(f.strip()) <= 160
+                      and (FECHADA.search(f) or ESPECIAL.search(f) or NORMAL.search(f))), None)
+        if principais and not e["principal"] and frase:
             e["titulo"] = frase
         if d in paradas:
             e["paradas"] = [n for n in TODAS if n in paradas[d]]

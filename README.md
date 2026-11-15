@@ -1245,7 +1245,9 @@ Detalhes que valem saber:
   Tem metrô e VLT de graça, das 10:30 às 19:33 (varia por linha), na operação
   do Enem." (com "menos VLT de Sobral e VLT do Cariri" quando alguma linha
   para). Como vem no `regras.json`, chega também a versões antigas do app. O leitor pega só títulos de operação ("horários especiais",
-  "operação especial", "funcionamento normal", "não altera horários"), deixa de
+  "operação especial", "funcionamento normal", "não altera horários", "terá
+  metrô e VLT"; ou a abertura "terão operação/horários/viagens especiais" com a
+  data), deixa de
   fora mudança que vale dali em diante ("novos horários", "passa a operar",
   "volta a operar") e tira as datas de "(21/4)", "19 de março", "sexta-feira
   (7)" ou "Quarta-feira de Cinzas (18)", conferindo o dia da semana. Separa o
