@@ -51,6 +51,8 @@ def janelas(frase):
         return []
     if "habituais" in f or "normais" in f:
         return None  # regra de sempre: nada a mudar
+    if re.search(r"durante todo o hor[áa]rio( de)? opera|durante toda a opera[çc][ãa]o|o dia todo|todo o dia", f):
+        return [["00:00", None]]  # "permitido durante todo o horário operacional" (domingos do Enem 2026)
     achadas = []
     for m in re.finditer(r"(?:entre|das?)\s+(\d{1,2})h(\d{2})?\s+(?:e|às|as|até)\s+(?:às\s+)?(\d{1,2})h(\d{2})?", f):
         achadas.append([_hora(m.group(1), m.group(2)), _hora(m.group(3), m.group(4))])
