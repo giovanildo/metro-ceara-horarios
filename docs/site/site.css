@@ -270,3 +270,8 @@ main section { margin: 44px 0 0; }
 .quem-da-nome strong { display: block; font-size: .78rem; text-transform: uppercase; letter-spacing: .1em; opacity: .9; margin-bottom: 2px; }
 .quem-da-nome a { color: #fff; }
 #artes { scroll-margin-top: 72px; }
+/* Por que esse nome? (tools/site_nomes.json) e o nome antigo na faixa */
+.nome-antigo { margin: -8px 0 12px; font-size: 1rem; opacity: .9; }
+.por-que-o-nome p:first-of-type { max-width: 46rem; }
+.nomes li { margin: 12px 0; line-height: 1.5; }
+.ponto-linha { display: inline-block; width: 14px; height: 14px; border-radius: 50%; background: var(--cor); margin-right: 10px; vertical-align: middle; }

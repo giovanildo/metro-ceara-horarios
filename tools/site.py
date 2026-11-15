@@ -42,6 +42,7 @@ FOTOS = os.path.join(RAIZ, "tools", "site_fotos.json")
 HISTORIA = os.path.join(RAIZ, "tools", "site_historia.json")
 VIDEOS = os.path.join(RAIZ, "tools", "site_videos.json")
 LITERATURA = os.path.join(RAIZ, "tools", "site_literatura.json")
+NOMES_ESTACOES = os.path.join(RAIZ, "tools", "site_nomes.json")
 CHANGELOGS = os.path.join(RAIZ, "fastlane", "metadata", "android", "pt-BR", "changelogs")
 FOTOS_NO_TOPO = 4  # as outras fotos da estação ficam no fim da página e só carregam ao rolar
 RAW = "https://raw.githubusercontent.com/giovanildo/metro-ceara-horarios/dados/"
@@ -56,7 +57,11 @@ NOMES = {
     "Expedicionarios": "Expedicionários",
     "Alto da Brasilia": "Alto da Brasília",
     "Antonio Vieira": "Antônio Vieira",
+    # Renomeada pela Lei estadual 19.272/2025; o GTFS do Metrofor ainda traz o nome antigo (o mesmo no app e na lite).
+    "Jereissati": "Francisco Alves Marinho",
 }
+# Nome oficial -> nome antigo, para a faixa ("Antiga Jereissati"), a busca e a página antiga (redireciona).
+ANTIGOS = {"Francisco Alves Marinho": "Jereissati"}
 
 # Linha (route_id do GTFS) -> cidade/sistema. A Linha Sul e a Oeste passam por
 # Maracanaú, Pacatuba e Caucaia, mas o sistema é o de Fortaleza.
@@ -157,12 +162,20 @@ class Dados:
         if os.path.exists(FOTOS):
             with open(FOTOS, encoding="utf-8") as fh:
                 self.fotos = json.load(fh)
+            # As fotos do Commons seguem na pasta do nome antigo (a categoria lá ainda é "Estação Jereissati").
+            for novo, antigo in ANTIGOS.items():
+                if slug(antigo) in self.fotos and slug(novo) not in self.fotos:
+                    self.fotos[slug(novo)] = self.fotos[slug(antigo)]
         self.videos = []  # tools/site_videos.json: vídeos públicos do YouTube, escolhidos à mão
         if os.path.exists(VIDEOS):
             with open(VIDEOS, encoding="utf-8") as fh:
                 self.videos = json.load(fh).get("videos", [])
         self.literatura, self.leitura = [], []  # tools/site_literatura.json: trechos conferidos no texto original
         self.artes, self.quem_da_nome = [], {}
+        self.nomes = {}  # tools/site_nomes.json: por que cada estação tem esse nome (só o que tem fonte)
+        if os.path.exists(NOMES_ESTACOES):
+            with open(NOMES_ESTACOES, encoding="utf-8") as fh:
+                self.nomes = json.load(fh).get("estacoes", {})
         if os.path.exists(LITERATURA):
             with open(LITERATURA, encoding="utf-8") as fh:
                 lit = json.load(fh)
@@ -239,7 +252,7 @@ class Dados:
         nomes = {simples(grupo["nome"])} | {simples(nome_estacao(self.util["estacoes"][s]["nome"])) for s in grupo["stops"]}
         lista = [l for l in self.regras.get("lugares", {}).get("lista", [])
                  if l.get("estacao") and l.get("a_pe_m") is not None and l["a_pe_m"] <= PERTO_M
-                 and simples(l["estacao"]) in nomes]
+                 and simples(nome_estacao(l["estacao"])) in nomes]
         return sorted(lista, key=lambda l: l["a_pe_m"])
 
     def stop_pelo_nome(self, nome):
@@ -310,7 +323,7 @@ RODAPE = """<footer class="rodape"><div class="largura">
   <p><strong>Metrô Ceará</strong> é um guia independente, feito por um passageiro. <strong>Não é o site oficial do Metrofor</strong>
   nem do Governo do Ceará. Os horários vêm do GTFS que o Metrofor publica; endereços, passagem e acessibilidade, do site
   do Metrofor (conferidos em {conferido}). Lugares por perto: © colaboradores do OpenStreetMap. Fotos das estações: Wikimedia Commons, com o autor e a licença em cada uma. Vídeos: YouTube, com o canal de cada um.</p>
-  <p>Viu algo errado? <a href="{whats}">Conte pelo WhatsApp</a> · <a href="{raiz}perguntas-frequentes/">Perguntas frequentes</a> · <a href="{raiz}">Sobre o app</a> · <a href="{raiz}historia/">História do app</a> · <a href="{raiz}literatura/">Literatura e artes</a> · <a href="{raiz}privacidade.html">Privacidade</a></p>
+  <p>Viu algo errado? <a href="{whats}">Conte pelo WhatsApp</a> · <a href="{raiz}perguntas-frequentes/">Perguntas frequentes</a> · <a href="{raiz}">Sobre o app</a> · <a href="{raiz}historia/">História do app</a> · <a href="{raiz}literatura/">Literatura e artes</a> · <a href="{raiz}nomes-das-estacoes/">Nomes das estações</a> · <a href="{raiz}privacidade.html">Privacidade</a></p>
   <p class="gerado">Página gerada em {gerado}.</p>
 </div></footer>
 {scripts}</body>
@@ -372,6 +385,7 @@ def pagina_estacao(d, grupo):
          migalhas(raiz, [("Estações", "estacoes/"), (nome, None)]),
          f'<p class="sobretitulo">Estação de {veic} · {esc(grupo["sistema"])}</p>',
          f"<h1>{esc(nome)}</h1>",
+         (f'<p class="nome-antigo">Antiga {esc(ANTIGOS[nome])}</p>' if nome in ANTIGOS else ""),
          '<p class="selos">' + "".join(selo(d, l, raiz) for l in linhas) + "</p>"]
     # Quem dá nome à estação entra no lugar da epígrafe (o trecho continua em "Na literatura")
     h.append(quem_da_nome(d, grupo["slug"]) or epigrafe(d, grupo["slug"]))
@@ -440,6 +454,7 @@ def pagina_estacao(d, grupo):
     h.append("</section>")
 
     # Passagem e integração
+    h.append(por_que_o_nome(d, grupo, raiz))
     h.append('<section><h2>Passagem</h2><ul class="lista">')
     for linha in linhas:
         p = d.passagem(linha)
@@ -648,6 +663,62 @@ def epigrafe(d, alvo):
         return ""
     return (f'<p class="epigrafe"><a href="#literatura">“{esc(o["trecho"])}”'
             f'<span>— {esc(o["autor"])}, <cite>{esc(o["obra"])}</cite> ({o["ano"]})</span></a></p>')
+
+
+def links_fontes(fontes):
+    return " · ".join(f'<a href="{esc(f["link"])}" target="_blank" rel="noopener">{esc(f["texto"])}</a>' for f in fontes)
+
+
+def por_que_o_nome(d, grupo, raiz):
+    n = d.nomes.get(grupo["slug"])
+    if not n:
+        return ""
+    return (f'<section class="por-que-o-nome" id="nome"><h2>Por que esse nome?</h2><p>{esc(n["texto"])}</p>'
+            f'<p class="dica">Fonte: {links_fontes(n["fontes"])} · <a href="{raiz}nomes-das-estacoes/">Os nomes de todas as estações ›</a></p></section>')
+
+
+def pagina_nomes(d):
+    raiz = "../"
+    vistos, h = set(), ['<header class="faixa" style="--cor:#CE0F2E;--cor-escuro:#CE0F2E"><div class="largura">',
+                        migalhas(raiz, [("Nomes das estações", None)]),
+                        '<h1>Por que esses nomes?</h1>'
+                        '<p class="endereco">Bairros, lagoas em tupi, escritores, padres, prefeitos, pracinhas da Segunda Guerra e '
+                        'até um agente de estação: a origem do nome de cada estação do metrô e dos VLTs do Ceará, com a fonte. '
+                        'Onde ainda não achamos, a página diz.</p></div></header><main id="conteudo" class="largura">']
+    sabidas = 0
+    for sistema in ORDEM_SISTEMAS:
+        for linha in [l for l in d.linhas if SISTEMA.get(l["id"]) == sistema]:
+            itens = []
+            for stop in d.estacoes_da_linha(linha):
+                g = d.por_stop[stop]
+                if g["slug"] in vistos:
+                    continue
+                vistos.add(g["slug"])
+                n = d.nomes.get(g["slug"])
+                sabidas += bool(n)
+                antigo = f' <span class="dica">(antiga {esc(ANTIGOS[g["nome"]])})</span>' if g["nome"] in ANTIGOS else ""
+                texto = (f'{esc(n["texto"])} <span class="dica">Fonte: {links_fontes(n["fontes"])}</span>' if n else
+                         '<span class="dica">Ainda não achamos a origem desse nome.</span>')
+                itens.append(f'<li id="{g["slug"]}"><a href="{raiz}estacoes/{g["slug"]}/"><strong>{esc(g["nome"])}</strong></a>{antigo} · {texto}</li>')
+            if itens:
+                cor, cor_e = d.cor(linha), d.cor(linha, True)
+                h.append(f'<section><h2><span class="ponto-linha" style="--cor:{cor};--cor-escuro:{cor_e}"></span>{esc(nome_linha(linha["nome"]))}</h2>'
+                         f'<ul class="lista nomes">{"".join(itens)}</ul></section>')
+    h.append(f'<section><h2>Sabe a origem de um nome que falta?</h2><p>Temos a origem de {sabidas} das {len(d.estacoes)} estações. '
+             f'Se você sabe de onde vem o nome de outra, ou viu algum erro, <a href="{esc(WHATSAPP + "Metrô Ceará · nome de estação: ")}">conte pelo WhatsApp</a>.</p></section>')
+    h.append(chamada_app(raiz))
+    h.append("</main>")
+    return pagina(d, caminho="nomes-das-estacoes/", titulo="Por que esses nomes? A origem das estações do metrô e VLT do Ceará | Metrô Ceará",
+                  descricao="Parangaba era Arronches, Caucaia era Soure, Rachel de Queiroz era Pajuçara: a origem do nome de cada estação do metrô e dos VLTs de Fortaleza, Cariri e Sobral, com a fonte.",
+                  corpo="\n".join(h))
+
+
+def pagina_redireciona(para, nome_antigo, nome_novo):
+    return (f'<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
+            f'<title>Estação {esc(nome_antigo)}, hoje {esc(nome_novo)} | Metrô Ceará</title>'
+            f'<link rel="canonical" href="{SITE}{para}"><meta http-equiv="refresh" content="0; url=../../{para}">'
+            f'<meta name="robots" content="noindex"></head><body><p>A estação {esc(nome_antigo)} agora se chama '
+            f'<a href="../../{para}">{esc(nome_novo)}</a>.</p></body></html>\n')
 
 
 def tem_literatura(d, estacao):
@@ -1232,6 +1303,7 @@ def trechos_da_inicial(d):
     def legenda(sistema):
         return '<p class="selos">' + "".join(selo(d, l, raiz) for l in d.linhas if SISTEMA.get(l["id"]) == sistema) + "</p>"
     opcoes = "".join(f'<option value="{esc(g["nome"])}" data-slug="{g["slug"]}">' for g in sorted(d.estacoes, key=lambda g: slug(g["nome"])))
+    opcoes += "".join(f'<option value="{esc(ANTIGOS[g["nome"]])}" data-slug="{g["slug"]}">' for g in d.estacoes if g["nome"] in ANTIGOS)
     return {
         "estacoes": str(len(d.estacoes)),
         "linhas": str(len(d.linhas)),
@@ -1301,13 +1373,16 @@ def main():
     pasta = sys.argv[1] if len(sys.argv) > 1 else None
     d, util, sabado = carregar_dados(pasta)
 
-    caminhos = list(FIXAS) + ["estacoes/", "linhas/", "perguntas-frequentes/", "historia/", "literatura/"]
+    caminhos = list(FIXAS) + ["estacoes/", "linhas/", "perguntas-frequentes/", "historia/", "literatura/", "nomes-das-estacoes/"]
     escrever(os.path.join(DOCS, "historia", "index.html"),
              pagina(d, caminho="historia/", titulo="História do app | Metrô Ceará",
                     descricao="Como o Metrô Ceará foi feito: as versões do app de horários de metrô e VLT do Ceará, dia a dia, do primeiro dia à Play Store.",
                     corpo="\n".join(pagina_historia())))
     escrever(os.path.join(DOCS, "perguntas-frequentes", "index.html"), pagina_faq(d))
     escrever(os.path.join(DOCS, "literatura", "index.html"), pagina_literatura(d))
+    escrever(os.path.join(DOCS, "nomes-das-estacoes", "index.html"), pagina_nomes(d))
+    for novo, antigo in ANTIGOS.items():  # o endereço antigo continua chegando à estação
+        escrever(os.path.join(DOCS, "estacoes", slug(antigo), "index.html"), pagina_redireciona(f"estacoes/{slug(novo)}/", antigo, novo))
     escrever(os.path.join(DOCS, "estacoes", "index.html"), indice_estacoes(d))
     escrever(os.path.join(DOCS, "linhas", "index.html"), indice_linhas(d))
     for linha in d.linhas:

@@ -781,6 +781,21 @@ regra própria: é só editar o arquivo e gerar uma versão nova. Ficam fora das
 Configurações de propósito — são regra do Metrofor, não preferência de quem usa
 o app.
 
+### Estação renomeada: Jereissati → Francisco Alves Marinho
+
+A Lei estadual 19.272, de 05/06/2025, deu à estação Jereissati (Linha Sul,
+Maracanaú) o nome de **Francisco Alves Marinho**, agente da estação
+ferroviária de Maracanaú. O GTFS do Metrofor ainda traz "Jereissati". O app
+([`StationNames.kt`](app/src/main/java/io/github/giova/metroceara/data/StationNames.kt)),
+a lite (`RENOMEADAS` em [`docs/app/dados.js`](docs/app/dados.js)) e o site
+(`NOMES`/`ANTIGOS` em `tools/site.py`) mostram o nome novo, a busca acha
+pelos dois e a estação diz "Antiga Jereissati" (no app, no cartão da
+estação; no site, na faixa do topo). A troca é feita na leitura: o banco, a
+grade baixada e o `regras.json` continuam com o nome do GTFS (as versões
+antigas do app conferem o id da estação por ele), e as comparações passam
+pelos dois nomes. O endereço antigo do site (`estacoes/jereissati/`)
+redireciona. Se o Metrofor passar a usar o nome novo no GTFS, nada quebra.
+
 ### Endereço, passagem e posição das estações
 
 A tela da estação (no app e na lite) mostra, logo abaixo dos sentidos, o
@@ -1545,6 +1560,7 @@ tools/site_fotos.py                  fotos das estações do Wikimedia Commons (
 tools/site_historia.json             linha do tempo das versões (página História do app)
 tools/site_videos.json               vídeos do YouTube nas páginas das linhas e estações
 tools/site_literatura.json           o trem na literatura e nas artes (página e blocos nas estações)
+tools/site_nomes.json                por que cada estação tem esse nome (só o que tem fonte)
 app/src/main/assets/metrofor.db      banco gerado (não editar à mão)
 app/src/main/assets/regras.json      regras fora do GTFS: bike, integrações, passagem,
                                      guia da passagem, endereços, acessibilidade, cores,
@@ -1860,6 +1876,13 @@ Google já conhece, em pastas próprias — a lite em `docs/app/` não é tocada
   da epígrafe. A página virou "O trem na literatura e nas artes" (mesmo
   endereço `literatura/`) e as estações ganham o bloco "Na arte"; no
   trilho, a marca virou "📖 cultura".
+- **Por que esse nome?** (desde 15/11): seção na página de cada estação e a
+  página `nomes-das-estacoes/` (link no rodapé), de
+  [`tools/site_nomes.json`](tools/site_nomes.json). Só entra o que tem fonte
+  (Wikipédia, Diário do Nordeste, Assembleia Legislativa, TJCE, O Povo,
+  Diocese de Sobral): 33 das 62 estações. As origens prováveis sem fonte e as
+  não encontradas ficam listadas em `pendentes`, e a página diz "ainda não
+  achamos" e convida a contar pelo WhatsApp.
 - **Prévia de link** (a imagem que aparece ao mandar o endereço no WhatsApp):
   `docs/img/previa.png`, 1200×630, com o nome e o mapa de Fortaleza. Sai de
   [`tools/site_previa.py`](tools/site_previa.py), que monta a página com o

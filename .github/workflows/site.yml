@@ -13,6 +13,7 @@ on:
       - tools/site_historia.json
       - tools/site_videos.json
       - tools/site_literatura.json
+      - tools/site_nomes.json
       - fastlane/metadata/android/pt-BR/changelogs/**
   schedule:
     # Segunda, 06:41 em Fortaleza.
