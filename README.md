@@ -755,7 +755,8 @@ Guia do Passageiro, em `bike.proibidas`.
 notícia a regra da bike do dia: nos feriados, "nas linhas Sul e Nordeste, o
 embarque com bicicletas estará liberado entre 9h e 15h"; nos domingos do ENEM e
 nas vésperas de Natal e Ano-Novo, "não haverá embarque com bicicletas"; na
-eleição de 2024, "a partir das 9h até o encerramento". A tarefa do espelho lê
+eleição de 2024, "a partir das 9h até o encerramento"; nos domingos do Enem 2026,
+"permitido durante todo o horário operacional" (liberada o dia todo). A tarefa do espelho lê
 sozinha essas notícias ([`tools/datas_especiais.py`](tools/datas_especiais.py),
 pela API do WordPress do site, notícias dos últimos 45 dias com "bicicletas"),
 tira a data (`quinta-feira (19)`, `(20/11)`, `dias 9 e 16 de novembro`,
