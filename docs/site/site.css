@@ -241,3 +241,20 @@ main section { margin: 44px 0 0; }
 .citacao .dica { margin: 6px 0 0; }
 .selos-texto { margin: 10px 0 0; font-size: .9rem; }
 #literatura { scroll-margin-top: 72px; }
+/* Epígrafe: o trecho que abre a página da estação/linha, na faixa colorida */
+.epigrafe { margin: 4px 0 16px; max-width: 46rem; }
+.epigrafe a { color: #fff; text-decoration: none; font-family: Georgia, "Times New Roman", serif; font-style: italic;
+  font-size: clamp(1.05rem, .95rem + .5vw, 1.3rem); line-height: 1.45; display: block;
+  border-left: 3px solid rgba(255,255,255,.7); padding-left: 14px; }
+.epigrafe a:hover { text-decoration: underline; text-decoration-thickness: 1px; }
+.epigrafe span { display: block; font-family: system-ui, sans-serif; font-style: normal; font-size: .9rem; opacity: .9; margin-top: 4px; }
+.epigrafe cite { font-style: italic; }
+.marca-livro { text-decoration: none; }
+/* Trecho do dia na página principal */
+.trecho-do-dia { background: var(--papel); border-radius: var(--raio); box-shadow: var(--sombra); padding: 24px;
+  border-left: 6px solid var(--destaque); max-width: 46rem; }
+.trecho-do-dia blockquote { margin: 0 0 10px; }
+.trecho-do-dia blockquote p { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(1.15rem, 1rem + .7vw, 1.5rem);
+  line-height: 1.45; font-style: italic; }
+.trecho-do-dia .citacao-autor { margin: 0 0 10px; }
+.acoes-texto { margin: 0; font-size: .95rem; }

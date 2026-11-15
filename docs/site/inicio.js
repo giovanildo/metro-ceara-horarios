@@ -39,3 +39,19 @@ carregar().then((dados) => {
   }).join("");
   quadro.hidden = false;
 }).catch(() => {});
+
+// O trem na literatura: um trecho por dia (a lista vem pronta do tools/site.py no data-trechos).
+const caixa = document.querySelector(".trecho-do-dia");
+try {
+  const trechos = JSON.parse(caixa?.dataset.trechos || "[]");
+  if (trechos.length) {
+    const hoje = new Date();
+    const dia = Math.floor((hoje - new Date(hoje.getFullYear(), 0, 0)) / 864e5);
+    const t = trechos[dia % trechos.length];
+    caixa.querySelector("blockquote p").textContent = `“${t.trecho}”`;
+    caixa.querySelector(".citacao-autor").innerHTML = `— <strong>${esc(t.autor)}</strong>, <cite>${esc(t.obra)}</cite> (${t.ano})`;
+    const onde = caixa.querySelector("a.onde");
+    onde.href = t.url;
+    onde.textContent = `${t.onde} ›`;
+  }
+} catch { /* fica o trecho que veio no HTML */ }

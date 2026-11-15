@@ -1841,6 +1841,12 @@ Google já conhece, em pastas próprias — a lite em `docs/app/` não é tocada
   fonte; obras em domínio público levam ao texto inteiro (Wikisource). A
   busca de 15/11 não achou literatura sobre o metrô e os VLTs atuais: tudo é
   dos trens antigos que andavam nas mesmas linhas.
+  **Destaque:** o trecho marcado em `epigrafe` abre a página da estação ou
+  da linha, logo abaixo do nome; o trilho da linha marca com "📖 literatura"
+  as estações que têm trecho; a página principal tem o cartão "O trem na
+  literatura" com um trecho por dia (`trecho_do_dia` no `site.py`, a troca
+  diária fica no `docs/site/inicio.js`); "Literatura" no menu do topo
+  (só no computador). Posts em `divulgacao/literatura/`.
 - **Prévia de link** (a imagem que aparece ao mandar o endereço no WhatsApp):
   `docs/img/previa.png`, 1200×630, com o nome e o mapa de Fortaleza. Sai de
   [`tools/site_previa.py`](tools/site_previa.py), que monta a página com o

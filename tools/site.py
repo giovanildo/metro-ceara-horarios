@@ -299,7 +299,7 @@ CABECA = """<!doctype html>
 <a class="pular" href="#conteudo">Pular para o conteúdo</a>
 <nav class="topo"><div class="largura">
   <a class="marca" href="{raiz}"><img src="{raiz}img/icon.png" alt="" width="32" height="32"><span class="marca-nome">Metrô Ceará</span></a>
-  <span class="menu"><a href="{raiz}estacoes/">Estações</a><a href="{raiz}linhas/">Linhas</a><a class="opcional" href="{raiz}perguntas-frequentes/">Dúvidas</a><a class="abrir" href="{raiz}app/">Horários agora</a></span>
+  <span class="menu"><a href="{raiz}estacoes/">Estações</a><a href="{raiz}linhas/">Linhas</a><a class="opcional" href="{raiz}perguntas-frequentes/">Dúvidas</a><a class="opcional" href="{raiz}literatura/">Literatura</a><a class="abrir" href="{raiz}app/">Horários agora</a></span>
 </div></nav>
 """
 
@@ -370,6 +370,7 @@ def pagina_estacao(d, grupo):
          f'<p class="sobretitulo">Estação de {veic} · {esc(grupo["sistema"])}</p>',
          f"<h1>{esc(nome)}</h1>",
          '<p class="selos">' + "".join(selo(d, l, raiz) for l in linhas) + "</p>"]
+    h.append(epigrafe(d, grupo["slug"]))
     if info.get("endereco"):
         h.append(f'<p class="endereco">📍 {esc(info["endereco"])}</p>')
     lat, lon = grupo["posicao"]
@@ -636,6 +637,19 @@ def citacao(o, raiz, *, completa=False):
     return "".join(h)
 
 
+def epigrafe(d, alvo):
+    """O trecho que abre a página da estação ou da linha, logo abaixo do nome; o toque desce até "Na literatura"."""
+    o = next((o for o in d.literatura if alvo in o.get("epigrafe", []) and o.get("trecho")), None)
+    if not o:
+        return ""
+    return (f'<p class="epigrafe"><a href="#literatura">“{esc(o["trecho"])}”'
+            f'<span>— {esc(o["autor"])}, <cite>{esc(o["obra"])}</cite> ({o["ano"]})</span></a></p>')
+
+
+def tem_literatura(d, estacao):
+    return any(estacao in o.get("estacoes", []) for o in d.literatura)
+
+
 def literatura_de(d, raiz, *, linha=None, estacao=None):
     itens = [o for o in d.literatura if (linha and linha in o.get("linhas", [])) or (estacao and estacao in o.get("estacoes", []))]
     if not itens:
@@ -712,6 +726,7 @@ def pagina_linha(d, linha):
          f'<p class="sobretitulo">{"Metrô" if veic == "metrô" else "VLT"} · {esc(sistema)}</p>',
          f"<h1>{esc(nome)}</h1>",
          f'<p class="endereco">{esc(linha["descricao"])}</p>',
+         epigrafe(d, slug(linha["nome"])),
          '<div class="numeros claros">',
          f'<p class="numero"><strong>{len(ordem)}</strong><span>estações</span></p>']
     if duracao:
@@ -736,6 +751,8 @@ def pagina_linha(d, linha):
             marcas.append('<span class="marca-texto">subterrânea</span>')
         if g["info"].get("acesso", {}).get("elevador"):
             marcas.append('<span class="marca-texto">elevador</span>')
+        if tem_literatura(d, g["slug"]):
+            marcas.append(f'<a class="marca-texto marca-livro" href="{raiz}estacoes/{g["slug"]}/#literatura" title="Aparece na literatura">📖 literatura</a>')
         classe = ' class="ponta"' if j in (0, len(ordem) - 1) else ""
         h.append(f'<li{classe}><a href="{raiz}estacoes/{g["slug"]}/">{esc(g["nome"])}</a> {" ".join(marcas)}</li>')
     h.append("</ol></section>")
@@ -1162,7 +1179,33 @@ def trechos_da_inicial(d):
         "mapa-fortaleza": mapa_svg(d, "Fortaleza", 400, mx=62) + legenda("Fortaleza"),
         "mapa-cariri": mapa_svg(d, "Cariri", 480, mx=60) + legenda("Cariri"),
         "mapa-sobral": mapa_svg(d, "Sobral", 480, mx=90) + legenda("Sobral"),
+        "literatura": trecho_do_dia(d),
     }
+
+
+def trecho_do_dia(d):
+    """Cartão da página principal: um trecho por dia (o inicio.js escolhe pelo dia do ano; sem JS, fica o primeiro)."""
+    por_slug = {g["slug"]: g["nome"] for g in d.estacoes}
+    nomes_linhas = {slug(l["nome"]): nome_linha(l["nome"]) for l in d.linhas}
+    itens = []
+    for o in d.literatura:
+        if not o.get("trecho"):
+            continue
+        if o.get("estacoes") and o["estacoes"][0] in por_slug:
+            onde = (f'estacoes/{o["estacoes"][0]}/', f'Estação {por_slug[o["estacoes"][0]]}')
+        elif o.get("linhas") and o["linhas"][0] in nomes_linhas:
+            onde = (f'linhas/{o["linhas"][0]}/', nomes_linhas[o["linhas"][0]])
+        else:
+            onde = (f'literatura/#{o["id"]}', "Ler mais")
+        itens.append({"trecho": o["trecho"], "autor": o["autor"], "obra": o["obra"], "ano": o["ano"], "url": onde[0], "onde": onde[1]})
+    if not itens:
+        return ""
+    p = itens[0]
+    return (f'<div class="trecho-do-dia" data-trechos="{esc(json.dumps(itens, ensure_ascii=False))}">'
+            f'<blockquote><p>“{esc(p["trecho"])}”</p></blockquote>'
+            f'<p class="citacao-autor">— <strong>{esc(p["autor"])}</strong>, <cite>{esc(p["obra"])}</cite> ({p["ano"]})</p>'
+            f'<p class="acoes-texto"><a class="onde" href="{p["url"]}">{esc(p["onde"])} ›</a> · '
+            f'<a href="literatura/">O trem na literatura cearense ›</a></p></div>')
 
 
 def preencher(caminho, trechos):

@@ -1,5 +1,5 @@
 {
-  "_sobre": "O trem na literatura cearense (tools/site.py): página literatura/ e o bloco 'Na literatura' nas páginas das linhas e estações. Cada trecho foi conferido no texto original; citação curta com autor e fonte (Lei 9.610, art. 46, III). grupo: romances | cronicas | cordel. linhas/estacoes: slugs das páginas onde o trecho aparece. dominio_publico: o link leva ao texto inteiro.",
+  "_sobre": "O trem na literatura cearense (tools/site.py): página literatura/ e o bloco 'Na literatura' nas páginas das linhas e estações. Cada trecho foi conferido no texto original; citação curta com autor e fonte (Lei 9.610, art. 46, III). grupo: romances | cronicas | cordel. linhas/estacoes: slugs das páginas onde o trecho aparece. dominio_publico: o link leva ao texto inteiro. epigrafe: slugs de estações/linhas onde o trecho abre a página, logo abaixo do nome (um por página).",
   "obras": [
     {
       "id": "iracema-porangaba",
@@ -15,7 +15,9 @@
       "link_texto": "Ler as notas no Wikisource",
       "dominio_publico": true,
       "linhas": [],
-      "estacoes": ["parangaba"]
+      "estacoes": [
+        "parangaba"
+      ]
     },
     {
       "id": "iracema-mocoribe",
@@ -31,7 +33,12 @@
       "link_texto": "Ler as notas no Wikisource",
       "dominio_publico": true,
       "linhas": [],
-      "estacoes": ["mucuripe"]
+      "estacoes": [
+        "mucuripe"
+      ],
+      "epigrafe": [
+        "mucuripe"
+      ]
     },
     {
       "id": "iracema-pacatuba",
@@ -47,7 +54,12 @@
       "link_texto": "Ler as notas no Wikisource",
       "dominio_publico": true,
       "linhas": [],
-      "estacoes": ["carlito-benevides"]
+      "estacoes": [
+        "carlito-benevides"
+      ],
+      "epigrafe": [
+        "carlito-benevides"
+      ]
     },
     {
       "id": "alencar-estacao",
@@ -62,7 +74,9 @@
       "link_texto": "Ler Iracema no Wikisource",
       "dominio_publico": true,
       "linhas": [],
-      "estacoes": ["jose-de-alencar"]
+      "estacoes": [
+        "jose-de-alencar"
+      ]
     },
     {
       "id": "quinze-parangaba",
@@ -76,8 +90,16 @@
       "link": "https://pt.wikipedia.org/wiki/O_Quinze",
       "link_texto": "Sobre o livro",
       "dominio_publico": false,
-      "linhas": ["linha-sul"],
-      "estacoes": ["parangaba"]
+      "linhas": [
+        "linha-sul"
+      ],
+      "estacoes": [
+        "parangaba"
+      ],
+      "epigrafe": [
+        "parangaba",
+        "linha-sul"
+      ]
     },
     {
       "id": "quinze-estacao",
@@ -92,7 +114,9 @@
       "link_texto": "O Metrofor sobre o nome da estação",
       "dominio_publico": false,
       "linhas": [],
-      "estacoes": ["raquel-de-queiroz"]
+      "estacoes": [
+        "raquel-de-queiroz"
+      ]
     },
     {
       "id": "luzia-homem",
@@ -106,8 +130,15 @@
       "link": "https://pt.wikisource.org/wiki/Luzia-Homem/V",
       "link_texto": "Ler o capítulo no Wikisource",
       "dominio_publico": true,
-      "linhas": ["vlt-sobral-linha-norte", "vlt-sobral-linha-sul"],
-      "estacoes": []
+      "linhas": [
+        "vlt-sobral-linha-norte",
+        "vlt-sobral-linha-sul"
+      ],
+      "estacoes": [],
+      "epigrafe": [
+        "vlt-sobral-linha-norte",
+        "vlt-sobral-linha-sul"
+      ]
     },
     {
       "id": "rachel-meninos-do-trem",
@@ -122,7 +153,12 @@
       "link_texto": "Ler no Portal da Crônica Brasileira",
       "dominio_publico": false,
       "linhas": [],
-      "estacoes": ["raquel-de-queiroz"]
+      "estacoes": [
+        "raquel-de-queiroz"
+      ],
+      "epigrafe": [
+        "raquel-de-queiroz"
+      ]
     },
     {
       "id": "rachel-sertao",
@@ -151,8 +187,17 @@
       "link": "https://diariodonordeste.verdesmares.com.br/opiniao/colunistas/wilton-bezerra/banho-de-civilizacao-o-trem-de-crato-para-fortaleza-1.3145615",
       "link_texto": "Ler no Diário do Nordeste",
       "dominio_publico": false,
-      "linhas": ["vlt-cariri", "linha-sul"],
-      "estacoes": ["chico-da-silva"]
+      "linhas": [
+        "vlt-cariri",
+        "linha-sul"
+      ],
+      "estacoes": [
+        "chico-da-silva"
+      ],
+      "epigrafe": [
+        "chico-da-silva",
+        "vlt-cariri"
+      ]
     },
     {
       "id": "pedro-sonho-azul",
@@ -166,8 +211,15 @@
       "link": "https://mais.opovo.com.br/colunistas/pedro-salgueiro/2024/08/30/sonho-azul.html",
       "link_texto": "Ler no O Povo",
       "dominio_publico": false,
-      "linhas": ["linha-oeste"],
-      "estacoes": ["chico-da-silva"]
+      "linhas": [
+        "linha-oeste"
+      ],
+      "estacoes": [
+        "chico-da-silva"
+      ],
+      "epigrafe": [
+        "linha-oeste"
+      ]
     },
     {
       "id": "cordel-que-trem-e-esse",
@@ -181,13 +233,27 @@
       "link": "https://www.opovo.com.br/noticias/cariri/2026/11/08/estacao-ferroviaria-de-juazeiro-do-norte-completa-100-anos-e-marca-historia-do-cariri.html",
       "link_texto": "Notícia no O Povo",
       "dominio_publico": false,
-      "linhas": ["vlt-cariri"],
+      "linhas": [
+        "vlt-cariri"
+      ],
       "estacoes": []
     }
   ],
   "leitura_no_metrofor": [
-    {"data": "2009-04", "texto": "Maratona de Leitura na Estação João Felipe, com atores lendo autores cearenses para os passageiros e livros distribuídos de graça.", "link": "https://www.ce.gov.br/metrofor/2009/04/23/noticia-importada-35/"},
-    {"data": "2009-10", "texto": "Plataforma da Leitura: atores do Sesi percorriam os vagões da Linha Oeste contando contos populares.", "link": "https://www.ce.gov.br/metrofor/2009/10/21/noticia-importada-91/"},
-    {"data": "2011-12", "texto": "Minibiblioteca na Estação João Felipe, com 2.263 livros, revistas e quadrinhos para ler enquanto o trem não vinha.", "link": "https://www.ce.gov.br/metrofor/2011/12/05/passageiros-do-metrofor-tem-acesso-a-minibiblioteca-e-computadores-ligados-a-internet/"}
+    {
+      "data": "2009-04",
+      "texto": "Maratona de Leitura na Estação João Felipe, com atores lendo autores cearenses para os passageiros e livros distribuídos de graça.",
+      "link": "https://www.ce.gov.br/metrofor/2009/04/23/noticia-importada-35/"
+    },
+    {
+      "data": "2009-10",
+      "texto": "Plataforma da Leitura: atores do Sesi percorriam os vagões da Linha Oeste contando contos populares.",
+      "link": "https://www.ce.gov.br/metrofor/2009/10/21/noticia-importada-91/"
+    },
+    {
+      "data": "2011-12",
+      "texto": "Minibiblioteca na Estação João Felipe, com 2.263 livros, revistas e quadrinhos para ler enquanto o trem não vinha.",
+      "link": "https://www.ce.gov.br/metrofor/2011/12/05/passageiros-do-metrofor-tem-acesso-a-minibiblioteca-e-computadores-ligados-a-internet/"
+    }
   ]
 }
