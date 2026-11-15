@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Experimentos | Metrô Ceará</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" href="../img/icon.png">
+<meta name="theme-color" content="#CE0F2E">
+<!-- Página de testes: fora do menu e do sitemap (tools/site.py não a conhece), noindex.
+     O que der certo aqui vai para o site; o app continua enxuto. -->
+<style>
+:root { --fundo: #fbf8f4; --papel: #fff; --texto: #1b1a1f; --suave: #5d5965; --linha: #e7e1da; --destaque: #CE0F2E; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --fundo: #131216; --papel: #1d1b21; --texto: #efebf0; --suave: #b5afba; --linha: #33303a; }
+}
+:root[data-theme="dark"] { --fundo: #131216; --papel: #1d1b21; --texto: #efebf0; --suave: #b5afba; --linha: #33303a; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--fundo); color: var(--texto); font: 17px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif; }
+main { max-width: 720px; margin: 0 auto; padding: 16px 16px 48px; }
+a { color: inherit; text-underline-offset: 3px; }
+.voltar { color: var(--suave); font-size: .92rem; text-decoration: none; }
+h1 { font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif; font-size: 1.9rem; line-height: 1.15; margin: 8px 0 4px; letter-spacing: -.015em; }
+.intro { color: var(--suave); margin: 0 0 22px; }
+.exp { display: flex; gap: 14px; align-items: center; background: var(--papel); border: 1px solid var(--linha); border-radius: 18px; padding: 14px; text-decoration: none; margin-bottom: 12px; }
+.exp .emoji { font-size: 2rem; width: 56px; height: 56px; border-radius: 14px; display: grid; place-items: center; background: var(--fundo); flex: none; }
+.exp strong { display: block; font-size: 1.05rem; }
+.exp span { color: var(--suave); font-size: .92rem; }
+.rodape { color: var(--suave); font-size: .88rem; margin-top: 28px; }
+</style>
+</head>
+<body>
+<main>
+  <a class="voltar" href="../">‹ Metrô Ceará</a>
+  <h1>Experimentos</h1>
+  <p class="intro">Ideias em teste, para passar o tempo no metrô. Ainda não fazem parte do site nem do app.</p>
+  <a class="exp" href="pinte-o-ceara/">
+    <span class="emoji" aria-hidden="true">🎨</span>
+    <span><strong>Pinte o Ceará</strong><span>Pinte por números lugares perto do metrô e do VLT. 3 desenhos.</span></span>
+  </a>
+  <p class="rodape">Sem cadastro. O que você faz aqui fica só neste aparelho.</p>
+</main>
+</body>
+</html>
