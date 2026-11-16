@@ -276,6 +276,8 @@ dialog.folha[open] { animation: sobe .25s ease-out; }
   text-decoration: none; color: var(--texto); font: inherit; background: none; border: 0; width: 100%; text-align: left; cursor: pointer;
 }
 .folha a:active, .folha button.item:active { background: var(--neutro); }
+/* Passatempos, o primeiro item: com fundo, como no app. */
+.folha a.item-destaque { background: var(--destaque); margin-bottom: 4px; }
 .folha .ic { width: 24px; text-align: center; font-size: 1.2rem; }
 .folha .ic img { width: 24px; height: 24px; display: block; }
 .folha h4 { margin: 12px 16px 2px; font-size: .85rem; font-weight: 600; color: var(--texto-2); }

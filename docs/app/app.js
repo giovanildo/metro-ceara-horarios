@@ -950,7 +950,9 @@ function abrirMais() {
   const folha = document.getElementById("mais");
   const nina = linkNina();
   const passagem = estado.dados.regras?.guia_passagem;
+  // Passatempos primeiro, com destaque (como no app): o jogo do dia para a viagem.
   folha.innerHTML = `<div class="alca"></div><h3>Mais</h3>
+    <a href="../passatempos/" class="item-destaque"><span class="ic">🧩</span><span>Passatempos<small>caça-palavras e cruzadinha, um novo por dia</small></span></a>
     ${passagem || nina ? `<h4>Para a viagem</h4>` : ""}
     ${passagem ? `<a href="#/passagem"><span class="ic">🎫</span><span>Passagem<small>valores, meia e gratuidade</small></span></a>` : ""}
     ${nina ? `<a href="${nina}" target="_blank" rel="noopener" aria-label="Nina: abre o WhatsApp da Super NINA"><span class="ic">${ROSTO_NINA}</span>Nina</a>` : ""}
