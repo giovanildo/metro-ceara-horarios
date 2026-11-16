@@ -604,6 +604,8 @@
     <!-- Barra de baixo (Início, Rotas, Mais) e a lista do Mais. -->
     <string name="unofficial_short">app não oficial</string>
     <string name="menu_home">Início</string>
+    <string name="menu_passatempos">Passatempos</string>
+    <string name="menu_passatempos_sub">caça-palavras e cruzadinha, um novo por dia</string>
     <string name="menu_fare">Passagem</string>
     <string name="menu_about">Sobre o app</string>
     <string name="menu_group_trip">Para a viagem</string>

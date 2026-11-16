@@ -130,6 +130,7 @@ você vai?" e Casa e Trabalho), **Linhas** (a lista das linhas; tocar abre as
 estações), **Nina** (abre direto o WhatsApp da Super NINA; ver
 [Nina](#nina-super-nina)) e **Mais**, uma lista que sobe de baixo por cima da tela
 ([`ui/HomeMenu.kt`](app/src/main/java/io/github/giova/metroceara/ui/HomeMenu.kt)):
+primeiro, com fundo de destaque, **Passatempos** (ver [Passatempos](#passatempos)); depois,
 em quatro grupos: **Para a viagem** (Passagem, Nina), **Seu dia a dia** (Sua ida e
 volta, Suas rotinas), **Do seu jeito** (Conte sobre você, Configurações) e **O app** (De
 onde vem cada informação, Sobre o app, Compartilhar o app). Na lite, só os que
@@ -156,6 +157,26 @@ registra a denúncia mas não manda ajuda na hora (com a importunação
 acontecendo, o Metrofor orienta procurar um funcionário); isso fica na fonte,
 em "De onde vem cada informação", e não no menu, a pedido, para não alarmar
 quem olha a tela.
+
+### Passatempos
+
+Primeiro item do Mais (app e lite): o **Caça-estações** (a história do dia, do
+"Por que esse nome?" das estações, com as palavras em destaque escondidas num
+quadro 10×10) e a **Cruzadinha** (palavras cruzadas 5×5 com dicas do Ceará e
+teclado na tela). Um jogo novo por dia, igual para todos (sorteio pela data de
+Fortaleza), em rodízio: 31 histórias e 32 grades. As páginas moram no site
+(`docs/passatempos/`); o app leva uma cópia nos assets, copiada pela tarefa
+Gradle `copyPassatempos` a cada build, e abre num WebView
+([`ui/PassatemposScreen.kt`](app/src/main/java/io/github/giova/metroceara/ui/PassatemposScreen.kt))
+com o endereço do site: abre **sem sinal** (estações subterrâneas) e, com
+internet, baixa a versão do site para a próxima vez, então histórias e grades
+novas chegam sem versão nova. Links para as estações abrem no navegador. Na
+lite, o item leva a `../passatempos/` (fora do service worker: precisa de internet).
+
+**Regra (16/11):** um por dia, **sem sequência de dias, sem notificação, sem
+placar** e sem "jogar os anteriores"; sem cadastro, progresso só no aparelho
+(localStorage), partida que cabe numa viagem. O limite diário existe para não
+prender ninguém; o que vicia é a sequência com notificação, e isso fica de fora.
 
 ### Conte sobre você: perguntas, jeito dos horários e ordem
 
@@ -1786,6 +1807,11 @@ Google já conhece, em pastas próprias — a lite em `docs/app/` não é tocada
   de cada resposta (`fontes` do `regras.json`) e dados estruturados `FAQPage`.
   Passagem, integração, bike e horários saem dos dados; o texto das outras
   fica em `pagina_faq`. Link em "Dúvidas" no menu do computador e no rodapé.
+- **[Passatempos](docs/passatempos/index.html)**: Caça-estações e Cruzadinha
+  (ver [Passatempos](#passatempos)). Fora do menu e do sitemap, `noindex`;
+  chega-se pelo Mais do app e da lite. Cada jogo é um arquivo único, com os
+  dados dentro (histórias com as palavras escolhidas à mão; grades montadas
+  por gerador a partir de um banco de palavras com dica escrita à mão).
 - **[História do app](docs/historia/index.html)**: a linha do tempo das
   versões, dia a dia, em cinco fases (cada uma com a cor de uma linha do mapa),
   com quatro marcos no topo (primeira versão, lite, site, Play Store). O

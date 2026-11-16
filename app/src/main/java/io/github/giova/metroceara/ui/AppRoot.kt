@@ -215,6 +215,7 @@ fun AppRoot() {
     var showSettings by rememberSaveable { mutableStateOf(false) }
     var fareGuideOpen by rememberSaveable { mutableStateOf(false) }
     var sourcesOpen by rememberSaveable { mutableStateOf(false) }
+    var passatemposOpen by rememberSaveable { mutableStateOf(false) }
     var accessOpen by rememberSaveable { mutableStateOf(false) }
     // "Conte sobre você": as perguntas (sozinhas na primeira abertura) e o resumo.
     var profileQuestions by rememberSaveable { mutableStateOf(HomeLayoutStore.shouldAskProfile(context)) }
@@ -524,6 +525,7 @@ fun AppRoot() {
             showAbout = false
             fareGuideOpen = false
             sourcesOpen = false
+            passatemposOpen = false
             accessOpen = false
             profileOpen = false
             profileQuestions = false
@@ -553,6 +555,7 @@ fun AppRoot() {
             showAbout = false
             fareGuideOpen = false
             sourcesOpen = false
+            passatemposOpen = false
             accessOpen = false
             profileOpen = false
             profileQuestions = false
@@ -1427,6 +1430,11 @@ fun AppRoot() {
             )
         }
 
+        passatemposOpen -> {
+            // O voltar é do WebView (página anterior, depois sai); ver PassatemposScreen.
+            PassatemposScreen(onBack = { passatemposOpen = false })
+        }
+
         sourcesOpen -> {
             BackHandler { sourcesOpen = false }
             SourcesScreen(schedule = repo.source, onBack = { sourcesOpen = false })
@@ -1654,6 +1662,7 @@ fun AppRoot() {
                 RecentTripsBlock(recentRows, recentTimes, onOpen = ::openRecent, onRemove = { RecentTrips.remove(context, it) })
             },
             menu = HomeMenuActions(
+                onPassatempos = { passatemposOpen = true },
                 onFareGuide = Regras.current.fareGuide?.let { { fareGuideOpen = true } },
 
                 onNina = ninaOpener(homeState.station?.routeName),

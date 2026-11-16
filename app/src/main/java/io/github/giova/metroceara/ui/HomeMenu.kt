@@ -1,12 +1,14 @@
 package io.github.giova.metroceara.ui
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.outlined.Extension
 import androidx.compose.material.icons.outlined.Face
 import androidx.compose.material.icons.outlined.Repeat
 import androidx.compose.material.icons.outlined.SwapHoriz
@@ -47,6 +49,8 @@ import kotlinx.coroutines.launch
  * guia no regras.json, Nina longe das linhas da Super NINA.
  */
 class HomeMenuActions(
+    /** Caça-estações e Cruzadinha (o primeiro item, com destaque). */
+    val onPassatempos: () -> Unit = {},
     val onFareGuide: (() -> Unit)? = null,
     /** Abre direto o WhatsApp da Super NINA. */
     val onNina: (() -> Unit)? = null,
@@ -84,6 +88,17 @@ fun HomeMoreSheet(actions: HomeMenuActions, onDismiss: () -> Unit) {
                 text = stringResource(R.string.tab_more),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(start = 16.dp, bottom = 4.dp),
+            )
+            // Passatempos primeiro, com fundo de destaque: o jogo do dia para a viagem.
+            MenuRowContent(
+                icon = { Icon(Icons.Outlined.Extension, contentDescription = null) },
+                title = R.string.menu_passatempos,
+                subtitle = R.string.menu_passatempos_sub,
+                modifier = Modifier
+                    .padding(top = 6.dp)
+                    .clip(RoundedCornerShape(26.dp))
+                    .background(MaterialTheme.colorScheme.secondaryContainer),
+                onClick = { go(actions.onPassatempos) },
             )
             // Passagem e Nina podem faltar: sem nenhuma, o título não fica sozinho.
             if (actions.onFareGuide != null || actions.onNina != null) MenuGroup(R.string.menu_group_trip)

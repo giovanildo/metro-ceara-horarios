@@ -72,6 +72,34 @@ android {
     }
 }
 
+// Os passatempos (Caça-estações, Cruzadinha) moram no site, em docs/passatempos/.
+// O app leva uma cópia nos assets para abrir sem sinal (estações subterrâneas);
+// copiada a cada build, nunca editada à mão.
+abstract class CopyPassatempos : DefaultTask() {
+    @get:InputDirectory
+    abstract val source: DirectoryProperty
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    @TaskAction
+    fun copy() {
+        val out = outputDir.get().asFile.resolve("passatempos")
+        out.deleteRecursively()
+        source.get().asFile.copyRecursively(out)
+    }
+}
+
+val copyPassatempos = tasks.register<CopyPassatempos>("copyPassatempos") {
+    source.set(rootProject.layout.projectDirectory.dir("docs/passatempos"))
+}
+
+androidComponents {
+    onVariants { variant ->
+        variant.sources.assets?.addGeneratedSourceDirectory(copyPassatempos, CopyPassatempos::outputDir)
+    }
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
