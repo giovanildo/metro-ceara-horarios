@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Caça-estações | Metrô Ceará</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" href="../../img/icon.png">
+<meta name="theme-color" content="#CE0F2E">
+<style>
+:root {
+  --fundo: #fbf8f4; --papel: #ffffff; --texto: #1b1a1f; --suave: #5d5965; --linha: #e7e1da;
+  --acerto: #CE0F2E; --marcando: #c9d3fb; --pilula: #f3eee8;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --fundo: #131216; --papel: #1d1b21; --texto: #efebf0; --suave: #b5afba; --linha: #33303a; --acerto: #E23A55; --marcando: #3a4775; --pilula: #2a2830; }
+}
+:root[data-theme="dark"] { --fundo: #131216; --papel: #1d1b21; --texto: #efebf0; --suave: #b5afba; --linha: #33303a; --acerto: #E23A55; --marcando: #3a4775; --pilula: #2a2830; }
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--fundo); color: var(--texto);
+  font: 17px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+a { color: inherit; text-underline-offset: 3px; }
+[hidden] { display: none !important; }
+h1, h2 { font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif; letter-spacing: -.015em; line-height: 1.15; }
+
+/* ---------- abertura */
+.abertura { min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 24px 16px; text-align: center; background: var(--acerto); color: #fff; }
+.logo { display: grid; grid-template-columns: repeat(3, 30px); gap: 2px; background: #fff; border: 3px solid #1b1a1f; border-radius: 10px; padding: 6px; color: #1b1a1f; font-weight: 800; }
+.logo span { height: 30px; display: grid; place-items: center; border-radius: 999px; }
+.logo .m { background: #CE0F2E; color: #fff; }
+.abertura h1 { font-size: 2.3rem; margin: 6px 0 0; }
+.abertura .dia { margin: 0; opacity: .9; }
+.abertura .tema { margin: 0 0 10px; font-weight: 700; font-size: 1.15rem; }
+.botao { width: min(300px, 100%); border: 0; border-radius: 999px; padding: 13px 18px; font-weight: 800; background: #fff; color: #1b1a1f; }
+.botao.contorno { background: transparent; color: #fff; border: 2px solid #fff; font-weight: 700; }
+.abertura .voltar { color: #fff; opacity: .85; font-size: .9rem; margin-top: 10px; }
+
+/* ---------- jogo */
+main { max-width: 520px; margin: 0 auto; padding: 0 16px 40px; }
+.barra { position: sticky; top: 0; z-index: 3; background: var(--fundo); display: flex; align-items: center; gap: 10px; padding: 10px 0 8px; }
+.barra h1 { font-size: 1.25rem; margin: 0; flex: 1; }
+.relogio { font-variant-numeric: tabular-nums; color: var(--suave); font-weight: 700; }
+.ajuda { width: 36px; height: 36px; border-radius: 999px; border: 1.5px solid var(--linha); background: var(--papel); font-weight: 800; }
+
+.historia { background: var(--papel); border: 1px solid var(--linha); border-radius: 16px; padding: 12px 14px; margin: 0 0 12px; }
+.historia h2 { font-size: 1.05rem; margin: 0 0 4px; }
+.historia p { margin: 0; line-height: 1.9; font-size: 1rem; }
+.pilula { display: inline-block; line-height: 1.35; padding: 0 7px; border-radius: 999px; background: var(--pilula); border: 1.5px dashed var(--suave); font-weight: 700; text-transform: uppercase; font-size: .88rem; letter-spacing: .02em; }
+.pilula.achou { background: var(--acerto); border: 1.5px solid var(--acerto); color: #fff; }
+.historia .contador { color: var(--suave); font-size: .9rem; margin: 6px 0 0; line-height: 1.4; }
+
+.grade-caixa { position: relative; user-select: none; -webkit-user-select: none; }
+.grade { display: grid; grid-template-columns: repeat(10, 1fr); touch-action: none; background: var(--papel); border: 1px solid var(--linha); border-radius: 14px; overflow: hidden; }
+.letra { aspect-ratio: 1; display: grid; place-items: center; position: relative; z-index: 1; font-weight: 700; font-size: clamp(1rem, 5.2vw, 1.45rem); line-height: 1; }
+.letra.achou { color: #fff; }
+.faixas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.faixas line { stroke-linecap: round; }
+
+.fim { margin-top: 14px; background: var(--papel); border: 1px solid var(--linha); border-radius: 16px; padding: 16px; text-align: center; }
+.fim h2 { margin: 0 0 4px; font-size: 1.3rem; }
+.fim p { margin: 0 0 10px; color: var(--suave); }
+.fim .fonte { font-size: .85rem; }
+.fim .ir { display: inline-block; background: var(--acerto); color: #fff; text-decoration: none; font-weight: 700; padding: 10px 18px; border-radius: 999px; }
+
+/* ---------- como jogar */
+.folha-fundo { position: fixed; inset: 0; background: rgba(10,8,12,.5); z-index: 10; display: flex; align-items: flex-end; justify-content: center; }
+.folha { background: var(--papel); color: var(--texto); width: 100%; max-width: 520px; border-radius: 22px 22px 0 0; padding: 18px 18px max(18px, env(safe-area-inset-bottom)); max-height: 88dvh; overflow-y: auto; text-align: left; }
+.folha h2 { margin: 0 0 10px; font-size: 1.3rem; }
+.folha ol { padding-left: 20px; margin: 0 0 14px; }
+.folha li { margin-bottom: 8px; }
+.exemplo { display: flex; gap: 6px; margin: 4px 0 2px; }
+.exemplo span { width: 34px; height: 34px; display: grid; place-items: center; font-weight: 800; border-radius: 999px; }
+.exemplo.m span { background: var(--marcando); }
+.exemplo.a span { background: var(--acerto); color: #fff; }
+.folha .legenda { color: var(--suave); font-size: .9rem; margin: 0 0 12px; }
+.folha .botao { background: var(--acerto); color: #fff; width: 100%; }
+</style>
+</head>
+<body>
+
+<section class="abertura" id="abertura">
+  <div class="logo" aria-hidden="true"><span>M</span><span>E</span><span>T</span><span>A</span><span class="m">R</span><span class="m">U</span><span>B</span><span>C</span><span>O</span></div>
+  <h1>Caça-estações</h1>
+  <p class="dia" id="abertura-dia"></p>
+  <p class="tema" id="abertura-tema"></p>
+  <button class="botao" id="iniciar">Iniciar</button>
+  <button class="botao contorno" id="como1">Como jogar?</button>
+  <a class="voltar" href="../">‹ Passatempos</a>
+</section>
+
+<main id="jogo" hidden>
+  <div class="barra">
+    <h1>Caça-estações</h1>
+    <span class="relogio" id="relogio">0:00</span>
+    <button class="ajuda" id="como2" aria-label="Como jogar">?</button>
+  </div>
+  <article class="historia">
+    <h2 id="titulo"></h2>
+    <p id="texto"></p>
+    <p class="contador" id="contador"></p>
+  </article>
+  <div class="grade-caixa">
+    <div class="grade" id="grade"></div>
+    <svg class="faixas" id="faixas" aria-hidden="true"></svg>
+  </div>
+  <div class="fim" id="fim" hidden></div>
+</main>
+
+<div class="folha-fundo" id="como" hidden role="dialog" aria-modal="true" aria-labelledby="como-titulo">
+  <div class="folha">
+    <h2 id="como-titulo">Como jogar</h2>
+    <ol>
+      <li>Leia a história do dia. As palavras <b>em destaque</b> estão escondidas no quadro de letras.</li>
+      <li>Para marcar, arraste o dedo da primeira à última letra. Ou toque na primeira letra e depois na última.</li>
+      <li>As palavras estão sempre da esquerda para a direita ou de cima para baixo.</li>
+    </ol>
+    <div class="exemplo m" aria-hidden="true"><span>L</span><span>A</span><span>G</span><span>O</span><span>A</span></div>
+    <p class="legenda">Enquanto você marca, as letras ficam azuis.</p>
+    <div class="exemplo a" aria-hidden="true"><span>L</span><span>A</span><span>G</span><span>O</span><span>A</span></div>
+    <p class="legenda">Quando acerta, ficam vermelhas e a palavra acende na história.</p>
+    <p class="legenda">Uma história nova todo dia. O relógio para quando você sai da página.</p>
+    <button class="botao" id="entendi">Entendi</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+const SITE = "../../";
+// Histórias do "Por que esse nome?" (tools/site_nomes.json), com as palavras escondidas
+// escolhidas à mão: cada uma aparece no texto e tem até 10 letras.
+const HISTORIAS = [
+  { estacao: "parangaba", titulo: "Estação Parangaba", fonte: ["Wikipédia", "https://pt.wikipedia.org/wiki/Esta%C3%A7%C3%A3o_Parangaba"],
+    texto: "A estação de trem, de 1873, se chamava Arronches, como o distrito. Virou Porangaba em 1885, quando o lugar voltou a ser município, e Parangaba em 1944. Em tupi, o nome quer dizer beleza: é a lagoa onde Iracema se banhava, no romance de José de Alencar.",
+    palavras: ["Arronches", "Porangaba", "Parangaba", "tupi", "beleza", "lagoa", "Iracema"] },
+  { estacao: "mucuripe", titulo: "Estação Mucuripe", fonte: ["Diário do Nordeste", "https://diariodonordeste.verdesmares.com.br/ceara/amp/parangaba-mondubim-coco-saiba-o-significado-de-nomes-indigenas-de-bairros-de-fortaleza-1.3245090"],
+    texto: "Vem do bairro. Em tupi, segundo José de Alencar, quer dizer “fazer alguém alegre”. Foi na ponta do Mucuripe que o navegador Vicente Pinzón teria chegado em janeiro de 1500.",
+    palavras: ["bairro", "Alencar", "alegre", "Mucuripe", "navegador", "Pinzón", "janeiro"] },
+  { estacao: "benfica", titulo: "Estação Benfica", fonte: ["Diário do Nordeste", "https://diariodonordeste.verdesmares.com.br/ceara/alto-da-balanca-parreao-damas-entenda-nomes-curiosos-de-36-bairros-de-fortaleza-1.3247994"],
+    texto: "No fim do século XIX, o comerciante português João Antônio do Amaral deu à sua chácara o nome de Benfica, provavelmente lembrando o bairro de Lisboa. Outra versão diz que era o lugar onde a elite queria “bem ficar”.",
+    palavras: ["português", "chácara", "Benfica", "bairro", "Lisboa", "elite"] },
+  { estacao: "montese", titulo: "Estação Montese", fonte: ["O Povo", "https://www.opovo.com.br/noticias/curiosidades/2026/04/13/bairros-de-fortaleza-montese-nome-ligado-a-guerra-forca-comercial-e-presenca-religiosa-na-cidade.html"],
+    texto: "O bairro vizinho se chamava Pirocaia. Em 1946, um ex-combatente conseguiu trocar o nome em homenagem à Batalha de Montese, na Itália, vencida pela Força Expedicionária Brasileira em abril de 1945. A estação fica no bairro Itaoca.",
+    palavras: ["Pirocaia", "Batalha", "Montese", "Itália", "abril", "Itaoca"] },
+  { estacao: "maracanau", titulo: "Estação Maracanaú", fonte: ["Wikipédia", "https://en.wikipedia.org/wiki/Maracana%C3%BA"],
+    texto: "O nome da cidade vem do tupi: “água dos maracanãs”, os papagaios que bebiam numa lagoa dali.",
+    palavras: ["cidade", "tupi", "água", "maracanãs", "papagaios", "lagoa"] },
+  { estacao: "raquel-de-queiroz", titulo: "Estação Raquel de Queiroz", fonte: ["Wikipédia", "https://pt.wikipedia.org/wiki/Esta%C3%A7%C3%A3o_Rachel_de_Queiroz"],
+    texto: "Aberta em 1918 como estação de trem, com o nome de Pajuçara. Em 2012, já estação de metrô, ganhou o nome da escritora Rachel de Queiroz.",
+    palavras: ["Aberta", "trem", "Pajuçara", "metrô", "escritora", "Rachel", "Queiroz"] },
+  { estacao: "caucaia", titulo: "Estação Caucaia", fonte: ["Wikipédia", "https://pt.wikipedia.org/wiki/Esta%C3%A7%C3%A3o_Ferrovi%C3%A1ria_de_Caucaia"],
+    texto: "Inaugurada em 1917 com o nome de Soure, o nome antigo da cidade, ganhou o nome atual nos anos 1940. Em tupi, Caucaia quer dizer “mato queimado”.",
+    palavras: ["Inaugurada", "Soure", "cidade", "Caucaia", "mato", "queimado"] },
+  { estacao: "alvaro-weyne", titulo: "Estação Álvaro Weyne", fonte: ["Diário do Nordeste", "https://diariodonordeste.verdesmares.com.br/ceara/do-castelao-ao-joao-xxiii-quem-foram-as-figuras-historicas-que-nomeiam-31-bairros-em-fortaleza-1.3238820"],
+    texto: "Homenageia Álvaro Weyne, o “Prefeito das Flores”, que governou Fortaleza em 1928–1930 e 1935–1936. Antes o bairro se chamava Floresta.",
+    palavras: ["Álvaro", "Weyne", "Prefeito", "Flores", "Fortaleza", "Floresta"] },
+  { estacao: "dom-jose", titulo: "Estação Dom José (Sobral)", fonte: ["Diocese de Sobral", "https://diocesedesobral.com.br/dom-jose-tupinamba-da-frota-ha-139-anos-nascia-o-maior-benfeitor-da-cidade-de-sobral/"],
+    texto: "Homenageia Dom José Tupinambá da Frota (1882–1959), o primeiro bispo de Sobral. Ao lado ficam a antiga estação de trem, hoje Escola de Belas Artes Raimundo Cela, e o Museu do Eclipse.",
+    palavras: ["Tupinambá", "bispo", "Sobral", "Escola", "Museu", "Eclipse"] },
+  { estacao: "juazeiro-do-norte", titulo: "Estação Juazeiro do Norte", fonte: ["Wikipédia", "https://pt.wikipedia.org/wiki/Juazeiro_do_Norte"],
+    texto: "A capela que deu origem à cidade foi erguida diante de um juazeiro frondoso, a árvore que deu nome ao lugar.",
+    palavras: ["capela", "cidade", "erguida", "juazeiro", "frondoso", "árvore"] },
+];
+const N = 10;
+const $ = id => document.getElementById(id);
+const semAcento = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase();
+
+// ---------- o dia (fuso de Fortaleza): todo mundo recebe a mesma história e o mesmo quadro
+const DATA = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Fortaleza" }).format(new Date());
+const NUM_DIA = Math.round(Date.parse(DATA + "T12:00:00Z") / 864e5);
+function sorteio(semente) { let s = semente >>> 0; return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const rnd = sorteio(NUM_DIA * 7919);
+const H = HISTORIAS[NUM_DIA % HISTORIAS.length];
+
+function montar() {
+  const ws = H.palavras.map(p => ({ original: p, palavra: semAcento(p) })).sort((a, b) => b.palavra.length - a.palavra.length);
+  for (let t = 0; t < 300; t++) {
+    const g = Array(N * N).fill(null), postas = []; let ok = true;
+    for (const w of ws) {
+      let posta = false;
+      for (let k = 0; k < 400 && !posta; k++) {
+        const d = rnd() < .5 ? [1, 0] : [0, 1], L = w.palavra.length;
+        const x0 = Math.floor(rnd() * (N - (d[0] ? L - 1 : 0))), y0 = Math.floor(rnd() * (N - (d[1] ? L - 1 : 0)));
+        const casas = [...w.palavra].map((_, i) => (y0 + d[1] * i) * N + x0 + d[0] * i);
+        if (casas.every((p, i) => g[p] === null || g[p] === w.palavra[i])) { casas.forEach((p, i) => g[p] = w.palavra[i]); postas.push({ ...w, casas }); posta = true; }
+      }
+      if (!posta) { ok = false; break; }
+    }
+    if (!ok) continue;
+    const ench = "AAAAEEEEIIIOOOUURRSSNNMMTTLLCCDDPPBGVFJHQZ";
+    for (let i = 0; i < g.length; i++) if (!g[i]) g[i] = ench[Math.floor(rnd() * ench.length)];
+    return { letras: g, palavras: postas };
+  }
+}
+const jogo = montar();
+
+// ---------- estado do dia (só neste aparelho); o relógio só anda com a página à vista
+const CHAVE = "caca-estacoes:" + DATA;
+let estado = { achadas: [], decorrido: 0, comecou: false, fim: false };
+try { const s = JSON.parse(localStorage.getItem(CHAVE)); if (s && Array.isArray(s.achadas)) estado = s; } catch (e) {}
+const salvar = () => { try { localStorage.setItem(CHAVE, JSON.stringify(estado)); } catch (e) {} };
+let retomada = null;
+const decorrido = () => estado.decorrido + (retomada ? Date.now() - retomada : 0);
+function rodar() { if (!retomada && estado.comecou && !estado.fim && document.visibilityState === "visible" && $("como").hidden) retomada = Date.now(); }
+function pausar() { if (retomada) { estado.decorrido += Date.now() - retomada; retomada = null; salvar(); } }
+const tempo = ms => { const s = Math.floor(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
+setInterval(() => { $("relogio").textContent = tempo(decorrido()); }, 400);
+document.addEventListener("visibilitychange", () => document.visibilityState === "visible" ? rodar() : pausar());
+
+// ---------- abertura e como jogar
+const quando = new Date(DATA + "T12:00:00Z").toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
+$("abertura-dia").textContent = quando[0].toUpperCase() + quando.slice(1);
+$("abertura-tema").textContent = "Hoje: " + H.titulo;
+function comecar() { estado.comecou = true; salvar(); $("abertura").hidden = true; $("jogo").hidden = false; desenharFaixas(); rodar(); atualizarFim(); }
+$("iniciar").onclick = comecar;
+if (estado.comecou) $("iniciar").textContent = estado.fim ? "Ver o jogo de hoje" : "Continuar";
+function abrirComo() { pausar(); $("como").hidden = false; $("entendi").focus(); }
+$("como1").onclick = abrirComo; $("como2").onclick = abrirComo;
+$("entendi").onclick = () => { $("como").hidden = true; rodar(); };
+
+// ---------- história com as palavras em pílulas
+const texto = $("texto"); $("titulo").textContent = H.titulo;
+(function montarTexto() {
+  const alvo = new Set(jogo.palavras.map(p => p.palavra)), usadas = new Set();
+  const partes = H.texto.split(/([A-Za-zÀ-ÿ]+)/);
+  for (let k = 0; k < partes.length; k++) {
+    const parte = partes[k], n = semAcento(parte);
+    if (!(alvo.has(n) && !usadas.has(n))) { texto.append(parte); continue; }
+    usadas.add(n);
+    // Aspas e pontuação grudadas na palavra não ficam sozinhas na outra linha.
+    const antes = (texto.lastChild && texto.lastChild.nodeType === 3) ? texto.lastChild.data.match(/\S*$/)[0] : "";
+    if (antes) texto.lastChild.data = texto.lastChild.data.slice(0, -antes.length);
+    const depois = (partes[k + 1] || "").match(/^\S*/)[0];
+    partes[k + 1] = (partes[k + 1] || "").slice(depois.length);
+    const junto = document.createElement("span"); junto.style.whiteSpace = "nowrap";
+    const s = document.createElement("span"); s.className = "pilula"; s.dataset.palavra = n; s.textContent = parte;
+    junto.append(antes, s, depois); texto.append(junto);
+  }
+})();
+
+const grade = $("grade");
+jogo.letras.forEach((l, i) => { const d = document.createElement("div"); d.className = "letra"; d.textContent = l; d.dataset.i = i; grade.append(d); });
+
+const svg = $("faixas");
+let selecao = null;
+const cor = nome => getComputedStyle(document.documentElement).getPropertyValue(nome).trim();
+function centro(i) { const w = grade.getBoundingClientRect().width / N; return [(i % N + .5) * w, (Math.floor(i / N) + .5) * w, w]; }
+function faixa(de, ate, c) {
+  const [x1, y1, w] = centro(de), [x2, y2] = centro(ate);
+  const l = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  Object.entries({ x1, y1, x2, y2, stroke: c, "stroke-width": w * .8 }).forEach(([k, v]) => l.setAttribute(k, v));
+  svg.append(l);
+}
+function desenharFaixas() {
+  svg.textContent = "";
+  const brancas = new Set();
+  for (const w of estado.achadas) { const p = jogo.palavras.find(x => x.palavra === w); if (p) { faixa(p.casas[0], p.casas.at(-1), cor("--acerto")); p.casas.forEach(c => brancas.add(c)); } }
+  if (selecao) faixa(selecao.de, selecao.ate, cor("--marcando"));
+  [...grade.children].forEach((d, i) => d.classList.toggle("achou", brancas.has(i)));
+  [...texto.querySelectorAll(".pilula")].forEach(s => s.classList.toggle("achou", estado.achadas.includes(s.dataset.palavra)));
+  $("contador").textContent = `${estado.achadas.length} de ${jogo.palavras.length} palavras`;
+}
+
+function caminho(de, ate) {
+  const dx = ate % N - de % N, dy = Math.floor(ate / N) - Math.floor(de / N);
+  if (!(dx === 0 || dy === 0 || Math.abs(dx) === Math.abs(dy))) return null;
+  const n = Math.max(Math.abs(dx), Math.abs(dy)), sx = Math.sign(dx), sy = Math.sign(dy);
+  return Array.from({ length: n + 1 }, (_, k) => de + sy * k * N + sx * k);
+}
+function endireitar(de, alvo) {
+  const x0 = de % N, y0 = Math.floor(de / N), dx = alvo % N - x0, dy = Math.floor(alvo / N) - y0;
+  const ang = Math.round(Math.atan2(dy, dx) / (Math.PI / 4)) * (Math.PI / 4), len = Math.max(Math.abs(dx), Math.abs(dy));
+  const x = Math.max(0, Math.min(N - 1, x0 + Math.round(Math.cos(ang)) * len)), y = Math.max(0, Math.min(N - 1, y0 + Math.round(Math.sin(ang)) * len));
+  return caminho(de, y * N + x) ? y * N + x : de;
+}
+function conferir(de, ate) {
+  const c = caminho(de, ate); if (!c || c.length < 2) return;
+  const txt = c.map(i => jogo.letras[i]).join(""), inv = [...txt].reverse().join("");
+  const p = jogo.palavras.find(p => !estado.achadas.includes(p.palavra) && (p.palavra === txt || p.palavra === inv));
+  if (!p) return;
+  estado.achadas.push(p.palavra);
+  if (navigator.vibrate) try { navigator.vibrate(25); } catch (e) {}
+  if (estado.achadas.length === jogo.palavras.length) { pausar(); estado.fim = true; }
+  salvar();
+}
+
+const casaEm = (x, y) => { const el = document.elementFromPoint(x, y); return el && el.classList.contains("letra") ? +el.dataset.i : null; };
+let arrastando = false, moveu = false;
+grade.addEventListener("pointerdown", e => {
+  if (estado.fim) return;
+  const i = casaEm(e.clientX, e.clientY); if (i === null) return;
+  grade.setPointerCapture(e.pointerId);
+  if (selecao && selecao.toque && i !== selecao.de) { conferir(selecao.de, endireitar(selecao.de, i)); selecao = null; desenharFaixas(); atualizarFim(); return; }
+  selecao = { de: i, ate: i }; arrastando = true; moveu = false; desenharFaixas();
+});
+grade.addEventListener("pointermove", e => {
+  if (!arrastando) return;
+  const i = casaEm(e.clientX, e.clientY); if (i === null) return;
+  const ate = endireitar(selecao.de, i);
+  if (ate !== selecao.ate) { selecao.ate = ate; moveu = moveu || ate !== selecao.de; desenharFaixas(); }
+});
+grade.addEventListener("pointerup", () => {
+  if (!arrastando) return; arrastando = false;
+  if (!moveu) { selecao.toque = true; return; } // só tocou: espera a última letra
+  conferir(selecao.de, selecao.ate); selecao = null; desenharFaixas(); atualizarFim();
+});
+grade.addEventListener("pointercancel", () => { arrastando = false; selecao = null; desenharFaixas(); });
+
+function atualizarFim() {
+  const fim = $("fim"); if (!estado.fim) { fim.hidden = true; return; }
+  fim.hidden = false; fim.textContent = "";
+  const h = document.createElement("h2"); h.textContent = "Achou todas! 🎉";
+  const p = document.createElement("p"); p.textContent = `${jogo.palavras.length} palavras em ${tempo(estado.decorrido)}. Amanhã tem outra história.`;
+  const f = document.createElement("p"); f.className = "fonte"; f.append("Fonte da história: ");
+  const fa = document.createElement("a"); fa.href = H.fonte[1]; fa.target = "_blank"; fa.rel = "noopener"; fa.textContent = H.fonte[0]; f.append(fa);
+  const a = document.createElement("a"); a.className = "ir"; a.href = SITE + "estacoes/" + H.estacao + "/"; a.textContent = "Conhecer a " + H.titulo + " ›";
+  fim.append(h, p, f, a);
+}
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", desenharFaixas);
+new ResizeObserver(desenharFaixas).observe(grade);
+</script>
+</body>
+</html>

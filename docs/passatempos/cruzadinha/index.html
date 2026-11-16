@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cruzadinha | Metrô Ceará</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" href="../../img/icon.png">
+<meta name="theme-color" content="#014687">
+<style>
+:root {
+  --fundo: #fbf8f4; --papel: #ffffff; --texto: #1b1a1f; --suave: #5d5965; --linha: #d9d2ca;
+  --marca: #014687; --casa-sel: #f6c431; --palavra-sel: #fdf0c4; --preta: #1b1a1f; --tecla: #e9e4dd;
+  --certo: #1f8a4c; --errado: #CE0F2E;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --fundo: #131216; --papel: #1d1b21; --texto: #efebf0; --suave: #b5afba; --linha: #3a3640; --marca: #3D7FD1; --palavra-sel: #4a4020; --preta: #000; --tecla: #2e2b34; --certo: #3fbf74; --errado: #ff6b81; }
+}
+:root[data-theme="dark"] { --fundo: #131216; --papel: #1d1b21; --texto: #efebf0; --suave: #b5afba; --linha: #3a3640; --marca: #3D7FD1; --palavra-sel: #4a4020; --preta: #000; --tecla: #2e2b34; --certo: #3fbf74; --errado: #ff6b81; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--fundo); color: var(--texto); font: 17px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif; -webkit-tap-highlight-color: transparent; }
+button { font: inherit; color: inherit; cursor: pointer; }
+a { color: inherit; text-underline-offset: 3px; }
+[hidden] { display: none !important; }
+h1, h2, h3 { font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif; letter-spacing: -.015em; line-height: 1.15; }
+
+/* ---------- abertura */
+.abertura { min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 24px 16px; text-align: center; background: #014687; color: #fff; }
+.logo { display: grid; grid-template-columns: repeat(3, 30px); gap: 2px; background: #1b1a1f; border: 3px solid #1b1a1f; border-radius: 8px; }
+.logo span { height: 30px; display: grid; place-items: center; background: #fff; color: #1b1a1f; font-weight: 800; }
+.logo .p { background: #1b1a1f; }
+.logo .s { background: #f6c431; }
+.abertura h1 { font-size: 2.3rem; margin: 6px 0 0; }
+.abertura .dia { margin: 0 0 10px; opacity: .9; }
+.botao { width: min(300px, 100%); border: 0; border-radius: 999px; padding: 13px 18px; font-weight: 800; background: #fff; color: #1b1a1f; }
+.botao.contorno { background: transparent; color: #fff; border: 2px solid #fff; font-weight: 700; }
+.abertura .voltar { color: #fff; opacity: .85; font-size: .9rem; margin-top: 10px; }
+
+/* ---------- jogo */
+main { max-width: 480px; margin: 0 auto; padding: 0 12px 32px; }
+.barra { display: flex; align-items: center; gap: 10px; padding: 10px 4px 8px; }
+.barra h1 { font-size: 1.25rem; margin: 0; flex: 1; }
+.relogio { font-variant-numeric: tabular-nums; color: var(--suave); font-weight: 700; }
+.ajuda { width: 36px; height: 36px; border-radius: 999px; border: 1.5px solid var(--linha); background: var(--papel); font-weight: 800; }
+
+.dica { display: flex; align-items: center; gap: 6px; background: var(--palavra-sel); border-left: 4px solid var(--casa-sel); border-radius: 10px; padding: 6px; min-height: 62px; margin-bottom: 10px; }
+.dica .seta { border: 0; background: transparent; width: 34px; height: 44px; font-size: 1.4rem; flex: none; border-radius: 8px; }
+.dica .num { flex: none; background: var(--casa-sel); color: #1b1a1f; font-weight: 800; border-radius: 999px; padding: 2px 9px; font-size: .9rem; }
+.dica .texto { flex: 1; font-size: 1rem; line-height: 1.3; }
+
+.grade { display: grid; grid-template-columns: repeat(5, 1fr); border: 2px solid var(--preta); background: var(--preta); gap: 1px; max-width: 360px; margin: 0 auto; user-select: none; -webkit-user-select: none; }
+.casa { aspect-ratio: 1; background: var(--papel); position: relative; display: grid; place-items: center; font-weight: 800; font-size: clamp(1.5rem, 9vw, 2.3rem); border: 0; padding: 0; }
+.casa.preta { background: var(--preta); cursor: default; }
+.casa.palavra { background: var(--palavra-sel); }
+.casa.sel { background: var(--casa-sel); color: #1b1a1f; }
+.casa .n { position: absolute; top: 3px; left: 5px; font-size: .75rem; font-weight: 700; line-height: 1; }
+.casa.errada { color: var(--errado); }
+.casa.revelada::after { content: ""; position: absolute; right: 4px; top: 4px; width: 7px; height: 7px; border-radius: 99px; background: var(--marca); }
+.grade.feita .casa:not(.preta) { background: var(--papel); color: var(--certo); }
+
+.aviso { text-align: center; color: var(--errado); font-weight: 700; margin: 10px 0 0; min-height: 1.4em; font-size: .95rem; }
+.acoes { display: flex; justify-content: center; gap: 8px; margin: 4px 0 10px; }
+.acoes button { border: 1px solid var(--linha); background: var(--papel); border-radius: 999px; padding: 6px 12px; font-size: .88rem; font-weight: 600; color: var(--suave); }
+
+.teclado { display: flex; flex-direction: column; gap: 6px; margin: 6px auto 0; max-width: 480px; }
+.teclado .fileira { display: flex; gap: 5px; justify-content: center; }
+.tecla { flex: 1; max-width: 42px; height: 50px; border: 0; border-radius: 8px; background: var(--tecla); font-weight: 700; font-size: 1.1rem; padding: 0; }
+.tecla.larga { max-width: 70px; flex: 1.6; font-size: 1.2rem; }
+.tecla:active { filter: brightness(.9); }
+
+.listas { margin-top: 20px; display: grid; gap: 14px; }
+.listas h3 { font-size: .85rem; letter-spacing: .06em; color: var(--suave); margin: 0 0 6px; }
+.listas ol { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; }
+.listas li button { width: 100%; text-align: left; border: 0; background: transparent; padding: 6px 8px; border-radius: 8px; display: flex; gap: 10px; font-size: .95rem; line-height: 1.3; }
+.listas li button b { flex: none; width: 22px; color: var(--suave); }
+.listas li button.atual { background: var(--palavra-sel); }
+.listas li button.feita { color: var(--suave); text-decoration: line-through; }
+
+.fim { margin-top: 14px; background: var(--papel); border: 1px solid var(--linha); border-radius: 16px; padding: 16px; text-align: center; }
+.fim h2 { margin: 0 0 4px; font-size: 1.3rem; }
+.fim p { margin: 0 0 10px; color: var(--suave); }
+.fim .ir { display: inline-block; background: var(--marca); color: #fff; text-decoration: none; font-weight: 700; padding: 10px 18px; border-radius: 999px; }
+
+.folha-fundo { position: fixed; inset: 0; background: rgba(10,8,12,.5); z-index: 10; display: flex; align-items: flex-end; justify-content: center; }
+.folha { background: var(--papel); color: var(--texto); width: 100%; max-width: 520px; border-radius: 22px 22px 0 0; padding: 18px 18px max(18px, env(safe-area-inset-bottom)); max-height: 88dvh; overflow-y: auto; text-align: left; }
+.folha h2 { margin: 0 0 10px; font-size: 1.3rem; }
+.folha ol { padding-left: 20px; margin: 0 0 14px; }
+.folha li { margin-bottom: 8px; }
+.folha .botao { background: var(--marca); color: #fff; width: 100%; }
+</style>
+</head>
+<body>
+
+<section class="abertura" id="abertura">
+  <div class="logo" aria-hidden="true"><span>T</span><span>U</span><span>P</span><span class="p"></span><span class="s">I</span><span>A</span><span>V</span><span>L</span><span>T</span></div>
+  <h1>Cruzadinha</h1>
+  <p class="dia" id="abertura-dia"></p>
+  <button class="botao" id="iniciar">Iniciar</button>
+  <button class="botao contorno" id="como1">Como jogar?</button>
+  <a class="voltar" href="../">‹ Passatempos</a>
+</section>
+
+<main id="jogo" hidden>
+  <div class="barra">
+    <h1>Cruzadinha</h1>
+    <span class="relogio" id="relogio">0:00</span>
+    <button class="ajuda" id="como2" aria-label="Como jogar">?</button>
+  </div>
+  <div class="dica" aria-live="polite">
+    <button class="seta" id="ant" aria-label="Dica anterior">‹</button>
+    <span class="num" id="dica-num"></span>
+    <span class="texto" id="dica-texto"></span>
+    <button class="seta" id="prox" aria-label="Próxima dica">›</button>
+  </div>
+  <div class="grade" id="grade"></div>
+  <p class="aviso" id="aviso"></p>
+  <div class="acoes" id="acoes"><button id="revelar">Revelar uma letra</button></div>
+  <div class="teclado" id="teclado"></div>
+  <div class="fim" id="fim" hidden></div>
+  <div class="listas">
+    <section><h3>HORIZONTAIS</h3><ol id="lista-h"></ol></section>
+    <section><h3>VERTICAIS</h3><ol id="lista-v"></ol></section>
+  </div>
+</main>
+
+<div class="folha-fundo" id="como" hidden role="dialog" aria-modal="true" aria-labelledby="como-titulo">
+  <div class="folha">
+    <h2 id="como-titulo">Como jogar</h2>
+    <ol>
+      <li>Toque num quadradinho. A dica da palavra aparece em cima.</li>
+      <li>Escreva com o teclado de baixo. Tocar de novo no mesmo quadradinho troca entre <b>deitada</b> e <b>em pé</b>.</li>
+      <li>As setas ‹ › passam para a dica anterior ou a próxima.</li>
+      <li>Sem acentos: VAGÃO se escreve VAGAO.</li>
+      <li>Travou? “Revelar uma letra” mostra a letra do quadradinho marcado.</li>
+    </ol>
+    <p style="color:var(--suave);font-size:.9rem">Uma cruzadinha nova todo dia. O relógio para quando você sai da página.</p>
+    <button class="botao" id="entendi">Entendi</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+const SITE = "../../";
+// Grades 5×5 ("#" = casa preta), montadas com palavras comuns e do tema; dicas escritas à mão.
+// Cada dica vai na palavra pela resposta; a numeração sai sozinha.
+const CRUZADAS = [
+  { linhas: ["T##V#", "U#ALI", "PORTA", "ICO#T", "#A##E"],
+    dicas: { TUPI: "Língua indígena de onde vêm os nomes Parangaba, Mucuripe e Maracanaú", ALI: "Naquele lugar, perto de quem fala", PORTA: "Abre sozinha quando o metrô para na estação", ICO: "Cidade histórica do sertão cearense, de três letras", OCA: "Casa indígena", ARO: "A parte redonda da roda da bicicleta", VLT: "Veículo leve sobre trilhos (sigla)", IATE: "Estação do VLT em frente ao clube de mesmo nome, no Mucuripe" },
+    saiba: { texto: "Parangaba, Mucuripe, Maracanaú, Papicu, Mondubim: muitas estações têm nome em tupi.", link: "nomes-das-estacoes/", botao: "Por que esse nome?" } },
+  { linhas: ["VAGAO", "IR#N#", "RENDA", "#I#AR", "BARRO"],
+    dicas: { VAGAO: "Cada um dos carros que formam o metrô", IR: "O contrário de vir", RENDA: "Feita com bilros pelas rendeiras do Ceará", AR: "O que a gente respira", BARRO: "Em tupi, Tauape quer dizer “lugar de ___ amarelo”", VIR: "O contrário de ir", AREIA: "Tem de sobra nas dunas e nas praias", ANDAR: "Ir a pé", ARO: "A parte redonda da roda da bicicleta" },
+    saiba: { texto: "Tauape era um povoado no caminho de Maranguape. Em tupi, “lugar de barro amarelo”.", link: "estacoes/sao-joao-do-tauape/", botao: "Estação São João do Tauape" } },
+  { linhas: ["CANOA", "ORA##", "R#D#S", "##ANO", "FAROL"],
+    dicas: { CANOA: "Barco pequeno, levado a remo", ORA: "“___, vejam só!”", ANO: "Tem 365 dias", FAROL: "O Farol Velho do Mucuripe guiava os navios que chegavam a Fortaleza", COR: "Vermelho é a da Linha Sul no mapa do metrô", AR: "O que a gente respira", NADAR: "O que se faz no mar, nos braços e nas pernas", NO: "Laço apertado na corda (sem o acento)", SOL: "Em Fortaleza, aparece quase o ano inteiro" },
+    saiba: { texto: "Foi na ponta do Mucuripe que o navegador Vicente Pinzón teria chegado em janeiro de 1500.", link: "estacoes/mucuripe/", botao: "Estação Mucuripe" } },
+  { linhas: ["LAGOA", "I#R#R", "N#A#E", "H#M#I", "ARARA"],
+    dicas: { LAGOA: "A da Parangaba é onde Iracema se banhava, no romance de José de Alencar", ARARA: "Ave colorida de bico curvo", LINHA: "A Sul vai da Chico da Silva à Carlito Benevides", GRAMA: "Capim baixinho do campo de futebol", AREIA: "Tem de sobra nas dunas e nas praias" },
+    saiba: { texto: "Em tupi, Parangaba quer dizer beleza. A estação de trem, de 1873, se chamava Arronches.", link: "estacoes/parangaba/", botao: "Estação Parangaba" } },
+];
+const N = 5, $ = id => document.getElementById(id);
+
+// ---------- o dia (fuso de Fortaleza): a mesma cruzadinha para todo mundo
+const DATA = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Fortaleza" }).format(new Date());
+const NUM_DIA = Math.round(Date.parse(DATA + "T12:00:00Z") / 864e5);
+const C = CRUZADAS[NUM_DIA % CRUZADAS.length];
+const resp = C.linhas.join("");
+
+// ---------- palavras e numeração
+const palavras = [];
+const numero = Array(N * N).fill(0); let prox = 1;
+for (let i = 0; i < N * N; i++) {
+  if (resp[i] === "#") continue;
+  const r = Math.floor(i / N), c = i % N;
+  const comecaH = (c === 0 || resp[i - 1] === "#") && c + 1 < N && resp[i + 1] !== "#";
+  const comecaV = (r === 0 || resp[i - N] === "#") && r + 1 < N && resp[i + N] !== "#";
+  if (!comecaH && !comecaV) continue;
+  numero[i] = prox++;
+  for (const [dir, ok, passo] of [["h", comecaH, 1], ["v", comecaV, N]]) {
+    if (!ok) continue;
+    const casas = []; let j = i;
+    while (j < N * N && resp[j] !== "#" && (dir === "v" || Math.floor(j / N) === r)) { casas.push(j); j += passo; }
+    const w = casas.map(k => resp[k]).join("");
+    palavras.push({ dir, num: numero[i], casas, w, dica: C.dicas[w] || "?" });
+  }
+}
+const ordem = [...palavras.filter(p => p.dir === "h"), ...palavras.filter(p => p.dir === "v")];
+
+// ---------- estado do dia (só neste aparelho)
+const CHAVE = "cruzadinha:" + DATA;
+let estado = { letras: Array(N * N).fill(""), reveladas: [], decorrido: 0, comecou: false, fim: false };
+try { const s = JSON.parse(localStorage.getItem(CHAVE)); if (s && Array.isArray(s.letras)) estado = s; } catch (e) {}
+const salvar = () => { try { localStorage.setItem(CHAVE, JSON.stringify(estado)); } catch (e) {} };
+let retomada = null;
+const decorrido = () => estado.decorrido + (retomada ? Date.now() - retomada : 0);
+function rodar() { if (!retomada && estado.comecou && !estado.fim && document.visibilityState === "visible" && $("como").hidden) retomada = Date.now(); }
+function pausar() { if (retomada) { estado.decorrido += Date.now() - retomada; retomada = null; salvar(); } }
+const tempo = ms => { const s = Math.floor(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
+setInterval(() => { $("relogio").textContent = tempo(decorrido()); }, 400);
+document.addEventListener("visibilitychange", () => document.visibilityState === "visible" ? rodar() : pausar());
+
+// ---------- abertura e como jogar
+const quando = new Date(DATA + "T12:00:00Z").toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
+$("abertura-dia").textContent = quando[0].toUpperCase() + quando.slice(1) + ` · ${palavras.length} palavras`;
+if (estado.comecou) $("iniciar").textContent = estado.fim ? "Ver a de hoje" : "Continuar";
+$("iniciar").onclick = () => { estado.comecou = true; salvar(); $("abertura").hidden = true; $("jogo").hidden = false; rodar(); desenhar(); };
+const abrirComo = () => { pausar(); $("como").hidden = false; $("entendi").focus(); };
+$("como1").onclick = abrirComo; $("como2").onclick = abrirComo;
+$("entendi").onclick = () => { $("como").hidden = true; rodar(); };
+
+// ---------- montagem
+const grade = $("grade");
+for (let i = 0; i < N * N; i++) {
+  const b = document.createElement("button"); b.className = "casa" + (resp[i] === "#" ? " preta" : ""); b.dataset.i = i;
+  if (resp[i] === "#") { b.disabled = true; b.setAttribute("aria-hidden", "true"); }
+  else b.onclick = () => tocar(i);
+  grade.append(b);
+}
+for (const p of ordem) {
+  const li = document.createElement("li"), b = document.createElement("button");
+  const n = document.createElement("b"); n.textContent = p.num; b.append(n, p.dica);
+  b.onclick = () => { atual = p; cursor = p.casas.find(k => !estado.letras[k]) ?? p.casas[0]; desenhar(); };
+  p.botao = b; li.append(b); $(p.dir === "h" ? "lista-h" : "lista-v").append(li);
+}
+const FILEIRAS = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM⌫"];
+for (const f of FILEIRAS) {
+  const d = document.createElement("div"); d.className = "fileira";
+  for (const t of f) {
+    const b = document.createElement("button"); b.className = "tecla" + (t === "⌫" ? " larga" : ""); b.textContent = t;
+    b.setAttribute("aria-label", t === "⌫" ? "Apagar" : t);
+    b.onclick = () => t === "⌫" ? apagar() : escrever(t);
+    d.append(b);
+  }
+  $("teclado").append(d);
+}
+document.addEventListener("keydown", e => {
+  if ($("jogo").hidden || !$("como").hidden || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.key === "Backspace") { e.preventDefault(); apagar(); }
+  else if (/^[a-zA-Z]$/.test(e.key)) { e.preventDefault(); escrever(e.key.toUpperCase()); }
+  else if (e.key === "ArrowRight" || e.key === "Tab") { e.preventDefault(); pular(e.shiftKey ? -1 : 1); }
+  else if (e.key === "ArrowLeft") { e.preventDefault(); pular(-1); }
+});
+
+// ---------- cursor
+let atual = ordem[0], cursor = atual.casas[0];
+const palavraDe = (i, dir) => palavras.find(p => p.dir === dir && p.casas.includes(i));
+function tocar(i) {
+  if (estado.fim) return;
+  if (i === cursor) { const outra = palavraDe(i, atual.dir === "h" ? "v" : "h"); if (outra) atual = outra; }
+  else { cursor = i; atual = palavraDe(i, atual.dir) || palavraDe(i, atual.dir === "h" ? "v" : "h"); }
+  desenhar();
+}
+function pular(d) {
+  const k = (ordem.indexOf(atual) + d + ordem.length) % ordem.length; atual = ordem[k];
+  cursor = atual.casas.find(c => !estado.letras[c]) ?? atual.casas[0]; desenhar();
+}
+function escrever(l) {
+  if (estado.fim || !estado.comecou) return;
+  estado.letras[cursor] = l; $("aviso").textContent = "";
+  const pos = atual.casas.indexOf(cursor);
+  const vazia = atual.casas.slice(pos + 1).find(c => !estado.letras[c]);
+  if (vazia !== undefined) cursor = vazia;
+  else if (pos < atual.casas.length - 1) cursor = atual.casas[pos + 1];
+  else if (atual.casas.every(c => estado.letras[c])) {
+    // palavra completa: vai para a próxima que ainda tem espaço
+    const k = ordem.indexOf(atual);
+    for (let d = 1; d <= ordem.length; d++) { const p = ordem[(k + d) % ordem.length]; const v = p.casas.find(c => !estado.letras[c]); if (v !== undefined) { atual = p; cursor = v; break; } }
+  }
+  salvar(); conferir(); desenhar();
+}
+function apagar() {
+  if (estado.fim) return;
+  if (estado.letras[cursor] && !estado.reveladas.includes(cursor)) estado.letras[cursor] = "";
+  else { const pos = atual.casas.indexOf(cursor); if (pos > 0) { cursor = atual.casas[pos - 1]; if (!estado.reveladas.includes(cursor)) estado.letras[cursor] = ""; } }
+  $("aviso").textContent = ""; salvar(); desenhar();
+}
+$("ant").onclick = () => pular(-1); $("prox").onclick = () => pular(1);
+$("revelar").onclick = () => {
+  if (estado.fim) return;
+  estado.letras[cursor] = resp[cursor]; if (!estado.reveladas.includes(cursor)) estado.reveladas.push(cursor);
+  escrever(resp[cursor]);
+};
+
+let mostrarErros = false;
+function conferir() {
+  const cheia = [...resp].every((ch, i) => ch === "#" || estado.letras[i]);
+  if (!cheia) { mostrarErros = false; return; }
+  if ([...resp].every((ch, i) => ch === "#" || estado.letras[i] === ch)) { pausar(); estado.fim = true; salvar(); return; }
+  mostrarErros = true; $("aviso").textContent = "Quase! As letras em vermelho estão erradas.";
+}
+
+function desenhar() {
+  const casas = grade.children;
+  for (let i = 0; i < N * N; i++) {
+    if (resp[i] === "#") continue;
+    const b = casas[i]; b.textContent = estado.letras[i];
+    if (numero[i]) { const n = document.createElement("span"); n.className = "n"; n.textContent = numero[i]; b.prepend(n); }
+    b.classList.toggle("sel", !estado.fim && i === cursor);
+    b.classList.toggle("palavra", !estado.fim && atual.casas.includes(i) && i !== cursor);
+    b.classList.toggle("errada", mostrarErros && estado.letras[i] && estado.letras[i] !== resp[i]);
+    b.classList.toggle("revelada", estado.reveladas.includes(i));
+    b.setAttribute("aria-label", `${numero[i] ? numero[i] + ", " : ""}${estado.letras[i] || "vazio"}`);
+  }
+  grade.classList.toggle("feita", estado.fim);
+  $("dica-num").textContent = atual.num + (atual.dir === "h" ? " →" : " ↓");
+  $("dica-texto").textContent = atual.dica;
+  for (const p of ordem) { p.botao.classList.toggle("atual", p === atual); p.botao.classList.toggle("feita", p.casas.every(c => estado.letras[c] === resp[c])); }
+  $("teclado").hidden = estado.fim; $("acoes").hidden = estado.fim;
+  const fim = $("fim");
+  if (estado.fim) {
+    fim.hidden = false; fim.textContent = "";
+    const h = document.createElement("h2"); h.textContent = "Cruzadinha completa! 🎉";
+    const p1 = document.createElement("p"); p1.textContent = `${palavras.length} palavras em ${tempo(estado.decorrido)}${estado.reveladas.length ? ` (${estado.reveladas.length} letra${estado.reveladas.length > 1 ? "s" : ""} revelada${estado.reveladas.length > 1 ? "s" : ""})` : ""}. Amanhã tem outra.`;
+    const p2 = document.createElement("p"); p2.textContent = C.saiba.texto;
+    const a = document.createElement("a"); a.className = "ir"; a.href = SITE + C.saiba.link; a.textContent = C.saiba.botao + " ›";
+    fim.append(h, p1, p2, a);
+  } else fim.hidden = true;
+}
+if (estado.comecou) conferir();
+desenhar();
+</script>
+</body>
+</html>
