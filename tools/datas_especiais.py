@@ -56,8 +56,11 @@ def janelas(frase):
     achadas = []
     for m in re.finditer(r"(?:entre|das?)\s+(\d{1,2})h(\d{2})?\s+(?:e|às|as|até)\s+(?:às\s+)?(\d{1,2})h(\d{2})?", f):
         achadas.append([_hora(m.group(1), m.group(2)), _hora(m.group(3), m.group(4))])
-    for m in re.finditer(r"a partir das?\s+(\d{1,2})h(\d{2})?", f):
-        achadas.append([_hora(m.group(1), m.group(2)), None])
+    # "a partir das 9h"; "das 9h até o encerramento da operação" (feriado de 20/11/2026)
+    for m in re.finditer(r"a partir das?\s+(\d{1,2})h(\d{2})?"
+                         r"|das?\s+(\d{1,2})h(\d{2})?\s+at[ée] o (?:encerramento|fim|final)", f):
+        h, mi = (m.group(1), m.group(2)) if m.group(1) else (m.group(3), m.group(4))
+        achadas.append([_hora(h, mi), None])
     return sorted(achadas) or None
 
 
