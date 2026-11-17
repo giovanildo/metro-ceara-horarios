@@ -2021,10 +2021,9 @@ dados abertos da Prefeitura). Link do `ce.gov.br` não vai em texto da loja
 O material para o Play Console fica em [`tools/play/`](tools/play/):
 
 - [`loja.md`](tools/play/loja.md) — tudo o que o Console pede, pronto para
-  colar: nome ("Metrô Ceará Fortaleza horários" desde 14/11/2026: o título é o
-  que mais pesa na busca, e "Metrô Ceará (não oficial)" não aparecia ao procurar
-  "metrô fortaleza"; o "não oficial" saiu só do título e continua na descrição
-  curta, no começo da completa, no destaque e no app), descrições curta e completa,
+  colar: nome ("Metrô Ceará (não oficial)": sem o "não oficial" o Google
+  recusou o título em 15/11/2026 por falsificação de identidade; "horários" e
+  "Fortaleza" ficam na descrição curta), descrições curta e completa,
   categoria e contato, e as respostas de cada formulário de "Conteúdo do app"
   (política de privacidade, anúncios, classificação, público-alvo 13+,
   segurança dos dados — **não coleta dados** —, app governamental — não —, e a

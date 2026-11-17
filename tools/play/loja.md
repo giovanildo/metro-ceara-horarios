@@ -6,7 +6,7 @@ Console.
 
 ## Criar app
 
-- **Nome do app:** Metrô Ceará Fortaleza horários
+- **Nome do app:** Metrô Ceará (não oficial)
 - **Idioma padrão:** Português (Brasil) – pt-BR
 - **App ou jogo:** App
 - **Gratuito ou pago:** Gratuito
@@ -17,13 +17,15 @@ Console.
 **Nome (até 30 caracteres):**
 
 ```
-Metrô Ceará Fortaleza horários
+Metrô Ceará (não oficial)
 ```
 
-Na busca da loja, o título é o que mais pesa: por isso "Fortaleza" e "horários"
-("Metrô Ceará (não oficial)" não aparecia ao procurar "metrô fortaleza"). O
-"não oficial" saiu só do título, onde alarmava mais do que informava; o aviso
-continua no começo da descrição, no destaque e no app.
+O título precisa se distanciar do oficial: "Metrô Ceará Fortaleza horários"
+(sem "não oficial") foi recusado em 15/11/2026 por falsificação de identidade
+(nome de órgão de governo sem distanciamento). Com "(não oficial)" sobram 17
+caracteres, então "horários" e "Fortaleza" ficam na descrição curta, que também
+conta na busca. Se um dia trocar, a alternativa é "Metrô Fortaleza (não
+oficial)" (29).
 
 **Descrição curta (até 80 caracteres):**
 
