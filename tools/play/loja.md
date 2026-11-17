@@ -33,28 +33,28 @@ Horários do metrô e VLT de Fortaleza, Cariri e Sobral e aviso antes da estaç�
 
 **Descrição completa (até 4.000 caracteres):**
 
-```
-App NÃO OFICIAL, sem vínculo com o Metrofor nem com o Governo do Ceará. Os horários são os que o próprio Metrofor publica.
+O texto fica num lugar só,
+[`fastlane/metadata/android/pt-BR/full_description.txt`](../../fastlane/metadata/android/pt-BR/full_description.txt)
+(HTML simples, que o Console aceita). Copie o arquivo inteiro.
 
-Que horas passa o próximo metrô? Abra o app e veja a estação mais perto de você e as próximas partidas em cada sentido — do metrô de Fortaleza (Linha Sul, Linha Oeste, Linha Nordeste e VLT Aeroporto) e dos VLTs de Sobral e do Cariri.
+Regras que o Google cobra (Política de declarações enganosas, app com
+informação de governo):
 
-• Próxima partida da estação mais perto, pelo GPS, com as outras linhas que passam a até 3 km.
-• Para onde você vai?: escolha o destino e veja o roteiro, na mesma linha ou com integração, saindo agora ou no horário que você escolher, com os outros horários e a hora de chegada.
-• Modo viagem: escolha o destino e guarde o celular. O app acompanha a viagem estação por estação, mesmo com a tela desligada, e avisa antes de você descer — com notificação, vibração e, se quiser, voz.
-• Hora de sair: toque num horário e o app avisa na hora certa, mesmo com a tela bloqueada, mostrando quanto falta para a partida.
-• Rotinas: salve o trajeto do dia a dia e o app avisa sozinho nos dias marcados, com os horários do dia (no domingo sem metrô, não avisa).
-• Integração entre linhas: em Parangaba, Chico da Silva e Expedicionários, o próximo metrô ou VLT da outra linha que ainda dá para pegar, e se a integração é paga ou gratuita.
-• Passagem, meia e gratuidade: quanto custa cada linha, quem paga meia ou não paga, onde tirar o cartão e o que levar, conforme o site do Metrofor.
-• Bike no metrô: se dá para embarcar com bicicleta agora, pelas regras do Metrofor, e a estação do Bicicletar mais perto.
-• Horários do dia: a grade do próprio dia, inclusive sábado e operação especial. Sem internet, usa a última guardada.
-• ENEM, eleição e feriado: o aviso do Metrofor aparece assim que a operação especial é anunciada, com notificação mesmo com o app fechado.
-
-Transparência: cada informação diz de onde vem e quando foi conferida, com o link para conferir. O que é estimativa do app aparece como estimativa.
-
-Privacidade: sem anúncios, sem cadastro, sem rastreadores. A localização é usada só no celular; nada é enviado para ninguém.
-
-Gratuito e de código aberto (GPL-3.0): github.com/giovanildo/metro-ceara-horarios
-```
+- **Aviso de não oficial no topo**, fácil de ver: "Não representa o Metrofor,
+  o Governo do Ceará nem nenhum órgão público."
+- **Fontes oficiais com links que funcionam.** O robô do Google confere o
+  certificado HTTPS de forma estrita. Em 17/11/2026 a atualização foi
+  rejeitada ("Link da fonte corrompido ou inacessível") porque a descrição
+  citava `https://www.ce.gov.br/metrofor/`: o servidor do `ce.gov.br` manda o
+  certificado sem o intermediário (Amazon RSA 2048 M01). O navegador do celular
+  completa sozinho, o robô não. **Nunca pôr link do `ce.gov.br` em texto da
+  loja**; usar o portal de horários `https://info.metrofor.ce.gov.br/`, o GTFS
+  `https://info.metrofor.ce.gov.br/gtfs_file` e o Bicicletar
+  `https://dados.fortaleza.ce.gov.br/dataset/estacoes-bicicletar`. Dentro do
+  app, da lite e do site os links do `ce.gov.br` continuam (lá abrem no
+  navegador).
+- Antes de enviar, testar cada link sem desligar a verificação:
+  `curl -sI <link>` não pode dar erro de certificado.
 
 **Gráficos:**
 

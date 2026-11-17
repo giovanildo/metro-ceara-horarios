@@ -2009,6 +2009,15 @@ todo mundo. O Console avisa que o AAB não tem símbolos de depuração nativos:
 a única biblioteca nativa é a do AndroidX (`libandroidx.graphics.path.so`), que
 já vem sem símbolos, então não há o que enviar.
 
+Em 17/11/2026 uma atualização foi rejeitada pela Política de declarações
+enganosas: a descrição citava `https://www.ce.gov.br/metrofor/` como fonte, e
+o robô do Google não abre esse endereço porque o servidor manda o certificado
+HTTPS sem a cadeia intermediária. A descrição passou a ter o aviso "não
+representa o Metrofor, o Governo do Ceará nem nenhum órgão público" no topo e
+fontes que passam na verificação (`info.metrofor.ce.gov.br` e o portal de
+dados abertos da Prefeitura). Link do `ce.gov.br` não vai em texto da loja
+(veja [`loja.md`](tools/play/loja.md)).
+
 O material para o Play Console fica em [`tools/play/`](tools/play/):
 
 - [`loja.md`](tools/play/loja.md) — tudo o que o Console pede, pronto para
