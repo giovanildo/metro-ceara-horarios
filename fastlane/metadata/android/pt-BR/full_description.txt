@@ -1,4 +1,8 @@
-<p><b>App não oficial</b>, sem vínculo com o Metrofor nem com o Governo do Ceará. Os horários vêm do GTFS público publicado pelo Metrofor. Fonte oficial: https://www.ce.gov.br/metrofor/</p>
+<p><b>Aviso: app não oficial.</b> Não representa o Metrofor, o Governo do Ceará nem nenhum órgão público.</p>
+
+<p>Feito por um passageiro do metrô de Fortaleza, por conta própria.</p>
+
+<p><b>Fontes oficiais:</b> horários do portal do Metrofor, https://info.metrofor.ce.gov.br/ (grade em GTFS: https://info.metrofor.ce.gov.br/gtfs_file). Bicicletar dos dados abertos da Prefeitura de Fortaleza, https://dados.fortaleza.ce.gov.br/dataset/estacoes-bicicletar. Passagem, bike e avisos vêm das páginas e notícias do Metrofor, com o link de cada uma dentro do app.</p>
 
 <p>Horário do metrô de Fortaleza na palma da mão: Linha Sul, Linha Oeste, Linha Nordeste e VLT Aeroporto, além dos VLTs de Sobral e do Cariri, com a próxima partida da estação mais perto de você, de Parangaba, Benfica, José de Alencar e Chico da Silva a Pacatuba, Caucaia e Juazeiro do Norte.</p>
 
@@ -7,14 +11,13 @@
 <li><b>Horários do dia:</b> a grade do próprio dia publicada pelo Metrofor, incluindo sábado e operações especiais (eleição, ENEM). Sem internet, usa a última grade guardada.</li>
 <li><b>ENEM, eleição e feriado:</b> o aviso do Metrofor aparece assim que a operação especial é anunciada, e o app manda uma notificação mesmo fechado. Tocar abre a notícia no site do Metrofor.</li>
 <li><b>Estações mais próximas:</b> pelo GPS, as duas estações mais perto de você, com o tempo que falta para o próximo metrô. Ou fixe a sua estação pela estrela.</li>
-<li><b>Conte sobre você:</b> perguntas rápidas na primeira abertura deixam a tela do seu jeito (bike, meia, elevador ou rampa, Casa e Trabalho, o jeito de ver os horários e a ordem), sem cadastro.</li>
+<li><b>Conte sobre você:</b> perguntas rápidas na primeira abertura deixam a tela do seu jeito (bike, meia, elevador ou rampa, Casa e Trabalho), sem cadastro.</li>
 <li><b>Para onde você vai?:</b> escolha o destino e veja o roteiro, na mesma linha ou com integração, saindo agora, no horário que você escolher ou amanhã.</li>
 <li><b>Procure o lugar, não só a estação:</b> digite "Rodoviária", "HGF" ou "UFC" e veja a estação mais perto, a caminhada até a porta e a hora de chegar. Na tela de cada estação, o que tem perto: hospitais, universidades, shoppings.</li>
 <li><b>Elevador e rampa:</b> veja se a estação tem elevador, rampa ou plataforma elevatória. Com "cadeira de rodas", o roteiro avisa onde não tem elevador e onde pedir ajuda.</li>
 <li><b>Casa e Trabalho:</b> guarde a estação perto de casa e a do trabalho; um toque mostra a hora de chegada e o roteiro, como num app de corrida.</li>
 <li><b>Sua ida e volta:</b> diga suas estações e horários, de trabalho ou faculdade, e a tela inicial já mostra o sentido certo e qual metrô pegar, até sem sinal.</li>
-<li><b>Modo viagem:</b> escolha o destino e o app acompanha a viagem com a tela desligada, pelo GPS e, sem sinal, pela tabela de horários (avisando quando a posição é presumida). Avisa duas estações antes do destino, com som opcional e voz dizendo o nome de cada estação.</li>
-<li><b>Hora de sair:</b> toque num horário e o app avisa na hora certa, mesmo com a tela bloqueada, mostrando quanto falta para a partida.</li>
+<li><b>Modo viagem:</b> escolha o destino e o app acompanha a viagem com a tela desligada, pelo GPS e, sem sinal, pela tabela de horários. Avisa duas estações antes do destino, com som e voz opcionais.</li>
 <li><b>Rotinas:</b> salve o trajeto do dia a dia e o app avisa sozinho nos dias marcados, com os horários do dia.</li>
 <li><b>Integração entre linhas:</b> o próximo metrô ou VLT da outra linha que ainda dá para pegar, e se a integração é paga.</li>
 <li><b>Passagem, meia e gratuidade:</b> quanto custa cada linha, quem paga meia ou não paga, onde tirar o cartão e o que levar, conforme o site do Metrofor.</li>
@@ -23,8 +26,8 @@
 <li><b>Aviso de domingo:</b> metrô e VLT normalmente não circulam aos domingos; o app avisa a que horas voltam na segunda.</li>
 </ul>
 
-<p><b>Transparência:</b> cada informação diz de onde vem e quando foi conferida (o site do Metrofor, uma notícia, o OpenStreetMap), com o link para conferir. O que é estimativa do app aparece como estimativa.</p>
+<p><b>Transparência:</b> cada informação diz de onde vem e quando foi conferida, com o link para conferir. O que é estimativa do app aparece como estimativa.</p>
 
 <p><b>Privacidade:</b> sem anúncios, sem rastreadores, sem conta. A localização só é usada no aparelho. A internet serve apenas para baixar os horários do site do Metrofor e as regras do app (passagem, integrações, avisos) do GitHub do projeto, sem enviar nada sobre você.</p>
 
-<p>Software livre (GPL-3.0). Fontes dos dados: GTFS do Metrofor e dados abertos da Prefeitura de Fortaleza (AMC) para o Bicicletar.</p>
+<p>Software livre (GPL-3.0).</p>
