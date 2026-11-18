@@ -74,8 +74,14 @@ Builds:
     subdir: app
     gradle:
       - yes
+  - versionName: '1.106'
+    versionCode: 107
+    commit: v1.106
+    subdir: app
+    gradle:
+      - yes
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: '1.105'
-CurrentVersionCode: 106
+CurrentVersion: '1.106'
+CurrentVersionCode: 107
