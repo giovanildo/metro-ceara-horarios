@@ -963,10 +963,10 @@ sua com `fonte_id`. Reconferir sem mudança só sobe o `conferido`.
 [`tools/fontes.py`](tools/fontes.py) lista as fontes e, com `--vencidas`, só as
 que passaram da data (sai com 1 se houver).
 
-### Guia da passagem (meia, gratuidade, VaiVem Livre)
+### Guia da passagem (meia, gratuidade, o que pode levar, ouvidoria)
 
 Abaixo da passagem, a tela da estação (no app e na lite) tem o link **"Meia,
-gratuidade e onde tirar o cartão ›"**. Ele abre a tela **Passagem**
+cartões e o que pode levar ›"**. Ele abre a tela **Passagem**
 ([`ui/FareGuideScreen.kt`](app/src/main/java/io/github/giova/metroceara/ui/FareGuideScreen.kt);
 na lite, `#/passagem`), com a passagem de cada linha, um quadro para quem paga
 inteira na Linha Sul (o Cartão Múltiplo com nome, pedido pelo site) e três
@@ -979,6 +979,27 @@ temas, cada um numa tela própria:
   (onde tirar e o que levar), além de dizer que declaração não vale;
 - **Procurando emprego**: o VaiVem Livre, 40 passagens grátis por mês com
   cadastro no IDT. Esse programa não aparece na página de gratuidades do Metrofor.
+
+Desde a 1.106, um segundo bloco, **"Bom saber antes de ir"** (`mais_temas`
+no `regras.json`, no mesmo formato dos temas), traz mais quatro telas:
+
+- **O que pode levar**: o tamanho máximo do volume (altura + largura +
+  comprimento até 160 cm, nenhum lado acima de 80 cm), o que não pode
+  embarcar, as regras dentro do vagão (lanche só na estação, fone de ouvido)
+  e o cão-guia, garantido pela Lei federal 11.126/2005;
+- **Cartões do metrô**: Unitário (vale só no dia da compra), Múltiplo,
+  Estudante e Gratuidade;
+- **Perdeu alguma coisa?**: falar com um funcionário ou consultar pelo
+  número do documento no site de serviços do Metrofor;
+- **Reclamar, sugerir ou elogiar**: a Ouvidoria (telefone 155, Ceará
+  Transparente, atendimento na sede).
+
+O troco máximo da bilheteria (R$ 50 na Linha Sul, R$ 20 na Oeste e em Sobral)
+vai junto da passagem de cada linha. Essas informações vêm dos links do
+Linktree oficial do Metrofor: o Guia do Passageiro (`ce.gov.br/metrofor/guia`),
+a notícia dos cartões (24/08/2023) e a página da Ouvidoria, que o
+`tools/paginas.py` acompanha todo dia. Versões do app anteriores à 1.106
+ignoram `mais_temas`.
 
 São muitas regras que o app não controla. Por isso a tela diz logo no topo que
 **tudo vem do site do Metrofor**, com a data da conferência, e cada tema começa
@@ -1433,7 +1454,9 @@ python3 tools/vigia.py --so-noticias   # só a issue de cada notícia nova
 [`tools/paginas.py`](tools/paginas.py) compara, uma vez por dia, as páginas em que
 as regras se apoiam com a última versão que alguém leu
 ([`tools/paginas_conferidas.json`](tools/paginas_conferidas.json)). A rodada guarda
-a leitura em `paginas.json`, no ramo `dados`.
+a leitura em `paginas.json`, no ramo `dados`. São elas: tarifas, gratuidades,
+meia passagem, bike (página e PDF do regulamento), bilhetagem do Cariri e,
+desde 18/11/2026, o Guia do Passageiro, a notícia dos cartões e a Ouvidoria.
 
 Se as páginas da regra de bike estão iguais às conferidas, o `conferido` avança
 **só no `regras.json` publicado**, e o `detalhe` diz que foi uma comparação
