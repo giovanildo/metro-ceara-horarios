@@ -17,9 +17,16 @@ data class FareGuide(
     /** Página do Metrofor com as tarifas. */
     val link: String?,
     val topics: List<FareTopic>,
+    /** Título do bloco [moreTopics] ("Bom saber antes de ir"). */
+    val moreTitle: String?,
+    /** Temas que não são sobre pagar menos (o que pode levar, cartões, ouvidoria). */
+    val moreTopics: List<FareTopic>,
     /** Quadro para quem paga inteira (Cartão Múltiplo com nome). */
     val fullFare: FareCard?,
-)
+) {
+    /** Todos os temas, na ordem da tela: o índice de um tema abre a tela dele. */
+    val allTopics: List<FareTopic> get() = topics + moreTopics
+}
 
 /** Um tema do guia (meia de estudante, gratuidade...), que abre numa tela própria. */
 data class FareTopic(
@@ -54,11 +61,7 @@ internal fun parseFareGuide(o: JSONObject): FareGuide {
     fun text(o: JSONObject, key: String) = o.optString(key).trim().takeIf { it.isNotEmpty() }
     fun strings(a: JSONArray?) = a?.let { (0 until it.length()).map { i -> it.getString(i) } }.orEmpty()
     fun objects(a: JSONArray?) = a?.let { (0 until it.length()).map { i -> it.getJSONObject(i) } }.orEmpty()
-    return FareGuide(
-        source = o.getString("fonte"),
-        checked = o.getString("conferido"),
-        link = link(o),
-        topics = objects(o.optJSONArray("temas")).map { t ->
+    fun topics(a: JSONArray?) = objects(a).map { t ->
             FareTopic(
                 title = t.getString("titulo"),
                 icon = t.optString("icone"),
@@ -78,7 +81,15 @@ internal fun parseFareGuide(o: JSONObject): FareGuide {
                 alert = text(t, "alerta"),
                 note = text(t, "nota"),
             )
-        },
+        }
+    val more = o.optJSONObject("mais_temas")
+    return FareGuide(
+        source = o.getString("fonte"),
+        checked = o.getString("conferido"),
+        link = link(o),
+        topics = topics(o.optJSONArray("temas")),
+        moreTitle = more?.let { text(it, "titulo") },
+        moreTopics = topics(more?.optJSONArray("temas")),
         fullFare = o.optJSONObject("inteira")?.let {
             FareCard(it.getString("titulo"), it.getString("texto"), text(it, "botao"), link(it))
         },

@@ -63,7 +63,7 @@ import io.github.giova.metroceara.ui.theme.routeColor
 @Composable
 fun FareGuideScreen(guide: FareGuide, fares: List<Pair<String, String>>, onBack: () -> Unit) {
     var topicIndex by rememberSaveable { mutableStateOf<Int?>(null) }
-    val topic = topicIndex?.let { guide.topics.getOrNull(it) }
+    val topic = topicIndex?.let { guide.allTopics.getOrNull(it) }
     val back = { if (topic != null) topicIndex = null else onBack() }
     BackHandler(enabled = topic != null) { topicIndex = null }
 
@@ -134,25 +134,7 @@ private fun FareOverview(guide: FareGuide, fares: List<Pair<String, String>>, on
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(top = 4.dp),
         )
-        guide.topics.forEachIndexed { index, topic ->
-            Surface(
-                onClick = { onTopic(index) },
-                shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(14.dp)) {
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            listOf(topic.icon, topic.title).filter { it.isNotBlank() }.joinToString(" "),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                        Text(topic.summary, style = MaterialTheme.typography.bodyMedium)
-                    }
-                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
-                }
-            }
-        }
+        guide.topics.forEachIndexed { index, topic -> TopicButton(topic) { onTopic(index) } }
     }
 
     guide.fullFare?.let { card ->
@@ -165,6 +147,36 @@ private fun FareOverview(guide: FareGuide, fares: List<Pair<String, String>>, on
                     Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = null, modifier = Modifier.padding(start = 6.dp).size(16.dp))
                 }
             }
+        }
+    }
+
+    // Depois de pagar menos: o que pode levar, os cartões, achados e perdidos, ouvidoria.
+    if (guide.moreTopics.isNotEmpty()) {
+        guide.moreTitle?.let {
+            Text(it, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 4.dp))
+        }
+        guide.moreTopics.forEachIndexed { index, topic -> TopicButton(topic) { onTopic(guide.topics.size + index) } }
+    }
+}
+
+/** O botão de um tema, que abre a tela dele. */
+@Composable
+private fun TopicButton(topic: FareTopic, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(14.dp)) {
+            Column(Modifier.weight(1f)) {
+                Text(
+                    listOf(topic.icon, topic.title).filter { it.isNotBlank() }.joinToString(" "),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(topic.summary, style = MaterialTheme.typography.bodyMedium)
+            }
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
         }
     }
 }

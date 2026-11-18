@@ -41,6 +41,10 @@ PAGINAS = {
     "bike_pdf": {"titulo": "Regulamento de bikes (PDF)",
                  "link": SITE + "wp-content/uploads/sites/75/2023/03/Regula_Bikes_2023.pdf", "arquivo": True},
     "cariri": {"titulo": "Bilhetagem eletrônica no Cariri", "link": SITE + "bilhetagem-eletronica-no-cariri/"},
+    "guia": {"titulo": "Guia do Passageiro (o que pode levar, troco)", "link": SITE + "guia/"},
+    "cartoes": {"titulo": "Cartões do Metrofor (notícia de 24/08/2023)",
+                "link": SITE + "2023/08/24/conheca-os-cartoes-do-metrofor-e-as-diferencas-entre-eles/"},
+    "ouvidoria": {"titulo": "Ouvidoria", "link": SITE + "institucional/ouvidoria/"},
 }
 # Só as fontes cuja regra está inteira nessas páginas têm a conferência adiada. Ficam
 # de fora "passagem" (páginas das linhas, OpenStreetMap, notícia do VLT Aeroporto) e

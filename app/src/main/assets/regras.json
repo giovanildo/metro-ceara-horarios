@@ -175,18 +175,18 @@
   },
   "passagem": {
     "_sobre": "Passagem de cada linha, como o app mostra na tela da estação. Linha que não aparece aqui fica sem.",
-    "_fonte": "Páginas das linhas em ce.gov.br/metrofor (out/2026). VLT Aeroporto: notícia do Metrofor de 10/03/2026 (operação assistida, com embarque gratuito).",
-    "Linha Sul": "R$ 3,60 (meia R$ 1,80) · dinheiro ou Pix",
+    "_fonte": "Páginas das linhas em ce.gov.br/metrofor (out/2026). VLT Aeroporto: notícia do Metrofor de 10/03/2026 (operação assistida, com embarque gratuito). Troco máximo na bilheteria: Guia do Passageiro (ce.gov.br/metrofor/guia, lido em 18/11/2026).",
+    "Linha Sul": "R$ 3,60 (meia R$ 1,80) · dinheiro (troco até R$ 50) ou Pix",
     "Linha Nordeste": "Gratuita",
-    "Linha Oeste": "R$ 1,00 (meia R$ 0,50) · só dinheiro",
-    "VLT Sobral - Linha Norte": "R$ 1,00 (meia R$ 0,50) · dinheiro",
-    "VLT Sobral - Linha Sul": "R$ 1,00 (meia R$ 0,50) · dinheiro",
+    "Linha Oeste": "R$ 1,00 (meia R$ 0,50) · só dinheiro (troco até R$ 20)",
+    "VLT Sobral - Linha Norte": "R$ 1,00 (meia R$ 0,50) · dinheiro (troco até R$ 20)",
+    "VLT Sobral - Linha Sul": "R$ 1,00 (meia R$ 0,50) · dinheiro (troco até R$ 20)",
     "VLT Aeroporto": "Gratuita (operação assistida)",
     "VLT Cariri": "R$ 1,00 (meia R$ 0,50) · cartão eletrônico a partir de nov/2026; confira na bilheteria"
   },
   "guia_passagem": {
-    "_sobre": "Guia da passagem, aberto pelo link abaixo da passagem na tela da estação (app e versão web). Todo o texto vem das páginas do Metrofor; cada tema leva à sua página para a pessoa conferir. \"conferido\": quando as páginas foram lidas — atualize ao revisar. \"avisos\" de um tema: só aparecem entre \"de\" e \"ate\" (AAAA-MM-DD, inclusive), no topo da tela do tema, para prazos como a renovação anual do cartão de estudante. Em \"secoes\", \"quadros\" (título e texto) e \"itens\" (lista) são opcionais.",
-    "_fonte": "ce.gov.br/metrofor: tarifas, meia-passagem-estudantil, gratuidades; notícias de 29/02/2024 (Cartão Múltiplo), 24/04/2025 (renovação dos estudantes) e 27/05/2025 (VaiVem Livre); Ceará Digital, serviço 3006 (Cartão Gratuidade). Conferidas em 02/11/2026.",
+    "_sobre": "Guia da passagem, aberto pelo link abaixo da passagem na tela da estação (app e versão web). Todo o texto vem das páginas do Metrofor; cada tema leva à sua página para a pessoa conferir. \"conferido\": quando as páginas foram lidas — atualize ao revisar. \"avisos\" de um tema: só aparecem entre \"de\" e \"ate\" (AAAA-MM-DD, inclusive), no topo da tela do tema, para prazos como a renovação anual do cartão de estudante. Em \"secoes\", \"quadros\" (título e texto) e \"itens\" (lista) são opcionais. \"mais_temas\": outros temas no mesmo formato, num bloco à parte com o título dele, depois de \"Pode pagar menos?\" (versões do app anteriores à 1.106 não mostram esse bloco).",
+    "_fonte": "ce.gov.br/metrofor: tarifas, meia-passagem-estudantil, gratuidades; notícias de 29/02/2024 (Cartão Múltiplo), 24/04/2025 (renovação dos estudantes) e 27/05/2025 (VaiVem Livre); Ceará Digital, serviço 3006 (Cartão Gratuidade). Conferidas em 02/11/2026. Em 18/11/2026: Guia do Passageiro (ce.gov.br/metrofor/guia), notícia de 24/08/2023 (cartões), página da Ouvidoria e consulta de achados e perdidos (links do Linktree oficial do Metrofor).",
     "fonte": "Tudo aqui vem do site do Metrofor. Antes de ir a uma estação tirar cartão, confira lá: as regras podem mudar.",
     "conferido": "nov/2026",
     "link": "https://www.ce.gov.br/metrofor/tarifas/",
@@ -270,7 +270,7 @@
           }
         ],
         "alerta": "Declaração não vale. Perdeu o cartão? A 2ª via custa 5 meias (R$ 9,00) e, até ficar pronta, paga-se a passagem inteira.",
-        "nota": "Cartão da Etufor ou da Arce vermelho, ou escrito \"acompanhante\": o acompanhante também entra de graça."
+        "nota": "Cartão da Etufor ou da Arce vermelho, ou escrito \"acompanhante\": o acompanhante também entra de graça. Ele tem 1 minuto para passar na catraca depois do titular. O Cartão Gratuidade libera um embarque a cada 30 minutos."
       },
       {
         "titulo": "Procurando emprego",
@@ -304,6 +304,122 @@
         "nota": "A Linha Nordeste já é grátis para todo mundo, sem cartão."
       }
     ],
+    "mais_temas": {
+      "titulo": "Bom saber antes de ir",
+      "temas": [
+        {
+          "titulo": "O que pode levar",
+          "icone": "🧳",
+          "resumo": "Mochila e sacola pequena, sim. Botijão, prancha e carrinho de feira, não.",
+          "link": "https://www.ce.gov.br/metrofor/guia/",
+          "secoes": [
+            {
+              "titulo": "Pode levar",
+              "itens": [
+                "Volume embalado em que altura + largura + comprimento dá até 160 cm, sem nenhum lado passar de 80 cm",
+                "Bike comum, só nos horários liberados (o app avisa na tela da estação)"
+              ]
+            },
+            {
+              "titulo": "Não pode levar",
+              "itens": [
+                "Gás de cozinha, combustível ou qualquer coisa que pegue fogo",
+                "Coisa que explode, corrói ou é tóxica",
+                "Objeto que quebra, corta ou fura",
+                "Animais ou produtos de origem animal",
+                "Eletrodoméstico grande",
+                "Bike elétrica ou de carga",
+                "Prancha de surf",
+                "Carrinho de mão, de compras ou de feira",
+                "Saco de grãos, colchão de espuma, tambor ou manequim grande"
+              ]
+            },
+            {
+              "titulo": "Dentro do metrô e do VLT",
+              "itens": [
+                "Lanche só na estação, não dentro dos vagões",
+                "Música e vídeo só com fone de ouvido",
+                "Sem fumar nem beber bebida alcoólica",
+                "Elevador é para quem tem deficiência, mobilidade reduzida, idosos e grávidas"
+              ]
+            }
+          ],
+          "nota": "Cão-guia pode entrar com a pessoa com deficiência visual: é garantido pela Lei federal 11.126/2005."
+        },
+        {
+          "titulo": "Cartões do metrô",
+          "icone": "💳",
+          "resumo": "O de uma viagem só vale no dia da compra. O de saldo não vence.",
+          "link": "https://www.ce.gov.br/metrofor/2023/08/24/conheca-os-cartoes-do-metrofor-e-as-diferencas-entre-eles/",
+          "secoes": [
+            {
+              "quadros": [
+                {
+                  "titulo": "Cartão Unitário (uma viagem)",
+                  "texto": "Comprado na bilheteria, com uma passagem inteira. A catraca fica com ele. Vale só no dia da compra: se não usar, não tem devolução."
+                },
+                {
+                  "titulo": "Cartão Múltiplo (com saldo)",
+                  "texto": "Para quem paga inteira e anda sempre. Você põe créditos e cada viagem desconta uma passagem. Os créditos não vencem, e dá para cadastrar o cartão com seu nome e CPF."
+                },
+                {
+                  "titulo": "Cartão Estudante",
+                  "texto": "Desconta meia passagem a cada viagem. Ponha créditos de qualquer valor; eles não vencem. Um embarque a cada 30 minutos."
+                },
+                {
+                  "titulo": "Cartão Gratuidade",
+                  "texto": "Para pessoas com deficiência, autismo, HIV ou hemofilia. Um embarque a cada 30 minutos; quando dá direito a acompanhante, ele tem 1 minuto para passar depois do titular."
+                }
+              ],
+              "titulo": "Os quatro cartões"
+            }
+          ],
+          "nota": "Encoste o cartão na parte de cima da catraca. Só o Unitário vai no buraco da catraca, que fica com ele. Onde a passagem é só em dinheiro, como na Linha Oeste, não tem cartão."
+        },
+        {
+          "titulo": "Perdeu alguma coisa?",
+          "icone": "🔎",
+          "resumo": "Fale com um funcionário ou consulte pelo número do documento.",
+          "link": "https://servicos.metrofor.ce.gov.br/servicos/achados-perdidos/pesquisar",
+          "secoes": [
+            {
+              "titulo": "O que fazer",
+              "itens": [
+                "Procure um funcionário da estação: ele ajuda a localizar",
+                "Perdeu um documento? Consulte no site do Metrofor pelo número dele"
+              ]
+            }
+          ],
+          "nota": "O Metrofor não se responsabiliza por objetos perdidos. Mantenha bolsa e sacola sempre perto de você."
+        },
+        {
+          "titulo": "Reclamar, sugerir ou elogiar",
+          "icone": "📞",
+          "resumo": "Ouvidoria do Metrofor: telefone 155, ligação gratuita.",
+          "link": "https://www.ce.gov.br/metrofor/institucional/ouvidoria/",
+          "secoes": [
+            {
+              "quadros": [
+                {
+                  "titulo": "Telefone 155",
+                  "texto": "Ligação gratuita, de segunda a sexta, das 7h às 20h."
+                },
+                {
+                  "titulo": "Pela internet",
+                  "texto": "No Ceará Transparente, o site do Governo do Ceará. Dá para registrar sem se identificar."
+                },
+                {
+                  "titulo": "Pessoalmente",
+                  "texto": "Sede do Metrofor: Rua Senador Jaguaribe, 501, 3º andar, Moura Brasil, Fortaleza. De segunda a sexta, das 8h às 12h e das 13h às 17h."
+                }
+              ],
+              "titulo": "Como falar com a Ouvidoria"
+            }
+          ],
+          "nota": "Você recebe um número de protocolo. A resposta vem em até 20 dias (pode ser prorrogada por mais 10)."
+        }
+      ]
+    },
     "inteira": {
       "titulo": "Paga inteira na Linha Sul?",
       "texto": "Peça o Cartão Múltiplo com seu nome pelo site do Metrofor. Se perder o cartão, não perde o saldo. Ele fica pronto em até 10 dias úteis, para buscar em Benfica ou Parangaba.",
@@ -745,13 +861,13 @@
       "detalhe": "Tarifas e páginas das linhas, onde também estão os endereços das estações. A estação Aeroporto não tem endereço oficial publicado: vem do OpenStreetMap. A passagem do VLT Aeroporto vem da notícia de 10/03/2026."
     },
     "guia_passagem": {
-      "titulo": "Meia, gratuidade e VaiVem Livre",
+      "titulo": "Passagem, cartões e o que pode levar",
       "tipo": "metrofor",
       "fonte": "site e notícias do Metrofor",
       "link": "https://www.ce.gov.br/metrofor/gratuidades/",
       "conferido": "2026-11",
       "revisar_em_meses": 6,
-      "detalhe": "Páginas de tarifas, meia passagem estudantil e gratuidades; notícias de 29/02/2024 (Cartão Múltiplo), 24/04/2025 (renovação dos estudantes) e 27/05/2025 (VaiVem Livre); Ceará Digital (Cartão Gratuidade)."
+      "detalhe": "Páginas de tarifas, meia passagem estudantil e gratuidades; notícias de 29/02/2024 (Cartão Múltiplo), 24/04/2025 (renovação dos estudantes) e 27/05/2025 (VaiVem Livre); Ceará Digital (Cartão Gratuidade). Desde 18/11/2026 também o Guia do Passageiro (o que pode levar, troco), a notícia de 24/08/2023 (cartões), a página da Ouvidoria e a consulta de achados e perdidos."
     },
     "operacoes": {
       "titulo": "Operação especial e linhas paradas",

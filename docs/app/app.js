@@ -392,7 +392,7 @@ function telaInicio() {
       const tarifa = sv.meia ? passagemDaLinha(estado.dados.regras, linha.nome) : null;
       const extras = (sv.bike && !domingo ? avisoBike(linha, id, t) : "")
         + (tarifa ? `<p class="dica">Passagem: ${esc(tarifa)}${estado.dados.regras?.guia_passagem
-          ? ` · <a class="link-guia" href="#/passagem">Meia e gratuidade ›</a>` : ""}</p>` : "");
+          ? ` · <a class="link-guia" href="#/passagem">Meia e o que pode levar ›</a>` : ""}</p>` : "");
       // A última viagem também pode ficar recolhida numa linha "Mostrar".
       const viagens = ultima ? viagensDaEstacao(t, ultima, estacao) : [];
       const viagemFechada = viagens.length > 0 && lerRecolhido().viagem;
@@ -954,7 +954,7 @@ function abrirMais() {
   folha.innerHTML = `<div class="alca"></div><h3>Mais</h3>
     <a href="../passatempos/" class="item-destaque"><span class="ic">🧩</span><span>Passatempos<small>caça-palavras e cruzadinha, um novo por dia</small></span></a>
     ${passagem || nina ? `<h4>Para a viagem</h4>` : ""}
-    ${passagem ? `<a href="#/passagem"><span class="ic">🎫</span><span>Passagem<small>valores, meia e gratuidade</small></span></a>` : ""}
+    ${passagem ? `<a href="#/passagem"><span class="ic">🎫</span><span>Passagem<small>valores, meia, o que pode levar, ouvidoria</small></span></a>` : ""}
     ${nina ? `<a href="${nina}" target="_blank" rel="noopener" aria-label="Nina: abre o WhatsApp da Super NINA"><span class="ic">${ROSTO_NINA}</span>Nina</a>` : ""}
     <h4>Do seu jeito</h4>
     <a href="#/ida-volta"><span class="ic">⇄</span><span>Sua ida e volta<small>casa, trabalho ou faculdade e seus horários</small></span></a>
@@ -1161,7 +1161,7 @@ function telaEstacao(linhaId, stopId, sentidoId) {
   }
   // Meia, gratuidade e onde tirar o cartão: o guia do regras.json.
   if (tarifa && estado.dados.regras?.guia_passagem) {
-    html += `<p style="margin-top:-6px"><a class="link-guia" href="#/passagem">Meia, gratuidade e onde tirar o cartão ›</a></p>`;
+    html += `<p style="margin-top:-6px"><a class="link-guia" href="#/passagem">Meia, cartões e o que pode levar ›</a></p>`;
   }
   // Aviso livre da estação (regras.json), como o de estação subterrânea.
   if (info?.aviso) html += `<p class="aviso">${esc(info.aviso)}</p>${info.subterranea ? fonte("subterranea", "margin-top:-6px") : ""}`;
@@ -1880,7 +1880,9 @@ function telaPassagem(indice) {
   const guia = regras?.guia_passagem;
   if (!guia) return telaNaoAchei();
   const link = (url) => (/^https:\/\//.test(url || "") ? esc(url) : null);
-  const tema = indice != null ? guia.temas?.[Number(indice)] : null;
+  // "mais_temas" vem depois dos temas de pagar menos; o índice conta os dois blocos.
+  const extras = guia.mais_temas?.temas || [];
+  const tema = indice != null ? [...(guia.temas || []), ...extras][Number(indice)] : null;
   if (indice != null && !tema) return telaNaoAchei();
   let html = "";
   if (!tema) {
@@ -1901,6 +1903,13 @@ function telaPassagem(indice) {
     if (inteira) {
       html += `<div class="aviso quadro"><strong>${esc(inteira.titulo)}</strong><br>${esc(inteira.texto)}
         ${inteira.botao && link(inteira.link) ? `<br><a href="${link(inteira.link)}" target="_blank" rel="noopener">${esc(inteira.botao)} ↗</a>` : ""}</div>`;
+    }
+    // O que pode levar, cartões, achados e perdidos, ouvidoria.
+    if (extras.length) {
+      const base = (guia.temas || []).length;
+      html += (guia.mais_temas.titulo ? `<h2>${esc(guia.mais_temas.titulo)}</h2>` : "") + extras.map((t, i) =>
+        `<a class="cartao tema" href="#/passagem/${base + i}"><strong>${esc([t.icone, t.titulo].filter(Boolean).join(" "))}</strong>
+          <br>${esc(t.resumo)}<span class="seta">›</span></a>`).join("");
     }
   } else {
     html += `<h2 style="font-size:1.4rem">${esc(tema.titulo)}</h2>

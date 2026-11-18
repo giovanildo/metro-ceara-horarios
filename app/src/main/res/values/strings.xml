@@ -28,7 +28,7 @@
     <string name="home_no_departures">sem partidas hoje</string>
     <string name="home_unpublished">horários não publicados</string>
     <string name="station_fare">Passagem: %1$s</string>
-    <string name="station_fare_guide">Meia, gratuidade e onde tirar o cartão ›</string>
+    <string name="station_fare_guide">Meia, cartões e o que pode levar ›</string>
     <string name="route_not_running_today">não opera hoje</string>
     <string name="line_not_running_today">Esta linha não opera hoje.</string>
     <string name="direction_unpublished">O Metrofor não publicou os horários deste sentido hoje.</string>
@@ -612,7 +612,7 @@
     <string name="menu_group_daily">Seu dia a dia</string>
     <string name="menu_group_mine">Do seu jeito</string>
     <string name="menu_group_app">O app</string>
-    <string name="menu_fare_sub">valores, meia e gratuidade</string>
+    <string name="menu_fare_sub">valores, meia, o que pode levar, ouvidoria</string>
     <string name="menu_routines_sub">avisam a hora de sair, nos dias que você escolher</string>
     <string name="menu_settings_sub">tema, avisos e localização</string>
     <string name="tab_home">Início</string>
