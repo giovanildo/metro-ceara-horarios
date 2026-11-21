@@ -64,8 +64,8 @@ embarques. Com ida e volta, os 56,6 mil por dia útil são **~28 mil pessoas por
 Como 64% usam de 4 a 6 vezes por semana (OD 2022) e o resto menos, as pessoas
 distintas num mês devem ficar em **60–80 mil**. Com ~80% de Android, o teto teórico
 do app fica em 45–55 mil; um app de transporte bom costuma alcançar 10–20% do
-público, o que dá um teto realista de **5–10 mil ativos/mês** (meta de longo prazo:
-5 mil). Não há dado oficial de pessoas distintas; dá para pedir ao SIC o número de
+público, o que dá um teto realista de **5–10 mil ativos/mês**.
+Não há dado oficial de pessoas distintas; dá para pedir ao SIC o número de
 cartões distintos usados por mês.
 
 **Embarques por estação desde 2017** (milhões; painel):

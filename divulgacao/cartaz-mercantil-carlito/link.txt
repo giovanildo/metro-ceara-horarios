@@ -1,2 +1,0 @@
-Android: https://play.google.com/store/apps/details?id=io.github.giova.metroceara&referrer=utm_source%3Dmercantil-carlito
-iPhone: https://giovanildo.github.io/metro-ceara-horarios/app/?utm_source=mercantil-carlito

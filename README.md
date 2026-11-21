@@ -26,70 +26,9 @@ Instalar mesmo assim*. Para atualizar sozinho, use o
 [Obtainium](https://github.com/ImranR98/Obtainium) com o endereço deste
 repositório.
 
-Para divulgar, há imagens de story (1080×1920) em [`divulgacao/`](divulgacao/):
-`story-qrcode.png`, só com o QR code, e `story-qrcode-link.png`, com o QR e o
-link escrito e um espaço livre embaixo para a figurinha de link do Instagram. O
-QR e o link levam à **versão lite** (`…/metro-ceara-horarios/app/`), que abre
-na hora em qualquer celular — a porta de entrada; de lá, quem tem Android chega
-ao app completo. Imagem não tem link clicável: no Instagram use a figurinha
-"Link"; no status do WhatsApp, poste o link num status de texto. As duas e o
-`qrcode.png` saem de [`tools/video/qr_stories.py`](tools/video/qr_stories.py).
-
-Há também sequências com as telas do app e o link da versão lite no rodapé, para o status:
-`story-tela-1..3.png` (tela inicial, horários, modo viagem) e
-`story-casa-1..4.png`, que conta a ida de casa até o metrô (de Pacatuba, a
-1,5 km de Carlito Benevides, até José de Alencar) e termina com o aviso de
-descida. No status do WhatsApp, o link escrito na **legenda** da imagem fica
-clicável.
-
-E vídeos verticais (1080×1920, sem música — ela entra ao postar, pela
-biblioteca do Instagram ou do WhatsApp):
-`metro-ceara-divulgacao.mp4` (~32 s, telas da 1.99: próxima partida, aviso
-da hora de sair, "Para onde você vai?", modo viagem, aviso de descida na tela
-bloqueada e a chegada, terminando com o QR da Play Store) e `metro-ceara-como-instalar.mp4` (~60 s, cabe no status
-do WhatsApp; é também o vídeo da página, em `docs/video/`: os passos reais da
-instalação pelo site, com os avisos do Android, e depois os problemas comuns e
-a saída de cada um — aviso do navegador, Play Protect, Bloqueador automático
-da Samsung, "App não instalado"). As telas foram gravadas no emulador em
-pt-BR; os avisos do navegador e do Play Protect, que não aparecem lá, são
-ilustrações marcadas como tal.
-
-Para páginas e grupos do Facebook há o
-[`divulgacao/kit-pagina-bairro/`](divulgacao/kit-pagina-bairro/): quatro posts
-para publicar um a cada 1 ou 2 semanas (apresentação, "domingo não tem metrô",
-hora de descer e widget), em imagens 1080×1350 — azul nas que mostram o que o
-app faz e o vermelho da marca nas de aviso (domingo, operação especial) —, mais um corte de 18 s do vídeo
-com o aviso de descida e os textos prontos em `textos.txt`, inclusive um
-modelo para o dia em que o Metrofor anunciar operação especial. Os links da
-Play Store levam `utm_source=pagina-bairro`, para separar no Play Console as
-instalações que vieram dali. As imagens saem de
-[`tools/video/kit_pagina_bairro.py`](tools/video/kit_pagina_bairro.py), a partir
-das capturas da loja e de uma captura de domingo comum
-(`tools/video/capturas/domingo-1.100.png`).
-
-Para o perfil do app no Instagram, nome, bio e link prontos estão em
-[`divulgacao/instagram-bio.md`](divulgacao/instagram-bio.md).
-
-Para o feed do Instagram, [`divulgacao/instagram-calendario/`](divulgacao/instagram-calendario/)
-traz 24 dias de posts (de 23/11 a 19/12/2026, sem domingos), com a legenda
-pronta de cada um e o passo a passo para programar tudo de uma vez em
-`textos.txt`: Reels com gravação de tela, carrosséis e imagens 1080×1350 sobre
-o app (próximo metrô, widget, integração, hora de descer e de sair, domingo,
-passagem, o que pode levar, lugares, vagão feminino, Casa e Trabalho,
-passatempos, nomes das estações, feriado, iPhone e a Nina), sobre o site
-(página da estação, guia para quem visita, literatura e artes, Linha Leste) e
-um comparativo de app, lite e site, com para quem é cada um (também em story), e a novidade Avisar alguém (1.109) em vídeo para o feed e o story
-([`tools/video/avisar_videos.py`](tools/video/avisar_videos.py)), que pode entrar antes.
-O link da Play Store leva `utm_source=instagram`. Tudo sai de
-[`tools/video/instagram_app.py`](tools/video/instagram_app.py) e
-[`tools/video/instagram_site.py`](tools/video/instagram_site.py) (ver o
-[README](tools/video/README.md)).
-
-Para iPhone, `metro-ceara-como-instalar-iphone.mp4` (~39 s) ensina a pôr a
-[versão lite](#versão-lite-web) na tela inicial pelo Safari: as telas
-do app são reais, as do iPhone são desenhadas e marcadas como "ilustração". Os
-scripts que gravam e montam os vídeos e a receita das capturas estão em
-[`tools/video/`](tools/video/).
+O material de divulgação (stories, vídeos, cartazes, posts do Instagram e do
+Facebook) é gerado pelos scripts de [`tools/video/`](tools/video/) numa pasta
+`divulgacao/` que fica fora do repositório.
 
 A tela inicial destaca uma estação com a próxima partida de cada sentido — nos
 terminais, só o sentido em que dá para partir (o que termina ali só teria
@@ -2018,7 +1957,7 @@ Google já conhece, em pastas próprias — a lite em `docs/app/` não é tocada
   as estações que têm trecho; a página principal tem o cartão "O trem na
   literatura" com um trecho por dia (`trecho_do_dia` no `site.py`, a troca
   diária fica no `docs/site/inicio.js`); "Literatura" no menu do topo
-  (só no computador). Posts em `divulgacao/literatura/`.
+  (só no computador).
   **Artes** (desde 15/11): no mesmo JSON, `artes` (murais, exposições,
   trens pintados, estações antigas que viraram espaço de arte, música;
   `grupo` estacoes | trens | espacos | musica, sempre com data e fonte,

@@ -36,3 +36,6 @@ kb-claude-projetos/
 
 # Prévias em prints (mockups para decidir telas), só locais
 prints/
+
+# Divulgação: atalho para o KB privado (~/apps/metro-ceara-kb/divulgacao), fora do git público
+divulgacao
