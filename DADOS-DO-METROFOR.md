@@ -135,6 +135,44 @@ Sobral 98,25, Nordeste 99,77 (carta anual 2023). O acompanhamento da operação
   prevê que a concessionária modernize esse app, com tempo real e publicidade.
 - Moovit também mostra metrô e VLT.
 
+### Instagram do Metrofor (@oficialmetrofor) × site
+
+Conferido em 20/11/2026 com prints do perfil (175 posts, 49,6 mil seguidores), por
+causa do boato de que o Insta seria "mais atualizado que o site". **Não é**: o site
+(`ce.gov.br/metrofor`, lido pelo vigia a cada 30 min) publica antes ou no mesmo dia.
+
+| Assunto | Site | Instagram |
+|---|---|---|
+| Feriado da Consciência Negra (20/11) | 17/11 | 18/11 |
+| Domingos do Enem (08 e 15/11) | 05/11 | 05/11 e 06/11 (+ lembrete em 13/11) |
+| Finados (02/11) | antes do feriado | 29/10 |
+| Eleições (04 e 25/10) e 12/10 | notícias normais | nenhum post entre 03/07 e o fim da eleição |
+
+- **Na eleição o Insta fica desligado**: comunicado de 03/07/2026 avisa que os perfis
+  foram desativados pela lei eleitoral (Lei 9.504/1997). Nesse período, só o site informa.
+- **O conteúdo de operação é o mesmo** do site: horário por linha, linhas paradas,
+  bike liberada a partir das 9h na Sul e na Nordeste no feriado. A regra da bike de
+  20/11 já estava em `datas_especiais` do `regras.json` (branch `dados`), lida da
+  notícia do site.
+- **Extras só de divulgação** (não mudam horário): cemitérios perto das estações no
+  Finados (São José–Parangaba, São João Batista–Chico da Silva/Moura Brasil, São
+  Vicente de Paula–Mucuripe, Cágado–Maracanaú, Jardim da Esperança–Jereissati,
+  Cigana–Caucaia, com distância a pé), 5 dicas de segurança, Hemoce perto da
+  Porangabussu, nostalgia da CBTU, vagão feminino.
+- **Ritmo baixo**: uns 2 a 4 posts por mês. As legendas mandam "consultar a
+  ferramenta de horários no link da bio ou no site".
+- **Linktree da bio** (`linktr.ee/oficialmetrofor`): os mesmos links que a Passagem
+  já tem desde a 1.106, mais "Oportunidade de Negócio na Parangaba" e "Cadastro
+  Cartão Múltiplo".
+- **Comentários**: muita reclamação dos sábados com fim mais cedo antes do Enem
+  ("ficar sem metrô pra voltar do trabalho") e de "sem nenhuma circulação de
+  informação". O app avisa esses dias com antecedência, o que serve de argumento na
+  divulgação.
+- **Não conferido**: os stories dos destaques (Linha Sul, Nordeste, Oeste, VLT
+  Sobral, VLT Cariri). Se trouxerem avisos de última hora (falha, atraso,
+  paralisação) que o site não dá, aí sim valeria acompanhar. Ler o Insta por robô
+  é frágil (exige login, muda de formato), então por enquanto a conferência é manual.
+
 ## Como os dados viraram decisões no app
 
 | Dado | Decisão |
