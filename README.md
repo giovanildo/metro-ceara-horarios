@@ -460,11 +460,13 @@ mesma tela saindo dali.
   dois juntos. O botão também fica no modo viagem (embaixo de "chega ~"):
   dentro do metrô vira "Estou no metrô da Linha Sul, sentido…", com os trechos
   que faltam; na estação de partida antes da hora, continua "Vou pegar…", com
-  o atraso medido. Na simulação, não aparece. Na **tela inicial**, quando a
-  estação aberta mostra a última viagem, **"Avisar alguém sobre essa viagem ›"**
-  (com o símbolo de compartilhar) fica debaixo de "Outro destino ›" e tem a
-  **mesma ação** (abre a busca): ele só lembra que a função existe (escolha de
-  21/11/2026; compartilhar direto dali foi descartado).
+  o atraso medido. Na simulação, não aparece. Na **tela inicial**, onde houver
+  "Outro destino ›" (a estação aberta mostra a última viagem, ou a pessoa
+  guardou Casa ou Trabalho — aí os atalhos já estão no topo e o link da
+  estação deixa de ser "Para onde você vai? ›"), **"Avisar alguém sobre essa
+  viagem ›"** (com o símbolo de compartilhar) fica logo abaixo e tem a **mesma
+  ação** (abre a busca): ele só deixa a função à vista na tela inicial
+  (escolha de 21/11/2026; compartilhar direto dali foi descartado).
 - **Domingo sem operação anunciada:** nenhum roteiro nem modo viagem. O
   resultado mostra só o aviso "Hoje é domingo: metrô e VLT não circulam.
   Voltam segunda, a partir das 05:30." (o primeiro horário de segunda na
@@ -1836,7 +1838,8 @@ GitHub Pages da página do app, em `giovanildo.github.io/metro-ceara-horarios/ap
   mesmo texto do app pelo compartilhar do navegador — no computador, o
   WhatsApp Web — e o link da Play Store no Android ou o da lite nos outros) e
   configurações. Na inicial, "Avisar alguém sobre essa viagem ›" fica debaixo
-  de "Outro destino ›", com a mesma ação, como no app.
+  de "Outro destino ›", com a mesma ação, como no app (também com Casa ou
+  Trabalho guardados no navegador).
 - **Integração** e **bike**, com as mesmas regras e frases do app (lidas do
   `regras.json` publicado no ramo `dados`): na tela da estação, o próximo
   metrô/VLT da outra linha que ainda dá para pegar a pé, com a passagem, e se
