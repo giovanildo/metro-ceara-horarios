@@ -565,5 +565,33 @@ def main():
     final("dia16-nina-5.png", tema=ROXO, n=5, total=T)
 
 
+def avisar():
+    """Dia 24 (sáb 19/12) — Carrossel: Avisar alguém (1.109/1.110). Telas de 21/11 na terça
+    simulada 24/11 às 07:25 (avisar-*.png, 1080x2400), Benfica → Parangaba."""
+    T = 5
+    capa("dia24-avisar-1.png", "Novidade no app", "Avise que está chegando",
+         "Um toque e a mensagem sai pronta: o metrô que você vai pegar e a hora que chega",
+         total=T)
+    tela("dia24-avisar-2.png", "Um toque em Avisar alguém",
+         "Na sua viagem, debaixo de Iniciar modo viagem. Na tela inicial também",
+         [("avisar-viagem.png", (40, 735, 1040, 1010)), ("avisar-viagem.png", (40, 1880, 1040, 2290))],
+         n=2, total=T)
+    tela("dia24-avisar-3.png", "A mensagem já vem escrita",
+         "Mande pelo WhatsApp ou pelo app que você quiser",
+         [("avisar-texto.png", (40, 1290, 1040, 1690))], n=3, total=T)
+    lista("dia24-avisar-4.png", "Do jeito da sua viagem", [
+        ("Já no metrô", "Vira “Estou no metrô da Linha Sul…”, no modo viagem."),
+        ("Com integração", "Diz onde você troca de linha."),
+        ("Para um lugar", "Diz em que estação você desce e que segue a pé."),
+        ("Amanhã", "“Amanhã vou pegar o metrô das…”"),
+    ], n=4, total=T, size=40,
+        nota="A hora vem da tabela de horários. O app não manda sua localização para ninguém.")
+    final("dia24-avisar-5.png", n=5, total=T)
+
+
 if __name__ == "__main__":
-    main()
+    if sys.argv[1:] == ["avisar"]:
+        avisar()
+    else:
+        main()
+        avisar()

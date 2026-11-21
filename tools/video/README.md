@@ -73,6 +73,10 @@ VIDEO_WORK=/tmp/metro-video python3 tools/video/build_iphone.py
   (1.107, terça simulada 24/11/2026 às 07:25, sem internet); os Reels saem das
   4 gravações do `gravar_instagram.sh`. O Reels da hora de descer é o mesmo do
   kit da página do bairro. A fonte não tem a seta nem o visto: o script desenha.
+  O dia 24 (Avisar alguém, 1.109/1.110) sai sozinho com
+  `python3 tools/video/instagram_app.py avisar`, das telas `avisar-viagem.png` e
+  `avisar-texto.png` (21/11, terça simulada 24/11 às 07:25, Benfica → Parangaba,
+  1080×2400, a 2ª é a janela de compartilhar do Android).
 - `instagram_site.py` — os dias 17 a 21 (o site-guia): serve `docs/` com o
   relógio da página fixado (sábado 07:25, para "Próximas partidas" não mostrar a
   madrugada), fotografa as páginas no Chrome sem janela em largura de celular e
