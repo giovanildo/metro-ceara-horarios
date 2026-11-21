@@ -80,6 +80,7 @@ import androidx.compose.ui.unit.sp
 import io.github.giova.metroceara.R
 import io.github.giova.metroceara.data.JourneyPlanner
 import io.github.giova.metroceara.data.Rail
+import io.github.giova.metroceara.data.ShareArrival
 import io.github.giova.metroceara.data.RailRow
 import io.github.giova.metroceara.data.TripFix
 import io.github.giova.metroceara.data.TripRail
@@ -242,6 +243,13 @@ private fun RailHeader(
             )
             plan.terminal?.takeIf { plan.viaTerminal }?.let {
                 Text(stringResource(R.string.trip_via_terminal, it.name), style = MaterialTheme.typography.bodySmall, color = muted)
+            }
+            // Avisar alguém: "Estou no metrô…" (ou, ainda na plataforma, "Vou pegar…").
+            if (!plan.simulated) {
+                ShareArrivalButton(
+                    text = { shareTripText(trip, finalName, arrival) },
+                    modifier = Modifier.padding(top = 10.dp),
+                )
             }
         }
         FilledTonalIconToggleButton(checked = soundEnabled, onCheckedChange = onToggleSound) {
@@ -668,4 +676,25 @@ private fun ArrivalLine(label: String, value: String) {
         Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 12.dp))
     }
     HorizontalDivider()
+}
+
+/**
+ * O texto do "Avisar alguém" no modo viagem: os trechos que faltam, desde o
+ * atual. Ainda na plataforma, "Vou pegar o metrô das…" com o atraso já contado.
+ */
+private fun shareTripText(trip: ActiveTrip, finalName: String, arrival: Int): String {
+    val plan = trip.plan
+    val progress = trip.progress
+    val departure = (plan.origin.scheduled + progress.delayMinutes).roundToInt()
+    // Na estação de partida antes da hora, a pessoa ainda espera na plataforma.
+    val onBoard = progress.index > 0 || (progress.index == 0 && nowMinutes() >= departure)
+    val journey = plan.journey
+    val legs = if (journey != null && journey.legs.isNotEmpty()) {
+        journey.legs.drop(journey.current.coerceIn(0, journey.legs.lastIndex)).mapIndexed { i, leg ->
+            ShareArrival.Leg(leg.routeName, leg.headsign, leg.fromName, leg.toName, if (i == 0) departure else leg.departure)
+        }
+    } else {
+        listOf(ShareArrival.Leg(plan.routeName, plan.headsign, plan.origin.name, finalName, departure))
+    }
+    return ShareArrival.text(legs, arrival, onBoard = onBoard, placeName = plan.placeName)
 }

@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,9 +15,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -91,12 +94,33 @@ fun StationTrips(trips: List<StationTrip>, onOpen: (RecentTrip) -> Unit, onOther
                 if (i > 0) HorizontalDivider(color = content.copy(alpha = 0.2f), modifier = Modifier.padding(horizontal = 13.dp))
                 StationTripRow(trip, onClick = { onOpen(trip.row.trip) })
             }
-            Text(
-                text = stringResource(R.string.station_trip_other),
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.fillMaxWidth().clickable(onClick = onOther).padding(start = 13.dp, end = 13.dp, top = 4.dp, bottom = 12.dp),
-            )
+            OtherDestinationLinks(onOther, Modifier.padding(start = 1.dp, bottom = 6.dp), PaddingValues(horizontal = 12.dp, vertical = 6.dp))
+        }
+    }
+}
+
+/**
+ * "Outro destino ›" e, logo abaixo, "Avisar alguém sobre essa viagem ›" (com o
+ * símbolo de compartilhar). Regra dele (21/11): onde houver "Outro destino", há o
+ * "Avisar alguém", com a mesma ação; o segundo só lembra que dá para avisar. Os dois
+ * abrem a busca; o aviso sai da tela Sua viagem. [itemPadding]: a área de toque de cada um.
+ */
+@Composable
+internal fun OtherDestinationLinks(onOther: () -> Unit, modifier: Modifier = Modifier, itemPadding: PaddingValues = PaddingValues(vertical = 8.dp)) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        listOf(R.string.station_trip_other to false, R.string.station_share_link to true).forEach { (label, share) ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable(onClick = onOther).padding(itemPadding),
+            ) {
+                if (share) Icon(Icons.Filled.Share, contentDescription = null, modifier = Modifier.padding(end = 6.dp).size(18.dp))
+                Text(
+                    text = stringResource(label),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = LocalContentColor.current,
+                )
+            }
         }
     }
 }

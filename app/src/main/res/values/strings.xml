@@ -654,6 +654,8 @@
     <string name="station_trip_arrives">chega ~</string>
     <string name="station_trip_transfer">com integração</string>
     <string name="station_trip_other">Outro destino ›</string>
+    <string name="station_share_link">Avisar alguém sobre essa viagem ›</string>
+    <string name="share_arrival">Avisar alguém</string>
     <string name="station_leaves">sai %1$s</string>
     <string name="station_via">via %1$s</string>
     <string name="station_here">Você está aqui</string>

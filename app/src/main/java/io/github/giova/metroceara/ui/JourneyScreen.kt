@@ -62,6 +62,7 @@ import android.widget.Toast
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
+import io.github.giova.metroceara.data.ShareArrival
 import io.github.giova.metroceara.data.RecentTrip
 import io.github.giova.metroceara.data.StationNames
 import io.github.giova.metroceara.data.LeaveStore
@@ -803,6 +804,16 @@ private fun JourneyResultSheet(
                             )
                         }
                     }
+                    // Avisar alguém: a previsão de chegada pronta para mandar.
+                    ShareArrivalButton(text = {
+                        ShareArrival.text(
+                            legs = option.legs.map { ShareArrival.Leg(it.routeName, it.headsign, it.fromName, it.toName, it.departure) },
+                            arrival = option.itinerary.arrival,
+                            onBoard = false,
+                            tomorrow = tomorrow,
+                            placeName = finalWalk?.placeName,
+                        )
+                    })
                 }
             }
         }

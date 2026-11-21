@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -22,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -118,6 +120,12 @@ private data class StyleView(
 
 @Composable
 private fun OtherLink(hasTrips: Boolean, onClick: () -> Unit) {
+    if (hasTrips) {
+        CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.primary) {
+            OtherDestinationLinks(onClick, Modifier.padding(vertical = 2.dp), PaddingValues(end = 20.dp, top = 8.dp, bottom = 8.dp))
+        }
+        return
+    }
     Text(
         text = stringResource(if (hasTrips) R.string.station_trip_other else R.string.station_where_to_link),
         style = MaterialTheme.typography.labelLarge,
