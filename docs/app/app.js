@@ -598,8 +598,17 @@ function faixaDe(viagens, comEstacao) {
       ${v.o ? `<span class="faixa-chega"><small>chega ~</small><b>${hora(v.chegada)}</b></span>` : ""}
     </button>`;
   }).join("");
-  return `<div class="faixa-viagem">${linhas}<button class="faixa-outro" data-origem="${viagens[0].r.origem}">Outro destino ›</button></div>`;
+  return `<div class="faixa-viagem">${linhas}${linksOutro(viagens[0].r.origem, "")}</div>`;
 }
+
+/** "Outro destino ›" e "Avisar alguém sobre essa viagem ›", com a mesma ação: o segundo só lembra que dá para avisar (como no app). */
+function linksOutro(origem, classe) {
+  return `<div class="links-outro">${["Outro destino ›", `${ICONE_COMPARTILHAR} Avisar alguém sobre essa viagem ›`].map((t) =>
+    `<button class="faixa-outro ${classe}" data-origem="${origem}">${t}</button>`).join("")}</div>`;
+}
+
+/** O símbolo de compartilhar (o mesmo do Android), na cor do texto. */
+const ICONE_COMPARTILHAR = `<svg class="icone-compartilhar" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18 16.1c-.8 0-1.5.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.5 9.3 6.8 9 6 9c-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l7.1 4.2c-.1.2-.1.4-.1.6 0 1.6 1.3 2.9 2.9 2.9s2.9-1.3 2.9-2.9-1.2-2.9-2.8-2.9z"/></svg>`;
 
 /** No cartão da estação aberta: para onde a pessoa costuma ir dali, o metrô a pegar e a chegada. */
 function faixaViagem(t, ultima, estacao) {
@@ -720,7 +729,8 @@ function corpoEstilo(estilo, c) {
   const miolo = !c.filas.length ? "" : { trilho: estiloTrilho, viagem: estiloViagem, lados: estiloLados, pergunta: estiloPergunta, frases: estiloFrases }[estilo](c, naLinha);
   const rodape = resto.length ? faixaDe(resto, true)
     : estilo === "pergunta" && c.filas.length ? ""
-    : `<button class="faixa-outro link-outro" data-origem="${c.estacao}">${c.viagens.length ? "Outro destino" : "Para onde você vai?"} ›</button>`;
+    : c.viagens.length ? linksOutro(c.estacao, "link-outro")
+    : `<button class="faixa-outro link-outro" data-origem="${c.estacao}">Para onde você vai? ›</button>`;
   // Com a última viagem recolhida, fica só a linha "Mostrar", como no app.
   return miolo + (c.alternar ?? "") + (c.recolhida ? "" : rodape);
 }
@@ -1479,6 +1489,7 @@ function telaViagem(linhaId, estId) {
       try { localStorage.setItem("perfil", e.target.value); } catch { /* segue */ }
       mostrarResultado();
     });
+    resultado.querySelector("#v-avisar")?.addEventListener("click", (e) => avisarAlguem(e.currentTarget.dataset.texto));
     resultado.querySelector("#v-lembrete")?.addEventListener("click", (e) => {
       const { linha, sentido, est, m, amanha } = JSON.parse(e.currentTarget.dataset.p);
       const g = diaDaViagem(agora())?.grade || grade;
@@ -1693,8 +1704,37 @@ function cartaoOpcao(o, k, aberto, proximo, grade, dia, perfil, ape, t) {
       const dados = esc(JSON.stringify({ linha: p.linha, sentido: p.sentido.id, est: p.de, m: o.sai, amanha: Boolean(dia.amanha) }));
       html += `<button class="botao secundario largo" id="v-lembrete" data-p="${dados}">⏰ Lembrete na agenda</button>`;
     }
+    html += `<button class="botao secundario largo botao-icone" id="v-avisar" data-texto="${esc(textoAvisar(o, grade, Boolean(dia.amanha), ape?.nome))}">${ICONE_COMPARTILHAR} Avisar alguém</button>`;
   }
   return html + `</div>`;
+}
+
+/**
+ * "Avisar alguém": a previsão de chegada pronta para mandar, o mesmo texto do app
+ * (ShareArrival.kt). O horário vem da tabela, por isso "por volta das".
+ */
+function textoAvisar(o, grade, amanha, lugar) {
+  const nome = (id) => semSufixo(grade.nome(id));
+  const comLinha = (n) => n.startsWith("Linha") ? `${veiculo(n)} da ${n}` : n;
+  const [p0] = o.pernas;
+  const l0 = grade.linha(p0.linha).nome;
+  const inicio = `${amanha ? "Amanhã vou pegar" : "Vou pegar"} o ${veiculo(l0)} das ${hora(p0.sai)} na estação ${nome(p0.de)}: ${l0}, sentido ${p0.sentido.destino}.`;
+  const ultima = nome(o.pernas[o.pernas.length - 1].para);
+  const trocas = o.pernas.slice(1).map((p, i) =>
+    `${i === 0 ? "Em" : "em"} ${nome(p.de)} ${i === 0 ? "faço a integração para" : "para"} o ${comLinha(grade.linha(p.linha).nome)}`);
+  const fim = lugar ? `desço na estação ${ultima} por volta das ${hora(o.chega)} e vou a pé até ${lugar}.`
+    : `chego na estação ${ultima} por volta das ${hora(o.chega)}.`;
+  const frase = trocas.length ? `${trocas.join(", ")} e ${fim}` : fim.replace(/^./, (c) => c.toUpperCase());
+  return `🚇 ${inicio}\n${frase}\n(previsão pela tabela de horários)\n\nHorários do metrô no app Metrô Ceará:\n${ANDROID ? PLAY_STORE : LINK}`;
+}
+
+/** O compartilhar do celular; sem ele (computador), o WhatsApp Web. */
+async function avisarAlguem(texto) {
+  if (navigator.share) {
+    try { await navigator.share({ text: texto }); } catch { /* cancelou */ }
+    return;
+  }
+  window.open("https://wa.me/?text=" + encodeURIComponent(texto), "_blank", "noopener");
 }
 
 /** O cartão do roteiro: cada trecho na cor da linha, a integração com tempo e passagem, a chegada. */
