@@ -448,8 +448,8 @@ mesma tela saindo dali.
   Chego na estação Parangaba por volta das 15:14.
   (previsão pela tabela de horários)
 
-  Horários do metrô no app Metrô Ceará:
-  https://play.google.com/store/apps/details?id=io.github.giova.metroceara
+  📍 Acompanhe a viagem:
+  https://giovanildo.github.io/metro-ceara-horarios/app/#/acompanhar/1.20261121.1-2-904-5-914
   ```
   Com integração, cita onde trocar e para qual linha ("Em Parangaba faço a
   integração para o VLT da Linha Nordeste e chego…"); com um lugar, "desço na
@@ -468,6 +468,30 @@ mesma tela saindo dali.
   viagem ›"** (com o símbolo de compartilhar) fica logo abaixo e tem a **mesma
   ação** (abre a busca): ele só deixa a função à vista na tela inicial
   (escolha de 21/11/2026; compartilhar direto dali foi descartado).
+- **Acompanhe a viagem** (1.111): a mensagem do Avisar alguém termina com um
+  link para a lite em que quem recebe vê a viagem andando, sem instalar nada —
+  como a localização em tempo real do WhatsApp, mas **pela tabela de
+  horários**, sem GPS e sem servidor. A viagem vai inteira no próprio link,
+  depois do `#` (o navegador não manda essa parte para o servidor):
+  `1.AAAAMMDD.linha-de-sai-para-chega_…`, um trecho por linha, com os códigos
+  da grade (`route_id`, `stop_id`) e os horários em minutos. O link entra no
+  lugar do link do app. Ele sai de `ShareArrival.trackLink()` (em Sua viagem,
+  com a data de hoje ou de amanhã; no modo viagem, do trecho atual em diante,
+  com o atraso medido somado ao trecho atual, e o "sentado pelo terminal" vira
+  dois trechos na mesma linha). Para os trechos seguintes do modo viagem, o
+  `JourneyLeg` guarda `routeId`/`fromStop`/`toStop` (JSON `rid`/`fid`/`tid`);
+  uma viagem salva antes da 1.111 não tem os códigos e vai sem o link. Na
+  lite, `#/acompanhar/<código>` (`telaAcompanhar()` em `app.js`, estilos
+  `.ac-*`): antes de sair, a contagem; durante, o metrô entre duas estações no
+  trilho (as já passadas apagadas) e "Agora, pela tabela: entre X e Y";
+  na integração, a troca em destaque com a passagem; os trechos feitos viram
+  uma linha "✓"; depois da chegada, "Pela tabela, já chegou" e o convite para
+  o app (no Android). As estações do meio vêm da tabela da lite (a viagem que
+  leva o mesmo tempo; sem ela, no proporcional). Sempre com o aviso "Se o
+  metrô atrasar, esta página não fica sabendo. Ninguém está compartilhando a
+  localização." Um link de outro dia diz que a viagem terminou; um de amanhã
+  mostra o plano; um cortado pede para mandarem de novo. Prévias em
+  `prints/avisar-ao-vivo/` (fora do git).
 - **Domingo sem operação anunciada:** nenhum roteiro nem modo viagem. O
   resultado mostra só o aviso "Hoje é domingo: metrô e VLT não circulam.
   Voltam segunda, a partir das 05:30." (o primeiro horário de segunda na
@@ -1837,7 +1861,8 @@ GitHub Pages da página do app, em `giovanildo.github.io/metro-ceara-horarios/ap
   (`#/viagem`, a busca "Para onde você vai?", com os atalhos Casa e Trabalho
   em `#/lugar/…` e `#/ir/…`; cada opção aberta tem **Avisar alguém**, com o
   mesmo texto do app pelo compartilhar do navegador — no computador, o
-  WhatsApp Web — e o link da Play Store no Android ou o da lite nos outros) e
+  WhatsApp Web — e o link "Acompanhe a viagem", que abre `#/acompanhar/…`
+  nesta mesma lite; ver Acompanhe a viagem, acima) e
   configurações. Na inicial, "Avisar alguém sobre essa viagem ›" fica debaixo
   de "Outro destino ›", com a mesma ação, como no app (também com Casa ou
   Trabalho guardados no navegador).
