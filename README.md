@@ -78,7 +78,8 @@ o app (próximo metrô, widget, integração, hora de descer e de sair, domingo,
 passagem, o que pode levar, lugares, vagão feminino, Casa e Trabalho,
 passatempos, nomes das estações, feriado, iPhone e a Nina), sobre o site
 (página da estação, guia para quem visita, literatura e artes, Linha Leste) e
-um comparativo de app, lite e site, com para quem é cada um (também em story), e a novidade Avisar alguém (1.109), que pode entrar antes.
+um comparativo de app, lite e site, com para quem é cada um (também em story), e a novidade Avisar alguém (1.109) em vídeo para o feed e o story
+([`tools/video/avisar_videos.py`](tools/video/avisar_videos.py)), que pode entrar antes.
 O link da Play Store leva `utm_source=instagram`. Tudo sai de
 [`tools/video/instagram_app.py`](tools/video/instagram_app.py) e
 [`tools/video/instagram_site.py`](tools/video/instagram_site.py) (ver o
