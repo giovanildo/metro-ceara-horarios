@@ -48,4 +48,23 @@ class ShareArrivalTest {
         val leg = ShareArrival.Leg("Linha Sul", "Carlito Benevides", "Benfica", "Jereissati", 9 * 60)
         assertTrue(ShareArrival.text(listOf(leg), 9 * 60 + 30, onBoard = false).contains("estação Francisco Alves Marinho (Jereissati)"))
     }
+
+    @Test
+    fun `link Acompanhe a viagem leva os trechos e vai no lugar do link do app`() {
+        val link = ShareArrival.trackLink("2026-11-21", listOf(
+            ShareArrival.TrackLeg("1", "13", 432, "5", 439),
+            ShareArrival.TrackLeg("3", "31", 450, "28", 479),
+        ))
+        assertEquals("https://giovanildo.github.io/metro-ceara-horarios/app/#/acompanhar/1.20261121.1-13-432-5-439_3-31-450-28-479", link)
+        val leg = ShareArrival.Leg("Linha Sul", "Chico da Silva", "Mondubim", "Parangaba", 432)
+        val text = ShareArrival.text(listOf(leg), 439, onBoard = false, track = link)
+        assertTrue(text, text.endsWith("(previsão pela tabela de horários)\n\n📍 Acompanhe a viagem:\n$link"))
+        assertTrue(text, !text.contains("play.google.com"))
+    }
+
+    @Test
+    fun `sem os códigos (viagem salva antes) não há link`() {
+        assertEquals(null, ShareArrival.trackLink("2026-11-21", listOf(ShareArrival.TrackLeg("", "13", 432, "5", 439))))
+        assertEquals(null, ShareArrival.trackLink("2026-11-21", emptyList()))
+    }
 }

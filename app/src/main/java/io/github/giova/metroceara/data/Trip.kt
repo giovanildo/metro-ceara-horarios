@@ -45,6 +45,10 @@ data class JourneyLeg(
     val arrival: Int,
     /** As estações do trecho; vazio numa viagem salva antes de existir o trilho. */
     val stations: List<LegStation> = emptyList(),
+    /** Linha e estações pelos códigos da grade (para o link "Acompanhe a viagem"); vazio numa viagem salva antes. */
+    val routeId: String = "",
+    val fromStop: String = "",
+    val toStop: String = "",
 )
 
 /**
@@ -125,6 +129,7 @@ data class TripPlan(
                         j.legs.forEach {
                             put(JSONObject().put("route", it.routeName).put("color", it.colorHex).put("headsign", it.headsign)
                                 .put("from", it.fromName).put("to", it.toName).put("dep", it.departure).put("arr", it.arrival)
+                                .put("rid", it.routeId).put("fid", it.fromStop).put("tid", it.toStop)
                                 .put("st", JSONArray().apply {
                                     it.stations.forEach { s -> put(JSONObject().put("n", s.name).put("t", s.scheduled)) }
                                 }))
@@ -180,7 +185,8 @@ data class TripPlan(
                                 l.getString("from"), l.getString("to"), l.getInt("dep"), l.getInt("arr"),
                                 stations = (0 until (st?.length() ?: 0)).map { k ->
                                     st!!.getJSONObject(k).let { LegStation(it.getString("n"), it.getInt("t")) }
-                                })
+                                },
+                                routeId = l.optString("rid"), fromStop = l.optString("fid"), toStop = l.optString("tid"))
                         },
                     )
                 },

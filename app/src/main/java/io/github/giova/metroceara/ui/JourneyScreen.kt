@@ -62,6 +62,7 @@ import android.widget.Toast
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
+import io.github.giova.metroceara.data.ScheduleStore
 import io.github.giova.metroceara.data.ShareArrival
 import io.github.giova.metroceara.data.RecentTrip
 import io.github.giova.metroceara.data.StationNames
@@ -812,6 +813,10 @@ private fun JourneyResultSheet(
                             onBoard = false,
                             tomorrow = tomorrow,
                             placeName = finalWalk?.placeName,
+                            track = ShareArrival.trackLink(
+                                if (tomorrow) ScheduleStore.tomorrow() else ScheduleStore.today(),
+                                option.itinerary.legs.map { ShareArrival.TrackLeg(it.routeId, it.fromStop, it.departure, it.toStop, it.arrival) },
+                            ),
                         )
                     })
                 }

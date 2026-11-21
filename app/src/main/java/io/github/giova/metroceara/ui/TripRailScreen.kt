@@ -80,6 +80,7 @@ import androidx.compose.ui.unit.sp
 import io.github.giova.metroceara.R
 import io.github.giova.metroceara.data.JourneyPlanner
 import io.github.giova.metroceara.data.Rail
+import io.github.giova.metroceara.data.ScheduleStore
 import io.github.giova.metroceara.data.ShareArrival
 import io.github.giova.metroceara.data.RailRow
 import io.github.giova.metroceara.data.TripFix
@@ -696,5 +697,29 @@ private fun shareTripText(trip: ActiveTrip, finalName: String, arrival: Int): St
     } else {
         listOf(ShareArrival.Leg(plan.routeName, plan.headsign, plan.origin.name, finalName, departure))
     }
-    return ShareArrival.text(legs, arrival, onBoard = onBoard, placeName = plan.placeName)
+    return ShareArrival.text(legs, arrival, onBoard = onBoard, placeName = plan.placeName,
+        track = ShareArrival.trackLink(ScheduleStore.today(), trackLegs(trip, departure)))
+}
+
+/**
+ * Os trechos do link "Acompanhe a viagem", do atual em diante: o atual pelas
+ * estações do plano, com o atraso medido; os seguintes, pelo roteiro. "Sentado
+ * pelo terminal" vira dois trechos na mesma linha (a lite mostra que o metrô volta).
+ */
+private fun trackLegs(trip: ActiveTrip, departure: Int): List<ShareArrival.TrackLeg> {
+    val plan = trip.plan
+    val delay = trip.progress.delayMinutes.roundToInt()
+    val stops = plan.stops
+    val current = if (plan.viaTerminal) {
+        val turn = plan.turnaroundIndex
+        listOf(
+            ShareArrival.TrackLeg(plan.routeId, stops.first().stopId, departure, stops[turn].stopId, stops[turn].scheduled + delay),
+            ShareArrival.TrackLeg(plan.routeId, stops[turn + 1].stopId, stops[turn + 1].scheduled + delay, stops.last().stopId, stops.last().scheduled + delay),
+        )
+    } else {
+        listOf(ShareArrival.TrackLeg(plan.routeId, stops.first().stopId, departure, stops.last().stopId, stops.last().scheduled + delay))
+    }
+    val journey = plan.journey ?: return current
+    val next = journey.legs.drop(journey.current + 1).map { ShareArrival.TrackLeg(it.routeId, it.fromStop, it.departure, it.toStop, it.arrival) }
+    return current + next
 }

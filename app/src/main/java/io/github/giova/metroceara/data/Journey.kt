@@ -34,7 +34,8 @@ object JourneyPlanner {
             JourneyLeg(route?.name.orEmpty(), route?.colorHex.orEmpty(), headsign(leg.routeId, leg.directionId),
                 stopName(leg.fromStop), stopName(leg.toStop), leg.departure, leg.arrival,
                 stations = repo.tripStops(leg.routeId, leg.directionId, leg.fromStop, leg.toStop,
-                    repo.tripTimes(leg.tripId, leg.routeId)).orEmpty().map { LegStation(plainName(it.name), it.scheduled) })
+                    repo.tripTimes(leg.tripId, leg.routeId)).orEmpty().map { LegStation(plainName(it.name), it.scheduled) },
+                routeId = leg.routeId, fromStop = leg.fromStop, toStop = leg.toStop)
         }
         val first = itinerary.legs.first()
         val route = repo.route(first.routeId) ?: return null
