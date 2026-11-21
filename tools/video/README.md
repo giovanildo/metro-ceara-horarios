@@ -127,6 +127,18 @@ As telas vêm do emulador Android, com o sistema em pt-BR
   desse dia (com `run-as … sed -i`, que mantém o dono), e voltaram depois. A 6 é
   São Benedito → Papicu (destino digitado; a 2ª ocorrência de "Papicu" é a
   estação). A 3, a 4 e a 7 continuam as de antes.
+  **Na 1.108 (21/11)** a 1, a 2, a 5, a 7 e o destaque foram refeitas do mesmo
+  jeito, para mostrar a Nina na barra de baixo, o Esconder de "Seus lugares" e o
+  aviso do vagão feminino nas estações da Linha Sul. O dia foi a terça **24/11**
+  (o espelho só guarda operação especial de hoje em diante, e a de 20/11 aparecia
+  no topo em 17/11); a grade de dia útil era a de 16/11, com `date_weekday`,
+  `normal_date_weekday` e `synced_at_weekday` levados a 24/11 e devolvidos depois
+  (cópia do XML em `files/` antes de mexer). As regras foram baixadas com
+  internet antes de desligá-la. A 5 é a partida das 07:55 (aviso às 07:40), com a
+  tela rolada até o vagão feminino; a 7 sai de "Iniciar modo viagem" em São
+  Benedito → Parangaba às 10:25. A 4 (widget) continua a de antes: o widget é o
+  mesmo. Como a 1, a 2 e a 5 entram no kit da página do bairro,
+  `kit_pagina_bairro.py` pode ser rodado de novo.
 - **App Android (gravação):** `adb shell screenrecord`, o modo demo do
   SystemUI para a barra de status, e a viagem simulada com `date` +
   `emu geo fix` a cada estação: é o que `gravar_viagem.sh` faz.

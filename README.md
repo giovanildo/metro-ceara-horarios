@@ -2094,9 +2094,9 @@ O material para o Play Console fica em [`tools/play/`](tools/play/):
   além da mensagem para convidar os testadores do teste fechado.
 - `imagens/` — ícone 512×512 (PNG com transparência), gráfico de recursos
   1024×500 e 7 capturas 1080×1920 (a loja exige proporção 16:9 ou 9:16; as telas
-  de 1080×2400 são cortadas embaixo): tela inicial, estação com integração,
-  aviso de descida, widget, lembrete na agenda, viagem com integração e
-  "sentado, pelo terminal"; o site usa as 7, com o widget em 2º lugar. Na do widget, a ponta dos ícones de
+  de 1080×2400 são cortadas embaixo): tela inicial, estação (Parangaba, com o vagão
+  feminino), aviso de descida, widget, aviso da hora de sair, viagem com integração e
+  "sentado, pelo terminal" (refeitas na 1.108, 21/11; a 3, a 4 e a 6 são de antes); o site usa as 7, com o widget em 2º lugar. Na do widget, a ponta dos ícones de
   outros apps, que sobra no corte de 1920, foi coberta com o fundo logo acima. A tela do aviso de descida é a tela real da
   viagem com o cartão real da notificação, recortado da barra de notificações,
   colado no topo como o balão que aparece no aparelho.
