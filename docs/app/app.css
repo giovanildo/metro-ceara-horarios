@@ -432,3 +432,55 @@ dialog.folha[open] { animation: sobe .25s ease-out; }
 .cartao .recolher > span:first-child, .cartao .recolher .acao { color: inherit; }
 .cartao .recolher.fechado { background: color-mix(in srgb, currentColor 8%, transparent); }
 @media (prefers-color-scheme: dark) { .recolher .acao { color: var(--cartao-texto); } }
+
+/* Acompanhar uma viagem (link do "Avisar alguém"): o metrô anda no trilho pela tabela. */
+.ac-topo { margin: 8px 0 4px; }
+.ac-topo h2 { font-size: 1.3rem; margin: 0; }
+.ac-topo small { color: var(--texto-2); }
+.ac-cartao p { margin: 6px 0 0; }
+.ac-rot { display: block; font-size: .85rem; opacity: .85; }
+.ac-big { display: block; font-size: 1.45rem; line-height: 1.2; margin-top: 4px; }
+.ac-cont { display: block; font-size: 2.6rem; font-weight: 800; line-height: 1; margin-top: 8px; }
+.ac-ok { width: 52px; height: 52px; border-radius: 50%; background: var(--menta); color: var(--menta-texto);
+  display: grid; place-items: center; font-size: 1.8rem; margin-bottom: 8px; }
+.ac-agora { display: flex; align-items: center; gap: 10px; margin-top: 12px; background: var(--fundo); color: var(--texto);
+  border-radius: 12px; padding: 10px 12px; }
+.ac-agora .pulso { flex: none; width: 12px; height: 12px; border-radius: 50%; background: var(--c, #ce0f2e);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--c, #ce0f2e) 22%, transparent); animation: ac-pulso 2s infinite; }
+@keyframes ac-pulso { 50% { box-shadow: 0 0 0 9px color-mix(in srgb, var(--c, #ce0f2e) 8%, transparent); } }
+@media (prefers-reduced-motion: reduce) { .ac-agora .pulso { animation: none; } }
+.ac-trilho { margin: 14px 0 0 2px; }
+.ac-chip { display: inline-block; color: #fff; font-size: .8rem; font-weight: 700; border-radius: 6px; padding: 3px 8px; margin: 8px 0 4px 34px; }
+.ac-perna { --passado-linha: var(--borda); }
+.ac-est { position: relative; display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  min-height: 34px; padding-left: 34px; }
+.ac-est::after { content: ""; position: absolute; left: 12px; top: 0; bottom: 0; width: 4px; background: var(--c); }
+.ac-est::before { content: ""; position: absolute; left: 7px; top: 50%; margin-top: -7px; width: 8px; height: 8px;
+  border: 3px solid var(--c); border-radius: 50%; background: var(--fundo); z-index: 1; }
+.ac-est.primeira::after { top: 50%; }
+.ac-est.ultima::after { bottom: 50%; }
+.ac-est.dest { font-weight: 700; }
+.ac-est.dest::before { background: var(--c); width: 12px; height: 12px; left: 5px; margin-top: -8px; border-width: 2px; }
+.ac-est .h { font-variant-numeric: tabular-nums; color: var(--texto-2); font-size: .9rem; }
+.ac-est.passou { color: var(--passado); }
+.ac-est.passou::before { border-color: var(--passado); }
+.ac-est.passou::after { background: var(--passado); opacity: .6; }
+.ac-est.passou .h { color: var(--passado); }
+.ac-metro { position: relative; height: 30px; }
+.ac-metro::after { content: ""; position: absolute; left: 12px; top: 0; bottom: 0; width: 4px;
+  background: linear-gradient(color-mix(in srgb, var(--passado) 60%, transparent) 50%, var(--c) 50%); }
+.ac-metro .bola { position: absolute; left: -1px; top: 2px; width: 30px; height: 26px; border-radius: 13px; background: var(--c);
+  display: grid; place-items: center; z-index: 2; }
+.ac-metro .bola svg { width: 18px; height: 18px; }
+.ac-troca { position: relative; padding: 8px 0 8px 34px; font-size: .9rem; }
+.ac-troca::before { content: ""; position: absolute; left: 13px; top: 0; bottom: 0; border-left: 3px dotted var(--texto-2); }
+.ac-troca .caixa { border: 1px solid var(--borda); border-radius: 12px; padding: 8px 10px; }
+.ac-troca .pe { position: absolute; left: 0; top: 50%; margin-top: -15px; width: 30px; height: 30px; border-radius: 50%;
+  background: var(--fundo); border: 2px solid var(--texto-2); display: grid; place-items: center; font-size: .95rem; z-index: 1; }
+.ac-troca.agora .caixa { border: 2px solid #43568f; background: var(--cartao); color: var(--cartao-texto); }
+.ac-troca.agora .pe { border-color: #43568f; }
+.ac-feita { position: relative; padding: 4px 0 4px 34px; color: var(--passado); font-size: .9rem; }
+.ac-feita::after { content: ""; position: absolute; left: 12px; top: 0; bottom: 0; width: 4px; background: var(--passado); opacity: .6; }
+.ac-nota { margin-top: 14px; background: #fff8dc; border: 1px solid #e6d58a; border-radius: 12px; padding: 10px 12px;
+  font-size: .85rem; line-height: 1.45; color: #4a3d00; }
+@media (prefers-color-scheme: dark) { .ac-nota { background: #3a3315; border-color: #6b5d22; color: #f1e3a6; } }

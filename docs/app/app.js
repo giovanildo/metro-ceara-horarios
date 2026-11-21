@@ -1705,7 +1705,7 @@ function cartaoOpcao(o, k, aberto, proximo, grade, dia, perfil, ape, t) {
       const dados = esc(JSON.stringify({ linha: p.linha, sentido: p.sentido.id, est: p.de, m: o.sai, amanha: Boolean(dia.amanha) }));
       html += `<button class="botao secundario largo" id="v-lembrete" data-p="${dados}">⏰ Lembrete na agenda</button>`;
     }
-    html += `<button class="botao secundario largo botao-icone" id="v-avisar" data-texto="${esc(textoAvisar(o, grade, Boolean(dia.amanha), ape?.nome))}">${ICONE_COMPARTILHAR} Avisar alguém</button>`;
+    html += `<button class="botao secundario largo botao-icone" id="v-avisar" data-texto="${esc(textoAvisar(o, grade, Boolean(dia.amanha), ape?.nome, dia.data))}">${ICONE_COMPARTILHAR} Avisar alguém</button>`;
   }
   return html + `</div>`;
 }
@@ -1714,7 +1714,7 @@ function cartaoOpcao(o, k, aberto, proximo, grade, dia, perfil, ape, t) {
  * "Avisar alguém": a previsão de chegada pronta para mandar, o mesmo texto do app
  * (ShareArrival.kt). O horário vem da tabela, por isso "por volta das".
  */
-function textoAvisar(o, grade, amanha, lugar) {
+function textoAvisar(o, grade, amanha, lugar, data) {
   const nome = (id) => semSufixo(grade.nome(id));
   const comLinha = (n) => n.startsWith("Linha") ? `${veiculo(n)} da ${n}` : n;
   const [p0] = o.pernas;
@@ -1726,7 +1726,21 @@ function textoAvisar(o, grade, amanha, lugar) {
   const fim = lugar ? `desço na estação ${ultima} por volta das ${hora(o.chega)} e vou a pé até ${lugar}.`
     : `chego na estação ${ultima} por volta das ${hora(o.chega)}.`;
   const frase = trocas.length ? `${trocas.join(", ")} e ${fim}` : fim.replace(/^./, (c) => c.toUpperCase());
-  return `🚇 ${inicio}\n${frase}\n(previsão pela tabela de horários)\n\nHorários do metrô no app Metrô Ceará:\n${ANDROID ? PLAY_STORE : LINK}`;
+  const link = linkAcompanhar(data, o.pernas);
+  const rodape = link ? `📍 Acompanhe a viagem:\n${link}` : `Horários do metrô no app Metrô Ceará:\n${ANDROID ? PLAY_STORE : LINK}`;
+  return `🚇 ${inicio}\n${frase}\n(previsão pela tabela de horários)\n\n${rodape}`;
+}
+
+/**
+ * O link "Acompanhe a viagem" (o mesmo do app, ShareArrival.trackLink): a viagem
+ * vai inteira depois do "#", então nada passa por servidor e ninguém compartilha
+ * a localização. "1.AAAAMMDD.linha-de-sai-para-chega_…", horários em minutos.
+ */
+function linkAcompanhar(data, pernas) {
+  const codigo = /^[A-Za-z0-9]+$/;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data || "") || !pernas.length ||
+    pernas.some((p) => ![p.linha, p.de, p.para].every((x) => codigo.test(String(x))))) return null;
+  return `${LINK}#/acompanhar/1.${data.replace(/-/g, "")}.${pernas.map((p) => `${p.linha}-${p.de}-${p.sai}-${p.para}-${p.chega}`).join("_")}`;
 }
 
 /** O compartilhar do celular; sem ele (computador), o WhatsApp Web. */
@@ -2088,6 +2102,181 @@ function baixarIcs({ inicio, fim, avisoMin, titulo, local, descricao }) {
   setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 
+// ---------- acompanhar uma viagem (link do "Avisar alguém")
+
+/** Lê o código do link "Acompanhe a viagem"; null se estiver cortado ou estranho. */
+function lerAcompanhar(codigo) {
+  const m = /^1\.(\d{4})(\d{2})(\d{2})\.(.+)$/.exec(codigo || "");
+  if (!m) return null;
+  const pernas = m[4].split("_").map((x) => {
+    const [linha, de, sai, para, chega] = x.split("-");
+    return { linha, de, sai: Number(sai), para, chega: Number(chega) };
+  });
+  const ok = pernas.every((p) => p.linha && p.de && p.para && Number.isInteger(p.sai) && Number.isInteger(p.chega) && p.chega >= p.sai);
+  return ok && pernas.length ? { data: `${m[1]}-${m[2]}-${m[3]}`, pernas } : null;
+}
+
+/**
+ * As estações de um trecho com o horário em cada uma: pela viagem da tabela que
+ * leva o mesmo tempo (com o atraso que o app mediu, a diferença vale para todas);
+ * sem ela, as do meio no proporcional.
+ */
+function estacoesAcompanhar(grade, p) {
+  const linha = grade.linha(p.linha);
+  for (const s of linha?.sentidos || []) {
+    const i = s.estacoes.indexOf(p.de);
+    const j = s.estacoes.indexOf(p.para);
+    if (i < 0 || j < 0 || i >= j) continue;
+    const v = s.viagens.filter((x) => x[i] != null && x[j] != null && x[j] - x[i] === p.chega - p.sai && Math.abs(x[i] - p.sai) <= 30)
+      .sort((a, b) => Math.abs(a[i] - p.sai) - Math.abs(b[i] - p.sai))[0];
+    const n = j - i;
+    const minuto = (k) => {
+      if (k === 0) return p.sai;
+      if (k === n) return p.chega;
+      if (v) return v[i + k] == null ? null : v[i + k] - v[i] + p.sai;
+      return Math.round(p.sai + ((p.chega - p.sai) * k) / n);
+    };
+    const estacoes = s.estacoes.slice(i, j + 1).map((id, k) => ({ id, nome: semSufixo(grade.nome(id)), m: minuto(k) }))
+      .filter((e) => e.m != null);
+    return { ...p, linha, sentido: s, estacoes };
+  }
+  return { ...p, linha, sentido: null, estacoes: [
+    { id: p.de, nome: semSufixo(grade.nome(p.de)), m: p.sai }, { id: p.para, nome: semSufixo(grade.nome(p.para)), m: p.chega }] };
+}
+
+const nomeDaLinha = (pe) => pe.linha?.nome || "Linha";
+const corDaPerna = (pe) => (pe.linha ? cor(pe.linha) : "#888888");
+/** "Metrô da Linha Sul", "VLT da Linha Nordeste", "VLT Aeroporto". */
+const rotuloPerna = (pe) => (nomeDaLinha(pe).startsWith("Linha") ? `${Veiculo({ nome: nomeDaLinha(pe) })} da ${nomeDaLinha(pe)}` : nomeDaLinha(pe));
+const minutosOuHoras = (min) => (min < 60 ? `${min} min` : falta(min).replace(/^em /, ""));
+const ICONE_METRO = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M12 2c-4 0-8 .5-8 4v9.5A3.5 3.5 0 0 0 7.5 19L6 20.5v.5h2.2l2-2h3.6l2 2H18v-.5L16.5 19a3.5 3.5 0 0 0 3.5-3.5V6c0-3.5-4-4-8-4zM7.5 17a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm3.5-7H6V6h5v4zm2 0V6h5v4h-5zm3.5 7a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg>`;
+
+/** Um trecho no trilho: as estações (as já passadas apagadas) e o metrô entre elas. */
+function trilhoAcompanhar(pe, relogio, atual, resumir) {
+  const lista = pe.estacoes;
+  const andando = atual && relogio >= pe.sai;
+  let html = "";
+  lista.forEach((e, k) => {
+    if (resumir && lista.length > 6 && k >= 2 && k < lista.length - 2) {
+      if (k === 2) html += `<div class="ac-est"><span>…mais ${lista.length - 4} estações</span><span class="h"></span></div>`;
+      return;
+    }
+    const cls = ["ac-est"];
+    if (k === 0) cls.push("primeira");
+    if (k === lista.length - 1) cls.push("ultima", "dest");
+    if (andando && e.m <= relogio) cls.push("passou");
+    html += `<div class="${cls.join(" ")}"><span>${esc(e.nome)}</span><span class="h">${hora(e.m)}</span></div>`;
+    const prox = lista[k + 1];
+    if (andando && prox && e.m <= relogio && relogio < prox.m) html += `<div class="ac-metro"><span class="bola">${ICONE_METRO}</span></div>`;
+  });
+  return `<div class="ac-perna" style="--c:${corDaPerna(pe)}">${html}</div>`;
+}
+
+/**
+ * Quem recebeu o "Avisar alguém" acompanha a viagem: o metrô anda no trilho pelo
+ * relógio e pela tabela de horários. Sem GPS e sem servidor: tudo vem do link.
+ */
+function telaAcompanhar(codigo) {
+  const { grade, regras } = estado.dados;
+  const v = lerAcompanhar(codigo);
+  if (!v) {
+    tela.innerHTML = `<h2 style="font-size:1.3rem">Acompanhar uma viagem</h2>
+      <p class="vazio">Não deu para abrir esta viagem. O link pode ter chegado cortado: peça para mandarem de novo.</p>
+      <a class="botao" href="#/">Ver os horários do metrô</a>`;
+    return;
+  }
+  const t = agora();
+  const dias = Math.round((Date.parse(t.data + "T12:00:00Z") - Date.parse(v.data + "T12:00:00Z")) / 864e5);
+  // O relógio na conta do dia da viagem: depois da meia-noite, a tabela passa de 24:00.
+  let relogio = t.minutos + dias * 1440;
+  if (dias === 0 && v.pernas[0].sai >= 1440 && t.minutos < 720) relogio += 1440;
+  const pernas = v.pernas.map((p) => estacoesAcompanhar(grade, p));
+  const primeira = pernas[0];
+  const ultima = pernas[pernas.length - 1];
+  const fimDe = (pe) => pe.estacoes[pe.estacoes.length - 1].nome;
+  const origem = primeira.estacoes[0].nome;
+  const destino = fimDe(ultima);
+  const linhas = [...new Set(pernas.map(nomeDaLinha))];
+  const integra = pernas.some((pe, n) => n > 0 && pe.linha !== pernas[n - 1].linha);
+  const veic = veiculo(nomeDaLinha(primeira));
+  const futura = dias < 0;
+  const antes = futura || relogio < primeira.sai;
+  // O trecho atual (ou a integração antes dele); -1 depois da chegada.
+  const k = antes ? 0 : pernas.findIndex((pe) => relogio < pe.chega);
+  const chegou = k < 0;
+  const naTroca = !antes && !chegou && relogio < pernas[k].sai;
+
+  let html = `<div class="ac-topo"><h2>Acompanhando uma viagem</h2><small>Metrô Ceará · ${esc(linhas.join(" e "))}</small></div>`;
+  if (chegou) {
+    html += `<div class="cartao neutro ac-cartao"><div class="ac-ok">✓</div>
+      <strong class="ac-big">Pela tabela, já chegou em ${esc(destino)}</strong>
+      <p>${dias >= 1 ? `Essa viagem foi em ${dataCurta(v.data)}, com chegada prevista para as ${hora(ultima.chega)}.`
+        : `O ${veiculo(nomeDaLinha(ultima))} estava previsto para as ${hora(ultima.chega)}.`}</p></div>
+      <p class="ac-nota">Previsão pela tabela de horários. Se precisar ter certeza, pergunte para quem mandou. 🙂</p>
+      <a class="botao largo" href="#/">Ver os horários do metrô</a>
+      ${ANDROID ? `<a class="botao secundario largo" href="${PLAY_STORE}" target="_blank" rel="noopener">Instalar o Metrô Ceará</a>` : ""}`;
+    tela.innerHTML = html;
+    return;
+  }
+  if (antes) {
+    html += `<div class="cartao ac-cartao"><span class="ac-rot">${futura ? `Viagem de ${dias === -1 ? "amanhã, " : ""}${dataCurta(v.data)}` : "Ainda não saiu"}</span>
+      <strong class="ac-big">Vai pegar o ${veic} das ${hora(primeira.sai)} em ${esc(origem)}</strong>
+      ${futura ? "" : `<span class="ac-cont">${minutosOuHoras(primeira.sai - relogio)}</span>`}
+      <p>${integra ? "Com integração. " : ""}Chega em ${esc(destino)} por volta das ${hora(ultima.chega)}.</p></div>`;
+  } else {
+    const pe = pernas[k];
+    let onde;
+    if (naTroca) {
+      const ant = pernas[k - 1];
+      onde = pe.linha === ant.linha
+        ? `<b>no terminal ${esc(fimDe(ant))}</b>, onde o ${veiculo(nomeDaLinha(pe))} volta. Sai de novo às ${hora(pe.sai)}.`
+        : `<b>fazendo a integração em ${esc(fimDe(ant))}</b>. O ${esc(rotuloPerna(pe).replace(/^Metrô/, "metrô"))} sai às ${hora(pe.sai)}.`;
+    } else {
+      const i = Math.max(0, pe.estacoes.findIndex((e, n) => e.m <= relogio && relogio < (pe.estacoes[n + 1]?.m ?? Infinity)));
+      const a = pe.estacoes[i];
+      const b = pe.estacoes[i + 1];
+      const lugar = a.m === relogio || !b ? `na estação ${esc(a.nome)}` : `entre ${esc(a.nome)} e ${esc(b.nome)}`;
+      onde = pernas.length > 1 ? `<b>no ${esc(rotuloPerna(pe).replace(/^Metrô/, "metrô"))}, ${lugar}</b>` : `<b>${lugar}</b>`;
+    }
+    html += `<div class="cartao ac-cartao" style="--c:${corDaPerna(pe)}">
+      <span class="ac-rot">${esc(origem)} → ${esc(destino)}${integra ? " · com integração" : ""}</span>
+      <strong class="ac-big">Chega por volta das ${hora(ultima.chega)}</strong>
+      <p>daqui a uns ${minutosOuHoras(ultima.chega - relogio)}</p>
+      <div class="ac-agora"><span class="pulso"></span><span>Agora, pela tabela: ${onde}</span></div></div>`;
+  }
+  // O trilho: os trechos feitos numa linha só, o atual inteiro, os seguintes resumidos.
+  html += `<div class="ac-trilho">`;
+  pernas.forEach((pe, n) => {
+    if (n > 0) {
+      const ant = pernas[n - 1];
+      const ponto = fimDe(ant);
+      const mesma = pe.linha === ant.linha;
+      if (n < k || (n === k && !naTroca && !antes)) {
+        html += `<div class="ac-feita">✓ ${mesma ? `Volta no terminal ${esc(ponto)}` : `Integração em ${esc(ponto)}`}</div>`;
+      } else {
+        const agoraAqui = n === k && naTroca;
+        const tarifa = mesma ? null : passagem(regras, grade.nome(ant.para), grade.nome(pe.de));
+        const preco = tarifa?.tipo === "gratis" ? " · passagem gratuita" : tarifa?.tipo === "paga" ? " · passagem paga" : "";
+        html += `<div class="ac-troca${agoraAqui ? " agora" : ""}"><span class="pe" aria-hidden="true">🚶</span><div class="caixa">
+          <b>${mesma ? `Terminal ${esc(ponto)}` : `Integração em ${esc(ponto)}`}</b>${agoraAqui ? " · agora" : ""}<br>
+          ${mesma ? `O ${veiculo(nomeDaLinha(pe))} volta, sentido ${esc(pe.sentido?.destino || fimDe(pe))}, às ${hora(pe.sai)}`
+            : `${esc(rotuloPerna(pe))} sai às ${hora(pe.sai)}${preco}`}</div></div>`;
+      }
+    }
+    if (n < k) {
+      html += `<div class="ac-feita">✓ ${esc(rotuloPerna(pe))}: ${esc(pe.estacoes[0].nome)} → ${esc(fimDe(pe))}, ${hora(pe.sai)}–${hora(pe.chega)}</div>`;
+      return;
+    }
+    html += `<div class="ac-chip" style="background:${corDaPerna(pe)}">${esc(rotuloPerna(pe))}${pe.sentido ? ` · sentido ${esc(pe.sentido.destino)}` : ""}</div>`;
+    html += trilhoAcompanhar(pe, relogio, n === k && !antes, n !== k);
+  });
+  const veiculos = new Set(pernas.map((pe) => veiculo(nomeDaLinha(pe))));
+  html += `</div><p class="ac-nota">Posição prevista pela tabela de horários. Se o ${veiculos.size > 1 ? "metrô ou o VLT" : veic} atrasar,
+    esta página não fica sabendo. Ninguém está compartilhando a localização.</p>
+    <p class="dica" style="text-align:center"><a href="#/">Ver os horários do metrô ›</a></p>`;
+  tela.innerHTML = html;
+}
+
 // ---------- roteamento e status
 
 function render() {
@@ -2107,6 +2296,7 @@ function render() {
   else if (partes[0] === "ir") irParaLugar(partes[1]);
   else if (partes[0] === "rotas") telaRotas();
   else if (partes[0] === "linhas") telaLinhas();
+  else if (partes[0] === "acompanhar") telaAcompanhar(partes[1]);
   else telaInicio();
   marcarAba(partes[0]);
   abaNina();
