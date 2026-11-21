@@ -122,8 +122,8 @@ export async function carregar() {
 // ---------- estações renomeadas por lei (o GTFS do Metrofor ainda traz o nome antigo)
 
 // Jereissati → Francisco Alves Marinho: Lei estadual 19.272, de 05/06/2025. O mesmo no app (StationNames.kt).
-// A regras.json continua com o nome do GTFS; as comparações passam pelos dois.
-const RENOMEADAS = { "Jereissati": "Francisco Alves Marinho" };
+// Mostra o nome novo com o antigo entre parênteses. A regras.json continua com o nome do GTFS; as comparações passam pelos dois.
+const RENOMEADAS = { "Jereissati": "Francisco Alves Marinho (Jereissati)" };
 const ANTIGOS = Object.fromEntries(Object.entries(RENOMEADAS).map(([antigo, novo]) => [novo, antigo]));
 export const nomeOficial = (nome) => RENOMEADAS[(nome || "").trim()] ?? nome;
 /** O nome antigo de uma estação renomeada ("Jereissati"), ou undefined. */
@@ -163,7 +163,7 @@ export class Grade {
   linha(id) { return this.linhas.find((l) => l.id === id); }
   nome(stopId) { return this.estacoes[stopId]?.nome ?? stopId; }
   /** O nome e o nome antigo, para a busca achar pelos dois. */
-  nomeBusca(stopId) { const n = this.nome(stopId); const a = nomeAntigo(n); return a ? `${n} ${a}` : n; }
+  nomeBusca(stopId) { const n = this.nome(stopId); const a = nomeAntigo(n); return a && !n.includes(a) ? `${n} ${a}` : n; }
 
   /** Estações de uma linha, na ordem do primeiro sentido (a mais longa). */
   estacoesDaLinha(linha) {

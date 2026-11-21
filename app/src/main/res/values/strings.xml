@@ -768,5 +768,4 @@
     <string name="trip_arrival_minutes">%1$d min</string>
     <string name="trip_arrival_stations">Estações</string>
     <string name="trip_arrival_done">Voltar ao início</string>
-    <string name="station_former_name">Antiga %1$s</string>
 </resources>

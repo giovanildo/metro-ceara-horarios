@@ -810,9 +810,11 @@ Maracanaú) o nome de **Francisco Alves Marinho**, agente da estação
 ferroviária de Maracanaú. O GTFS do Metrofor ainda traz "Jereissati". O app
 ([`StationNames.kt`](app/src/main/java/io/github/giova/metroceara/data/StationNames.kt)),
 a lite (`RENOMEADAS` em [`docs/app/dados.js`](docs/app/dados.js)) e o site
-(`NOMES`/`ANTIGOS` em `tools/site.py`) mostram o nome novo, a busca acha
-pelos dois e a estação diz "Antiga Jereissati" (no app, no cartão da
-estação; no site, na faixa do topo). A troca é feita na leitura: o banco, a
+(`NOMES`/`ANTIGOS` em `tools/site.py`) mostram o nome novo e a busca acha
+pelos dois. No app e na lite, desde a 1.108, o nome aparece como
+"Francisco Alves Marinho (Jereissati)", como as pessoas ainda conhecem a
+estação; no site, o título fica com o nome novo e a faixa do topo diz
+"Antiga Jereissati". A troca é feita na leitura: o banco, a
 grade baixada e o `regras.json` continuam com o nome do GTFS (as versões
 antigas do app conferem o id da estação por ele), e as comparações passam
 pelos dois nomes. O endereço antigo do site (`estacoes/jereissati/`)

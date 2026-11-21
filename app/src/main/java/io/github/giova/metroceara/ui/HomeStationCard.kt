@@ -33,7 +33,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.giova.metroceara.R
-import io.github.giova.metroceara.data.StationNames
 import io.github.giova.metroceara.data.bikeRuleFor
 import io.github.giova.metroceara.data.BikeBoarding
 import io.github.giova.metroceara.data.bikeBoarding
@@ -197,13 +196,6 @@ private fun StationSummary(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                StationNames.formerName(station.stopName)?.let { former ->
-                    Text(
-                        text = stringResource(R.string.station_former_name, former),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
             }
             if (onRefresh != null) {
                 Spacer(Modifier.weight(1f))
