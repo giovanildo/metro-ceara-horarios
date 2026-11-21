@@ -65,14 +65,22 @@ VIDEO_WORK=/tmp/metro-video python3 tools/video/build_fgs.py
 VIDEO_WORK=/tmp/metro-video python3 tools/video/build_iphone.py
 ```
 
-- `gravar_instagram.sh` + `instagram_app.py` — os dias 1 a 16 de
-  `divulgacao/instagram-calendario/` (legendas e calendário em `textos.txt`),
-  os posts sobre o app: 5 Reels em 1080×1920 e imagens/carrosséis em 1080×1350,
-  azul para o que o app faz, vermelho para avisos e roxo (a cor do rostinho no
-  app) no carrossel da Nina. As telas paradas estão em `capturas/instagram/`
-  (1.107, terça simulada 24/11/2026 às 07:25, sem internet); os Reels saem das
-  4 gravações do `gravar_instagram.sh`. O Reels da hora de descer é o mesmo do
-  kit da página do bairro. A fonte não tem a seta nem o visto: o script desenha.
+- `historias.py` — os vídeos de conversa dos dias 1 a 15 e 17 a 22 de
+  `divulgacao/instagram-calendario/` (legendas e calendário em `textos.txt`), no
+  formato aprovado em 21/11/2026: uma conversa informal num mensageiro genérico
+  (sem imitar nenhum app), a tela real do app, da lite ou do site num celular com
+  uma bolinha no papel do dedo e um anel amarelo no ponto certo, a resposta na
+  conversa e o final com o link. Cada dia é uma lista de cenas em `DIAS`
+  (`conversa`, `tela`, `fim`); sai em story 1080×1920 e feed 1080×1350, 11 a 16 s,
+  sem som; vermelho só nos avisos (domingo, feriado). Telas em `capturas/instagram/`:
+  do app em terça simulada 24/11/2026 (07:25; Casa às 17:30) ou sábado 21/11
+  (Mondubim → Iate às 10:00), sem internet, com a grade de dia útil levada a 24/11
+  e devolvida; o site e a lite no Chrome do emulador. `python3
+  tools/video/historias.py 3 7` gera esses dias; `--previa` põe folha de quadros e
+  vídeo leve em `prints/historias/`.
+- `instagram_app.py` — o carrossel da Nina (dia 16), em roxo (a cor do rostinho no
+  app); as funções de carrossel (`capa`, `tela`, `lista`, `final`) ficam para posts
+  que precisem ser imagem. A fonte não tem a seta nem o visto: o script desenha.
 - `avisar_videos.py` — o dia 24 (Avisar alguém, 1.109/1.110): dois vídeos de 19 s, um
   para o story (1080×1920, legendas fora das faixas que o Instagram cobre, espaço para a
   figurinha de link no fim) e um para o feed (1080×1350). Fundo claro, a tela do app num
@@ -85,13 +93,10 @@ VIDEO_WORK=/tmp/metro-video python3 tools/video/build_iphone.py
   posição foi trocada pelo ↻ da tela inicial e a grade de dia útil, levada a 24/11 e
   devolvida). A notificação de chegada usa o texto do app (`trip_arrived_belongings`).
   Prévia de um instante: `python3 tools/video/avisar_videos.py quadro 4.0`.
-- `instagram_site.py` — os dias 17 a 21 (o site-guia): serve `docs/` com o
-  relógio da página fixado (sábado 07:25, para "Próximas partidas" não mostrar a
-  madrugada), fotografa as páginas no Chrome sem janela em largura de celular e
-  monta o Reels (rolando a página inicial e a da Parangaba) e os carrosséis.
-  Precisa de internet (fotos do Commons) e do `google-chrome`. Também faz os
-  dias 22–23 (app × lite × site): a lite é fotografada com a localização
-  simulada perto de São Benedito.
+- `instagram_site.py` — a tabela app × lite × site do dia 23 (feed e story). As
+  funções que fotografavam o site no Chrome sem janela, com o relógio da página
+  fixado, e montavam carrosséis e rolagem ficam para posts do site que precisem
+  ser imagem (os dias 17 a 22 viraram vídeos de conversa em 21/11).
 
 ## Capturas (emulador)
 

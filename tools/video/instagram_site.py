@@ -1,4 +1,5 @@
-"""Posts do Instagram que mostram o site-guia (dias 17 a 21 de divulgacao/instagram-calendario/).
+"""Posts do Instagram sobre o site-guia: hoje só a tabela do dia 23 (app × lite × site); os dias
+17 a 22 viraram vídeos de conversa em historias.py (21/11/2026).
 
 Tira as capturas sozinho: serve docs/ num servidor local que fixa o relógio da
 página (sábado 21/11/2026 às 07:25, para "Próximas partidas" não mostrar a
@@ -226,119 +227,14 @@ def tabela(name, n=None, total=None, story=False, tema=ig.AZUL):
 
 
 def main():
-    capturar()
-
-    # Dia 17 (sex 11/12) — Reels: rolando o site (página inicial e Parangaba)
-    partes = [rolagem("home", 0, 4900), rolagem("estacao", 0, 4250)]
-    lista_txt = os.path.join(ig.WORK, "site-list.txt")
-    with open(lista_txt, "w") as fh:
-        fh.writelines(f"file '{p}'\n" for p in partes)
-    subprocess.run([ig.FF, "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", lista_txt, "-c", "copy",
-                    os.path.join(ig.WORK, "site.mp4")], check=True)
-    ig.reels("dia17-reels-o-site.mp4", "site.mp4", "Conheça o site do Metrô Ceará",
-             "Horários, fotos e histórias das 62 estações, em qualquer celular", start=0)
-
-    # Dia 18 (sáb 12/12) — Carrossel: a página de uma estação (Parangaba)
-    T = 6
-    ig.tela("dia18-site-estacao-1.png", "Cada estação tem a sua página",
-            "Os próximos horários, o endereço e até um trecho de livro", [(s("estacao"), (0, 0, 1082, 1980))],
-            n=1, total=T)
-    ig.tela("dia18-site-estacao-2.png", "Fotos de verdade",
-            "Mais de 400 fotos do Wikimedia Commons, com o nome de quem fotografou",
-            [(s("estacao"), (0, 2780, 1082, 4200))], n=2, total=T)
-    ig.tela("dia18-site-estacao-3.png", "Por que esse nome?",
-            "Onde a estação fica na linha e de onde vem o nome",
-            [(s("estacao"), (0, 8150, 1082, 9950))], n=3, total=T)
-    ig.tela("dia18-site-estacao-4.png", "O que tem perto",
-            "Igreja, terminal, hospital, faculdade, shopping: com os minutos a pé",
-            [(s("estacao"), (0, 12350, 1082, 14100))], n=4, total=T)
-    ig.tela("dia18-site-estacao-5.png", "Vídeos e literatura",
-            "Vídeos da estação no YouTube e o que os livros contam dela",
-            [(s("estacao"), (0, 15600, 1082, 16580)), (s("estacao"), (0, 18330, 1082, 19300))], n=5, total=T)
-    final_site("dia18-site-estacao-6.png", 6, T)
-
-    # Dia 19 (seg 14/12) — Carrossel: Fortaleza de metrô (para quem visita)
-    T = 5
-    ig.tela("dia19-site-turismo-1.png", "Vai receber visita?",
-            "O guia Fortaleza de metrô: do aeroporto à praia e ao Centro histórico",
-            [(s("turismo"), (0, 0, 1082, 1260))], n=1, total=T)
-    ig.tela("dia19-site-turismo-2.png", "Do aeroporto ao Mucuripe",
-            "De VLT e sem pagar passagem, com uma integração",
-            [(s("turismo"), (0, 3980, 1082, 4980)), (s("turismo"), (0, 8650, 1082, 9420))], n=2, total=T)
-    ig.tela("dia19-site-turismo-3.png", "Onde os trilhos chegam",
-            "E onde não chegam: a estação mais perto e quanto falta a pé",
-            [(s("turismo"), (0, 5760, 1082, 7480))], n=3, total=T)
-    ig.tela("dia19-site-turismo-4.png", "Centro histórico a pé",
-            "Theatro José de Alencar, Praça do Ferreira, Catedral e Mercado Central",
-            [(s("turismo"), (0, 9420, 1082, 10050))], n=4, total=T)
-    final_site("dia19-site-turismo-5.png", 5, T)
-
-    # Dia 20 (ter 15/12) — Carrossel: o trem na literatura e nas artes
-    T = 5
-    ig.tela("dia20-site-literatura-1.png", "O trem na literatura e nas artes",
-            "Romances, crônicas, cordéis e murais sobre os trilhos do Ceará",
-            [(s("literatura"), (0, 0, 1082, 1440))], n=1, total=T)
-    ig.tela("dia20-site-literatura-2.png", "Nos romances",
-            "José de Alencar, Rachel de Queiroz, Domingos Olímpio…",
-            [(s("literatura"), (0, 1580, 1082, 2480))], n=2, total=T)
-    ig.tela("dia20-site-literatura-3.png", "No cordel",
-            "O centenário da estação do Crato virou livro de cordel",
-            [(s("literatura"), (0, 12030, 1082, 13050))], n=3, total=T)
-    ig.tela("dia20-site-literatura-4.png", "Arte nas estações",
-            "Os murais da Parangaba contam a história da ferrovia e do bairro",
-            [(s("literatura"), (0, 13280, 1082, 14450))], n=4, total=T)
-    final_site("dia20-site-literatura-5.png", 5, T)
-
-    # Dia 21 (qua 16/12) — Carrossel: Linha Leste em obras
-    T = 4
-    ig.tela("dia21-site-linha-leste-1.png", "Linha Leste: como está a obra?",
-            "Do Centro ao Papicu por baixo da Aldeota, prevista para o fim de 2028",
-            [(s("leste"), (0, 0, 1082, 1600))], n=1, total=T)
-    ig.tela("dia21-site-linha-leste-2.png", "8 estações previstas",
-            "Tirol-Moura Brasil, Chico da Silva, Sé, Colégio Militar, Luíza Távora, Nunes Valente, "
-            "Leonardo Mota e Papicu",
-            [(s("leste"), (0, 2380, 1082, 3620))], n=2, total=T)
-    ig.tela("dia21-site-linha-leste-3.png", "A história da obra",
-            "Dos tatuzões de 2013 ao andamento de hoje, com a fonte de cada número",
-            [(s("leste"), (0, 4870, 1082, 6250))], n=3, total=T)
-    final_site("dia21-site-linha-leste-4.png", 4, T)
-
-
-if __name__ == "__main__":
-    main()
-
-    # Dia 22 (qui 17/12) — Carrossel: app, lite e site, para quem é cada um
-    T = 6
-    ig.capa("dia22-plataformas-1.png", "App, lite ou site?", "Qual Metrô Ceará é para você?",
-            "São três jeitos de usar. Todos grátis, sem anúncio e sem cadastro.", total=T)
-    plataforma("dia22-plataformas-2.png", "App para Android", "Para quem pega metrô ou VLT todo dia",
-               (ig.cap("inicio.png"), (0, 100, 1080, 2340)), [
-                   "Avisa antes da sua estação, até com a tela desligada",
-                   "Widget com os horários na tela inicial",
-                   "Avisa a hora de sair de casa",
-                   "Casa e Trabalho a um toque",
-                   "Passatempos para a viagem",
-               ], PLAY_TXT, 2, T)
-    plataforma("dia22-plataformas-3.png", "Versão lite", "Para quem tem iPhone ou não quer instalar nada",
-               (s("lite"), (0, 0, 1082, 2400)), [
-                   "Abre no navegador de qualquer celular",
-                   "Estação mais perto e próximos horários",
-                   "Roteiro com integração",
-                   "Lembrete da hora de sair",
-                   "Vira um ícone na tela inicial e abre até sem internet",
-               ], LITE_URL, 3, T)
-    plataforma("dia22-plataformas-4.png", "Site", "Para quem quer conhecer, planejar ou pesquisar",
-               (s("home"), (0, 0, 1082, 2300)), [
-                   "62 estações com fotos, endereço e o que tem perto",
-                   "Guia para quem visita Fortaleza",
-                   "A história dos nomes, literatura e artes",
-                   "A obra da Linha Leste",
-               ], ig.SITE, 4, T)
-    tabela("dia22-plataformas-5.png", n=5, total=T)
-    ig.final("dia22-plataformas-6.png", n=6, total=T, qr=ig.PLAY, qr_text="Google Play",
-             title="Escolha o seu", body="Lite e site: link na bio")
-
+    """Só o dia 23 (a tabela app × lite × site). Os dias 17 a 22 viraram, em 21/11/2026, vídeos
+    de conversa em historias.py; capturar(), rolagem(), plataforma() e final_site() ficam aqui
+    para posts novos do site que precisem ser imagem ou rolagem."""
     # Dia 23 (sex 18/12) — Imagem e story: a tabela, para salvar e compartilhar
     tabela("dia23-app-lite-site.png")
     tabela("dia23-app-lite-site-story.png", story=True)
 
+
+
+if __name__ == "__main__":
+    main()
