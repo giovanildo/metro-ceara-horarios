@@ -1,0 +1,1 @@
+• Acompanhe a viagem: a mensagem do Avisar alguém traz um link. Quem recebe abre no navegador, sem instalar nada, e vê o metrô andando até a sua estação, pela tabela de horários. Ninguém compartilha a localização.
