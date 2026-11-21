@@ -1,0 +1,27 @@
+Metrô Ceará — horários
+Copyright (C) 2026 Giovanildo
+
+O código deste repositório é software livre, sob a GNU General Public License
+versão 3 ou posterior (veja LICENSE).
+
+NOME E ÍCONE
+
+A GPL cobre o código, não a identidade do app. O nome "Metrô Ceará" e o ícone
+(o trem sobre a renda de bilro com a jandaia, em tools/icone/ e nas imagens
+derivadas dele) identificam este projeto e não fazem parte da licença.
+
+Quem distribuir uma versão modificada ou uma cópia deve usar outro nome e outro
+ícone, para que ninguém confunda a cópia com o app original. Isso vale para
+lojas de aplicativos, sites e qualquer outro meio. Usar o nome para se referir
+ao projeto (por exemplo, "baseado no Metrô Ceará") é permitido.
+
+Este app não é do Metrofor nem do Governo do Estado do Ceará.
+
+---
+
+NAME AND ICON
+
+The GPL covers the code, not the app's identity. The name "Metrô Ceará" and its
+icon are not licensed under the GPL. Modified versions and copies must use a
+different name and icon. Referring to the project by name (e.g. "based on
+Metrô Ceará") is allowed.

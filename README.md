@@ -1622,6 +1622,7 @@ app/src/main/assets/regras.json      regras fora do GTFS: bike, integrações, p
                                      guia da passagem, endereços, acessibilidade, cores,
                                      operações especiais, lugares
 DADOS-DO-METROFOR.md                 números e fontes do Metrofor por trás das decisões
+NOTICE                               nome e ícone ficam fora da GPL
 app/src/main/java/.../data/          modelos, abertura do banco, consultas, relógio
 app/src/main/java/.../ui/            telas Compose: linhas -> estações -> partidas
 app/src/main/java/.../widget/        widget da tela inicial (RemoteViews)
@@ -2151,6 +2152,14 @@ Este programa é distribuído na esperança de que seja útil, mas **sem nenhuma
 garantia**, nem mesmo a garantia implícita de comercialização ou adequação a
 um fim específico. Veja a [Licença Pública Geral GNU](LICENSE) para mais
 detalhes.
+
+### Nome e ícone
+
+A licença cobre **o código**, não a identidade do app. O nome "Metrô Ceará" e
+o ícone (o trem sobre a renda com a jandaia) não fazem parte da GPL: quem
+distribuir uma cópia ou uma versão modificada, em loja de aplicativos ou em
+qualquer outro lugar, deve usar outro nome e outro ícone. Citar o projeto pelo
+nome ("baseado no Metrô Ceará") é permitido. Detalhes em [NOTICE](NOTICE).
 
 ### Sobre os dados
 
