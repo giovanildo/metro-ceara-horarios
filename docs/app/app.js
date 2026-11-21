@@ -729,7 +729,8 @@ function corpoEstilo(estilo, c) {
   const miolo = !c.filas.length ? "" : { trilho: estiloTrilho, viagem: estiloViagem, lados: estiloLados, pergunta: estiloPergunta, frases: estiloFrases }[estilo](c, naLinha);
   const rodape = resto.length ? faixaDe(resto, true)
     : estilo === "pergunta" && c.filas.length ? ""
-    : c.viagens.length ? linksOutro(c.estacao, "link-outro")
+    // Com a última viagem ou com Casa/Trabalho guardados (atalhos no topo), é "Outro destino", com o Avisar embaixo.
+    : c.viagens.length || Object.values(lerLugares()).some(Boolean) ? linksOutro(c.estacao, "link-outro")
     : `<button class="faixa-outro link-outro" data-origem="${c.estacao}">Para onde você vai? ›</button>`;
   // Com a última viagem recolhida, fica só a linha "Mostrar", como no app.
   return miolo + (c.alternar ?? "") + (c.recolhida ? "" : rodape);

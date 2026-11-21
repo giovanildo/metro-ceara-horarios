@@ -1218,6 +1218,7 @@ fun AppRoot() {
                     style = layout.style,
                     trips = trips.orEmpty(),
                     tripsCollapsed = layout.tripsCollapsed,
+                    hasPlaces = !places.isNullOrEmpty(),
                     onToggleTrips = { HomeLayoutStore.save(context, layout.copy(tripsCollapsed = !layout.tripsCollapsed)) },
                     onOpen = ::openRecent,
                     onOther = { station ->

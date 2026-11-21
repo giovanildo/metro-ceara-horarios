@@ -53,6 +53,11 @@ data class StationStyle(
     val tripsCollapsed: Boolean = false,
     /** Abre ou recolhe a última viagem; null = sem o controle (prévias). */
     val onToggleTrips: (() -> Unit)? = null,
+    /**
+     * Casa ou Trabalho guardados: os atalhos já estão no topo, então o link da
+     * estação vira "Outro destino ›" com o "Avisar alguém" embaixo (pedido de 21/11).
+     */
+    val hasPlaces: Boolean = false,
 )
 
 /**
@@ -94,9 +99,9 @@ internal fun StyledDepartures(styled: StationStyle, station: Station, hereLabel:
         when {
             classic && shown.trips.isNotEmpty() -> StationTrips(shown.trips, shown.onOpen) { shown.onOther(station) }
             rest.isNotEmpty() -> StationTrips(rest, shown.onOpen) { shown.onOther(station) }
-            classic -> Unit
+            classic && !shown.hasPlaces -> Unit
             shown.style == HomeStyle.ASK_FIRST && departures.isNotEmpty() -> Unit
-            else -> OtherLink(shown.trips.isNotEmpty()) { shown.onOther(station) }
+            else -> OtherLink(shown.trips.isNotEmpty() || shown.hasPlaces) { shown.onOther(station) }
         }
     }
 }
