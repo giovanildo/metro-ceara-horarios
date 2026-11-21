@@ -59,6 +59,15 @@ verde-limão, Sobral Norte azul, Cariri verde); o app usa as do mapa
 57.302 (2025), 56.569 (2026) — estável, com leve queda. Em 2026: Linha Sul
 33.536, Nordeste 14.241, Oeste 4.900, Sobral 2.459, Cariri 1.324.
 
+**Pessoas, não embarques (estimativa nossa, 21/11/2026):** os números acima contam
+embarques. Com ida e volta, os 56,6 mil por dia útil são **~28 mil pessoas por dia**.
+Como 64% usam de 4 a 6 vezes por semana (OD 2022) e o resto menos, as pessoas
+distintas num mês devem ficar em **60–80 mil**. Com ~80% de Android, o teto teórico
+do app fica em 45–55 mil; um app de transporte bom costuma alcançar 10–20% do
+público, o que dá um teto realista de **5–10 mil ativos/mês** (meta de longo prazo:
+5 mil). Não há dado oficial de pessoas distintas; dá para pedir ao SIC o número de
+cartões distintos usados por mês.
+
 **Embarques por estação desde 2017** (milhões; painel):
 
 - **Linha Sul** (82,5 mi): José de Alencar 15,3 · Parangaba 8,9 · Maracanaú 7,7 ·
