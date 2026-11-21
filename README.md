@@ -437,6 +437,34 @@ mesma tela saindo dali.
     terminal); com integração, o roteiro inteiro.
   - no horário escolhido: **Avisar a hora de sair** (o aviso do app), para a
     partida do roteiro.
+  - em qualquer opção aberta: **Avisar alguém** (ver abaixo).
+- **Avisar alguém** (1.109, ideia tirada do "compartilhar status da viagem" dos
+  apps de corrida): abre o compartilhar do Android com a previsão de chegada
+  pronta para mandar pelo WhatsApp ou outro app. Sem servidor, sem conta e sem
+  localização: só sai do celular o texto que a pessoa escolhe enviar.
+  ```
+  🚇 Vou pegar o metrô das 15:04 na estação Benfica: Linha Sul, sentido Carlito Benevides.
+  Chego na estação Parangaba por volta das 15:14.
+  (previsão pela tabela de horários)
+
+  Horários do metrô no app Metrô Ceará:
+  https://play.google.com/store/apps/details?id=io.github.giova.metroceara
+  ```
+  Com integração, cita onde trocar e para qual linha ("Em Parangaba faço a
+  integração para o VLT da Linha Nordeste e chego…"); com um lugar, "desço na
+  estação X … e vou a pé até Y"; na aba Amanhã, "Amanhã vou pegar…". "Por volta
+  das" e "previsão pela tabela" deixam claro que não é tempo real. O nome da
+  estação vem depois de "estação" para não errar o gênero ("na Parangaba", "no
+  Papicu"). O texto sai de `data/ShareArrival.kt` (testes em
+  `ShareArrivalTest`); a lite tem a mesma frase em `textoAvisar()` — mudar os
+  dois juntos. O botão também fica no modo viagem (embaixo de "chega ~"):
+  dentro do metrô vira "Estou no metrô da Linha Sul, sentido…", com os trechos
+  que faltam; na estação de partida antes da hora, continua "Vou pegar…", com
+  o atraso medido. Na simulação, não aparece. Na **tela inicial**, quando a
+  estação aberta mostra a última viagem, **"Avisar alguém sobre essa viagem ›"**
+  (com o símbolo de compartilhar) fica debaixo de "Outro destino ›" e tem a
+  **mesma ação** (abre a busca): ele só lembra que a função existe (escolha de
+  21/11/2026; compartilhar direto dali foi descartado).
 - **Domingo sem operação anunciada:** nenhum roteiro nem modo viagem. O
   resultado mostra só o aviso "Hoje é domingo: metrô e VLT não circulam.
   Voltam segunda, a partir das 05:30." (o primeiro horário de segunda na
@@ -1804,7 +1832,11 @@ GitHub Pages da página do app, em `giovanildo.github.io/metro-ceara-horarios/ap
   e a acessibilidade da estação em `#/acesso/…`;
   próximas partidas e todos os horários), **Sua viagem**
   (`#/viagem`, a busca "Para onde você vai?", com os atalhos Casa e Trabalho
-  em `#/lugar/…` e `#/ir/…`) e configurações.
+  em `#/lugar/…` e `#/ir/…`; cada opção aberta tem **Avisar alguém**, com o
+  mesmo texto do app pelo compartilhar do navegador — no computador, o
+  WhatsApp Web — e o link da Play Store no Android ou o da lite nos outros) e
+  configurações. Na inicial, "Avisar alguém sobre essa viagem ›" fica debaixo
+  de "Outro destino ›", com a mesma ação, como no app.
 - **Integração** e **bike**, com as mesmas regras e frases do app (lidas do
   `regras.json` publicado no ramo `dados`): na tela da estação, o próximo
   metrô/VLT da outra linha que ainda dá para pegar a pé, com a passagem, e se
