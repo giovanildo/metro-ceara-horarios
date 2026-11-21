@@ -65,6 +65,22 @@ VIDEO_WORK=/tmp/metro-video python3 tools/video/build_fgs.py
 VIDEO_WORK=/tmp/metro-video python3 tools/video/build_iphone.py
 ```
 
+- `gravar_instagram.sh` + `instagram_app.py` — os dias 1 a 16 de
+  `divulgacao/instagram-calendario/` (legendas e calendário em `textos.txt`),
+  os posts sobre o app: 5 Reels em 1080×1920 e imagens/carrosséis em 1080×1350,
+  azul para o que o app faz, vermelho para avisos e roxo (a cor do rostinho no
+  app) no carrossel da Nina. As telas paradas estão em `capturas/instagram/`
+  (1.107, terça simulada 24/11/2026 às 07:25, sem internet); os Reels saem das
+  4 gravações do `gravar_instagram.sh`. O Reels da hora de descer é o mesmo do
+  kit da página do bairro. A fonte não tem a seta nem o visto: o script desenha.
+- `instagram_site.py` — os dias 17 a 21 (o site-guia): serve `docs/` com o
+  relógio da página fixado (sábado 07:25, para "Próximas partidas" não mostrar a
+  madrugada), fotografa as páginas no Chrome sem janela em largura de celular e
+  monta o Reels (rolando a página inicial e a da Parangaba) e os carrosséis.
+  Precisa de internet (fotos do Commons) e do `google-chrome`. Também faz os
+  dias 22–23 (app × lite × site): a lite é fotografada com a localização
+  simulada perto de São Benedito.
+
 ## Capturas (emulador)
 
 As telas vêm do emulador Android, com o sistema em pt-BR
