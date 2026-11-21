@@ -71,14 +71,14 @@ Para o perfil do app no Instagram, nome, bio e link prontos estão em
 [`divulgacao/instagram-bio.md`](divulgacao/instagram-bio.md).
 
 Para o feed do Instagram, [`divulgacao/instagram-calendario/`](divulgacao/instagram-calendario/)
-traz 23 dias de posts (de 23/11 a 18/12/2026, sem domingos), com a legenda
+traz 24 dias de posts (de 23/11 a 19/12/2026, sem domingos), com a legenda
 pronta de cada um e o passo a passo para programar tudo de uma vez em
 `textos.txt`: Reels com gravação de tela, carrosséis e imagens 1080×1350 sobre
 o app (próximo metrô, widget, integração, hora de descer e de sair, domingo,
 passagem, o que pode levar, lugares, vagão feminino, Casa e Trabalho,
 passatempos, nomes das estações, feriado, iPhone e a Nina), sobre o site
 (página da estação, guia para quem visita, literatura e artes, Linha Leste) e
-um comparativo de app, lite e site, com para quem é cada um (também em story).
+um comparativo de app, lite e site, com para quem é cada um (também em story), e a novidade Avisar alguém (1.109), que pode entrar antes.
 O link da Play Store leva `utm_source=instagram`. Tudo sai de
 [`tools/video/instagram_app.py`](tools/video/instagram_app.py) e
 [`tools/video/instagram_site.py`](tools/video/instagram_site.py) (ver o

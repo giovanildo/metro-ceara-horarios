@@ -1,7 +1,9 @@
-INSTAGRAM — CALENDÁRIO DE POSTS (Metrô Ceará, 23 dias)
-De segunda 23/11 a sexta 18/12/2026, sem post nos domingos.
+INSTAGRAM — CALENDÁRIO DE POSTS (Metrô Ceará, 24 dias)
+De segunda 23/11 a sábado 19/12/2026, sem post nos domingos.
 Dias 1–16: o app. Dias 17–21: o site (giovanildo.github.io/metro-ceara-horarios).
 Dias 22–23: app, lite e site, e para quem é cada um.
+Dia 24: novidade do app (Avisar alguém, versão 1.109). Por ser novidade,
+pode entrar antes, no lugar de qualquer dia de 1 a 16.
 O dia 16 (Nina) também pode entrar logo depois do vagão feminino (dia 10).
 
 COMO PROGRAMAR TUDO DE UMA VEZ
@@ -378,3 +380,24 @@ Vai passear ou quer conhecer as estações? O site é para você.
 Mande para quem ainda pergunta "que horas passa o metrô?" 😉
 
 📲 Link na bio
+
+
+########################################################################
+NOVIDADE DO APP (dia 24)
+########################################################################
+
+========================================================================
+DIA 24 · SÁB 19/12 · CARROSSEL (5 imagens)
+Mídia: dia24-avisar-1.png a dia24-avisar-5.png
+------------------------------------------------------------------------
+"Já tá chegando?" 📲
+
+Agora o app manda o aviso por você. Na sua viagem, toque em Avisar alguém
+e a mensagem sai pronta, com o metrô que você vai pegar e a hora que chega.
+É só escolher o WhatsApp e mandar para quem está esperando.
+
+Já dentro do metrô, no modo viagem, a mensagem vira "Estou no metrô…".
+A hora vem da tabela de horários, e o app não manda sua localização para
+ninguém.
+
+📲 Metrô Ceará, grátis no Google Play: link na bio
