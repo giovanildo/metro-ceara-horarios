@@ -1702,6 +1702,29 @@ viagem, erro da chegada, maior tempo sem GPS), `trip_end` (motivo),
 `crash` (erro que derrubou o app) e `log_on`/`log_off` (o `log_on` leva os
 mesmos dados do `app_start`).
 
+**Movimento nas viagens** (desde a 1.107, `trip/MotionRecorder.kt`): uma segunda
+opção, **Gravar movimento nas viagens**, desligada por padrão e só com o registro
+ligado (`DevLog.motionEnabled`). Serve para estudar se as paradas do metrô no
+túnel, onde não há GPS, aparecem no acelerômetro (análise de 19/11/2026); não muda
+nada na viagem. Durante o modo viagem, o acelerômetro é lido ~50 vezes por segundo
+(com a tela apagada, o sensor junta as medições e entrega a cada 5 s) e o registro
+leva **um resumo por segundo**, ~150 KB a cada 15 min. Eventos: `motion_start`
+(os sensores do aparelho: fabricante, nome, wakeup, fila), `motion` (`at` = a hora
+da medição, não da gravação; `n` medições no segundo; médias de `x`, `y`, `z` em
+m/s², com a gravidade — a inclinação mostra freada e arrancada; `mag`, a
+intensidade média; `sd`, o quanto ela variou — a vibração, quase zero parado;
+`rng`; `hpa`, a pressão do barômetro, se o celular tiver), `motion_stop`,
+`motion_option` (opção trocada) e `motion_count`. Nenhum começa com `trip_`, então
+não vão para o registro da viagem que a pessoa pode mandar (`TripLog`).
+
+**Contador:** a tela mostra quantas viagens já gravaram movimento e quantas
+passaram pelo túnel (até a estação alcançada, a viagem passou da superfície para
+uma estação subterrânea, ou o contrário). Só conta viagem de verdade (não
+simulação) com 5 min ou mais gravados. Na 10ª pelo túnel (`DevLog.MOTION_GOAL`),
+uma notificação avisa uma vez que já dá para mandar os registros; o botão Zerar
+recomeça a contagem. Como o aparelho guarda só 7 dias, a cópia na nuvem precisa
+ficar ligada até lá.
+
 ## Versão lite (web)
 
 Para quem tem iPhone (e para quem prefere não instalar APK) há uma versão

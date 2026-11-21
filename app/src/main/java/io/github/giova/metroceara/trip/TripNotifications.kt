@@ -12,6 +12,7 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import io.github.giova.metroceara.MainActivity
 import io.github.giova.metroceara.R
+import io.github.giova.metroceara.data.DevLog
 import io.github.giova.metroceara.data.SettingsStore
 import io.github.giova.metroceara.data.TripFix
 import io.github.giova.metroceara.data.TripJourney
@@ -38,6 +39,7 @@ internal object TripNotifications {
     private const val STATION_ID = 1003
     private const val MISSED_ID = 1004
     private const val REVIEW_ID = 1005
+    private const val MOTION_GOAL_ID = 1006
 
     private const val CHANNEL_ONGOING = "trip_ongoing"
     private const val CHANNEL_ALERT_SOUND = "trip_alert_sound"
@@ -430,6 +432,22 @@ internal object TripNotifications {
             .build()
         runCatching {
             context.getSystemService(NotificationManager::class.java).notify(REVIEW_ID, notification)
+        }
+    }
+
+    /** Opção de desenvolvedor: já há viagens pelo túnel suficientes com o movimento gravado. */
+    fun motionGoal(context: Context) {
+        val text = context.getString(R.string.dev_motion_goal_text, DevLog.MOTION_GOAL)
+        val notification = NotificationCompat.Builder(context, CHANNEL_ALERT_SILENT)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(context.getString(R.string.dev_motion_goal_title))
+            .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+            .setAutoCancel(true)
+            .setContentIntent(openApp(context))
+            .build()
+        runCatching {
+            context.getSystemService(NotificationManager::class.java).notify(MOTION_GOAL_ID, notification)
         }
     }
 

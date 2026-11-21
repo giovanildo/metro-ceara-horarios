@@ -39,6 +39,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -247,6 +248,8 @@ fun AboutScreen(onBack: () -> Unit, onOpenSources: () -> Unit = {}) {
 private fun DevOptions() {
     val context = LocalContext.current
     val logOn by DevLog.enabledFlow.collectAsState()
+    val motionOn by DevLog.motionFlow.collectAsState()
+    val motionCount by DevLog.motionCount.collectAsState()
     var refresh by remember { mutableIntStateOf(0) }
     val (bytes, days) = remember(refresh, logOn) { DevLog.stats() }
     Card(modifier = Modifier.fillMaxWidth()) {
@@ -265,6 +268,29 @@ private fun DevOptions() {
                     DevLog.setEnabled(context, it)
                     refresh++
                 })
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(stringResource(R.string.dev_motion), style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        text = stringResource(R.string.dev_motion_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Switch(checked = motionOn, enabled = logOn, onCheckedChange = { DevLog.setMotion(context, it) })
+            }
+            if (motionOn || motionCount.first > 0) {
+                Text(
+                    text = stringResource(
+                        R.string.dev_motion_count, motionCount.first, motionCount.second, DevLog.MOTION_GOAL,
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+                TextButton(onClick = { DevLog.resetMotionCount(context) }) {
+                    Text(stringResource(R.string.dev_motion_reset))
+                }
             }
             Text(
                 text = stringResource(R.string.dev_log_size, "%.1f".format(bytes / 1024.0), days),

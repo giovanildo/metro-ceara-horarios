@@ -46,6 +46,11 @@ class TripService : Service() {
     /** Se a viagem teve problema, para o convite de mandar o registro ([endTrip]). */
     private var review: TripReview? = null
     private var lastTrip: ActiveTrip? = null
+    /** Movimento do celular para estudo (só opção de desenvolvedor). */
+    private var motion: MotionRecorder? = null
+    /** A viagem com movimento gravado entrou ou saiu do túnel (para a contagem). */
+    private var motionTunnel = false
+    private var motionSimulated = false
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -93,6 +98,10 @@ class TripService : Service() {
             return START_NOT_STICKY
         }
         TripTracker.publish(trip)
+        stopMotion()
+        motion = if (DevLog.motionEnabled) MotionRecorder(this).also { it.start() } else null
+        motionTunnel = false
+        motionSimulated = plan.simulated
 
         job?.cancel()
         if (voice == null) voice = TripVoice(this)
@@ -145,6 +154,7 @@ class TripService : Service() {
                 }
                 val progress = estimator.progress(nowMinutes())
                 val arrived = progress.index >= plan.stops.lastIndex
+                if (motion != null && !motionTunnel && crossesTunnel(plan, progress.index)) motionTunnel = true
                 var alerted = trip.alerted
                 var alertedNow = false
                 // Partiu da origem e chegou na estação de aviso (ou já passou dela). Se já
@@ -320,8 +330,25 @@ class TripService : Service() {
         }
     }
 
+    /**
+     * Conta a viagem se gravou pelo menos [MOTION_MIN_SECONDS] de movimento (e não
+     * era simulação); ao chegar à meta de viagens pelo túnel, avisa uma vez.
+     */
+    private fun stopMotion() {
+        val recorder = motion ?: return
+        motion = null
+        recorder.stop()
+        if (motionSimulated || recorder.seconds < MOTION_MIN_SECONDS) return
+        if (DevLog.countMotionTrip(this, motionTunnel)) TripNotifications.motionGoal(this)
+    }
+
+    /** Até a estação [index], a viagem passou da superfície para o túnel, ou ao contrário. */
+    private fun crossesTunnel(plan: TripPlan, index: Int): Boolean =
+        (1..index.coerceAtMost(plan.stops.lastIndex)).any { plan.stops[it].underground != plan.stops[it - 1].underground }
+
     private fun finish() {
         job?.cancel()
+        stopMotion()
         TripTracker.publish(null)
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
         stopSelf()
@@ -329,6 +356,7 @@ class TripService : Service() {
 
     override fun onDestroy() {
         scope.cancel()
+        stopMotion()
         voice?.shutdown()
         voice = null
         TripTracker.publish(null)
@@ -353,5 +381,7 @@ class TripService : Service() {
         private const val ARRIVED_LINGER_MILLIS = 8_000L
         /** Depois de uma integração: ainda na plataforma tanto tempo depois da partida = perdeu o trem. */
         private const val MISSED_AFTER_MINUTES = 3.0
+        /** Viagem com menos movimento gravado que isto não conta (encerrada logo). */
+        private const val MOTION_MIN_SECONDS = 300
     }
 }

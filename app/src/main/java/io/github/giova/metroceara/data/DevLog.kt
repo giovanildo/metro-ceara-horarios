@@ -52,6 +52,14 @@ object DevLog {
     private val _enabledFlow = MutableStateFlow(false)
     val enabledFlow: StateFlow<Boolean> = _enabledFlow.asStateFlow()
 
+    @Volatile private var motion = false
+    private val _motionFlow = MutableStateFlow(false)
+    /** A opção "Gravar movimento nas viagens" (acelerômetro), à parte do registro. */
+    val motionFlow: StateFlow<Boolean> = _motionFlow.asStateFlow()
+
+    /** Gravar o movimento nas viagens: só com o registro ligado e a opção marcada. */
+    val motionEnabled: Boolean get() = enabled && motion
+
     fun init(context: Context) {
         val app = context.applicationContext
         appContext = app
@@ -62,6 +70,47 @@ object DevLog {
         enabled = prefs.getBoolean(KEY_ENABLED, false)
         _enabledFlow.value = enabled
         _unlocked.value = prefs.getBoolean(KEY_UNLOCKED, false)
+        motion = prefs.getBoolean(KEY_MOTION, false)
+        _motionFlow.value = motion
+        _motionCount.value = prefs.getInt(KEY_MOTION_TRIPS, 0) to prefs.getInt(KEY_MOTION_TUNNEL, 0)
+    }
+
+    private val _motionCount = MutableStateFlow(0 to 0)
+    /** Viagens com o movimento gravado: (todas, as que passaram pelo túnel). */
+    val motionCount: StateFlow<Pair<Int, Int>> = _motionCount.asStateFlow()
+
+    /**
+     * Conta uma viagem com o movimento gravado ([tunnel] = entrou ou saiu do
+     * túnel nela). Devolve `true` quando a das que passaram pelo túnel chega a
+     * [MOTION_GOAL] agora, para avisar uma vez só.
+     */
+    fun countMotionTrip(context: Context, tunnel: Boolean): Boolean {
+        val (all, inTunnel) = _motionCount.value
+        val next = (all + 1) to (inTunnel + if (tunnel) 1 else 0)
+        prefs(context).edit {
+            putInt(KEY_MOTION_TRIPS, next.first)
+            putInt(KEY_MOTION_TUNNEL, next.second)
+        }
+        _motionCount.value = next
+        log("motion_count", "trips" to next.first, "tunnel" to next.second, "this_tunnel" to tunnel)
+        return tunnel && next.second == MOTION_GOAL
+    }
+
+    fun resetMotionCount(context: Context) {
+        prefs(context).edit {
+            putInt(KEY_MOTION_TRIPS, 0)
+            putInt(KEY_MOTION_TUNNEL, 0)
+        }
+        _motionCount.value = 0 to 0
+        log("motion_count_reset")
+    }
+
+    /** Liga ou desliga a gravação do movimento; vale a partir da próxima viagem. */
+    fun setMotion(context: Context, on: Boolean) {
+        motion = on
+        prefs(context).edit { putBoolean(KEY_MOTION, on) }
+        _motionFlow.value = on
+        log("motion_option", "on" to on)
     }
 
     fun unlock(context: Context) {
@@ -186,4 +235,9 @@ object DevLog {
 
     private const val KEY_ENABLED = "enabled"
     private const val KEY_UNLOCKED = "unlocked"
+    private const val KEY_MOTION = "motion"
+    private const val KEY_MOTION_TRIPS = "motion_trips"
+    private const val KEY_MOTION_TUNNEL = "motion_tunnel"
+    /** Viagens pelo túnel com o movimento gravado para começar a estudar as paradas. */
+    const val MOTION_GOAL = 10
 }

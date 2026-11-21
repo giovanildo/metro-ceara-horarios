@@ -429,6 +429,12 @@
     <string name="dev_title">Opções de desenvolvedor</string>
     <string name="dev_log">Registro de testes</string>
     <string name="dev_log_desc">Grava downloads de horários, localização, viagens e erros, com posições de GPS exatas. Fica no aparelho, a não ser que você escolha uma pasta para a cópia na nuvem.</string>
+    <string name="dev_motion">Gravar movimento nas viagens</string>
+    <string name="dev_motion_desc">Acelerômetro (e barômetro, se o celular tiver) durante o modo viagem, um resumo por segundo no registro de testes. Só para estudar as paradas no túnel: não muda nada na viagem. Uns 150 KB a cada 15 minutos. Vale a partir da próxima viagem.</string>
+    <string name="dev_motion_count">Gravadas: %1$d viagem(ns), %2$d pelo túnel (meta: %3$d pelo túnel). Conta quem gravou 5 min ou mais. O celular guarda só 7 dias: deixe a cópia na nuvem ligada.</string>
+    <string name="dev_motion_reset">Zerar a contagem</string>
+    <string name="dev_motion_goal_title">Movimento: meta alcançada</string>
+    <string name="dev_motion_goal_text">Já são %1$d viagens pelo túnel com o movimento gravado. Pode mandar os registros para a análise.</string>
     <string name="dev_log_size">Guardado: %1$s KB em %2$d dia(s) (máximo 7 dias)</string>
     <string name="dev_save">Salvar na pasta Downloads</string>
     <string name="dev_saved">Salvo em %1$s</string>
