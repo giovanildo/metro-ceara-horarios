@@ -73,10 +73,18 @@ VIDEO_WORK=/tmp/metro-video python3 tools/video/build_iphone.py
   (1.107, terça simulada 24/11/2026 às 07:25, sem internet); os Reels saem das
   4 gravações do `gravar_instagram.sh`. O Reels da hora de descer é o mesmo do
   kit da página do bairro. A fonte não tem a seta nem o visto: o script desenha.
-  O dia 24 (Avisar alguém, 1.109/1.110) sai sozinho com
-  `python3 tools/video/instagram_app.py avisar`, das telas `avisar-viagem.png` e
-  `avisar-texto.png` (21/11, terça simulada 24/11 às 07:25, Benfica → Parangaba,
-  1080×2400, a 2ª é a janela de compartilhar do Android).
+- `avisar_videos.py` — o dia 24 (Avisar alguém, 1.109/1.110): dois vídeos de 19 s, um
+  para o story (1080×1920, legendas fora das faixas que o Instagram cobre, espaço para a
+  figurinha de link no fim) e um para o feed (1080×1350). Fundo claro, a tela do app num
+  celular e uma bolinha no papel do dedo. A história: o grupo vai de carro do Pirambu e
+  espera na fila do Cine São Luiz; você vem de metrô da Maracanaú, responde com "Avisar
+  alguém", o app avisa a chegada na José de Alencar e a galera fica sabendo. A conversa é
+  genérica (grupo "Cinema hoje"), sem imitar nenhum app. Feitos quadro a quadro em Pillow
+  e passados ao ffmpeg, a partir de `avisar-saoluiz-viagem.png` e `avisar-saoluiz-texto.png`
+  (21/11, terça simulada 24/11 às 17:45, Maracanaú → Cineteatro São Luiz, 1080×2400; a
+  posição foi trocada pelo ↻ da tela inicial e a grade de dia útil, levada a 24/11 e
+  devolvida). A notificação de chegada usa o texto do app (`trip_arrived_belongings`).
+  Prévia de um instante: `python3 tools/video/avisar_videos.py quadro 4.0`.
 - `instagram_site.py` — os dias 17 a 21 (o site-guia): serve `docs/` com o
   relógio da página fixado (sábado 07:25, para "Próximas partidas" não mostrar a
   madrugada), fotografa as páginas no Chrome sem janela em largura de celular e
