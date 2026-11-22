@@ -172,3 +172,15 @@ As telas vêm do emulador Android, com o sistema em pt-BR
 Depois do Android 16: ao ligar "Permitir desta fonte", a janela "Quer
 instalar esse app?" abre sozinha por cima; um Voltar ali cancela a
 instalação.
+- `natal.py` — seis vídeos de Natal no mesmo formato de conversa (compras no Centro,
+  amigo secreto com Avisar alguém, véspera, volta da confraternização com o modo
+  viagem, o app de presente e Feliz Natal), em `divulgacao/instagram-natal/` (legendas
+  e datas em `textos.txt`). Usa as cenas de `historias.py` e acrescenta pisca-pisca no
+  topo, estrelinhas só no fundo livre, gorro no ícone e cartão final. Telas
+  `capturas/instagram/natal-*.png`. `python3 tools/video/natal.py 2` gera um dia;
+  `--previa` grava em `prints/natal/`.
+- `natal_divulgacao.py` — a versão natalina de `referencias/metro ceará.mp4`, com
+  pisca-pisca, estrelinhas onde o fundo está livre, gorro e "Boas festas!" no cartão
+  vermelho do fim. Mantém o áudio. Sai em story/Reels (9:16) e feed (4:5, com o original
+  no centro e as laterais continuando o fundo). `python3 tools/video/natal_divulgacao.py
+  quadro 6 23.5` gera prévias em `/tmp`.
