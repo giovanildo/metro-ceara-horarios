@@ -661,6 +661,11 @@
     <string name="station_trip_other">Outro destino ›</string>
     <string name="station_share_link">Avisar alguém sobre essa viagem ›</string>
     <string name="share_arrival">Avisar alguém</string>
+    <string name="share_text">Compartilhar</string>
+    <string name="share_station_times">Compartilhar os próximos horários</string>
+    <string name="name_story_title">Por que esse nome?</string>
+    <string name="name_story_station">Estação %1$s</string>
+    <string name="name_story_footer">Metrô Ceará · as histórias das estações</string>
     <string name="station_leaves">sai %1$s</string>
     <string name="station_via">via %1$s</string>
     <string name="station_here">Você está aqui</string>

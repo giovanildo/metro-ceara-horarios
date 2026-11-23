@@ -39,11 +39,15 @@ fun bikeRuleFor(stationName: String, lineName: String, today: String = ScheduleS
     // As regras ficam em assets/regras.json (seção "bike"), não aqui.
     val rules = Regras.current
     val line = lineName.trim().lowercase()
-    val normal = rules.bikeByStation[stationName.trim().lowercase()] ?: rules.bikeByLine[line]
+    val normal = normalBikeRule(stationName, lineName)
     val special = rules.bikeSpecialDays[today]?.takeIf { normal != null && (it.lines.isEmpty() || line in it.lines) }
         ?: return normal
     return BikeRule(special.windows, special.windows, special.windows, special = true, perTrip = normal?.perTrip)
 }
+
+/** A regra comum desta estação desta linha (a do regulamento), sem a de dia especial. */
+fun normalBikeRule(stationName: String, lineName: String): BikeRule? =
+    Regras.current.bikeByStation[stationName.trim().lowercase()] ?: Regras.current.bikeByLine[lineName.trim().lowercase()]
 
 /**
  * Se dá para entrar com bicicleta agora.

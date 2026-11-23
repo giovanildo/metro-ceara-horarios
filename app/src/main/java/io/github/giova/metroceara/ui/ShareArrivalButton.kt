@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -29,5 +30,21 @@ fun ShareArrivalButton(text: () -> String, modifier: Modifier = Modifier.fillMax
     OutlinedButton(onClick = { shareArrival(context, text()) }, modifier = modifier) {
         Icon(Icons.Filled.Share, contentDescription = null)
         Text(stringResource(R.string.share_arrival), modifier = Modifier.padding(start = 8.dp))
+    }
+}
+
+/** "Compartilhar" pequeno, ao lado de um aviso (operação especial, bike). [text] só é montado no toque. */
+@Composable
+fun ShareTextButton(text: () -> String, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    ShareActionButton(onClick = { shareArrival(context, text()) }, modifier = modifier)
+}
+
+/** O mesmo "Compartilhar" pequeno, com outra ação (o cartão do nome manda uma imagem). */
+@Composable
+fun ShareActionButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    TextButton(onClick = onClick, modifier = modifier) {
+        Icon(Icons.Filled.Share, contentDescription = null, modifier = Modifier.padding(end = 6.dp))
+        Text(stringResource(R.string.share_text))
     }
 }

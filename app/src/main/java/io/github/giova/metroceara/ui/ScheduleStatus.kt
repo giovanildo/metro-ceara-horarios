@@ -23,6 +23,7 @@ import io.github.giova.metroceara.R
 import io.github.giova.metroceara.alerts.OperationAlerts
 import io.github.giova.metroceara.data.DayType
 import io.github.giova.metroceara.data.Regras
+import io.github.giova.metroceara.data.ShareTexts
 import io.github.giova.metroceara.data.ScheduleSource
 import io.github.giova.metroceara.data.ScheduleStore
 import io.github.giova.metroceara.data.isSundayWithoutService
@@ -134,5 +135,17 @@ fun MetroforNotices(notices: List<ScheduleStore.Notice>, modifier: Modifier = Mo
                 } ?: Modifier,
             ),
         )
+        // O aviso pronto para mandar a um grupo (só o que muda o horário).
+        noticeShareText(notice)?.let { text -> ShareTextButton(text = { text }) }
     }
+}
+
+/** O texto de compartilhar de um aviso: horário por linha só se for igual em todos os dias dele. */
+private fun noticeShareText(notice: ScheduleStore.Notice): String? {
+    val rules = Regras.current
+    val ops = notice.days.mapNotNull { rules.operations[it] }
+    val op = ops.firstOrNull()?.takeUnless { it.normal } ?: return null
+    val sameHours = ops.all { it.hoursByLine == op.hoursByLine }
+    return ShareTexts.operation(notice.days, if (sameHours) op else op.copy(hoursByLine = emptyList()),
+        rules.bikeSpecialDays[notice.days.first()])
 }

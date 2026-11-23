@@ -66,7 +66,29 @@ data class SpecialOperation(
     val stopped: Set<String>,
     /** Primeira e última hora de cada linha (nome em minúsculas), da tabela da notícia; aproximadas. */
     val hours: Map<String, Pair<Int, Int>> = emptyMap(),
+    /** As mesmas horas com o nome da linha como na notícia, na ordem dela (para o texto de compartilhar). */
+    val hoursByLine: List<Pair<String, Pair<Int, Int>>> = emptyList(),
+    /** Quando o Metrofor publicou a notícia ("AAAA-MM-DD"). */
+    val published: String? = null,
 )
+
+/**
+ * Por que a estação tem esse nome (regras.json "nomes", a mesma pesquisa do site):
+ * [slug] é o da página da estação no site (estacoes/<slug>/).
+ */
+data class NameStory(val slug: String, val text: String, val source: String, val link: String?) {
+    companion object {
+        /**
+         * O slug do site (tools/site.py): o nome oficial sem acento, minúsculo, com hífens.
+         * "Francisco Alves Marinho (Jereissati)" → "francisco-alves-marinho".
+         */
+        fun slug(stationName: String): String {
+            val name = StationNames.official(JourneyPlanner.plainName(stationName)).replace(Regex("\\s*\\(.*\\)$"), "")
+            return java.text.Normalizer.normalize(name, java.text.Normalizer.Form.NFD).replace(Regex("\\p{M}"), "")
+                .lowercase().replace(Regex("[^a-z0-9]+"), "-").trim('-')
+        }
+    }
+}
 
 /**
  * Super NINA (regras.json "nina"): denúncia de importunação pelo WhatsApp. O menu
@@ -139,7 +161,12 @@ class Regras(
     val nina: Nina? = null,
     /** Avisos de cada linha (nome em minúsculas), como o do vagão feminino da Linha Sul. */
     val lineNotices: Map<String, List<LineNotice>> = emptyMap(),
+    /** "Por que esse nome?" (bloco "nomes"), pelo slug da página da estação no site. */
+    val nameStories: Map<String, NameStory> = emptyMap(),
 ) {
+    /** Por que a estação tem esse nome, se a pesquisa achou com fonte. */
+    fun nameStory(stationName: String): NameStory? = nameStories[NameStory.slug(stationName)]
+
     fun lineNotices(routeName: String): List<LineNotice> = lineNotices[routeName.trim().lowercase()].orEmpty()
 
     fun source(id: String?): InfoSource? = id?.let { sources[it] }
@@ -296,19 +323,22 @@ class Regras(
                 o.keys().asSequence().filterNot { it.startsWith("_") }.associateWith { day ->
                     val op = o.getJSONObject(day)
                     val stopped = op.optJSONArray("paradas") ?: JSONArray()
+                    val byLine = op.optJSONObject("horarios")?.let { h ->
+                        h.keys().asSequence().mapNotNull { name ->
+                            val pair = h.optJSONArray(name) ?: return@mapNotNull null
+                            val start = clockMinutes(pair.optString(0)) ?: return@mapNotNull null
+                            val end = clockMinutes(pair.optString(1)) ?: return@mapNotNull null
+                            name.trim() to (start to end)
+                        }.toList()
+                    }.orEmpty()
                     SpecialOperation(
                         title = op.getString("titulo"),
                         link = op.optString("link").takeIf { it.startsWith("https://") },
                         normal = op.optBoolean("normal"),
                         stopped = (0 until stopped.length()).map { stopped.getString(it).trim().lowercase() }.toSet(),
-                        hours = op.optJSONObject("horarios")?.let { h ->
-                            h.keys().asSequence().mapNotNull { name ->
-                                val pair = h.optJSONArray(name) ?: return@mapNotNull null
-                                val start = clockMinutes(pair.optString(0)) ?: return@mapNotNull null
-                                val end = clockMinutes(pair.optString(1)) ?: return@mapNotNull null
-                                name.trim().lowercase() to (start to end)
-                            }.toMap()
-                        }.orEmpty(),
+                        hours = byLine.associate { (name, h) -> name.lowercase() to h },
+                        hoursByLine = byLine,
+                        published = op.optString("publicada").takeIf { Regex("\\d{4}-\\d{2}-\\d{2}").matches(it) },
                     )
                 }
             }.orEmpty()
@@ -344,8 +374,17 @@ class Regras(
                         .takeIf { number.length >= 12 }
                 },
                 lineNotices = root.optJSONObject("avisos_das_linhas")?.let(::lineNotices).orEmpty(),
+                nameStories = root.optJSONObject("nomes")?.let(::nameStories).orEmpty(),
             )
         }
+
+        /** Um nome sem texto fica de fora sem derrubar os outros. */
+        internal fun nameStories(o: JSONObject): Map<String, NameStory> =
+            o.keys().asSequence().filterNot { it.startsWith("_") }.mapNotNull { key ->
+                val n = o.optJSONObject(key) ?: return@mapNotNull null
+                val text = n.optString("texto").trim().takeIf { it.isNotEmpty() } ?: return@mapNotNull null
+                key to NameStory(key, text, n.optString("fonte").trim(), n.optString("link").takeIf { it.startsWith("https://") })
+            }.toMap()
 
         /** Um aviso com erro (sem texto) fica de fora sem derrubar os outros. */
         internal fun lineNotices(o: JSONObject): Map<String, List<LineNotice>> =

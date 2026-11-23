@@ -21,6 +21,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.filled.Share
+import io.github.giova.metroceara.data.normalBikeRule
+import io.github.giova.metroceara.data.ShareTexts
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -202,6 +205,17 @@ fun DeparturesScreen(
                     }
                 },
                 actions = {
+                    // Os próximos horários de cada sentido, prontos para mandar (só com metrô ainda hoje).
+                    if (!sundayOff && runningToday) {
+                        IconButton(onClick = {
+                            shareArrival(context, ShareTexts.station(
+                                stop.name, route.name, ScheduleStore.today(), nowMinutes(),
+                                directions.filter { it.published }.map { ShareTexts.DirectionTimes(it.headsign, departuresFor(it)) },
+                            ))
+                        }) {
+                            Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.share_station_times))
+                        }
+                    }
                     IconButton(onClick = onTogglePin) {
                         Icon(
                             imageVector = if (isPinned) Icons.Filled.Star else Icons.Filled.StarBorder,
@@ -414,6 +428,18 @@ fun DeparturesScreen(
                         } else {
                             SourceLine(base?.sourceId, sourcePadding)
                         }
+                        // A regra da semana e a de hoje, prontas para mandar.
+                        val normal = normalBikeRule(stop.name, route.name)
+                        if (normal != null && !bikeRule.unknown) {
+                            val todayText = bikeBoardingText(bikeRule, vehicleName(route.name))
+                            ShareTextButton(
+                                text = {
+                                    ShareTexts.bike(route.name, normal, Regras.current.bikeForbidden, ScheduleStore.today(),
+                                        todayText, Regras.current.source(normal.sourceId)?.origin)
+                                },
+                                modifier = Modifier.padding(start = 12.dp),
+                            )
+                        }
                         }
                     }
                 }
@@ -484,6 +510,11 @@ fun DeparturesScreen(
                         AllDepartures(all, now, gaps = gaps, vehicle = vehicle, marked = { alertAt(Departure(it, tomorrow = false)) != null },
                             onPick = { m: Int -> onPick(Departure(m, tomorrow = false)) })
                     }
+                }
+
+                // Por que a estação tem esse nome (a mesma pesquisa do site), com o cartão para mandar.
+                Regras.current.nameStory(stop.name)?.let { story ->
+                    item { NameStorySection(stop.name, story, modifier = Modifier.padding(top = 12.dp)) }
                 }
 
                 if (!sundayOff) item {

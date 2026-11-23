@@ -25,16 +25,7 @@ import io.github.giova.metroceara.data.formatTime
  */
 @Composable
 fun BikeBoardingNotice(rule: BikeBoarding, vehicle: String, modifier: Modifier = Modifier, rules: String? = null) {
-    val text = when {
-        rule.unknown -> stringResource(R.string.bike_boarding_unknown)
-        rule.allowed && rule.boundary != null ->
-            stringResource(R.string.bike_boarding_until, vehicle, formatTime(rule.boundary))
-        rule.allowed -> stringResource(R.string.bike_boarding_until_close, vehicle)
-        rule.boundary != null ->
-            stringResource(R.string.bike_boarding_from, vehicle, formatTime(rule.boundary))
-        rule.anyToday -> stringResource(R.string.bike_boarding_no_more_today, vehicle)
-        else -> stringResource(R.string.bike_boarding_not_today, vehicle)
-    }
+    val text = bikeBoardingText(rule, vehicle)
     val color = if (rule.allowed) {
         MaterialTheme.colorScheme.primary
     } else {
@@ -65,4 +56,17 @@ fun BikeBoardingNotice(rule: BikeBoarding, vehicle: String, modifier: Modifier =
         )
     }
     }
+}
+
+/** A frase do aviso de bike ("Pode embarcar com bike no metrô agora, até as 15:00"); também vai no compartilhar. */
+@Composable
+fun bikeBoardingText(rule: BikeBoarding, vehicle: String): String = when {
+    rule.unknown -> stringResource(R.string.bike_boarding_unknown)
+    rule.allowed && rule.boundary != null ->
+        stringResource(R.string.bike_boarding_until, vehicle, formatTime(rule.boundary))
+    rule.allowed -> stringResource(R.string.bike_boarding_until_close, vehicle)
+    rule.boundary != null ->
+        stringResource(R.string.bike_boarding_from, vehicle, formatTime(rule.boundary))
+    rule.anyToday -> stringResource(R.string.bike_boarding_no_more_today, vehicle)
+    else -> stringResource(R.string.bike_boarding_not_today, vehicle)
 }

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- O que o app pode entregar a outro app (o de e-mail): só o .zip do registro das viagens. -->
+<!-- O que o app pode entregar a outro app: o .zip do registro das viagens (e-mail) e o cartão "Por que esse nome?". -->
 <paths>
     <cache-path name="registro" path="registro-viagens/" />
+    <cache-path name="compartilhar" path="compartilhar/" />
 </paths>
