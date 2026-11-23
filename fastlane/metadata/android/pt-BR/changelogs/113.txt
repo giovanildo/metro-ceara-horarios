@@ -1,0 +1,1 @@
+• Espera longa: na tela da estação, quando o próximo metrô ou VLT demora 1h30 ou mais, o app avisa "Depois deste, o próximo só às 11:45" e marca o intervalo em Todos os horários (por exemplo, "2h30 sem VLT" na Linha Oeste). Dá para mudar o tempo ou desligar em Configurações.
