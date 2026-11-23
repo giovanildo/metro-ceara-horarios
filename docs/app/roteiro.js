@@ -50,7 +50,7 @@ export class Roteador {
     }
   }
 
-  /** Viagens de uma linha que passam por de e depois por para: [{ sai, chega, sentido }], pela partida. */
+  /** Viagens de uma linha que passam por de e depois por para: [{ sai, chega, sentido, v }], pela partida (v: os horários da viagem). */
   viagens(linhaId, de, para) {
     const chave = `${linhaId}|${de}|${para}`;
     if (!this.cache.has(chave)) {
@@ -60,7 +60,7 @@ export class Roteador {
         const j = s.estacoes.indexOf(para);
         if (i < 0 || j < 0 || i >= j) continue;
         for (const v of s.viagens) {
-          if (v[i] != null && v[j] != null && v[j] > v[i]) lista.push({ sai: v[i], chega: v[j], sentido: s });
+          if (v[i] != null && v[j] != null && v[j] > v[i]) lista.push({ sai: v[i], chega: v[j], sentido: s, v });
         }
       }
       this.cache.set(chave, lista.sort((a, b) => a.sai - b.sai));
