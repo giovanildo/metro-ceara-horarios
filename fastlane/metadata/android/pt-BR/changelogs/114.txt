@@ -1,0 +1,2 @@
+• Avisar alguém mais completo: a mensagem agora traz as estações do caminho com o horário do lado (as principais e as de integração) e onde você desce. Dentro do metrô, se ele estiver atrasado, os horários já vêm com o atraso.
+• No fim da mensagem, os links do app para Android, para iPhone (no navegador) e do site.
