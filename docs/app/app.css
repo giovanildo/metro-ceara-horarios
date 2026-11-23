@@ -384,6 +384,10 @@ dialog.folha[open] { animation: sobe .25s ease-out; }
 .links-outro .faixa-outro { width: auto; display: inline-flex; align-items: center; gap: 6px; }
 .icone-compartilhar { width: 1.1em; height: 1.1em; flex-shrink: 0; }
 .botao-icone { display: flex; align-items: center; justify-content: center; gap: 8px; }
+/* "Compartilhar" pequeno: próximos horários, aviso especial, bike e o cartão "Por que esse nome?". */
+.link-compartilhar { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: .9rem; font-weight: 700;
+  color: var(--primaria, #44598f); background: none; border: 0; padding: 6px 0; margin: 0 0 6px; cursor: pointer; }
+@media (prefers-color-scheme: dark) { .link-compartilhar { color: var(--cartao-texto); } }
 .rail { margin-top: 10px; }
 .rail .no { position: relative; padding: 5px 0 5px 40px; }
 .rail .no::before { content: ""; position: absolute; left: 16px; top: 0; bottom: 0; width: 7px; background: var(--cor-linha); }

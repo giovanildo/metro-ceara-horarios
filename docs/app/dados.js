@@ -291,12 +291,7 @@ export function passagemDaLinha(regras, nomeLinha) {
  * dia; nos outros, a do dia da semana. O resultado diz também se é dia especial.
  */
 export function janelasBike(regras, nomeEstacao, nomeLinha, diaSemana, data) {
-  const bike = regras?.bike;
-  if (!bike) return null;
-  const achar = (tabela, nome) => Object.entries(tabela || {})
-    .find(([k]) => !k.startsWith("_") && k.trim().toLowerCase() === nome.trim().toLowerCase())?.[1];
-  const id = achar(bike.estacoes, nomeEstacao) ?? achar(bike.linhas, nomeLinha);
-  const reg = id && bike.regulamentos[id];
+  const reg = regraBike(regras, nomeEstacao, nomeLinha);
   if (!reg) return null;
   const especial = regras.datas_especiais?.[data];
   const vale = especial && (!especial.linhas?.length
@@ -309,6 +304,16 @@ export function janelasBike(regras, nomeEstacao, nomeLinha, diaSemana, data) {
   janelas.porViagem = reg.limite_por_viagem || null;
   janelas.fonteId = vale ? null : reg.fonte_id || null;
   return janelas;
+}
+
+/** O regulamento de bike desta estação/linha (a regra comum, sem a de dia especial), ou null. */
+export function regraBike(regras, nomeEstacao, nomeLinha) {
+  const bike = regras?.bike;
+  if (!bike) return null;
+  const achar = (tabela, nome) => Object.entries(tabela || {})
+    .find(([k]) => !k.startsWith("_") && k.trim().toLowerCase() === nome.trim().toLowerCase())?.[1];
+  const id = achar(bike.estacoes, nomeEstacao) ?? achar(bike.linhas, nomeLinha);
+  return (id && bike.regulamentos[id]) || null;
 }
 
 /** Igual ao app: { pode, limite } — limite = fim da janela atual, ou começo da próxima de hoje. */

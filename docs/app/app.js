@@ -1,7 +1,7 @@
 import {
   agora, bikeAgora, carregar, dataCurta, distancia, falta, hora, infoEstacao, janelasBike, metros, minutosAte, passagem,
   diaEspecial, linhaParada, voltaDaSegunda, passagemDaLinha, fonteLinha, proximas, somarDias, veiculo, avisosDaLinha,
-  esperasLongas, duracaoCurta,
+  esperasLongas, duracaoCurta, regraBike, nomeOficial,
 } from "./dados.js";
 import { PERFIS, Roteador } from "./roteiro.js";
 import { destinoIdaVolta, escolherMetro, escolherVia, mesmaEstacao, viagensSugeridas } from "./idavolta.js";
@@ -206,9 +206,11 @@ function partidasComAmanha(linha, sentido, stopId) {
 function avisosMetrofor(soHoje = false, soProximos = false) {
   return estado.dados.avisos.filter((n) => (!soHoje || n.hoje) && (!soProximos || !n.hoje)).map((n) => {
     const texto = `<strong>Metrofor, ${diasDoAviso(n.dias)}:</strong> ${esc(n.titulo)}`;
-    return /^https:\/\//.test(n.link || "")
+    // O aviso pronto para mandar a um grupo (só o que muda o horário).
+    const mandar = n.normal ? "" : BOTAO_COMPARTILHAR(textoOperacao(n));
+    return (/^https:\/\//.test(n.link || "")
       ? `<p class="aviso-metrofor"><a href="${esc(n.link)}" target="_blank" rel="noopener">${texto} ›</a></p>`
-      : `<p class="aviso-metrofor">${texto}</p>`;
+      : `<p class="aviso-metrofor">${texto}</p>`) + mandar;
   }).join("");
 }
 
@@ -1205,6 +1207,7 @@ function telaEstacao(linhaId, stopId, sentidoId) {
     html += avisoBike(linha, stopId, t);
     html += `<a class="botao secundario largo" href="#/viagem/${linha.id}/${stopId}">${LUPA} Ir daqui para outra estação</a>`;
     html += blocoPerto(stopId);
+    html += blocoNome(stopId);
     tela.innerHTML = html;
     return;
   }
@@ -1220,6 +1223,10 @@ function telaEstacao(linhaId, stopId, sentidoId) {
           !p.amanha && esperas.has(p.m) ? `<span class="espera">Depois deste, o próximo só às ${hora(esperas.get(p.m))}</span>` : ""}</span>
         <span>${falta(minutosAte(p, t.minutos))}</span></button>`).join("")}</div>`;
   }
+  // Os próximos horários de cada sentido, prontos para mandar (só com metrô ainda hoje).
+  if (sentidos.some((s) => grade.partidas(s, stopId).some((m) => m >= t.minutos))) {
+    html += BOTAO_COMPARTILHAR(textoEstacao(linha, stopId, t), "Compartilhar os próximos horários");
+  }
   html += `<p class="dica">Toque em qualquer horário de hoje (aqui ou em "Todos os horários", mais abaixo) para criar um lembrete na agenda.</p>`;
   html += avisoBike(linha, stopId, t);
   html += blocoIntegracao(stopId, t);
@@ -1232,6 +1239,7 @@ function telaEstacao(linhaId, stopId, sentidoId) {
       duracaoCurta(seguinte - m)} sem ${veiculo(linha.nome)}</span>`;
     return `<button data-m="${m}" data-amanha="false" class="${passou ? "passou" : ""}" ${passou ? "disabled" : ""}>${hora(m)}</button>${espera}`;
   }).join("")}</div>`;
+  html += blocoNome(stopId);
   tela.innerHTML = html;
 
   tela.querySelectorAll("button[data-m]:not([disabled])").forEach((b) => b.addEventListener("click", () =>
@@ -1787,6 +1795,156 @@ async function avisarAlguem(texto) {
   window.open("https://wa.me/?text=" + encodeURIComponent(texto), "_blank", "noopener");
 }
 
+// ---------- compartilhar: horários da estação, aviso especial, bike e o cartão do nome
+// (os mesmos textos do app, ShareTexts.kt). Todos dizem o dia e terminam com os links do app.
+
+const BOTAO_COMPARTILHAR = (texto, rotulo = "Compartilhar") =>
+  `<button class="link-compartilhar" data-compartilhar="${esc(texto)}">${ICONE_COMPARTILHAR} ${rotulo}</button>`;
+
+/** "2026-11-23" → "segunda (23/11)". */
+function diaPorExtenso(data) {
+  const d = new Date(data + "T12:00:00Z");
+  const nomes = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
+  return `${nomes[d.getUTCDay()]} (${d.getUTCDate()}/${d.getUTCMonth() + 1})`;
+}
+/** "09:00" → "9h"; "16:30" → "16h30". */
+const horaH = (hhmm) => { const [h, m] = hhmm.split(":").map(Number); return m ? `${h}h${String(m).padStart(2, "0")}` : `${h}h`; };
+const juntarE = (l) => (l.length <= 1 ? l[0] || "" : `${l.slice(0, -1).join(", ")} e ${l[l.length - 1]}`);
+/** "das 9h às 15h e a partir das 20h". */
+const janelasPorExtenso = (lista) => juntarE(lista.map(([ini, fim]) => (fim == null ? `a partir das ${horaH(ini)}` : `das ${horaH(ini)} às ${horaH(fim)}`)));
+const rotuloLinha = (nome) => (nome.startsWith("Linha") ? `${veiculo(nome)} da ${nome}` : nome);
+
+/** Os próximos 4 metrôs de cada sentido da estação, a partir de agora. */
+function textoEstacao(linha, stopId, t) {
+  const { grade } = estado.dados;
+  const linhas = [`🚇 Próximos na estação ${semSufixo(grade.nome(stopId))}, hoje, ${diaPorExtenso(t.data)}, a partir das ${hora(t.minutos)}:`,
+    "", rotuloLinha(linha.nome).replace(/^./, (c) => c.toUpperCase())];
+  for (const s of grade.sentidosDePartida(linha, stopId).filter((x) => !x.naoPublicado)) {
+    const prox = grade.partidas(s, stopId).filter((m) => m >= t.minutos).slice(0, 4);
+    linhas.push(`sentido ${s.destino}: ${prox.length ? prox.map(hora).join(" · ") + (prox.length < 4 ? " (o último)" : "") : "não tem mais hoje"}`);
+  }
+  linhas.push("", "Pela tabela de horários do Metrofor.", "", RODAPE_AVISAR);
+  return linhas.join("\n");
+}
+
+/** O aviso de operação especial: dias, manchete, horário por linha (se igual em todos os dias), bike do dia e fonte. */
+function textoOperacao(n) {
+  const { regras } = estado.dados;
+  const ops = n.dias.map((d) => regras?.operacoes?.[d]).filter(Boolean);
+  const mesmas = ops.every((o) => JSON.stringify(o.horarios || {}) === JSON.stringify(n.horarios || {}));
+  const linhas = [`⚠️ Metrofor, ${n.dias.map(diaPorExtenso).join(", ")}: horário especial no metrô e no VLT`, "", n.titulo];
+  const horas = mesmas ? Object.entries(n.horarios || {}).filter(([k, v]) => !k.startsWith("_") && Array.isArray(v) && v.length === 2) : [];
+  if (horas.length) linhas.push("", ...horas.map(([l, [a, b]]) => `${l}: ${a} às ${b}`));
+  const bike = regras?.datas_especiais?.[n.dias[0]];
+  if (bike?.bike?.length) linhas.push(`🚲 Bike: ${janelasPorExtenso(bike.bike)}${bike.linhas?.length ? ` (${juntarE(bike.linhas)})` : ""}`);
+  const pub = /^\d{4}-\d{2}-\d{2}$/.test(n.publicada || "") ? `, notícia de ${n.publicada.slice(8)}/${n.publicada.slice(5, 7)}` : "";
+  linhas.push("", `Fonte: Metrofor${pub}`, "", RODAPE_AVISAR);
+  return linhas.join("\n");
+}
+
+/** A regra de bike da semana inteira e o que vale hoje ([hoje]: a frase do aviso da tela). */
+function textoBike(linha, stopId, t, hoje) {
+  const { grade, regras } = estado.dados;
+  const reg = regraBike(regras, grade.nome(stopId), linha.nome);
+  if (!reg) return null;
+  const dias = (l) => (l?.length ? janelasPorExtenso(l) : "não pode");
+  const linhas = [`🚲 Bike no ${rotuloLinha(linha.nome)}:`, "", `Segunda a sexta: ${dias(reg.dias_uteis)}`, `Sábado: ${dias(reg.sabado)}`,
+    "Domingo e feriado: confira o aviso do dia"];
+  if (reg.limite_por_viagem) linhas.push(`Até ${reg.limite_por_viagem} bikes por viagem; se lotar, espera o próximo.`);
+  if (regras.bike?.proibidas) linhas.push(regras.bike.proibidas);
+  linhas.push("", `Hoje, ${diaPorExtenso(t.data)}: ${hoje.replace(/^./, (c) => c.toLowerCase())}.`, "",
+    `Fonte: ${regras.fontes?.[reg.fonte_id]?.fonte || "regulamento de bikes do Metrofor"}`, "", RODAPE_AVISAR);
+  return linhas.join("\n");
+}
+
+/** O slug da página da estação no site (tools/site.py), a chave de regras.nomes. */
+function slugNome(nome) {
+  return semSufixo(nomeOficial(nome)).replace(/\s*\(.*\)$/, "").normalize("NFD").replace(/\p{M}/gu, "")
+    .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+/** "Por que esse nome?" na tela da estação (regras.json "nomes"), com o cartão para mandar. */
+function blocoNome(stopId) {
+  const { grade, regras } = estado.dados;
+  const n = regras?.nomes?.[slugNome(grade.nome(stopId))];
+  if (!n?.texto) return "";
+  const fonteNome = /^https:\/\//.test(n.link || "")
+    ? `<a href="${esc(n.link)}" target="_blank" rel="noopener">${esc(n.fonte)}</a>` : esc(n.fonte || "");
+  return `<h2>Por que esse nome?</h2><p>${esc(n.texto)}</p><p class="dica">Fonte: ${fonteNome}</p>
+    <button class="link-compartilhar" data-cartao="${esc(stopId)}">${ICONE_COMPARTILHAR} Compartilhar</button>`;
+}
+
+/** Quebra [texto] em linhas que cabem em [largura] no canvas. */
+function quebrarLinhas(ctx, texto, largura) {
+  const linhas = [];
+  let atual = "";
+  for (const p of texto.split(/\s+/)) {
+    const teste = atual ? `${atual} ${p}` : p;
+    if (atual && ctx.measureText(teste).width > largura) { linhas.push(atual); atual = p; } else atual = teste;
+  }
+  if (atual) linhas.push(atual);
+  return linhas;
+}
+
+/** O cartão "Por que esse nome?" (o mesmo do app): faixa vermelha com o nome, o texto e o app no rodapé. */
+async function desenharCartao(nome, texto) {
+  const L = 1080, PAD = 72, FONTE = "system-ui, -apple-system, Roboto, sans-serif";
+  const c = document.createElement("canvas");
+  const ctx = c.getContext("2d");
+  ctx.font = `bold 72px ${FONTE}`;
+  const titulo = quebrarLinhas(ctx, `Estação ${nome}`, L - 2 * PAD);
+  ctx.font = `46px ${FONTE}`;
+  const corpo = quebrarLinhas(ctx, texto, L - 2 * PAD);
+  const topo = PAD + 44 + 16 + titulo.length * 80 + PAD * 0.8;
+  const rodape = 150;
+  c.width = L;
+  c.height = Math.round(topo + PAD + corpo.length * 60 + PAD + rodape);
+  ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, L, c.height);
+  ctx.fillStyle = "#CE0F2E"; ctx.fillRect(0, 0, L, topo);
+  ctx.textBaseline = "top";
+  ctx.fillStyle = "rgba(255,255,255,.9)"; ctx.font = `bold 36px ${FONTE}`; ctx.fillText("POR QUE ESSE NOME?", PAD, PAD);
+  ctx.fillStyle = "#fff"; ctx.font = `bold 72px ${FONTE}`;
+  titulo.forEach((l, i) => ctx.fillText(l, PAD, PAD + 60 + i * 80));
+  ctx.fillStyle = "#222"; ctx.font = `46px ${FONTE}`;
+  corpo.forEach((l, i) => ctx.fillText(l, PAD, topo + PAD + i * 60));
+  const y = c.height - rodape;
+  ctx.fillStyle = "#E6E3EA"; ctx.fillRect(PAD, y, L - 2 * PAD, 2);
+  const icone = await new Promise((ok) => { const img = new Image(); img.onload = () => ok(img); img.onerror = () => ok(null); img.src = "icon-192.png"; });
+  const lado = 76, iy = y + (rodape - lado) / 2;
+  if (icone) ctx.drawImage(icone, PAD, iy, lado, lado);
+  ctx.fillStyle = "#555"; ctx.font = `34px ${FONTE}`; ctx.textBaseline = "middle";
+  ctx.fillText("Metrô Ceará · as histórias das estações", PAD + lado + 24, iy + lado / 2);
+  return new Promise((ok) => c.toBlob(ok, "image/png"));
+}
+
+/** Manda o cartão do nome com a legenda; sem como mandar imagem, só a legenda. */
+async function compartilharCartao(stopId) {
+  const { grade, regras } = estado.dados;
+  const slug = slugNome(grade.nome(stopId));
+  const n = regras?.nomes?.[slug];
+  if (!n) return;
+  const nome = semSufixo(grade.nome(stopId)).replace(/\s*\(.*\)$/, "");
+  const legenda = [`🚉 Por que esse nome? Estação ${nome}`, "", n.texto, "", `Fonte: ${n.fonte}`,
+    `Na página da estação: https://giovanildo.github.io/metro-ceara-horarios/estacoes/${slug}/`, "", RODAPE_AVISAR].join("\n");
+  try {
+    const blob = await desenharCartao(nome, n.texto);
+    const arquivo = blob && new File([blob], "por-que-esse-nome.png", { type: "image/png" });
+    if (arquivo && navigator.canShare?.({ files: [arquivo] })) {
+      try { await navigator.share({ files: [arquivo], text: legenda }); } catch { /* cancelou */ }
+      return;
+    }
+  } catch { /* sem canvas: vai só o texto */ }
+  avisarAlguem(legenda);
+}
+
+// Um tratador só para todos os botões de compartilhar (as telas são redesenhadas a cada 15 s).
+document.addEventListener("click", (e) => {
+  const b = e.target.closest?.("[data-compartilhar], [data-cartao]");
+  if (!b) return;
+  if (b.dataset.cartao) compartilharCartao(b.dataset.cartao);
+  else avisarAlguem(b.dataset.compartilhar);
+});
+
 /** O cartão do roteiro: cada trecho na cor da linha, a integração com tempo e passagem, a chegada. */
 function cartaoRoteiro(o, grade, dia, perfil, ape = null) {
   const { regras } = estado.dados;
@@ -1857,7 +2015,9 @@ function avisoBike(linha, stopId, t) {
   const origem = janelas.especial
     ? fonte("bike-hoje", "margin-top:-8px")
     : fonte(janelas.fonteId, "margin-top:-8px");
-  return `<p class="bike">🚲 ${texto}${extra ? `<br><span class="dica">${esc(extra)}</span>` : ""}</p>${origem}`;
+  // A regra da semana e a de hoje, prontas para mandar.
+  const mandar = textoBike(linha, stopId, t, texto);
+  return `<p class="bike">🚲 ${texto}${extra ? `<br><span class="dica">${esc(extra)}</span>` : ""}</p>${origem}${mandar ? BOTAO_COMPARTILHAR(mandar) : ""}`;
 }
 
 /** O próximo metrô/VLT da outra linha que ainda dá para pegar a pé, e a passagem. */
