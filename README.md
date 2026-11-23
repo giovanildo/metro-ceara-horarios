@@ -1885,6 +1885,10 @@ Google já conhece, em pastas próprias — a lite em `docs/app/` não é tocada
   no Android a página chama a loja por `intent://` (com a loja na web como
   reserva) e mostra o botão "Abrir na Play Store"; no iPhone leva à lite; no
   computador, à loja na web. `?de=` vira `utm_source` no referrer da loja.
+  Testado na bio em 23/11: abre a Play Store. Desde então os convites da lite
+  (`PLAY_STORE` em `docs/app/app.js`, `?de=lite`, também na mensagem de
+  compartilhar) e o botão `#baixar` da página principal (`?de=site`) passam
+  por ela; o `downloadUrl` dos dados estruturados segue com a loja direto.
 - **[Perguntas frequentes](docs/perguntas-frequentes/index.html)**: 9 dúvidas
   (domingo e feriado, horários, passagem e meia, integração, bike, elevador,
   horário exato, instalar/sem internet/iPhone, se é do Metrofor), com a fonte

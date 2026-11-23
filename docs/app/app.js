@@ -13,8 +13,10 @@ const PERTO_METROS = 3000; // a segunda estação mais perto aparece até esta d
 const LINK = "https://giovanildo.github.io/metro-ceara-horarios/app/";
 /** O texto de "Compartilhar o app": o link vem logo depois (o mesmo texto do app). */
 const TEXTO_DIVULGAR = "🚇 Quando passa o próximo metrô?\n\nO Metrô Ceará responde na hora: abra o link e veja os próximos metrôs e VLTs da estação mais perto de você, em Fortaleza, no Cariri e em Sobral.\n\n📍 Diga para onde vai, até o nome de um lugar, como Mercado Central, e veja o roteiro com as integrações\n⚠️ Fique sabendo das operações especiais do Metrofor, como no ENEM\n🏠 Guarde Casa e Trabalho e confira o horário com um toque\n\nFunciona no navegador, sem instalar nada. Grátis, sem anúncios e sem cadastro. App não oficial.\n\n📲 Tem Android? Baixe o app completo na Play Store, que avisa a hora de descer até com a tela desligada. O link está na página.\n\n👉";
-// O app completo está na Play Store desde 11/11/2026: os convites da lite levam direto à loja.
-const PLAY_STORE = "https://play.google.com/store/apps/details?id=io.github.giova.metroceara";
+// O app completo está na Play Store desde 11/11/2026. Os convites passam pela página /play/
+// (23/11): aberta dentro do Instagram, a lite não consegue abrir play.google.com no Android;
+// a /play/ chama a loja por intent://. Endereço completo: o link também vai em mensagens.
+const PLAY_STORE = "https://giovanildo.github.io/metro-ceara-horarios/play/?de=lite";
 const PIX = "giovanildos@gmail.com";
 const ANDROID = /Android/i.test(navigator.userAgent);
 const IPHONE = /iPhone|iPad|iPod/i.test(navigator.userAgent);
