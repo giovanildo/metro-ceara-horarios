@@ -18,12 +18,14 @@ const TEXTO_DIVULGAR = "🚇 Quando passa o próximo metrô?\n\nO Metrô Ceará 
 // a /play/ chama a loja por intent://. Endereço completo: o link também vai em mensagens.
 const PLAY_STORE = "https://giovanildo.github.io/metro-ceara-horarios/play/?de=lite";
 /**
- * O fim do "Avisar alguém", o mesmo do app (ShareArrival.FOOTER): quem manda não
- * sabe o celular de quem recebe, então vão a loja (Android), a lite e o site.
+ * O fim dos textos de compartilhar, o mesmo do app (ShareArrival.footer): quem manda não
+ * sabe o celular de quem recebe, então vão a loja (Android), a lite e o site. A [origem]
+ * (avisar, estacao, aviso, bike, nome) vai no link da loja como utm_source "lite-<origem>":
+ * o Play Console mostra quantas instalações vieram de cada tipo de mensagem.
  */
-const RODAPE_AVISAR = [
+const rodapeLinks = (origem) => [
   "Metrô Ceará, horários do metrô e do VLT:",
-  "Android: https://play.google.com/store/apps/details?id=io.github.giova.metroceara",
+  `Android: https://play.google.com/store/apps/details?id=io.github.giova.metroceara&referrer=utm_source%3Dlite-${origem}`,
   "iPhone: https://giovanildo.github.io/metro-ceara-horarios/app/",
   "Site: https://giovanildo.github.io/metro-ceara-horarios/",
 ].join("\n");
@@ -988,15 +990,11 @@ function abrirMais() {
     <h4>O app</h4>
     <a href="#/fontes"><span class="ic">🔎</span>De onde vem cada informação</a>
     <a href="#/sobre"><span class="ic">ⓘ</span>Sobre o app</a>
-    <button type="button" class="item" id="mais-divulgar"><span class="ic">↗️</span>Compartilhar o app</button>`;
+    <button type="button" class="item" id="mais-divulgar"><span class="ic">▦</span><span>Passar o app para alguém<small>QR code na tela ou link por mensagem</small></span></button>`;
   folha.querySelectorAll("a").forEach((a) => a.addEventListener("click", () => folha.close()));
-  folha.querySelector("#mais-divulgar").addEventListener("click", async () => {
+  folha.querySelector("#mais-divulgar").addEventListener("click", () => {
     folha.close();
-    if (navigator.share) {
-      try { await navigator.share({ title: "Metrô Ceará", text: TEXTO_DIVULGAR, url: LINK }); } catch { /* cancelou */ }
-    } else {
-      navigator.clipboard?.writeText(`${TEXTO_DIVULGAR} ${LINK}`).catch(() => {});
-    }
+    passarApp();
   });
   // Toque no fundo escuro (fora da folha) fecha.
   folha.onclick = (e) => { if (e.target === folha) folha.close(); };
@@ -1782,7 +1780,7 @@ function textoAvisar(o, grade, amanha, ape) {
     }
   });
   if (ape) linhas.push(`🚶 De lá, a pé até ${ape.nome}${ape.min ? ` (uns ${ape.min} min).` : "."}`);
-  linhas.push("", "Previsão pela tabela de horários.", "", RODAPE_AVISAR);
+  linhas.push("", "Previsão pela tabela de horários.", "", rodapeLinks("avisar"));
   return linhas.join("\n");
 }
 
@@ -1823,7 +1821,7 @@ function textoEstacao(linha, stopId, t) {
     const prox = grade.partidas(s, stopId).filter((m) => m >= t.minutos).slice(0, 4);
     linhas.push(`sentido ${s.destino}: ${prox.length ? prox.map(hora).join(" · ") + (prox.length < 4 ? " (o último)" : "") : "não tem mais hoje"}`);
   }
-  linhas.push("", "Pela tabela de horários do Metrofor.", "", RODAPE_AVISAR);
+  linhas.push("", "Pela tabela de horários do Metrofor.", "", rodapeLinks("estacao"));
   return linhas.join("\n");
 }
 
@@ -1838,7 +1836,7 @@ function textoOperacao(n) {
   const bike = regras?.datas_especiais?.[n.dias[0]];
   if (bike?.bike?.length) linhas.push(`🚲 Bike: ${janelasPorExtenso(bike.bike)}${bike.linhas?.length ? ` (${juntarE(bike.linhas)})` : ""}`);
   const pub = /^\d{4}-\d{2}-\d{2}$/.test(n.publicada || "") ? `, notícia de ${n.publicada.slice(8)}/${n.publicada.slice(5, 7)}` : "";
-  linhas.push("", `Fonte: Metrofor${pub}`, "", RODAPE_AVISAR);
+  linhas.push("", `Fonte: Metrofor${pub}`, "", rodapeLinks("aviso"));
   return linhas.join("\n");
 }
 
@@ -1853,7 +1851,7 @@ function textoBike(linha, stopId, t, hoje) {
   if (reg.limite_por_viagem) linhas.push(`Até ${reg.limite_por_viagem} bikes por viagem; se lotar, espera o próximo.`);
   if (regras.bike?.proibidas) linhas.push(regras.bike.proibidas);
   linhas.push("", `Hoje, ${diaPorExtenso(t.data)}: ${hoje.replace(/^./, (c) => c.toLowerCase())}.`, "",
-    `Fonte: ${regras.fontes?.[reg.fonte_id]?.fonte || "regulamento de bikes do Metrofor"}`, "", RODAPE_AVISAR);
+    `Fonte: ${regras.fontes?.[reg.fonte_id]?.fonte || "regulamento de bikes do Metrofor"}`, "", rodapeLinks("bike"));
   return linhas.join("\n");
 }
 
@@ -1925,7 +1923,7 @@ async function compartilharCartao(stopId) {
   if (!n) return;
   const nome = semSufixo(grade.nome(stopId)).replace(/\s*\(.*\)$/, "");
   const legenda = [`🚉 Por que esse nome? Estação ${nome}`, "", n.texto, "", `Fonte: ${n.fonte}`,
-    `Na página da estação: https://giovanildo.github.io/metro-ceara-horarios/estacoes/${slug}/`, "", RODAPE_AVISAR].join("\n");
+    `Na página da estação: https://giovanildo.github.io/metro-ceara-horarios/estacoes/${slug}/`, "", rodapeLinks("nome")].join("\n");
   try {
     const blob = await desenharCartao(nome, n.texto);
     const arquivo = blob && new File([blob], "por-que-esse-nome.png", { type: "image/png" });
@@ -2051,6 +2049,31 @@ function blocoIntegracao(stopId, t) {
   return html;
 }
 
+/** Manda o convite com o link da lite: o compartilhar do celular ou, sem ele, a área de transferência. */
+async function divulgarLink(avisar = () => {}) {
+  if (navigator.share) {
+    try { await navigator.share({ title: "Metrô Ceará", text: TEXTO_DIVULGAR, url: LINK }); } catch { /* cancelou */ }
+  } else {
+    navigator.clipboard?.writeText(`${TEXTO_DIVULGAR} ${LINK}`).then(() => avisar("Link copiado")).catch(() => avisar(LINK));
+  }
+}
+
+/**
+ * "Passar o app para alguém" (Mais): o QR grande para a outra pessoa apontar a câmera ali mesmo.
+ * Leva à página /play/?de=qr-lite (tools/qr_passar.py): no Android abre a Play Store, no iPhone a lite.
+ */
+function passarApp() {
+  janela.innerHTML = `<h3>Passar o app para alguém</h3>
+    <p>Peça para a pessoa apontar a câmera do celular dela para o código.</p>
+    <img class="qr qr-grande" src="qr-passar.png" alt="QR code que abre o Metrô Ceará na Play Store ou, no iPhone, a versão lite" width="280" height="280">
+    <p class="dica">No Android, abre o app na Play Store. No iPhone, abre esta versão lite, no navegador.</p>
+    <div class="acoes"><button class="botao secundario" id="fechar-qr">Fechar</button>
+      <button class="botao" id="mandar-link">Mandar o link por mensagem</button></div>`;
+  janela.showModal();
+  janela.querySelector("#fechar-qr").onclick = () => janela.close();
+  janela.querySelector("#mandar-link").onclick = () => { janela.close(); divulgarLink(); };
+}
+
 function telaSobre() {
   const { indice } = estado.dados;
   tela.innerHTML = `<div class="sobre">
@@ -2075,8 +2098,8 @@ function telaSobre() {
       (ou <strong>Instalar app</strong>).</p>`}`}
 
     <h2>Compartilhe</h2>
-    <p>Aponte a câmera de outro celular para abrir o app na hora:</p>
-    <img class="qr" src="qr.png" alt="QR code para abrir o app no navegador" width="200" height="200">
+    <p>Aponte a câmera de outro celular: no Android abre o app na Play Store, no iPhone esta versão lite.</p>
+    <img class="qr" src="qr-passar.png" alt="QR code que abre o Metrô Ceará na Play Store ou, no iPhone, a versão lite" width="200" height="200">
     <button class="botao" id="divulgar">Divulgar o app</button>
 
     <h2>De onde vêm os horários</h2>
@@ -2108,13 +2131,7 @@ function telaSobre() {
   const avisar = (texto) => { const el = document.getElementById("copiado"); el.textContent = texto; el.hidden = false; };
   document.getElementById("copiar-pix").addEventListener("click", () =>
     navigator.clipboard?.writeText(PIX).then(() => avisar("Chave Pix copiada")).catch(() => avisar(PIX)));
-  document.getElementById("divulgar").addEventListener("click", async () => {
-    if (navigator.share) {
-      try { await navigator.share({ title: "Metrô Ceará", text: TEXTO_DIVULGAR, url: LINK }); } catch { /* cancelou */ }
-    } else {
-      navigator.clipboard?.writeText(`${TEXTO_DIVULGAR} ${LINK}`).then(() => avisar("Link copiado")).catch(() => avisar(LINK));
-    }
-  });
+  document.getElementById("divulgar").addEventListener("click", () => divulgarLink(avisar));
 }
 
 // ---------- guia da passagem

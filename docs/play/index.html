@@ -9,7 +9,7 @@
   Passagem para a Play Store. O navegador de dentro do Instagram (e de outros apps)
   não abre links do play.google.com no Android: o toque não faz nada (23/11/2026).
   Esta página abre normalmente e, no Android, chama a Play Store por intent://;
-  no iPhone vai para a lite; no computador, para a loja na web.
+  no iPhone vai direto para a lite; no computador, para a loja na web.
   Origem da visita: ?de=instagram (vira utm_source no referrer da loja).
 -->
 <style>
@@ -48,10 +48,12 @@
       `S.browser_fallback_url=${encodeURIComponent(web)};end`;
     location.href = loja.href;
   } else if (/iphone|ipad|ipod/i.test(ua)) {
-    // Sem Play Store no iPhone: a lite.
+    // Sem Play Store no iPhone: a lite. Vai direto (o QR "Passar o app para alguém" cai aqui);
+    // o botão fica para quem voltar a esta página.
     document.getElementById("iphone").hidden = false;
     loja.textContent = "Abrir a versão lite";
     loja.href = "../app/";
+    location.replace("../app/");
   } else {
     loja.href = web;
   }
