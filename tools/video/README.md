@@ -98,6 +98,19 @@ VIDEO_WORK=/tmp/metro-video python3 tools/video/build_iphone.py
   fixado, e montavam carrosséis e rolagem ficam para posts do site que precisem
   ser imagem (os dias 17 a 22 viraram vídeos de conversa em 21/11).
 
+- `gravar_explicativo.sh` + `explicativo_instalar.py` — o explicativo "da Play
+  Store ao próximo metrô" (`divulgacao/explicativo-instalar/`, story e feed,
+  ~40 s, tom profissional): a busca digitada "metrô ceará" e "metrô fortaleza",
+  letra por letra no campo e em grande numa barra acima do celular, a página
+  do app e Instalar, a primeira abertura com Pular, a permissão de localização
+  e a próxima partida da estação mais perto. O emulador não tem a Play Store:
+  a loja é a página do Google Play no Chrome, e a digitação com acento vai pelo
+  DevTools (`digitar_cdp.js`, `Input.insertText`; o `input text` do adb não
+  escreve acento). Sugestões e resultados de outros apps saem borrados. No
+  carrossel do Play web o toque não abre o app: a página abre pelo endereço
+  (corte no vídeo). O `screenrecord` cai quando a janela da permissão fecha e
+  não grava tela parada, então o fim é uma captura.
+
 ## Capturas (emulador)
 
 As telas vêm do emulador Android, com o sistema em pt-BR
