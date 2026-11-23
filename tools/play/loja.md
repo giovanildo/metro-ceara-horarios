@@ -50,13 +50,20 @@ informação de governo):
   citava `https://www.ce.gov.br/metrofor/`: o servidor do `ce.gov.br` manda o
   certificado sem o intermediário (Amazon RSA 2048 M01). O navegador do celular
   completa sozinho, o robô não. **Nunca pôr link do `ce.gov.br` em texto da
-  loja**; usar o portal de horários `https://info.metrofor.ce.gov.br/`, o GTFS
-  `https://info.metrofor.ce.gov.br/gtfs_file` e o Bicicletar
-  `https://dados.fortaleza.ce.gov.br/dataset/estacoes-bicicletar`. Dentro do
+  loja**; usar a página de horários `https://info.metrofor.ce.gov.br/horarios`
+  e o Bicicletar `https://dados.fortaleza.ce.gov.br/dataset/estacoes-bicicletar`.
+  Em 23/11/2026 veio a mesma rejeição com links que abriam: o texto colava
+  pontuação no link (`…bicicletar.`, `…gtfs_file).`, que dão 404) e o
+  `gtfs_file` só baixa um .zip. Agora cada link fica sozinho num item, com
+  espaço depois, e só links que abrem uma página. Dentro do
   app, da lite e do site os links do `ce.gov.br` continuam (lá abrem no
   navegador).
 - Antes de enviar, testar cada link sem desligar a verificação:
-  `curl -sI <link>` não pode dar erro de certificado.
+  `python3 tools/links_da_loja.py` testa todos os textos de
+  `fastlane/metadata/android/` (certificado verificado, página HTML e não
+  download, nada de pontuação colada). O vigia roda o mesmo teste todo dia e
+  abre uma issue `loja:*` quando um link quebra. Se a Play rejeitar com o
+  teste passando, contestar com a saída do teste em vez de mexer no texto.
 
 **Gráficos:**
 

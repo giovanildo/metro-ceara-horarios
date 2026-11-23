@@ -17,6 +17,8 @@ aparece. Este script olha o que foi publicado no ramo "dados" e abre uma issue
     regra:*       notícia sobre passagem, gratuidade, bike, linha nova ou Nina
     alterada:*    outra página do site, sobre esses assuntos, criada ou alterada
     conferir:*    fonte do regras.json com a conferência vencendo
+    loja:*        link da descrição da loja que o revisor da Play acharia quebrado
+                  (tools/links_da_loja.py; a Play já rejeitou por isso em 17/11 e 23/11)
 
 Falha isolada não é problema (o site do Metrofor às vezes não responde e volta
 na rodada seguinte): por isso os limites olham a última leitura BOA, gravada pela
@@ -52,6 +54,7 @@ from datetime import date, datetime, timedelta
 
 import datas_especiais as de
 import fontes as fontes_regras
+import links_da_loja
 import operacoes
 import paginas
 
@@ -366,6 +369,8 @@ def verificar(pasta):
         **ver_paginas(ler(pasta, "paginas.json", opcional=True), paginas.ler_conferidas(), agora),
         **ver_conferencias(regras, agora),
     }
+    loja, _ = links_da_loja.verificar()
+    problemas.update({f"loja:{k}": problema(t, c) for k, (t, c) in loja.items()})
     try:
         problemas.update(ver_paginas_alteradas(paginas.listar_site(), agora.date()))
     except Exception as e:  # noqa: BLE001 - idem

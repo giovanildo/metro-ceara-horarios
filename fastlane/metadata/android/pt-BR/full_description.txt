@@ -2,7 +2,12 @@
 
 <p>Feito por um passageiro do metrô de Fortaleza, por conta própria.</p>
 
-<p><b>Fontes oficiais:</b> horários do portal do Metrofor, https://info.metrofor.ce.gov.br/ (grade em GTFS: https://info.metrofor.ce.gov.br/gtfs_file). Bicicletar dos dados abertos da Prefeitura de Fortaleza, https://dados.fortaleza.ce.gov.br/dataset/estacoes-bicicletar. Passagem, bike e avisos vêm das páginas e notícias do Metrofor, com o link de cada uma dentro do app.</p>
+<p><b>Fontes oficiais:</b></p>
+<ul>
+<li>Horários do metrô e dos VLTs, no portal do Metrofor: https://info.metrofor.ce.gov.br/horarios </li>
+<li>Estações do Bicicletar, nos dados abertos da Prefeitura de Fortaleza: https://dados.fortaleza.ce.gov.br/dataset/estacoes-bicicletar </li>
+</ul>
+<p>Passagem, bike e avisos vêm das páginas e notícias do Metrofor, com o link de cada uma dentro do app.</p>
 
 <p>Horário do metrô de Fortaleza na palma da mão: Linha Sul, Linha Oeste, Linha Nordeste e VLT Aeroporto, além dos VLTs de Sobral e do Cariri, com a próxima partida da estação mais perto de você, de Parangaba, Benfica, José de Alencar e Chico da Silva a Pacatuba, Caucaia e Juazeiro do Norte.</p>
 
