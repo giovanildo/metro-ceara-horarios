@@ -1450,6 +1450,7 @@ só no que precisa de gente:
 | Notícia sobre regra | título sobre passagem, gratuidade, bike, linha nova ou Nina, nos últimos 10 dias |
 | Página alterada | outra página do site, nos últimos 10 dias, sobre passagem, cartão, bike, linhas, estações ou horários (fora licitação, publicidade e relatórios) |
 | Conferência vencendo | fonte do `regras.json` que vence neste mês ou no próximo |
+| Link da loja | link da descrição da loja (`fastlane/metadata/android/`) que o revisor da Play acharia quebrado: erro de certificado, fora do ar, 404, baixa arquivo em vez de abrir página, colado em pontuação, ou descrição sem link de fonte ([`tools/links_da_loja.py`](tools/links_da_loja.py)) |
 
 A parte das notícias também roda na rodada de dados, a cada 30 minutos de dia
 (`vigia.py --so-noticias --issues`, sem fechar nada e sem derrubar a rodada se
@@ -2105,6 +2106,18 @@ representa o Metrofor, o Governo do Ceará nem nenhum órgão público" no topo 
 fontes que passam na verificação (`info.metrofor.ce.gov.br` e o portal de
 dados abertos da Prefeitura). Link do `ce.gov.br` não vai em texto da loja
 (veja [`loja.md`](tools/play/loja.md)).
+
+Em 23/11/2026 veio a mesma rejeição com os links abrindo, do Brasil e do
+exterior: o texto colava pontuação nos links (`…bicicletar.` e `…gtfs_file).`
+dão 404) e o `gtfs_file` só baixa um .zip. As fontes viraram uma lista, um link
+por item com espaço depois, só com páginas. Antes de colar um texto no Console:
+
+```bash
+python3 tools/links_da_loja.py   # testa os links como o robô do Google
+```
+
+O vigia roda o mesmo teste todo dia. Se a Play rejeitar com o teste passando, o
+caminho é a contestação, com a saída do teste como prova.
 
 O material para o Play Console fica em [`tools/play/`](tools/play/):
 
