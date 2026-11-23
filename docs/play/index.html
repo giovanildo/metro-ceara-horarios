@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Metrô Ceará na Play Store</title>
+<!--
+  Passagem para a Play Store. O navegador de dentro do Instagram (e de outros apps)
+  não abre links do play.google.com no Android: o toque não faz nada (23/11/2026).
+  Esta página abre normalmente e, no Android, chama a Play Store por intent://;
+  no iPhone vai para a lite; no computador, para a loja na web.
+  Origem da visita: ?de=instagram (vira utm_source no referrer da loja).
+-->
+<style>
+  :root { --fundo: #fbf8fd; --texto: #1b1b21; --texto-2: #5a5a66; --botao: #2f4578; --botao-texto: #fff; color-scheme: light; }
+  @media (prefers-color-scheme: dark) {
+    :root { --fundo: #131318; --texto: #e4e1e9; --texto-2: #b0adb8; --botao: #b6c4ff; --botao-texto: #14254d; color-scheme: dark; }
+  }
+  body { margin: 0; background: var(--fundo); color: var(--texto); font: 18px/1.45 system-ui, sans-serif; }
+  main { max-width: 420px; margin: 0 auto; padding: 48px 16px; text-align: center; }
+  img { width: 96px; height: 96px; border-radius: 22px; }
+  h1 { font-size: 1.4rem; margin: 16px 0 4px; }
+  p { color: var(--texto-2); margin: 0 0 24px; }
+  a.botao { display: block; padding: 16px; border-radius: 14px; background: var(--botao); color: var(--botao-texto);
+    font-weight: 700; text-decoration: none; margin-bottom: 12px; }
+  a.link { color: inherit; }
+</style>
+</head>
+<body>
+<main>
+  <img src="../app/icon-192.png" alt="">
+  <h1>Metrô Ceará</h1>
+  <p>Horários do metrô e do VLT. Grátis, sem anúncios · app não oficial</p>
+  <a class="botao" id="loja" href="https://play.google.com/store/apps/details?id=io.github.giova.metroceara">Abrir na Play Store</a>
+  <p id="iphone" hidden>No iPhone, use a <a class="link" href="../app/">versão lite</a>: abre no navegador, sem instalar.</p>
+</main>
+<script>
+  const PACOTE = "io.github.giova.metroceara";
+  const de = (new URLSearchParams(location.search).get("de") || "").replace(/[^a-z0-9_-]/gi, "");
+  const referrer = de ? `&referrer=${encodeURIComponent("utm_source=" + de)}` : "";
+  const web = `https://play.google.com/store/apps/details?id=${PACOTE}${referrer}`;
+  const ua = navigator.userAgent;
+  const loja = document.getElementById("loja");
+  if (/android/i.test(ua)) {
+    // Abre o app da Play Store direto; se não der, a loja na web.
+    loja.href = `intent://details?id=${PACOTE}${referrer}#Intent;scheme=market;package=com.android.vending;` +
+      `S.browser_fallback_url=${encodeURIComponent(web)};end`;
+    location.href = loja.href;
+  } else if (/iphone|ipad|ipod/i.test(ua)) {
+    // Sem Play Store no iPhone: a lite.
+    document.getElementById("iphone").hidden = false;
+    loja.textContent = "Abrir a versão lite";
+    loja.href = "../app/";
+  } else {
+    loja.href = web;
+  }
+</script>
+</body>
+</html>

@@ -1878,6 +1878,13 @@ Google já conhece, em pastas próprias — a lite em `docs/app/` não é tocada
   descrição e dados estruturados (`TrainStation`, `BreadcrumbList`) para o
   Google. Parangaba e Expedicionários (duas linhas na mesma estação) são uma
   página só; Padre Cícero do Cariri é `padre-cicero-cariri`.
+- **Passagem para a Play Store** (`docs/play/`, feita à mão, `noindex`): o
+  link da Play na bio do Instagram não abre no Android (o toque não faz nada,
+  23/11; o navegador do Instagram não entrega `play.google.com` ao app da
+  loja). Use `giovanildo.github.io/metro-ceara-horarios/play/?de=instagram`:
+  no Android a página chama a loja por `intent://` (com a loja na web como
+  reserva) e mostra o botão "Abrir na Play Store"; no iPhone leva à lite; no
+  computador, à loja na web. `?de=` vira `utm_source` no referrer da loja.
 - **[Perguntas frequentes](docs/perguntas-frequentes/index.html)**: 9 dúvidas
   (domingo e feriado, horários, passagem e meia, integração, bike, elevador,
   horário exato, instalar/sem internet/iPhone, se é do Metrofor), com a fonte
