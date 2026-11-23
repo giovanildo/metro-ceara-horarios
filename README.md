@@ -87,7 +87,7 @@ estações), **Nina** (abre direto o WhatsApp da Super NINA; ver
 primeiro, com fundo de destaque, **Passatempos** (ver [Passatempos](#passatempos)); depois,
 em quatro grupos: **Para a viagem** (Passagem, Nina), **Seu dia a dia** (Sua ida e
 volta, Suas rotinas), **Do seu jeito** (Conte sobre você, Configurações) e **O app** (De
-onde vem cada informação, Sobre o app, Compartilhar o app). Na lite, só os que
+onde vem cada informação, Sobre o app, Passar o app para alguém). Na lite, só os que
 ela tem. Ícone sem nome não serve para
 todo mundo, por isso cada botão diz o que faz; com letra grande, "Planeje sua
 viagem" quebra em duas linhas (com a Nina são cinco botões, e a letra da barra
@@ -1135,6 +1135,37 @@ para os botões `data-compartilhar`/`data-cartao`. Prévias em
 python3 tools/nomes.py   # reescreve só o bloco "nomes"; muda sem versão nova
 ```
 
+### Boca a boca: origem nos links, Passar o app e convite para avaliar (1.115)
+
+Três coisas para o app crescer pelo uso, sem anúncio:
+
+- **Origem nos links da Play:** em todo texto de compartilhar (Avisar alguém,
+  horários da estação, aviso especial, bike, cartão do nome), o link "Android:"
+  leva `&referrer=utm_source%3D<de onde>-<qual texto>`: `app-avisar`,
+  `app-estacao`, `app-aviso`, `app-bike`, `app-nome` e os mesmos com `lite-`. O
+  Play Console (Aquisição de usuários › origem) mostra quantas instalações
+  vieram de cada mensagem. No app, `ShareArrival.footer(origin)`; na lite,
+  `rodapeLinks(origem)` em `app.js` — mudar os dois juntos.
+- **Passar o app para alguém** (último item do Mais, no lugar de "Compartilhar
+  o app"): abre o QR code grande, para a outra pessoa apontar a câmera ali
+  mesmo, e embaixo "Mandar o link por mensagem" (o convite de antes, com o link
+  da lite). No app (`ui/PassAppDialog.kt`) a tela ocupa tudo e fica no brilho
+  máximo; na lite é uma janela (`passarApp()`). O QR leva a
+  `/play/?de=qr-app` (app) ou `?de=qr-lite` (lite): no Android abre a Play
+  Store, no iPhone vai direto para a lite. O Sobre (app e lite) mostra o mesmo
+  QR. Imagens geradas por `python3 tools/qr_passar.py`
+  (`res/drawable-nodpi/qr_passar.png` e `docs/app/qr-passar.png`).
+- **Convite para avaliar** (só app): na tela de chegada do modo viagem, da 3ª
+  viagem que chegou ao destino em diante (simulada não conta), um cartão
+  "Ajude o app a chegar a mais gente" com **Avaliar na Play Store** e **Agora
+  não**. Aparece no máximo duas vezes, com 21 dias entre elas; tocou em Avaliar,
+  nunca mais. Só em quem instalou pela Play Store (APK do GitHub e F-Droid,
+  não). Sem a biblioteca de avaliação do Google, que não é livre e quebraria o
+  F-Droid: o botão abre a página do app na loja (`market://`, com a loja na web
+  de reserva). Sem perguntar antes se a pessoa gostou: a Play proíbe filtrar
+  quem é convidado a avaliar. Regra em `data/ReviewInvite.kt` (testes em
+  `ReviewInviteTest`).
+
 O `regras.json` é a **fonte única** das regras que não vêm do GTFS (bike,
 integrações, passagem, endereços, posições corrigidas, acessibilidade, horários de pico e lugares): o app (`data/Regras.kt`), o
 `tools/build_db.py` e a versão lite leem o mesmo arquivo.
@@ -1262,7 +1293,8 @@ versão lite" e "Copiar link"), um botão **"Divulgar o app"** que
 abre o compartilhamento do Android (WhatsApp etc.) com uma mensagem pronta e o
 link da [versão lite](https://giovanildo.github.io/metro-ceara-horarios/app/),
 um **QR code** para outra pessoa abrir o app apontando a câmera para a tela
-(`res/drawable-nodpi/qr_download.png`, sempre sobre fundo branco). **Não há
+(`res/drawable-nodpi/qr_passar.png`, sempre sobre fundo branco: Play Store no
+Android, lite no iPhone; ver [Boca a boca](#boca-a-boca-origem-nos-links-passar-o-app-e-convite-para-avaliar-1115)). **Não há
 pedido de doação dentro do app**: a Play Store restringe pedir dinheiro fora do
 sistema de pagamento dela, então o Pix fica só na página do app e na versão
 lite.
@@ -1883,7 +1915,8 @@ GitHub Pages da página do app, em `giovanildo.github.io/metro-ceara-horarios/ap
   inicial"**; no iPhone, a tela Sobre explica o caminho pelo Compartilhar. Aberta
   pelo ícone (modo standalone), nada disso aparece.
 - Tela **Sobre**: aviso de não oficial, o que a versão lite faz e o que o app
-  completo acrescenta, QR code (`qr.png`) e botão "Divulgar o app"
+  completo acrescenta, QR code (`qr-passar.png`, o mesmo do "Passar o app
+  para alguém" do Mais) e botão "Divulgar o app"
   (compartilhamento do celular, ou cópia do link), origem dos horários,
   privacidade, código aberto e Pix.
 - `sw.js` (service worker) guarda o próprio app no celular: abre sem internet
@@ -1932,7 +1965,7 @@ Google já conhece, em pastas próprias — a lite em `docs/app/` não é tocada
   23/11; o navegador do Instagram não entrega `play.google.com` ao app da
   loja). Use `giovanildo.github.io/metro-ceara-horarios/play/?de=instagram`:
   no Android a página chama a loja por `intent://` (com a loja na web como
-  reserva) e mostra o botão "Abrir na Play Store"; no iPhone leva à lite; no
+  reserva) e mostra o botão "Abrir na Play Store"; no iPhone vai direto à lite; no
   computador, à loja na web. `?de=` vira `utm_source` no referrer da loja.
   Testado na bio em 23/11: abre a Play Store. Desde então os convites da lite
   (`PLAY_STORE` em `docs/app/app.js`, `?de=lite`, também na mensagem de
@@ -2096,8 +2129,8 @@ o bloco `#baixar` da seção "Como instalar o app completo" leva à Play Store
 (botão **"▶ Baixar na Play Store"**, desde 11/11/2026, quando o app foi
 publicado; antes convidava a ser testador beta pelo WhatsApp) e avisa quem
 tem o APK do GitHub que precisa desinstalar antes de instalar pela loja.
-O vídeo de instalação do Android saiu da página; o do iPhone ficou. O QR e o "Divulgar o app" do app Android também levam à
-versão lite. Dentro dela, uma linha fixa no topo da tela inicial convida a
+O vídeo de instalação do Android saiu da página; o do iPhone ficou. O "Divulgar o app" do app Android também leva à
+versão lite; o QR (desde a 1.115) passa pela `/play/`: Play Store no Android, lite no iPhone. Dentro dela, uma linha fixa no topo da tela inicial convida a
 baixar o app completo ("No app completo, o celular avisa a hora de descer. Baixe
 na Play Store ›" no Android, com ✕ para fechar; "Tem Android? Baixe o app
 completo na Play Store ›" nos outros aparelhos, sem ✕) e abre a página da loja
