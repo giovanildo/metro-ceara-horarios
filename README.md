@@ -379,58 +379,66 @@ mesma tela saindo dali.
     partida do roteiro.
   - em qualquer opção aberta: **Avisar alguém** (ver abaixo).
 - **Avisar alguém** (1.109, ideia tirada do "compartilhar status da viagem" dos
-  apps de corrida): abre o compartilhar do Android com a previsão de chegada
-  pronta para mandar pelo WhatsApp ou outro app. Sem servidor, sem conta e sem
-  localização: só sai do celular o texto que a pessoa escolhe enviar.
+  apps de corrida): abre o compartilhar do Android com a viagem pronta para
+  mandar pelo WhatsApp ou outro app. Sem servidor, sem conta e sem
+  localização: só sai do celular o texto que a pessoa escolhe enviar. Desde a
+  1.113, a mensagem traz as estações com o horário do lado:
   ```
-  🚇 Vou pegar o metrô das 15:04 na estação Benfica: Linha Sul, sentido Carlito Benevides.
-  Chego na estação Parangaba por volta das 15:14.
-  (previsão pela tabela de horários)
+  🚇 Vou pegar o metrô das 07:00 na estação Carlito Benevides (Linha Sul, sentido Chico da Silva).
 
-  📍 Acompanhe a viagem:
-  https://giovanildo.github.io/metro-ceara-horarios/app/#/acompanhar/1.20261121.1-2-904-5-914
+  07:00 · Carlito Benevides
+  07:08 · Raquel de Queiroz
+  07:18 · Mondubim
+  07:24 · Parangaba
+  🔄 Integração para o VLT da Linha Nordeste, sentido Iate
+  07:30 · Parangaba
+  07:36 · Expedicionarios
+  07:54 · Pontes Vieira
+  08:00 · Papicu, onde desço
+
+  Previsão pela tabela de horários.
+
+  Metrô Ceará, horários do metrô e do VLT:
+  Android: https://play.google.com/store/apps/details?id=io.github.giova.metroceara
+  iPhone: https://giovanildo.github.io/metro-ceara-horarios/app/
+  Site: https://giovanildo.github.io/metro-ceara-horarios/
   ```
-  Com integração, cita onde trocar e para qual linha ("Em Parangaba faço a
-  integração para o VLT da Linha Nordeste e chego…"); com um lugar, "desço na
-  estação X … e vou a pé até Y"; na aba Amanhã, "Amanhã vou pegar…". "Por volta
-  das" e "previsão pela tabela" deixam claro que não é tempo real. O nome da
-  estação vem depois de "estação" para não errar o gênero ("na Parangaba", "no
-  Papicu"). O texto sai de `data/ShareArrival.kt` (testes em
-  `ShareArrivalTest`); a lite tem a mesma frase em `textoAvisar()` — mudar os
-  dois juntos. O botão também fica no modo viagem (embaixo de "chega ~"):
-  dentro do metrô vira "Estou no metrô da Linha Sul, sentido…", com os trechos
-  que faltam; na estação de partida antes da hora, continua "Vou pegar…", com
-  o atraso medido. Na simulação, não aparece. Na **tela inicial**, onde houver
+  **Quais estações entram** (`ShareArrival.pick()`, por trecho): com 4 ou
+  menos, todas; senão a primeira, depois uma a cada 4, e a de descida sempre.
+  Toda estação de **integração** do caminho (as do `regras.json`, mesmo sem
+  troca nela, como Parangaba numa viagem só na Linha Sul) entra e recomeça a
+  contagem; a da contagem que cairia colada numa delas, ou na última, fica de
+  fora. Com integração, cada trecho conta separado, com a linha "🔄 Integração
+  para…" entre eles; com um lugar buscado, "🚶 De lá, a pé até Y (uns N min)."
+  no fim; na aba Amanhã, "Amanhã vou pegar…". Emoji só onde ajuda a ler (🚇 🔄
+  ⏱️ 🚶). O fim leva três links, porque quem manda não sabe o celular de quem
+  recebe: a Play Store (Android), a lite (iPhone) e o site. O texto sai de
+  `data/ShareArrival.kt` (testes em `ShareArrivalTest`); a lite tem o mesmo em
+  `textoAvisar()` e `estacoesDoAviso()` — mudar os dois juntos. As estações de
+  cada opção vêm da viagem escolhida (`LegView.stations`; na aba Amanhã, da
+  grade de amanhã, `tripTimes(…, tomorrow = true)`). O botão também fica no
+  modo viagem (embaixo de "chega ~"): dentro do metrô vira "Estou no metrô da
+  Linha Sul, sentido…", com a lista a partir da **próxima estação** e o
+  **atraso percebido já somado** aos horários do trecho atual ("⏱️ O metrô
+  está uns 3 min atrasado; os horários já contam isso."); os trechos seguintes
+  vão pela tabela; sentado pelo terminal, o terminal entra na lista. Na
+  estação de partida antes da hora, continua "Vou pegar…". Na simulação, não
+  aparece. Na **tela inicial**, onde houver
   "Outro destino ›" (a estação aberta mostra a última viagem, ou a pessoa
   guardou Casa ou Trabalho — aí os atalhos já estão no topo e o link da
   estação deixa de ser "Para onde você vai? ›"), **"Avisar alguém sobre essa
   viagem ›"** (com o símbolo de compartilhar) fica logo abaixo e tem a **mesma
   ação** (abre a busca): ele só deixa a função à vista na tela inicial
   (escolha de 21/11/2026; compartilhar direto dali foi descartado).
-- **Acompanhe a viagem** (1.111): a mensagem do Avisar alguém termina com um
-  link para a lite em que quem recebe vê a viagem andando, sem instalar nada —
-  como a localização em tempo real do WhatsApp, mas **pela tabela de
-  horários**, sem GPS e sem servidor. A viagem vai inteira no próprio link,
-  depois do `#` (o navegador não manda essa parte para o servidor):
-  `1.AAAAMMDD.linha-de-sai-para-chega_…`, um trecho por linha, com os códigos
-  da grade (`route_id`, `stop_id`) e os horários em minutos. O link entra no
-  lugar do link do app. Ele sai de `ShareArrival.trackLink()` (em Sua viagem,
-  com a data de hoje ou de amanhã; no modo viagem, do trecho atual em diante,
-  com o atraso medido somado ao trecho atual, e o "sentado pelo terminal" vira
-  dois trechos na mesma linha). Para os trechos seguintes do modo viagem, o
-  `JourneyLeg` guarda `routeId`/`fromStop`/`toStop` (JSON `rid`/`fid`/`tid`);
-  uma viagem salva antes da 1.111 não tem os códigos e vai sem o link. Na
-  lite, `#/acompanhar/<código>` (`telaAcompanhar()` em `app.js`, estilos
-  `.ac-*`): antes de sair, a contagem; durante, o metrô entre duas estações no
-  trilho (as já passadas apagadas) e "Agora, pela tabela: entre X e Y";
-  na integração, a troca em destaque com a passagem; os trechos feitos viram
-  uma linha "✓"; depois da chegada, "Pela tabela, já chegou" e o convite para
-  o app (no Android). As estações do meio vêm da tabela da lite (a viagem que
-  leva o mesmo tempo; sem ela, no proporcional). Sempre com o aviso "Se o
-  metrô atrasar, esta página não fica sabendo. Ninguém está compartilhando a
-  localização." Um link de outro dia diz que a viagem terminou; um de amanhã
-  mostra o plano; um cortado pede para mandarem de novo. Prévias em
-  `prints/avisar-ao-vivo/` (fora do git).
+- **Acompanhe a viagem** (1.111 e 1.112, **retirado na 1.113**): o Avisar
+  alguém levava um link para uma página da lite (`#/acompanhar/…`) em que quem
+  recebia via o metrô andando pela tabela de horários. Saiu porque a página
+  não tinha como saber de atraso (sem servidor e sem tempo real do Metrofor)
+  e o texto com as estações já basta para quem recebe; no lugar, o texto
+  ganhou os horários com o atraso percebido. Um link antigo abre a tela inicial
+  da lite. Ideia de Pedro Alisson; prévias em `prints/avisar-ao-vivo/` e
+  `prints/avisar-texto/` (fora do git). Os códigos `routeId`/`fromStop`/
+  `toStop` do `JourneyLeg` (JSON `rid`/`fid`/`tid`) ficaram, sem uso por ora.
 - **Domingo sem operação anunciada:** nenhum roteiro nem modo viagem. O
   resultado mostra só o aviso "Hoje é domingo: metrô e VLT não circulam.
   Voltam segunda, a partir das 05:30." (o primeiro horário de segunda na
@@ -1815,8 +1823,8 @@ GitHub Pages da página do app, em `giovanildo.github.io/metro-ceara-horarios/ap
   (`#/viagem`, a busca "Para onde você vai?", com os atalhos Casa e Trabalho
   em `#/lugar/…` e `#/ir/…`; cada opção aberta tem **Avisar alguém**, com o
   mesmo texto do app pelo compartilhar do navegador — no computador, o
-  WhatsApp Web — e o link "Acompanhe a viagem", que abre `#/acompanhar/…`
-  nesta mesma lite; ver Acompanhe a viagem, acima) e
+  WhatsApp Web —, com as estações e os horários da tabela; ver Avisar
+  alguém, acima) e
   configurações. Na inicial, "Avisar alguém sobre essa viagem ›" fica debaixo
   de "Outro destino ›", com a mesma ação, como no app (também com Casa ou
   Trabalho guardados no navegador).
