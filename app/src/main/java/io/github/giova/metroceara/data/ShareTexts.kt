@@ -8,7 +8,7 @@ import java.util.TimeZone
  * Os textos de compartilhar (WhatsApp ou outro app) que não são o "Avisar alguém":
  * os próximos horários de uma estação, o aviso de operação especial e a regra de
  * bike. Todos dizem a que dia se referem (mensagem encaminhada vive dias) e
- * terminam com os links do app ([ShareArrival.FOOTER]).
+ * terminam com os links do app ([ShareArrival.footer]).
  */
 object ShareTexts {
 
@@ -38,7 +38,7 @@ object ShareTexts {
         }
         lines += ""
         lines += "Pela tabela de horários do Metrofor."
-        return (lines + "" + ShareArrival.FOOTER).joinToString("\n")
+        return (lines + "" + ShareArrival.footer("estacao")).joinToString("\n")
     }
 
     /**
@@ -64,7 +64,7 @@ object ShareTexts {
         }
         lines += ""
         lines += "Fonte: Metrofor" + (op.published?.let { ", notícia de ${shortDate(it)}" } ?: "")
-        return (lines + "" + ShareArrival.FOOTER).joinToString("\n")
+        return (lines + "" + ShareArrival.footer("aviso")).joinToString("\n")
     }
 
     /**
@@ -94,7 +94,7 @@ object ShareTexts {
             .replace("..", ".")
         lines += ""
         lines += "Fonte: " + (sourceTitle ?: "regulamento de bikes do Metrofor")
-        return (lines + "" + ShareArrival.FOOTER).joinToString("\n")
+        return (lines + "" + ShareArrival.footer("bike")).joinToString("\n")
     }
 
     /** A legenda do cartão "Por que esse nome?": o texto, a fonte e a página da estação no site. */
@@ -108,7 +108,7 @@ object ShareTexts {
             "Fonte: ${story.source}",
             "Na página da estação: ${ShareArrival.SITE}estacoes/${story.slug}/",
             "",
-            ShareArrival.FOOTER,
+            ShareArrival.footer("nome"),
         ).joinToString("\n")
     }
 

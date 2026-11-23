@@ -21,7 +21,7 @@ class ShareTextsTest {
                 "Metrô da Linha Sul\n" +
                 "sentido Chico da Silva: 17:16 · 17:34 · 17:52 · 18:10\n" +
                 "sentido Carlito Benevides: 17:15 · 23:33 (o último)\n\n" +
-                "Pela tabela de horários do Metrofor.\n\n" + ShareArrival.FOOTER,
+                "Pela tabela de horários do Metrofor.\n\n" + ShareArrival.footer("estacao"),
             text,
         )
     }
@@ -47,7 +47,7 @@ class ShareTextsTest {
                 "Tem metrô e VLT, das 05:30 às 18:10 (varia por linha), menos VLT de Sobral e VLT do Cariri.\n\n" +
                 "Linha Sul: 05:30 às 18:10\nLinha Nordeste: 05:30 às 17:30\n" +
                 "🚲 Bike: a partir das 9h (Linha Sul e Linha Nordeste)\n\n" +
-                "Fonte: Metrofor, notícia de 17/11\n\n" + ShareArrival.FOOTER,
+                "Fonte: Metrofor, notícia de 17/11\n\n" + ShareArrival.footer("aviso"),
             ShareTexts.operation(listOf("2026-11-20"), op, bike),
         )
     }
@@ -65,7 +65,7 @@ class ShareTextsTest {
                 "Até 4 bikes por viagem; se lotar, espera o próximo.\n" +
                 "Bike elétrica ou de carga não pode.\n\n" +
                 "Hoje, segunda (23/11): pode embarcar com bike no metrô agora, até as 15:00.\n\n" +
-                "Fonte: Regulamento de bikes do Metrofor (2023)\n\n" + ShareArrival.FOOTER,
+                "Fonte: Regulamento de bikes do Metrofor (2023)\n\n" + ShareArrival.footer("bike"),
             text,
         )
     }
@@ -92,7 +92,7 @@ class ShareTextsTest {
         assertEquals(
             "🚉 Por que esse nome? Estação Chico da Silva\n\nHomenageia o pintor Chico da Silva.\n\n" +
                 "Fonte: Wikipédia\nNa página da estação: https://giovanildo.github.io/metro-ceara-horarios/estacoes/chico-da-silva/\n\n" +
-                ShareArrival.FOOTER,
+                ShareArrival.footer("nome"),
             ShareTexts.nameStory("Chico da Silva", story),
         )
     }

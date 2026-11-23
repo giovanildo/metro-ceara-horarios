@@ -213,6 +213,7 @@ fun AppRoot() {
     var routeId by rememberSaveable { mutableStateOf<String?>(null) }
     var stopId by rememberSaveable { mutableStateOf<String?>(null) }
     var showAbout by rememberSaveable { mutableStateOf(false) }
+    var passAppOpen by rememberSaveable { mutableStateOf(false) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
     var fareGuideOpen by rememberSaveable { mutableStateOf(false) }
     var sourcesOpen by rememberSaveable { mutableStateOf(false) }
@@ -1336,6 +1337,15 @@ fun AppRoot() {
 
     // --------------------------------------------------------------- telas ----
     val arrived = tripArrival?.takeIf { it.isRecent(System.currentTimeMillis()) }
+    if (passAppOpen) {
+        PassAppDialog(
+            onDismiss = { passAppOpen = false },
+            onSendLink = {
+                passAppOpen = false
+                shareApp(context)
+            },
+        )
+    }
     when {
         // Chegou: o resumo, antes de voltar ao app.
         arrived != null -> TripArrivalScreen(
@@ -1676,7 +1686,7 @@ fun AppRoot() {
                 onSettings = { showSettings = true },
                 onSources = { sourcesOpen = true },
                 onAbout = { showAbout = true },
-                onShare = { shareApp(context) },
+                onShare = { passAppOpen = true },
             ),
             blocks = homeBlocks(homeLayout),
             block = { HomeBlockContent(it, homeLayout) },

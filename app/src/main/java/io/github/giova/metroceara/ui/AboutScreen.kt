@@ -224,7 +224,7 @@ fun AboutScreen(onBack: () -> Unit, onOpenSources: () -> Unit = {}) {
                     modifier = Modifier.padding(top = 12.dp),
                 ) {
                     Image(
-                        bitmap = ImageBitmap.imageResource(R.drawable.qr_download),
+                        bitmap = ImageBitmap.imageResource(R.drawable.qr_passar),
                         contentDescription = stringResource(R.string.about_share_qr),
                         filterQuality = FilterQuality.None,
                         modifier = Modifier.padding(12.dp).size(220.dp),

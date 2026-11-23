@@ -5,7 +5,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ShareArrivalTest {
-    private val rodape = "Previsão pela tabela de horários.\n\n${ShareArrival.FOOTER}"
+    private val rodape = "Previsão pela tabela de horários.\n\n${ShareArrival.footer("avisar")}"
 
     // A Linha Sul de Carlito Benevides a Chico da Silva, metrô das 07:00 de um dia útil.
     private val sul = listOf(
@@ -79,7 +79,7 @@ class ShareArrivalTest {
             "🚇 Estou no metrô da Linha Sul, sentido Chico da Silva.\n\n" +
                 "07:29 · Juscelino Kubitscheck\n07:37 · Benfica\n07:40 · José de Alencar, onde desço\n\n" +
                 "⏱️ O metrô está uns 3 min atrasado; os horários já contam isso.\n\n" +
-                ShareArrival.FOOTER,
+                ShareArrival.footer("avisar"),
             ShareArrival.text(listOf(leg("Linha Sul", "Chico da Silva", atrasado)), onBoard = true, delayMinutes = 3),
         )
     }
@@ -106,7 +106,7 @@ class ShareArrivalTest {
         val leg = ShareArrival.Leg("Linha Sul", "Carlito Benevides", "Benfica", "Parangaba", 9 * 60, 9 * 60 + 10)
         assertTrue(ShareArrival.text(listOf(leg), onBoard = false).endsWith(
             "Metrô Ceará, horários do metrô e do VLT:\n" +
-                "Android: https://play.google.com/store/apps/details?id=io.github.giova.metroceara\n" +
+                "Android: https://play.google.com/store/apps/details?id=io.github.giova.metroceara&referrer=utm_source%3Dapp-avisar\n" +
                 "iPhone: https://giovanildo.github.io/metro-ceara-horarios/app/\n" +
                 "Site: https://giovanildo.github.io/metro-ceara-horarios/",
         ))

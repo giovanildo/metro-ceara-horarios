@@ -24,7 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ConfirmationNumber
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.QrCode2
 import androidx.compose.material.icons.outlined.TravelExplore
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -131,7 +131,7 @@ fun HomeMoreSheet(actions: HomeMenuActions, onDismiss: () -> Unit) {
             MenuGroup(R.string.menu_group_app)
             MenuRow(Icons.Outlined.TravelExplore, R.string.sources_title) { go(actions.onSources) }
             MenuRow(Icons.Outlined.Info, R.string.menu_about) { go(actions.onAbout) }
-            MenuRow(Icons.Outlined.Share, R.string.menu_share) { go(actions.onShare) }
+            MenuRow(Icons.Outlined.QrCode2, R.string.menu_share, R.string.menu_share_sub) { go(actions.onShare) }
         }
     }
 }

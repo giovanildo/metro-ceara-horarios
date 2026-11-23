@@ -16,15 +16,20 @@ object ShareArrival {
 
     /**
      * O fim da mensagem: o app na loja (Android), a lite (iPhone, no navegador)
-     * e o site. Quem manda não sabe o celular de
-     * quem recebe, então vão os três.
+     * e o site. Quem manda não sabe o celular de quem recebe, então vão os três.
+     * [origin]: que texto levou a pessoa à loja (avisar, estacao, aviso, bike,
+     * nome). Vai no referrer como utm_source "app-<origin>", e o Play Console
+     * mostra quantas instalações vieram de cada tipo de mensagem.
      */
-    val FOOTER = listOf(
+    fun footer(origin: String) = listOf(
         "Metrô Ceará, horários do metrô e do VLT:",
-        "Android: $PLAY_STORE",
+        "Android: ${playStore("app-$origin")}",
         "iPhone: $LITE",
         "Site: $SITE",
     ).joinToString("\n")
+
+    /** O link da loja com a origem no referrer ("utm_source=<source>", codificado). */
+    fun playStore(source: String) = "$PLAY_STORE&referrer=utm_source%3D$source"
 
     /** Uma estação do trecho, com o horário (minutos desde a meia-noite). [anchor]: entra sempre (o terminal onde o metrô volta). */
     data class Stop(val name: String, val time: Int, val anchor: Boolean = false)
@@ -107,7 +112,7 @@ object ShareArrival {
             "Previsão pela tabela de horários."
         }
         lines += ""
-        lines += FOOTER
+        lines += footer("avisar")
         return lines.joinToString("\n")
     }
 

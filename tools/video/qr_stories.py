@@ -83,12 +83,10 @@ def story_qr_link():
 
 
 def qr_simples():
-    """O QR sozinho: em divulgacao/, na tela Sobre da versão lite e na do app."""
+    """O QR sozinho, para a lite: em divulgacao/ e em docs/app/qr.png (o do Mais e do Sobre é tools/qr_passar.py)."""
     q = fr.qr_image(URL, 390)
     q.save(os.path.join(OUT, "qrcode.png"), optimize=True)
     q.save(os.path.join(fr.ROOT, "docs", "app", "qr.png"), optimize=True)
-    fr.qr_image(URL, 481).convert("1").save(
-        os.path.join(fr.ROOT, "app", "src", "main", "res", "drawable-nodpi", "qr_download.png"), optimize=True)
 
 
 story_qr()
