@@ -635,6 +635,10 @@
     <string name="lines_subtitle">Toque numa linha para ver as estações</string>
     <string name="menu_share">Passar o app para alguém</string>
     <string name="menu_share_sub">QR code na tela ou link por mensagem</string>
+    <string name="review_invite_title">Ajude o app a chegar a mais gente</string>
+    <string name="review_invite_text">O Metrô Ceará é feito por um passageiro, sem anúncios. Se ele te ajuda, uma avaliação na Play Store faz mais gente encontrar o app.</string>
+    <string name="review_invite_rate">Avaliar na Play Store</string>
+    <string name="review_invite_later">Agora não</string>
     <string name="pass_app_title">Passar o app para alguém</string>
     <string name="pass_app_desc">Peça para a pessoa apontar a câmera do celular dela para o código.</string>
     <string name="pass_app_qr">QR code que abre o Metrô Ceará na Play Store ou, no iPhone, a versão lite</string>

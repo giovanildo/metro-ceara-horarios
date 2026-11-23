@@ -77,9 +77,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import io.github.giova.metroceara.R
 import io.github.giova.metroceara.data.JourneyPlanner
 import io.github.giova.metroceara.data.Rail
+import io.github.giova.metroceara.data.ReviewInvite
 import io.github.giova.metroceara.data.ShareArrival
 import io.github.giova.metroceara.data.RailRow
 import io.github.giova.metroceara.data.TripFix
@@ -659,9 +661,47 @@ fun TripArrivalScreen(arrival: TripArrival, lineColorHex: String, onDone: () -> 
             ArrivalLine(stringResource(R.string.trip_arrival_arrived), formatTime(arrival.arrival))
             ArrivalLine(stringResource(R.string.trip_arrival_duration), stringResource(R.string.trip_arrival_minutes, arrival.durationMinutes))
             ArrivalLine(stringResource(R.string.trip_arrival_stations), arrival.stations.toString())
+            ReviewInviteCard(arrival)
             Spacer(Modifier.height(32.dp))
             Button(onClick = onDone, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.trip_arrival_done)) }
             Spacer(Modifier.height(24.dp))
+        }
+    }
+}
+
+/**
+ * O convite para avaliar na Play Store ([ReviewInvite]): da 3ª chegada em diante,
+ * no máximo duas vezes. Sem perguntar antes se a pessoa gostou.
+ */
+@Composable
+private fun ReviewInviteCard(arrival: TripArrival) {
+    val context = LocalContext.current
+    var show by remember(arrival.atMillis) {
+        mutableStateOf(ReviewInvite.onArrival(context, arrival.atMillis, arrival.simulated))
+    }
+    if (!show) return
+    Surface(
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        shape = RoundedCornerShape(20.dp),
+        modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Text(stringResource(R.string.review_invite_title), style = MaterialTheme.typography.titleMedium)
+            Text(
+                stringResource(R.string.review_invite_text),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(top = 6.dp),
+            )
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(top = 12.dp),
+            ) {
+                Button(onClick = {
+                    show = false
+                    ReviewInvite.rate(context)
+                }) { Text(stringResource(R.string.review_invite_rate)) }
+                TextButton(onClick = { show = false }) { Text(stringResource(R.string.review_invite_later)) }
+            }
         }
     }
 }
