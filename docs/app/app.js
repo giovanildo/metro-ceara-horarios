@@ -1,6 +1,7 @@
 import {
   agora, bikeAgora, carregar, dataCurta, distancia, falta, hora, infoEstacao, janelasBike, metros, minutosAte, passagem,
   diaEspecial, linhaParada, voltaDaSegunda, passagemDaLinha, fonteLinha, proximas, somarDias, veiculo, avisosDaLinha,
+  esperasLongas, duracaoCurta,
 } from "./dados.js";
 import { PERFIS, Roteador } from "./roteiro.js";
 import { destinoIdaVolta, escolherMetro, escolherVia, mesmaEstacao, viagensSugeridas } from "./idavolta.js";
@@ -1160,6 +1161,8 @@ function telaEstacao(linhaId, stopId, sentidoId) {
   const { hoje, amanha } = partidasComAmanha(linha, sentido, stopId);
   const lista = proximas(hoje, t.minutos, PROXIMAS, amanha);
   const domingo = domingoSemOperacao(t);
+  // Esperas longas na grade de hoje (a Linha Oeste fica até 2h30 sem VLT no meio do dia).
+  const esperas = esperasLongas(hoje);
 
   let html = `<h2 style="font-size:1.4rem;margin-bottom:0">${esc(grade.nome(stopId))}</h2>
     <p class="dica" style="margin-top:2px"><span class="ponto" style="background:${cor(linha)}"></span> ${esc(linha.nome)}</p>`;
@@ -1201,7 +1204,8 @@ function telaEstacao(linhaId, stopId, sentidoId) {
   } else {
     html += `<div class="cartao proximas" style="padding:4px 0">${lista.map((p, i) =>
       `<button data-m="${p.m}" data-amanha="${p.amanha}">
-        <span><span class="hora">${hora(p.m)}</span>${p.amanha ? "<small>amanhã</small>" : ""}</span>
+        <span><span class="hora">${hora(p.m)}</span>${p.amanha ? "<small>amanhã</small>" : ""}${
+          !p.amanha && esperas.has(p.m) ? `<span class="espera">Depois deste, o próximo só às ${hora(esperas.get(p.m))}</span>` : ""}</span>
         <span>${falta(minutosAte(p, t.minutos))}</span></button>`).join("")}</div>`;
   }
   html += `<p class="dica">Toque em qualquer horário de hoje (aqui ou em "Todos os horários", mais abaixo) para criar um lembrete na agenda.</p>`;
@@ -1211,7 +1215,10 @@ function telaEstacao(linhaId, stopId, sentidoId) {
   html += blocoPerto(stopId);
   html += `<h2>Todos os horários</h2><div class="todos">${hoje.map((m) => {
     const passou = m < t.minutos;
-    return `<button data-m="${m}" data-amanha="false" class="${passou ? "passou" : ""}" ${passou ? "disabled" : ""}>${hora(m)}</button>`;
+    const seguinte = esperas.get(m);
+    const espera = seguinte === undefined ? "" : `<span class="espera${seguinte < t.minutos ? " passou" : ""}">⏳ ${
+      duracaoCurta(seguinte - m)} sem ${veiculo(linha.nome)}</span>`;
+    return `<button data-m="${m}" data-amanha="false" class="${passou ? "passou" : ""}" ${passou ? "disabled" : ""}>${hora(m)}</button>${espera}`;
   }).join("")}</div>`;
   tela.innerHTML = html;
 

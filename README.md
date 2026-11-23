@@ -1129,10 +1129,23 @@ próprias cores, em vermelho). Nas outras seções:
 | Considerar o GPS perdido depois de | 1 min | 30 s – 5 min |
 | Contar o trem que saiu há até | 2 min | 0 – 10 min |
 | Mostrar o metrô ou VLT atrasado de até | 10 min | 0 (não mostrar) – 20 min |
+| Avisar quando o próximo demora | 1h30 | 0 (não avisar) – 3h, de 15 em 15 min |
 | Encerrar a viagem sozinho depois de | 30 min | 10 – 60 min |
 | Oferecer ir sentado pelo terminal até | 3 estações | 0 (não oferecer) – 5 |
 | Atualizar sua posição (tela inicial) a cada | 10 s | 5 – 60 s |
 | Segurar a posição mais certa por | 2 min | 30 s – 5 min |
+
+**Espera longa (1.112):** na tela da estação, quando o metrô ou VLT seguinte só
+passa 1h30 ou mais depois, o horário em "Próximas partidas" ganha, em vermelho,
+"Depois deste, o próximo só às 11:45", e "Todos os horários" ganha um marcador
+entre os dois ("⏳ 2h30 sem VLT"; apagado quando a espera já acabou). Nasceu de
+um story de passageiro (23/11) com prints do app: a Linha Oeste fica até 2h30
+sem VLT no meio do dia (Moura Brasil 09:15 → 11:45; Caucaia de 1h30 a 1h45).
+Com 1h30, entram a Oeste e o VLT do Cariri no meio do dia; Sobral (63 min) não.
+O cálculo é `longGaps`/`formatGap` em `data/Clock.kt` (teste em `LongGapTest`);
+o limite é o ajuste `longGapMinutes`. A lite faz o mesmo (`esperasLongas` e
+`ESPERA_LONGA` = 90 em `docs/app/dados.js`, limite fixo). Por enquanto, só na
+tela da estação: não na tela inicial, no widget nem em Sua viagem.
 
 **Avisar a hora de sair:** em qualquer estação, **tocar num horário** que ainda
 não passou (nas próximas partidas ou em "Todos os horários") marca o aviso do

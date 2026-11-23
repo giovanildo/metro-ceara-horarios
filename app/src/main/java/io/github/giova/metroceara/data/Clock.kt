@@ -37,6 +37,22 @@ fun formatTime(minutes: Int): String {
 }
 
 /**
+ * Os intervalos longos da grade do dia: para cada partida seguida de uma espera
+ * de [minGap] minutos ou mais, a partida seguinte. [minGap] 0 = nenhum.
+ */
+fun longGaps(all: List<Int>, minGap: Int): Map<Int, Int> {
+    if (minGap <= 0) return emptyMap()
+    return all.zipWithNext().filter { (a, b) -> b - a >= minGap }.toMap()
+}
+
+/** Duração curta para os intervalos: "45 min", "2h", "2h30". */
+fun formatGap(minutes: Int): String = when {
+    minutes < 60 -> "$minutes min"
+    minutes % 60 == 0 -> "${minutes / 60}h"
+    else -> "%dh%02d".format(minutes / 60, minutes % 60)
+}
+
+/**
  * As próximas [count] partidas a partir de [now].
  *
  * Se o serviço do dia acabar antes de completar [count], continua pelas

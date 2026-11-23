@@ -218,6 +218,25 @@ export function metros(m) {
   return m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(1).replace(".", ",")} km`;
 }
 
+/** A partir desta espera (minutos), a tela da estação avisa — como no app (AppSettings.longGapMinutes). */
+export const ESPERA_LONGA = 90;
+
+/** Partida → a seguinte, quando a espera entre elas é de [minimo] minutos ou mais. */
+export function esperasLongas(partidas, minimo = ESPERA_LONGA) {
+  const r = new Map();
+  for (let i = 0; i + 1 < partidas.length; i++) {
+    if (partidas[i + 1] - partidas[i] >= minimo) r.set(partidas[i], partidas[i + 1]);
+  }
+  return r;
+}
+
+/** "45 min", "2h", "2h30". */
+export function duracaoCurta(min) {
+  if (min < 60) return `${min} min`;
+  const h = Math.floor(min / 60), m = min % 60;
+  return m ? `${h}h${String(m).padStart(2, "0")}` : `${h}h`;
+}
+
 /** "metrô" na Linha Sul, "VLT" nas outras — como no app. */
 export function veiculo(nomeLinha) {
   return nomeLinha.trim().toLowerCase() === "linha sul" ? "metrô" : "VLT";

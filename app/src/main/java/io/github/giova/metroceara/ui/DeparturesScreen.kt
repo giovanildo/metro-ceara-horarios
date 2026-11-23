@@ -58,6 +58,8 @@ import io.github.giova.metroceara.data.ScheduleSource
 import io.github.giova.metroceara.data.ScheduleStore
 import io.github.giova.metroceara.data.Stop
 import io.github.giova.metroceara.data.formatTime
+import io.github.giova.metroceara.data.formatGap
+import io.github.giova.metroceara.data.longGaps
 import io.github.giova.metroceara.data.vehicleName
 import io.github.giova.metroceara.data.isSundayToday
 import io.github.giova.metroceara.data.MondayReturn
@@ -128,6 +130,10 @@ fun DeparturesScreen(
     val all = remember(direction) { direction?.let(departuresFor).orEmpty() }
     val tomorrow = remember(direction) { direction?.let(tomorrowFor) }
     val next = remember(all, tomorrow, now) { nextDepartures(all, now, NEXT_COUNT, tomorrow) }
+    // Esperas longas na grade de hoje (a Linha Oeste fica até 2h30 sem VLT no meio do dia).
+    val longGapMinutes = SettingsStore.get(LocalContext.current).longGapMinutes
+    val gaps = remember(all, longGapMinutes) { longGaps(all, longGapMinutes) }
+    val vehicle = vehicleName(route.name)
     val sunday = remember(now) { isSundayToday() }
     // Domingo comum: nenhum horário na tela, só o aviso e a hora em que o metrô volta.
     val sundayOff = remember(now) { isSundayWithoutService() }
@@ -355,6 +361,7 @@ fun DeparturesScreen(
                                     DepartureRow(
                                         departure, now, highlighted = index == 0,
                                         alert = alertAt(departure),
+                                        gapNext = if (departure.tomorrow) null else gaps[departure.minutes],
                                         onClick = { onPick(departure) },
                                     )
                                 }
@@ -474,7 +481,7 @@ fun DeparturesScreen(
                         )
                     }
                     item {
-                        AllDepartures(all, now, marked = { alertAt(Departure(it, tomorrow = false)) != null },
+                        AllDepartures(all, now, gaps = gaps, vehicle = vehicle, marked = { alertAt(Departure(it, tomorrow = false)) != null },
                             onPick = { m: Int -> onPick(Departure(m, tomorrow = false)) })
                     }
                 }
@@ -493,7 +500,15 @@ fun DeparturesScreen(
 }
 
 @Composable
-private fun DepartureRow(departure: Departure, now: Int, highlighted: Boolean, alert: LeaveAlert?, onClick: (() -> Unit)?) {
+private fun DepartureRow(
+    departure: Departure,
+    now: Int,
+    highlighted: Boolean,
+    alert: LeaveAlert?,
+    /** A partida seguinte, quando a espera até ela é longa. */
+    gapNext: Int? = null,
+    onClick: (() -> Unit)?,
+) {
     val remaining = minutesUntil(departure, now)
     Row(
         modifier = Modifier
@@ -514,6 +529,14 @@ private fun DepartureRow(departure: Departure, now: Int, highlighted: Boolean, a
                 fontWeight = if (highlighted) FontWeight.Bold else FontWeight.Normal,
             )
             alert?.let { LeaveBell(it) }
+            gapNext?.let {
+                Text(
+                    text = stringResource(R.string.long_gap_next, formatTime(it)),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
             if (departure.tomorrow) {
                 Text(
                     text = stringResource(R.string.tomorrow),
@@ -549,7 +572,15 @@ internal fun relativeLabel(remaining: Int): String = when {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun AllDepartures(all: List<Int>, now: Int, marked: (Int) -> Boolean = { false }, onPick: ((Int) -> Unit)?) {
+private fun AllDepartures(
+    all: List<Int>,
+    now: Int,
+    /** Partida → a seguinte, quando a espera entre elas é longa: vira um marcador entre as duas. */
+    gaps: Map<Int, Int> = emptyMap(),
+    vehicle: String = "metrô",
+    marked: (Int) -> Boolean = { false },
+    onPick: ((Int) -> Unit)?,
+) {
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -581,6 +612,16 @@ private fun AllDepartures(all: List<Int>, now: Int, marked: (Int) -> Boolean = {
                         MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                     },
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                )
+            }
+            gaps[minutes]?.let { following ->
+                Text(
+                    text = "⏳ " + stringResource(R.string.long_gap_chip, formatGap(following - minutes), vehicle),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (following >= now) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    modifier = Modifier.align(Alignment.CenterVertically).padding(horizontal = 2.dp),
                 )
             }
         }

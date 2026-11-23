@@ -369,6 +369,11 @@
     <string name="settings_delayed_train">Mostrar o metrô ou VLT atrasado de até</string>
     <string name="settings_delayed_train_desc">Na estação de partida, "Planeje sua viagem" mostra também o que já deveria ter saído há até esse tempo, marcado "pode estar atrasado". Se ele ainda estiver na estação, dá para começar o modo viagem nele.</string>
     <string name="settings_delayed_train_off">não mostrar</string>
+    <string name="settings_long_gap">Avisar quando o próximo demora</string>
+    <string name="settings_long_gap_desc">Na tela da estação, o app avisa quando o metrô ou VLT seguinte só passa depois desse tempo, como "Depois deste, o próximo só às 11:45".</string>
+    <string name="settings_long_gap_off">não avisar</string>
+    <string name="long_gap_next">Depois deste, o próximo só às %1$s</string>
+    <string name="long_gap_chip">%1$s sem %2$s</string>
     <string name="settings_give_up">Encerrar a viagem sozinho depois de</string>
     <string name="settings_give_up_desc">Se passar esse tempo da chegada prevista sem você chegar ao destino, a viagem é encerrada.</string>
     <string name="settings_home_gps">Atualizar sua posição a cada</string>

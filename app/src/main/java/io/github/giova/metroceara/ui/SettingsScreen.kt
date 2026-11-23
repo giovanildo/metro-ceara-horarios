@@ -40,6 +40,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.giova.metroceara.R
+import io.github.giova.metroceara.data.formatGap
 import io.github.giova.metroceara.data.AppSettings
 import io.github.giova.metroceara.data.Mobility
 import io.github.giova.metroceara.data.TripLog
@@ -266,6 +267,13 @@ fun FineSettingsScreen(
                 value = settings.delayedTrainMinutes, range = 0..20, step = 1,
                 format = { if (it == 0) delayedOff else "$it min" },
             ) { onChange(settings.copy(delayedTrainMinutes = it)) }
+            val longGapOff = stringResource(R.string.settings_long_gap_off)
+            SettingSlider(
+                title = R.string.settings_long_gap,
+                description = R.string.settings_long_gap_desc,
+                value = settings.longGapMinutes, range = 0..180, step = 15,
+                format = { if (it == 0) longGapOff else "${formatGap(it)} ou mais" },
+            ) { onChange(settings.copy(longGapMinutes = it)) }
             SettingSlider(
                 title = R.string.settings_give_up,
                 description = R.string.settings_give_up_desc,

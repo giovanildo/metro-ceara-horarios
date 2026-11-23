@@ -39,6 +39,12 @@ data class AppSettings(
      * modo viagem nele (11/11: o das 15:14 em Carlito atrasou e sumiu). 0 = não mostrar.
      */
     val delayedTrainMinutes: Int = 10,
+    /**
+     * Na tela da estação, avisa quando o próximo metrô ou VLT demora isso ou mais
+     * ("Depois deste, o próximo só às 11:45"). 23/11: a Linha Oeste fica até 2h30
+     * sem VLT no meio do dia. 0 = não avisar.
+     */
+    val longGapMinutes: Int = 90,
     /** A viagem encerra sozinha se passar tanto assim da chegada prevista. */
     val tripGiveUpMinutes: Int = 30,
     /**
@@ -104,6 +110,7 @@ object SettingsStore {
             putInt("home_fix_hold_s", settings.homeFixHoldSeconds)
             putInt("late_boarding_min", settings.lateBoardingMinutes)
             putInt("delayed_train_min", settings.delayedTrainMinutes)
+            putInt("long_gap_min", settings.longGapMinutes)
             putInt("trip_give_up_min", settings.tripGiveUpMinutes)
             putInt("seated_max_stations", settings.seatedMaxStations)
             putInt("theme_mode", settings.themeMode)
@@ -142,6 +149,7 @@ object SettingsStore {
             homeFixHoldSeconds = p.getInt("home_fix_hold_s", d.homeFixHoldSeconds),
             lateBoardingMinutes = p.getInt("late_boarding_min", d.lateBoardingMinutes),
             delayedTrainMinutes = p.getInt("delayed_train_min", d.delayedTrainMinutes),
+            longGapMinutes = p.getInt("long_gap_min", d.longGapMinutes),
             tripGiveUpMinutes = p.getInt("trip_give_up_min", d.tripGiveUpMinutes),
             seatedMaxStations = p.getInt("seated_max_stations", d.seatedMaxStations),
             themeMode = p.getInt("theme_mode", d.themeMode),
