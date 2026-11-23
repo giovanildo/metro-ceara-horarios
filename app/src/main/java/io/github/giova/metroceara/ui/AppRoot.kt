@@ -6,6 +6,7 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.core.content.ContextCompat
 import io.github.giova.metroceara.alerts.OperationAlerts
+import io.github.giova.metroceara.data.LegStation
 import io.github.giova.metroceara.data.DayType
 import io.github.giova.metroceara.data.Landmark
 import io.github.giova.metroceara.data.TomorrowStatus
@@ -635,14 +636,16 @@ fun AppRoot() {
     // De onde a pessoa sai agora: com a caminhada até a estação, ou já nela.
     fun leaveNow(origin: Station): Int = walkTo(origin).let { if (it > 0) nowMinutes() + it else nowMinutes() - settings.lateBoardingMinutes }
 
-    fun routeView(itinerary: Itinerary, walk: Int = 0, dayOfWeek: Int = nowDayOfWeek()): RouteView {
+    fun routeView(itinerary: Itinerary, walk: Int = 0, dayOfWeek: Int = nowDayOfWeek(), tomorrow: Boolean = false): RouteView {
         fun stopName(id: String) = JourneyPlanner.plainName(repo.stop(id)?.name ?: id)
         fun headsign(routeId: String, direction: Int) =
             repo.directions(routeId).firstOrNull { it.id == direction }?.headsign.orEmpty()
         val legs = itinerary.legs.map { leg ->
             val route = repo.route(leg.routeId)
             LegView(route?.name.orEmpty(), route?.colorHex.orEmpty(), headsign(leg.routeId, leg.directionId),
-                stopName(leg.fromStop), stopName(leg.toStop), leg.departure, leg.arrival)
+                stopName(leg.fromStop), stopName(leg.toStop), leg.departure, leg.arrival,
+                stations = repo.tripStops(leg.routeId, leg.directionId, leg.fromStop, leg.toStop,
+                    repo.tripTimes(leg.tripId, leg.routeId, tomorrow)).orEmpty().map { LegStation(it.name, it.scheduled) })
         }
         val transfers = itinerary.transfers.map { t ->
             TransferView(stopName(t.link.fromStop), t.needMinutes, t.tight, t.nextDeparture,
@@ -735,7 +738,7 @@ fun AppRoot() {
                 ?: context.getString(R.string.journey_none_tomorrow, name)
             // Calendar.DAY_OF_WEEK vai de 1 (domingo) a 7 (sábado).
             val day = nowDayOfWeek() % 7 + 1
-            return JourneyResult(plans.map { routeView(it, dayOfWeek = day) }, monday = false, message, forecast = true)
+            return JourneyResult(plans.map { routeView(it, dayOfWeek = day, tomorrow = true) }, monday = false, message, forecast = true)
         }
         if (sundayOff) {
             return JourneyResult(emptyList(), monday = true, sundayOffText(context, repo.mondayReturn(origin.stopId, origin.routeId)))

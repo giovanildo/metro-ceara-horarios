@@ -1,53 +1,81 @@
 package io.github.giova.metroceara.data
 
+import java.text.Normalizer
+
 /**
- * "Avisar alguém": o texto pronto da previsão de chegada, para mandar pelo
- * WhatsApp ou outro app. Sem servidor e sem localização: só o texto que a
- * pessoa escolhe enviar. O horário vem da tabela, por isso "por volta das".
+ * "Avisar alguém": o texto pronto da viagem, para mandar pelo WhatsApp ou
+ * outro app. Sem servidor e sem localização: só o texto que a pessoa escolhe
+ * enviar. As estações vão com o horário do lado, uma parte delas ([pick]), e no
+ * modo viagem os horários já trazem o atraso que o app percebeu.
  */
 object ShareArrival {
 
     const val PLAY_STORE = "https://play.google.com/store/apps/details?id=io.github.giova.metroceara"
-
-    /** A lite, onde quem recebe acompanha a viagem (#/acompanhar/…). */
-    private const val LITE = "https://giovanildo.github.io/metro-ceara-horarios/app/"
-
-    /** Um trecho para o link "Acompanhe a viagem": linha e estações pelos códigos da grade, horários em minutos. */
-    data class TrackLeg(val routeId: String, val fromStop: String, val departure: Int, val toStop: String, val arrival: Int)
+    const val LITE = "https://giovanildo.github.io/metro-ceara-horarios/app/"
+    const val SITE = "https://giovanildo.github.io/metro-ceara-horarios/"
 
     /**
-     * O link que mostra a viagem andando pela tabela de horários, na lite. A
-     * viagem vai inteira no próprio link, depois do "#": nada passa por servidor,
-     * e ninguém compartilha a localização. Formato (o mesmo que a lite lê):
-     * `1.AAAAMMDD.linha-de-saída-para-chegada_…`. [date]: "AAAA-MM-DD", o dia da grade.
-     * `null` se faltar algum código (viagem salva antes desta versão).
+     * O fim da mensagem: o app na loja (Android), a lite (iPhone, no navegador)
+     * e o site. Quem manda não sabe o celular de
+     * quem recebe, então vão os três.
      */
-    fun trackLink(date: String, legs: List<TrackLeg>): String? {
-        val code = Regex("[A-Za-z0-9]+")
-        if (legs.isEmpty() || !Regex("\\d{4}-\\d{2}-\\d{2}").matches(date) ||
-            legs.any { !code.matches(it.routeId) || !code.matches(it.fromStop) || !code.matches(it.toStop) }
-        ) return null
-        val trip = legs.joinToString("_") { "${it.routeId}-${it.fromStop}-${it.departure}-${it.toStop}-${it.arrival}" }
-        return "$LITE#/acompanhar/1.${date.replace("-", "")}.$trip"
+    val FOOTER = listOf(
+        "Metrô Ceará, horários do metrô e do VLT:",
+        "Android: $PLAY_STORE",
+        "iPhone: $LITE",
+        "Site: $SITE",
+    ).joinToString("\n")
+
+    /** Uma estação do trecho, com o horário (minutos desde a meia-noite). [anchor]: entra sempre (o terminal onde o metrô volta). */
+    data class Stop(val name: String, val time: Int, val anchor: Boolean = false)
+
+    /** Um trecho do roteiro, do jeito que a mensagem precisa. [stops] vazio: só a partida e a chegada. */
+    data class Leg(
+        val routeName: String,
+        val headsign: String,
+        val fromName: String,
+        val toName: String,
+        val departure: Int,
+        val arrival: Int,
+        val stops: List<Stop> = emptyList(),
+    )
+
+    /**
+     * Quais estações de um trecho entram na mensagem, pelos índices: com 4 ou
+     * menos, todas; senão a primeira, depois uma a cada 4, e a última. As de
+     * [anchors] (integração, terminal) entram sempre e recomeçam a contagem; a da
+     * contagem que cairia colada numa delas, ou na última, fica de fora.
+     */
+    fun pick(size: Int, anchors: Set<Int> = emptySet()): List<Int> {
+        if (size <= 4) return (0 until size).toList()
+        val fixed = (anchors.filter { it in 1 until size - 1 } + 0 + (size - 1)).toSortedSet().toList()
+        val out = mutableListOf<Int>()
+        fixed.zipWithNext { a, b ->
+            out += a
+            var i = a + STEP
+            while (i < b) {
+                if (b - i >= 2) out += i
+                i += STEP
+            }
+        }
+        return out + (size - 1)
     }
 
-    /** Um trecho do roteiro, do jeito que a mensagem precisa. */
-    data class Leg(val routeName: String, val headsign: String, val fromName: String, val toName: String, val departure: Int)
-
     /**
-     * [legs]: os trechos que faltam (no modo viagem, a partir do atual).
-     * [arrival]: a chegada à última estação. [onBoard]: já dentro do metrô.
-     * [placeName]: o lugar buscado, quando o destino veio dele.
-     * [track]: o link "Acompanhe a viagem" ([trackLink]); com ele, vai no lugar do link do app.
+     * [legs]: os trechos que faltam (no modo viagem, a partir da próxima estação).
+     * [onBoard]: já dentro do metrô. [placeName]: o lugar buscado, quando o destino
+     * veio dele, com a caminhada em [walkMinutes]. [delayMinutes]: o atraso já
+     * somado aos horários do primeiro trecho (modo viagem). [transfers]: as
+     * integrações, cujas estações entram sempre na lista.
      */
     fun text(
         legs: List<Leg>,
-        arrival: Int,
         onBoard: Boolean,
         tomorrow: Boolean = false,
         placeName: String? = null,
-        link: String = PLAY_STORE,
-        track: String? = null,
+        walkMinutes: Int? = null,
+        delayMinutes: Int = 0,
+        transfers: List<IntegracaoRegra> = Regras.current.integracoes,
     ): String {
         require(legs.isNotEmpty())
         val first = legs.first()
@@ -56,26 +84,47 @@ object ShareArrival {
         } else {
             (if (tomorrow) "Amanhã vou pegar" else "Vou pegar") +
                 " o ${vehicleName(first.routeName)} das ${formatTime(first.departure)} na estação ${name(first.fromName)}" +
-                ": ${first.routeName}, sentido ${first.headsign}."
+                " (${first.routeName}, sentido ${first.headsign})."
         }
-        val last = name(legs.last().toName)
-        val transfers = legs.drop(1).mapIndexed { i, leg ->
-            val at = name(leg.fromName)
-            if (i == 0) "Em $at faço a integração para o ${line(leg.routeName)}" else "em $at para o ${line(leg.routeName)}"
+        val lines = mutableListOf("🚇 $start", "")
+        legs.forEachIndexed { n, leg ->
+            if (n > 0) lines += "🔄 Integração para o ${line(leg.routeName)}, sentido ${leg.headsign}"
+            val stops = leg.stops.ifEmpty { listOf(Stop(leg.fromName, leg.departure), Stop(leg.toName, leg.arrival)) }
+            val anchors = stops.indices.filter { stops[it].anchor || isTransfer(stops[it].name, transfers) }.toSet()
+            pick(stops.size, anchors).forEach { i ->
+                val stop = stops[i]
+                val last = n == legs.lastIndex && i == stops.lastIndex
+                lines += "${formatTime(stop.time)} · ${name(stop.name)}" + if (last) ", onde desço" else ""
+            }
         }
-        val at = formatTime(arrival)
-        val end = when {
-            placeName != null -> "desço na estação $last por volta das $at e vou a pé até $placeName."
-            else -> "chego na estação $last por volta das $at."
+        if (placeName != null) {
+            lines += "🚶 De lá, a pé até $placeName" + (walkMinutes?.let { " (uns $it min)." } ?: ".")
         }
-        val finish = if (transfers.isEmpty()) end.replaceFirstChar { it.uppercase() } else transfers.joinToString(", ") + " e " + end
-        val footer = if (track != null) "📍 Acompanhe a viagem:\n$track" else "Horários do metrô no app Metrô Ceará:\n$link"
-        return "🚇 $start\n$finish\n(previsão pela tabela de horários)\n\n$footer"
+        lines += ""
+        lines += if (delayMinutes >= 1) {
+            "⏱️ O ${vehicleName(first.routeName)} está uns $delayMinutes min atrasado; os horários já contam isso."
+        } else {
+            "Previsão pela tabela de horários."
+        }
+        lines += ""
+        lines += FOOTER
+        return lines.joinToString("\n")
     }
+
+    private const val STEP = 4
 
     /** "metrô da Linha Sul", "VLT da Linha Nordeste", "VLT Aeroporto". */
     private fun line(routeName: String) =
         if (routeName.startsWith("Linha")) "${vehicleName(routeName)} da $routeName" else routeName
 
     private fun name(n: String) = StationNames.official(JourneyPlanner.plainName(n))
+
+    /** Estação de integração (regras.json), mesmo sem troca nela: vira ponto de referência na lista. */
+    private fun isTransfer(stationName: String, transfers: List<IntegracaoRegra>): Boolean {
+        val k = key(stationName)
+        return transfers.any { key(it.a) == k || key(it.b) == k }
+    }
+
+    private fun key(n: String) = Normalizer.normalize(JourneyPlanner.plainName(n), Normalizer.Form.NFD)
+        .replace(Regex("\\p{M}"), "").trim().lowercase()
 }

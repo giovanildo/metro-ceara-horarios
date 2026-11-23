@@ -24,6 +24,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.giova.metroceara.R
+import io.github.giova.metroceara.data.LegStation
 import io.github.giova.metroceara.data.Itinerary
 import io.github.giova.metroceara.data.TransferFare
 import io.github.giova.metroceara.data.formatTime
@@ -39,6 +40,8 @@ data class LegView(
     val toName: String,
     val departure: Int,
     val arrival: Int,
+    /** As estações do trecho com o horário (para o "Avisar alguém"); vazio se a grade não tiver. */
+    val stations: List<LegStation> = emptyList(),
 )
 
 /** Uma integração do roteiro, já com nomes e a passagem. */

@@ -80,7 +80,6 @@ import androidx.compose.ui.unit.sp
 import io.github.giova.metroceara.R
 import io.github.giova.metroceara.data.JourneyPlanner
 import io.github.giova.metroceara.data.Rail
-import io.github.giova.metroceara.data.ScheduleStore
 import io.github.giova.metroceara.data.ShareArrival
 import io.github.giova.metroceara.data.RailRow
 import io.github.giova.metroceara.data.TripFix
@@ -248,7 +247,7 @@ private fun RailHeader(
             // Avisar alguém: "Estou no metrô…" (ou, ainda na plataforma, "Vou pegar…").
             if (!plan.simulated) {
                 ShareArrivalButton(
-                    text = { shareTripText(trip, finalName, arrival) },
+                    text = { shareTripText(trip) },
                     modifier = Modifier.padding(top = 10.dp),
                 )
             }
@@ -681,45 +680,27 @@ private fun ArrivalLine(label: String, value: String) {
 
 /**
  * O texto do "Avisar alguém" no modo viagem: os trechos que faltam, desde o
- * atual. Ainda na plataforma, "Vou pegar o metrô das…" com o atraso já contado.
+ * atual. No trecho atual, as estações a partir da próxima (ainda na plataforma,
+ * a partir da partida), com o atraso que o app percebeu já somado; os seguintes,
+ * pela tabela. Sentado pelo terminal, o terminal entra na lista.
  */
-private fun shareTripText(trip: ActiveTrip, finalName: String, arrival: Int): String {
+private fun shareTripText(trip: ActiveTrip): String {
     val plan = trip.plan
     val progress = trip.progress
-    val departure = (plan.origin.scheduled + progress.delayMinutes).roundToInt()
+    val delay = progress.delayMinutes.roundToInt().coerceAtLeast(0)
+    val departure = plan.origin.scheduled + delay
     // Na estação de partida antes da hora, a pessoa ainda espera na plataforma.
     val onBoard = progress.index > 0 || (progress.index == 0 && nowMinutes() >= departure)
+    val from = if (onBoard) (progress.index + 1).coerceIn(0, plan.stops.lastIndex) else 0
+    val stops = plan.stops.withIndex().drop(from).map { (i, stop) ->
+        ShareArrival.Stop(stop.name, stop.scheduled + delay, anchor = plan.viaTerminal && i == plan.turnaroundIndex)
+    }
+    val current = ShareArrival.Leg(plan.routeName, plan.headsign, stops.first().name, plan.stops.last().name,
+        stops.first().time, stops.last().time, stops)
     val journey = plan.journey
-    val legs = if (journey != null && journey.legs.isNotEmpty()) {
-        journey.legs.drop(journey.current.coerceIn(0, journey.legs.lastIndex)).mapIndexed { i, leg ->
-            ShareArrival.Leg(leg.routeName, leg.headsign, leg.fromName, leg.toName, if (i == 0) departure else leg.departure)
-        }
-    } else {
-        listOf(ShareArrival.Leg(plan.routeName, plan.headsign, plan.origin.name, finalName, departure))
+    val next = journey?.legs?.drop(journey.current + 1).orEmpty().map { leg ->
+        ShareArrival.Leg(leg.routeName, leg.headsign, leg.fromName, leg.toName, leg.departure, leg.arrival,
+            leg.stations.map { ShareArrival.Stop(it.name, it.scheduled) })
     }
-    return ShareArrival.text(legs, arrival, onBoard = onBoard, placeName = plan.placeName,
-        track = ShareArrival.trackLink(ScheduleStore.today(), trackLegs(trip, departure)))
-}
-
-/**
- * Os trechos do link "Acompanhe a viagem", do atual em diante: o atual pelas
- * estações do plano, com o atraso medido; os seguintes, pelo roteiro. "Sentado
- * pelo terminal" vira dois trechos na mesma linha (a lite mostra que o metrô volta).
- */
-private fun trackLegs(trip: ActiveTrip, departure: Int): List<ShareArrival.TrackLeg> {
-    val plan = trip.plan
-    val delay = trip.progress.delayMinutes.roundToInt()
-    val stops = plan.stops
-    val current = if (plan.viaTerminal) {
-        val turn = plan.turnaroundIndex
-        listOf(
-            ShareArrival.TrackLeg(plan.routeId, stops.first().stopId, departure, stops[turn].stopId, stops[turn].scheduled + delay),
-            ShareArrival.TrackLeg(plan.routeId, stops[turn + 1].stopId, stops[turn + 1].scheduled + delay, stops.last().stopId, stops.last().scheduled + delay),
-        )
-    } else {
-        listOf(ShareArrival.TrackLeg(plan.routeId, stops.first().stopId, departure, stops.last().stopId, stops.last().scheduled + delay))
-    }
-    val journey = plan.journey ?: return current
-    val next = journey.legs.drop(journey.current + 1).map { ShareArrival.TrackLeg(it.routeId, it.fromStop, it.departure, it.toStop, it.arrival) }
-    return current + next
+    return ShareArrival.text(listOf(current) + next, onBoard = onBoard, placeName = plan.placeName, delayMinutes = delay)
 }

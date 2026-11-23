@@ -196,11 +196,15 @@ class ScheduleRepository(context: Context) {
         }
     }
 
-    /** Os horários de uma viagem, por estação (para montar o trecho de um roteiro). */
-    fun tripTimes(tripId: String, routeId: String): Map<String, Int> = db.rawQuery(
-        "SELECT stop_id, minutes FROM departure WHERE trip_id = ? AND route_id = ?",
-        arrayOf(tripId, routeId),
-    ).map { it.getString(0) to it.getInt(1) }.toMap()
+    /**
+     * Os horários de uma viagem, por estação (para montar o trecho de um roteiro).
+     * [tomorrow]: a viagem é da grade de amanhã ([timetableTomorrow]).
+     */
+    fun tripTimes(tripId: String, routeId: String, tomorrow: Boolean = false): Map<String, Int> =
+        ((if (tomorrow) tomorrowDb else db) ?: return emptyMap()).rawQuery(
+            "SELECT stop_id, minutes FROM departure WHERE trip_id = ? AND route_id = ?",
+            arrayOf(tripId, routeId),
+        ).map { it.getString(0) to it.getInt(1) }.toMap()
 
     /** A grade do dia vista pelo [Router]: viagens que passam por uma estação e depois por outra. */
     val timetable = timetableOf(db)
