@@ -1095,6 +1095,46 @@ se o arquivo mudou enquanto rodava. A estação do lugar é
 gravada pelo nome; o app confere também a posição, porque há nomes repetidos
 (Padre Cícero em Fortaleza e no Cariri).
 
+### Compartilhar: horários da estação, aviso especial, bike e o nome da estação (1.114)
+
+Além do Avisar alguém, quatro textos prontos para mandar pelo WhatsApp ou outro
+app. Todos dizem a que dia se referem (mensagem encaminhada vive dias) e terminam
+com os mesmos três links (Android, iPhone e site). Textos em `data/ShareTexts.kt`
+(testes em `ShareTextsTest`); na lite, `textoEstacao()`, `textoOperacao()`,
+`textoBike()` e `compartilharCartao()` em `app.js`, com um tratador de clique só
+para os botões `data-compartilhar`/`data-cartao`. Prévias em
+`prints/compartilhar-texto/` e `prints/divulgar-pelo-uso/12.png` (fora do git).
+
+- **Horários da estação:** ícone de compartilhar no topo da tela da estação
+  (na lite, "Compartilhar os próximos horários" debaixo das próximas partidas),
+  só quando ainda há metrô hoje. Manda os próximos 4 de cada sentido da linha a
+  partir de agora ("hoje, segunda (23/11), a partir das 17:05"), "(o último)"
+  quando sobram menos, "não tem mais hoje" no sentido que já acabou.
+- **Aviso de operação especial:** "Compartilhar" debaixo do aviso do Metrofor
+  (só o que muda o horário, não o de funcionamento normal): os dias, a manchete,
+  o horário de cada linha da tabela da notícia (`hoursByLine`, na ordem dela; só
+  se for igual em todos os dias do aviso), a bike do dia (`datas_especiais`) e
+  "Fonte: Metrofor, notícia de 17/11" (`publicada`).
+- **Bike:** "Compartilhar" no aviso de bike da estação: a regra da semana inteira
+  do regulamento (`normalBikeRule()`, sem a de dia especial: "das 9h às 15h e a
+  partir das 20h"), o limite por viagem, as bikes que não entram, a frase de hoje
+  (a mesma do aviso, `bikeBoardingText()`) e a fonte do regulamento.
+- **Por que esse nome?** (33 estações): a seção no fim da tela da estação, com
+  o texto, a fonte e "Compartilhar", que manda um **cartão** (imagem 1080 px:
+  faixa vermelha com o nome, o texto, o ícone e "Metrô Ceará · as histórias das
+  estações") e, na legenda, o texto, a fonte, a página da estação no site e os
+  links. No app, `NameStoryCard.kt` desenha com `Canvas`/`StaticLayout`, grava em
+  `cache/compartilhar/` e entrega pelo `FileProvider` (caminho `compartilhar` em
+  `res/xml/arquivos.xml`); na lite, `desenharCartao()` em canvas e
+  `navigator.share({ files })` (sem suporte a arquivo, só a legenda). Os textos
+  vêm do bloco `nomes` do `regras.json`, pela chave = slug da página da estação
+  no site (`NameStory.slug()` / `slugNome()`), copiado de `tools/site_nomes.json`
+  (a mesma pesquisa do site) por:
+
+```
+python3 tools/nomes.py   # reescreve só o bloco "nomes"; muda sem versão nova
+```
+
 O `regras.json` é a **fonte única** das regras que não vêm do GTFS (bike,
 integrações, passagem, endereços, posições corrigidas, acessibilidade, horários de pico e lugares): o app (`data/Regras.kt`), o
 `tools/build_db.py` e a versão lite leem o mesmo arquivo.
