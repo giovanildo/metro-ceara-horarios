@@ -635,6 +635,8 @@
     <string name="lines_subtitle">Toque numa linha para ver as estações</string>
     <string name="menu_share">Passar o app para alguém</string>
     <string name="menu_share_sub">QR code na tela ou link por mensagem</string>
+    <!-- Tela inicial no domingo sem operação: o único dia em que ela convida a passar o app. -->
+    <string name="sunday_share_text">Hoje o metrô não roda. Conhece alguém que pega metrô durante a semana?</string>
     <string name="review_invite_title">Ajude o app a chegar a mais gente</string>
     <string name="review_invite_text">O Metrô Ceará é feito por um passageiro, sem anúncios. Se ele te ajuda, uma avaliação na Play Store faz mais gente encontrar o app.</string>
     <string name="review_invite_rate">Avaliar na Play Store</string>

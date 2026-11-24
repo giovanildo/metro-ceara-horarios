@@ -1266,6 +1266,10 @@ fun AppRoot() {
                         extras = extras.copy(halfFare = extras.halfFare && station.routeName != homeState.station?.routeName),
                     )
                 }
+                // Domingo sem operação: sem horário para mostrar, um convite para passar o app.
+                if (remember(now) { isSundayWithoutService() }) {
+                    SundayShareCard(onShare = { passAppOpen = true })
+                }
             }
 
             HomeBlock.NOTICES -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
