@@ -1,0 +1,1 @@
+• Domingo, quando o metrô não roda, a tela inicial convida a passar o app para alguém que pega metrô durante a semana, com o QR code na tela.
