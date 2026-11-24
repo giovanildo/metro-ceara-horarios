@@ -78,6 +78,11 @@ VIDEO_WORK=/tmp/metro-video python3 tools/video/build_iphone.py
   e devolvida; o site e a lite no Chrome do emulador. `python3
   tools/video/historias.py 3 7` gera esses dias; `--previa` põe folha de quadros e
   vídeo leve em `prints/historias/`.
+  Reels para páginas de bairro ficam em `BAIRRO` e saem em
+  `divulgacao/paginas-do-bairro/`: `python3 tools/video/historias.py carlito` gera o
+  da Carlito Benevides (23/11/2026, 10,6 s), com a pergunta no primeiro quadro, a tela
+  real da estação (`capturas/instagram/carlito-inicio.png`) antes dos 4 s e o fim
+  "Manda pra quem pega o metrô com você" (`conversa(..., zoom=)` e `fim(..., chamada=)`).
 - `instagram_app.py` — o carrossel da Nina (dia 16), em roxo (a cor do rostinho no
   app); as funções de carrossel (`capa`, `tela`, `lista`, `final`) ficam para posts
   que precisem ser imagem. A fonte não tem a seta nem o visto: o script desenha.

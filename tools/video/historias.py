@@ -12,6 +12,7 @@ As conversas são genéricas (sem imitar nenhum app) e as telas vêm do app de v
 
     python3 tools/video/historias.py 1 2 3        # vídeos desses dias
     python3 tools/video/historias.py --previa 1   # folha de quadros e vídeo leve em prints/historias/
+    python3 tools/video/historias.py carlito      # reel para páginas de bairro (divulgacao/paginas-do-bairro/)
 """
 import math
 import os
@@ -174,8 +175,9 @@ def balao(d, x1, y, linhas, fnt, quem, fn_nome, nome=True):
 
 
 # ------------------------------------------------------------------------------------- cenas
-def conversa(texto, titulo, msgs, dur=3.0, cor=AZUL, membros=None):
-    """msgs: [(t_aparece, [linhas], quem)]; quem=None é você. Com um só amigo, é conversa a dois."""
+def conversa(texto, titulo, msgs, dur=3.0, cor=AZUL, membros=None, zoom=1.0):
+    """msgs: [(t_aparece, [linhas], quem)]; quem=None é você. Com um só amigo, é conversa a dois.
+    zoom: letra das mensagens maior (reels curtos, de poucas mensagens)."""
     amigos = list(dict.fromkeys(q for _, _, q in msgs if q))
 
     def cena(fm, t):
@@ -186,7 +188,7 @@ def conversa(texto, titulo, msgs, dur=3.0, cor=AZUL, membros=None):
         top = fm.topo() + (1 - a) * 60
         linhas = sum(len(l) for _, l, _ in msgs)
         grande = linhas <= 7
-        fnt = F(R, (40 if grande else 34) if fm.story else (32 if grande else 28))
+        fnt = F(R, int(((40 if grande else 34) if fm.story else (32 if grande else 28)) * zoom))
         fn_nome = F(B, 30 if fm.story else 24)
         alto = min(fm.h - fm.topo() - (330 if fm.story else 40),
                    190 + sum(len(l) * (fnt.size + 10) + 44 + fn_nome.size + 28 for _, l, _ in msgs))
@@ -238,9 +240,12 @@ def tela(texto, nome, y_tela, alvo, dur=3.4, aperta=None, texto2=None, t2=None, 
     return cena, dur
 
 
-def fim(frase="Horários de metrô e VLT no celular", loja="Grátis no Google Play · sem anúncios"):
+def fim(frase="Horários de metrô e VLT no celular", loja="Grátis no Google Play · sem anúncios", chamada=None):
+    """O final com o ícone e o link. [chamada]: frase grande em cima (ex.: o pedido para mandar)."""
     def cena(fm, t):
         im = Image.new("RGB", (W, fm.h), CLARO)
+        if chamada:
+            legenda(im, fm, chamada, t)
         d = ImageDraw.Draw(im)
         s = pop(t / 0.4)
         size = max(10, int((240 if fm.story else 200) * s))
@@ -454,6 +459,26 @@ DIAS = {
 }
 
 
+# ------------------------------------------------------------------------- páginas de bairro
+# Reels para páginas de bairro do Instagram (23/11/2026). Os primeiros reels, em colaboração com
+# pacatubaordinaria e jereissati_sempre, tiveram 4 s de tempo médio: o vídeo abria com o ícone e
+# a pergunta só vinha aos 5 s. Aqui a dúvida aparece no primeiro quadro, a resposta (tela real
+# do app na estação do bairro) antes dos 4 s, e o fim pede para mandar a quem pega o metrô junto.
+OUT_BAIRRO = os.path.join(fr.ROOT, "divulgacao", "paginas-do-bairro")
+CB = [(0.0, ["Tô chegando na Carlito!"], "Ju"), (0.6, ["O metrô já passou??"], "Ju")]
+BAIRRO = {
+    "carlito": ("carlito-benevides", [
+        conversa("Pega o metrô na Carlito Benevides?", "Ju", CB, 2.2, zoom=1.3),
+        tela("Abre o app na estação", "carlito-inicio.png", 470, (660, 840, 1002, 960), 3.4,
+             texto2="E vê quanto falta pro próximo", t2=1.7),
+        conversa("Sem correr à toa", "Ju", seguir(CB) + [
+            (0.2, ["Sai em 7 min, às 06:42.", "Dá tempo, vem andando!"], None), (1.1, ["Ufa! Tô indo"], "Ju")], 2.6,
+            zoom=1.3),
+        fim("Horários do metrô no celular", "Grátis no Google Play · sem anúncios",
+            chamada="Manda pra quem pega o metrô com você")]),
+}
+
+
 # ------------------------------------------------------------------------------------- saída
 def linha_do_tempo(cenas):
     t, out = 0.0, []
@@ -504,18 +529,21 @@ def folha(cenas, fm, dst):
 def main():
     args = sys.argv[1:]
     previa = "--previa" in args
-    dias = [int(a) for a in args if a.isdigit()] or sorted(DIAS)
+    bairros = [a for a in args if a in BAIRRO]
+    dias = [int(a) for a in args if a.isdigit()] or ([] if bairros else sorted(DIAS))
     formatos = [Formato("story", 1920, True), Formato("post", 1350, False)]
-    os.makedirs(PREVIA if previa else OUT, exist_ok=True)
-    for n in dias:
-        nome, cenas = DIAS[n]
+    trabalhos = [(f"dia{n:02d}-{DIAS[n][0]}", DIAS[n][1], OUT) for n in dias]
+    trabalhos += [(BAIRRO[b][0], BAIRRO[b][1], OUT_BAIRRO) for b in bairros]
+    os.makedirs(PREVIA, exist_ok=True)
+    for nome, cenas, pasta in trabalhos:
+        os.makedirs(pasta, exist_ok=True)
         for fm in formatos:
-            base = f"dia{n:02d}-{nome}-{fm.nome}"
+            base = f"{nome}-{fm.nome}"
             if previa:
                 folha(cenas, fm, os.path.join(PREVIA, base + ".png"))
                 video(cenas, fm, os.path.join(PREVIA, base + ".mp4"), largura=540, crf=26)
             else:
-                video(cenas, fm, os.path.join(OUT, base + ".mp4"))
+                video(cenas, fm, os.path.join(pasta, base + ".mp4"))
 
 
 if __name__ == "__main__":
