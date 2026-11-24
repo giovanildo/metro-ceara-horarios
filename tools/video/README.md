@@ -65,6 +65,15 @@ VIDEO_WORK=/tmp/metro-video python3 tools/video/build_fgs.py
 VIDEO_WORK=/tmp/metro-video python3 tools/video/build_iphone.py
 ```
 
+- `reel_vitrine.py` — reel "vitrine" para páginas de bairro, no estilo de
+  `referencias/metro ceará.mp4`: fundo escuro, celular com moldura e sombra, título
+  com a palavra-chave em vermelho, toque e zoom no detalhe (contorno vermelho) e o
+  cartão vermelho da marca no fim. A abertura pode ser uma foto da estação em tela
+  cheia (`capturas/fotos/`, crédito no vídeo) com o celular entrando por cima em 1,2 s:
+  a referência teve 4 s de tempo médio. Fonte Poppins (OFL) em `fontes/`. Uma entrada por
+  estação em `BAIRROS` (`maracanau`, `carlito`); telas em `capturas/instagram/`
+  (`maracanau-*.png`: terça 24/11/2026, 06:57 e 07:35, GPS na estação). `--previa` põe a
+  folha de quadros em `prints/historias/`.
 - `historias.py` — os vídeos de conversa dos dias 1 a 15 e 17 a 22 de
   `divulgacao/instagram-calendario/` (legendas e calendário em `textos.txt`), no
   formato aprovado em 21/11/2026: uma conversa informal num mensageiro genérico
