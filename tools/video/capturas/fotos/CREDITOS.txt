@@ -1,7 +1,7 @@
 Fotos das estações usadas nos vídeos (tools/video/reel_vitrine.py). O crédito também
 aparece no próprio vídeo e na legenda do post.
 
-estacao-maracanau-08.jpg
-  "Estação Maracanaú 08", Joelkaula, CC BY-SA 4.0
-  https://commons.wikimedia.org/wiki/File:Esta%C3%A7%C3%A3o_Maracana%C3%BA_08.jpg
-  (versão de 1920 px do Wikimedia Commons, sem alteração)
+praca-estacao-maracanau-19.jpg
+  "Praça da Estação de Maracanaú 19", Joelkaula, CC BY-SA 4.0
+  https://commons.wikimedia.org/wiki/File:Pra%C3%A7a_da_Esta%C3%A7%C3%A3o_de_Maracana%C3%BA_19.jpg
+  (original de 3264 px do Wikimedia Commons, sem alteração)

@@ -211,7 +211,7 @@ class Foto:
     """Foto da estação em tela cheia (recorte vertical), com uma versão escura e desfocada
     para quando o celular entra por cima, e um degradê em cima para o título."""
 
-    def __init__(self, nome, fm, foco=0.5, folga=1.08):
+    def __init__(self, nome, fm, foco=0.5, folga=1.08, ancora=0.28):
         im = Image.open(os.path.join(HERE, "capturas", "fotos", nome)).convert("RGB")
         k = fm.h * folga / im.height
         if im.width * k < W * folga:
@@ -226,7 +226,7 @@ class Foto:
         self.im = Image.new("RGB", (im.width, im.height + pad))
         self.im.paste(topo, (0, 0))
         self.im.paste(im, (0, pad))
-        self.fy = (pad + 0.28 * im.height) / self.im.height  # o zoom não mexe nessa altura
+        self.fy = (pad + ancora * im.height) / self.im.height  # o zoom não mexe nessa altura
         self.escura = Image.blend(self.im.filter(ImageFilter.GaussianBlur(18)),
                                   Image.new("RGB", self.im.size, (8, 10, 16)), 0.55)
         g = Image.new("L", (1, fm.h))
@@ -252,7 +252,7 @@ class Foto:
 
 
 def cena_tela(texto, sub, captura, recorte, anel=None, t_zoom=1.2, dur=2.8, primeira=False,
-              foto=None, foco=0.5, credito=None, t_cel=0.0, sub_ini=None, sub_forte=False,
+              foto=None, foco=0.5, ancora=0.28, credito=None, t_cel=0.0, sub_ini=None, sub_forte=False,
               ent=0.45, salto=False):
     """Celular com a tela real; em t_zoom um toque e o recorte salta para fora, ampliado.
 
@@ -262,7 +262,7 @@ def cena_tela(texto, sub, captura, recorte, anel=None, t_zoom=1.2, dur=2.8, prim
 
     def fn(fm, t):
         if fm.nome not in cache:
-            cache[fm.nome] = (Celular(captura, fm.tela_w), Foto(foto, fm, foco) if foto else None)
+            cache[fm.nome] = (Celular(captura, fm.tela_w), Foto(foto, fm, foco, ancora=ancora) if foto else None)
         cel, ft = cache[fm.nome]
         tt = t - t_cel
         if ft:
@@ -473,11 +473,12 @@ BAIRROS = {
     # Maracanaú → José de Alencar, terça 24/11/2026 (relógio do emulador 06:57 e 07:35, GPS na estação).
     "maracanau": ("maracanau-vitrine", [
         # Os 4 primeiros segundos decidem (tempo médio dos posts antigos: 4 s). Pesa mais a palavra
-        # do que a velocidade: a espera é a dor de quem anda de transporte. Foto do embarque com
+        # do que a velocidade: a espera é a dor de quem anda de transporte. Foto da locomotiva
+        # "Maracanaú 1875" da Praça da Estação (marco que todo mundo de lá reconhece) com
         # zoom de impacto e a pergunta; 1,0 s o celular entra com salto; 1,7 s a resposta, grande.
         cena_tela("Cansado de *esperar* o metrô em Maracanaú?", "Veja antes de sair de casa",
                   "maracanau-inicio.png", recorte=(42, 474, 1038, 965), anel=(655, 715, 1005, 830),
-                  t_zoom=1.55, dur=4.0, primeira=True, foto="estacao-maracanau-08.jpg", foco=0.5,
+                  t_zoom=1.55, dur=4.0, primeira=True, foto="praca-estacao-maracanau-19.jpg", foco=0.42, ancora=0.45,
                   credito="Foto: Joelkaula · CC BY-SA 4.0", t_cel=1.0, sub_ini=1.7, sub_forte=True,
                   ent=0.3, salto=True),
         # Depois, mais calmo: quem ficou quer ver o resto.
