@@ -1135,9 +1135,9 @@ para os botões `data-compartilhar`/`data-cartao`. Prévias em
 python3 tools/nomes.py   # reescreve só o bloco "nomes"; muda sem versão nova
 ```
 
-### Boca a boca: origem nos links, Passar o app e convite para avaliar (1.115)
+### Boca a boca: origem nos links, Passar o app, convite para avaliar (1.115) e no domingo (1.116)
 
-Três coisas para o app crescer pelo uso, sem anúncio:
+Quatro coisas para o app crescer pelo uso, sem anúncio:
 
 - **Origem nos links da Play:** em todo texto de compartilhar (Avisar alguém,
   horários da estação, aviso especial, bike, cartão do nome), o link "Android:"
@@ -1165,6 +1165,13 @@ Três coisas para o app crescer pelo uso, sem anúncio:
   de reserva). Sem perguntar antes se a pessoa gostou: a Play proíbe filtrar
   quem é convidado a avaliar. Regra em `data/ReviewInvite.kt` (testes em
   `ReviewInviteTest`).
+- **Convite no domingo** (app e lite, 1.116): no domingo sem operação, a tela
+  inicial não tem horário para mostrar e a pessoa não tem pressa. Embaixo dos
+  cartões das estações aparece "Hoje o metrô não roda. Conhece alguém que pega
+  metrô durante a semana?" com **Passar o app para alguém** (a mesma janela do
+  Mais). Só nesse dia: domingo com operação anunciada e os outros dias seguem
+  sem convite. No app, `SundayShareCard` em `ui/SundayNotice.kt`; na lite, o
+  botão `#domingo-passar` em `telaInicio()`.
 
 O `regras.json` é a **fonte única** das regras que não vêm do GTFS (bike,
 integrações, passagem, endereços, posições corrigidas, acessibilidade, horários de pico e lugares): o app (`data/Regras.kt`), o
