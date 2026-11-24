@@ -430,10 +430,18 @@ function telaInicio() {
     }
   }
 
+  // Domingo sem operação: sem horário para mostrar e sem pressa, o único dia em que a
+  // tela inicial convida a passar o app (como no app).
+  if (domingoSemOperacao(t)) {
+    html += `<div class="cartao"><p style="margin-top:0">Hoje o metrô não roda. Conhece alguém que pega metrô durante a semana?</p>
+      <button class="botao secundario" id="domingo-passar">▦ Passar o app para alguém</button></div>`;
+  }
+
   if (pedidoInstalar && !INSTALADA) {
     html += `<p><button class="botao secundario" id="instalar">📲 Adicionar à tela inicial</button></p>`;
   }
   tela.innerHTML = html;
+  document.getElementById("domingo-passar")?.addEventListener("click", passarApp);
   tela.querySelectorAll("[data-recolher]").forEach((b) => b.addEventListener("click", (e) => {
     e.stopPropagation();
     const r = lerRecolhido();
