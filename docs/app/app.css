@@ -444,3 +444,20 @@ dialog.folha[open] { animation: sobe .25s ease-out; }
 .cartao .recolher > span:first-child, .cartao .recolher .acao { color: inherit; }
 .cartao .recolher.fechado { background: color-mix(in srgb, currentColor 8%, transparent); }
 @media (prefers-color-scheme: dark) { .recolher .acao { color: var(--cartao-texto); } }
+
+/* ---------- Conheça o app (telaConheca): um recurso por vez, passando para o lado */
+.conheca { padding: 4px 0 16px; }
+.conheca-trilho { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+.conheca-trilho::-webkit-scrollbar { display: none; }
+.conheca-item { flex: 0 0 100%; scroll-snap-align: center; text-align: center; padding: 4px 16px; }
+.conheca-cel { width: 190px; aspect-ratio: 540 / 960; margin: 0 auto; border: 6px solid #1d1b1e; border-radius: 24px; overflow: hidden;
+  background: var(--cartao); display: grid; place-items: center; font-size: 4.5rem; }
+.conheca-cel img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.conheca-item h3 { font-size: 1.4rem; margin: 18px 0 6px; }
+.conheca-item p { color: var(--texto-2); margin: 0; line-height: 1.45; }
+.conheca-bolinhas { display: flex; gap: 7px; justify-content: center; margin: 18px 0 4px; }
+.conheca-bolinhas i { width: 8px; height: 8px; border-radius: 4px; background: var(--borda); transition: width .2s; }
+.conheca-bolinhas i.on { width: 22px; background: #43568f; }
+.conheca-acoes { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
+.conheca-exp { color: #43568f; font-weight: 600; text-decoration: none; padding: 12px 4px; }
+@media (prefers-color-scheme: dark) { .conheca-exp { color: #b7c4ff; } .conheca-bolinhas i.on { background: #b7c4ff; } }

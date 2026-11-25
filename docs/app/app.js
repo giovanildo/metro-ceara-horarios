@@ -996,6 +996,8 @@ function abrirMais() {
     <a href="#/ida-volta"><span class="ic">⇄</span><span>Sua ida e volta<small>casa, trabalho ou faculdade e seus horários</small></span></a>
     <a href="#/sobre-voce"><span class="ic">🙋</span><span>Conte sobre você<small>o visual e o que você usa</small></span></a>
     <h4>O app</h4>
+    <a href="#/conheca"><span class="ic">🧭</span><span>Conheça o app<small>o que ele faz além do horário, com exemplos</small></span></a>
+    <a href="../passeio/"><span class="ic">🗺️</span><span>Conheça o site<small>passeio pelas estações, nomes e histórias</small></span></a>
     <a href="#/fontes"><span class="ic">🔎</span>De onde vem cada informação</a>
     <a href="#/sobre"><span class="ic">ⓘ</span>Sobre o app</a>
     <button type="button" class="item" id="mais-divulgar"><span class="ic">▦</span><span>Passar o app para alguém<small>QR code na tela ou link por mensagem</small></span></button>`;
@@ -2241,6 +2243,60 @@ function telaFontes() {
   tela.innerHTML = `<div class="sobre">${html}</div>`;
 }
 
+// ---------- Conheça o app (no Mais): um recurso por vez, passando para o lado, como no app.
+// Os mesmos do app e do site (tools/site.py RECURSOS_APP), com o que a lite tem; o modo viagem
+// e o widget, só do Android, vão no último. A Nina fica de fora de propósito (no Mais ela é só o nome).
+const RECURSOS_LITE = [
+  { ic: "🏠", titulo: "Casa e Trabalho", texto: "Marque onde você mora e onde trabalha ou estuda. A tela inicial mostra qual metrô pegar na ida e na volta.",
+    ir: "#/ida-volta" },
+  { ic: "🔁", titulo: "Para onde você vai?", texto: "Diga o destino e a lite monta a viagem, com a integração entre as linhas e a hora de cada trecho.",
+    ir: "#/rotas" },
+  { ic: "💬", titulo: "Avisar alguém", texto: "Mande por mensagem a que horas você chega, estação por estação, pela tabela de horários. Fica em “Para onde você vai?”, depois de escolher a viagem.",
+    ir: "#/rotas" },
+  { ic: "⏰", titulo: "Lembrete na agenda", texto: "Toque num horário de hoje, na tela da estação, e crie um lembrete na agenda do celular para não perder o metrô." },
+  { ic: "🚲", titulo: "Bike no metrô", texto: "Na tela de cada estação, a lite diz se dá para embarcar com a bicicleta agora e até que horas." },
+  { ic: "📢", titulo: "Dias especiais e domingo", texto: "Quando o Metrofor muda o horário (feriado, eleição, ENEM), o aviso aparece no topo. No domingo comum, mostra que não tem operação." },
+  { img: "../img/tela-3.jpg", titulo: "No app para Android", texto: "O modo viagem avisa antes da sua estação, mesmo com a tela desligada, e o widget põe os horários na tela do celular.",
+    ir: "../play/?de=lite-conheca", rotulo: "Baixar na Play Store" },
+];
+
+function telaConheca(inicio) {
+  const n = RECURSOS_LITE.length;
+  const atual = Math.min(Math.max(inicio, 0), n - 1);
+  tela.innerHTML = `<div class="conheca">
+    <h2 style="font-size:1.4rem">Conheça o app</h2>
+    <div class="conheca-trilho" tabindex="0" aria-label="Recursos do app, um por vez">
+      ${RECURSOS_LITE.map((r, i) => `<section class="conheca-item" aria-label="${i + 1} de ${n}">
+        <div class="conheca-cel">${r.img ? `<img src="${r.img}" alt="" loading="lazy">` : `<span aria-hidden="true">${r.ic}</span>`}</div>
+        <h3>${esc(r.titulo)}</h3><p>${esc(r.texto)}</p></section>`).join("")}
+    </div>
+    <div class="conheca-bolinhas" aria-hidden="true">${RECURSOS_LITE.map(() => "<i></i>").join("")}</div>
+    <div class="conheca-acoes"><a class="conheca-exp"></a><button type="button" class="botao">Próximo</button></div>
+  </div>`;
+  const trilho = tela.querySelector(".conheca-trilho");
+  const bolinhas = [...tela.querySelectorAll(".conheca-bolinhas i")];
+  const exp = tela.querySelector(".conheca-exp");
+  const prox = tela.querySelector(".conheca-acoes .botao");
+  let i = -1;
+  const mostrar = (k) => {
+    if (k === i) return;
+    i = k;
+    bolinhas.forEach((b, j) => b.classList.toggle("on", j === k));
+    const r = RECURSOS_LITE[k];
+    exp.style.visibility = r.ir ? "visible" : "hidden";
+    if (r.ir) { exp.href = r.ir; exp.textContent = r.rotulo || "Experimentar"; }
+    prox.textContent = k === n - 1 ? "Concluir" : "Próximo";
+    // Guarda o recurso no endereço (sem mudar de tela): a volta do "Experimentar" cai no mesmo.
+    history.replaceState(null, "", `#/conheca/${k}`);
+  };
+  trilho.addEventListener("scroll", () => mostrar(Math.round(trilho.scrollLeft / trilho.clientWidth)), { passive: true });
+  prox.addEventListener("click", () => {
+    if (i === n - 1) location.hash = "#/";
+    else trilho.scrollTo({ left: (i + 1) * trilho.clientWidth, behavior: "smooth" });
+  });
+  requestAnimationFrame(() => { trilho.scrollLeft = atual * trilho.clientWidth; mostrar(atual); });
+}
+
 function telaNaoAchei() {
   tela.innerHTML = `<p class="vazio">Não achei essa tela. <a href="#/">Voltar ao início</a></p>`;
 }
@@ -2332,6 +2388,7 @@ function render() {
   else if (partes[0] === "sobre") telaSobre();
   else if (partes[0] === "passagem") telaPassagem(partes[1]);
   else if (partes[0] === "fontes") telaFontes();
+  else if (partes[0] === "conheca") telaConheca(Number(partes[1]) || 0);
   else if (partes[0] === "acesso") telaAcesso(partes[1], partes[2]);
   else if (partes[0] === "viagem") telaViagem(partes[1], partes[2]);
   else if (partes[0] === "lugar") telaLugar(partes[1], partes[2]);
