@@ -86,8 +86,9 @@ estações), **Nina** (abre direto o WhatsApp da Super NINA; ver
 ([`ui/HomeMenu.kt`](app/src/main/java/io/github/giova/metroceara/ui/HomeMenu.kt)):
 primeiro, com fundo de destaque, **Passatempos** (ver [Passatempos](#passatempos)); depois,
 em quatro grupos: **Para a viagem** (Passagem, Nina), **Seu dia a dia** (Sua ida e
-volta, Suas rotinas), **Do seu jeito** (Conte sobre você, Configurações) e **O app** (De
-onde vem cada informação, Sobre o app, Passar o app para alguém). Na lite, só os que
+volta, Suas rotinas), **Do seu jeito** (Conte sobre você, Configurações) e **O app**
+(Conheça o app, Conheça o site, De onde vem cada informação, Sobre o app, Passar o app
+para alguém; ver [Conheça o app e o site](#conheça-o-app-e-o-site)). Na lite, só os que
 ela tem. Ícone sem nome não serve para
 todo mundo, por isso cada botão diz o que faz; com letra grande, "Planeje sua
 viagem" quebra em duas linhas (com a Nina são cinco botões, e a letra da barra
@@ -131,6 +132,30 @@ lite, o item leva a `../passatempos/` (fora do service worker: precisa de intern
 placar** e sem "jogar os anteriores"; sem cadastro, progresso só no aparelho
 (localStorage), partida que cabe numa viagem. O limite diário existe para não
 prender ninguém; o que vicia é a sequência com notificação, e isso fica de fora.
+
+### Conheça o app e o site
+
+Dois itens no grupo **O app** do Mais (desde a 1.117). **Nada abre sozinho**: a
+primeira abertura já tem o Conte sobre você, e o tour só aparece para quem toca.
+
+- **Conheça o app** ([`ui/TourScreen.kt`](app/src/main/java/io/github/giova/metroceara/ui/TourScreen.kt)):
+  um recurso por vez, passando para o lado (`HorizontalPager`), com bolinhas,
+  "Experimentar" e "Próximo"/"Concluir". São 8: Casa e Trabalho, Para onde você
+  vai?, modo viagem, Avisar alguém, hora de sair, widget, bike e dias especiais.
+  Cinco mostram a tela real (`res/drawable-nodpi/tour_*.webp`, as mesmas de
+  `docs/img/tela-*.jpg`); os outros três, um desenho marcado "Exemplo" (o da
+  bike usa o `BikeBoardingNotice` de verdade). "Experimentar" abre o lugar
+  certo (Sua ida e volta, Para onde você vai?, Suas rotinas) e, na volta, o
+  tour continua no mesmo recurso (`tourPage` no `AppRoot`); no widget, o botão
+  é **Pôr na tela** (`requestPinAppWidget`, o 2×2; onde o Android não deixa,
+  um aviso com o caminho à mão). Bike e dias especiais não têm botão. **A Nina
+  fica de fora de propósito**: no Mais ela é só o nome, sem explicar para quem
+  olha a tela. Na lite, `#/conheca/<n>` (`telaConheca` no `app.js`): os 7 que
+  ela tem, num carrossel com `scroll-snap`, e o último convida para o app
+  Android (modo viagem e widget); o número no endereço faz a volta do
+  "Experimentar" cair no mesmo recurso.
+- **Conheça o site** abre no navegador o [Passeio pelo site](#site-e-página-de-apresentação)
+  (`passeio/?de=app`; na lite, `../passeio/`).
 
 ### Conte sobre você: perguntas, jeito dos horários e ordem
 
@@ -1956,8 +1981,13 @@ Google já conhece, em pastas próprias — a lite em `docs/app/` não é tocada
 - **Página principal** (`docs/index.html`, feita à mão): busca de estação,
   mapa de Fortaleza desenhado pelas posições reais das estações (cada ponto
   leva à página da estação), avisos do Metrofor dos próximos dias (ao vivo),
-  atalhos, mapas do Cariri e de Sobral e, embaixo, a apresentação do app —
-  o que faz, por que é seguro, como instalar, `#baixar`/`#instalar` e apoio.
+  **Por onde começar?** (desde 24/11: cinco caminhos pelo que a pessoa quer
+  fazer — horário agora, ir a um lugar, linhas e estações, histórias e nomes,
+  passeio pelo site — e o **🎲 Me mostre algo que eu não sei**, que sorteia o
+  nome de uma estação ou um trecho de literatura; a lista vem do `site.py`
+  no trecho `surpresa`, o sorteio fica no `inicio.js`), atalhos, mapas do
+  Cariri e de Sobral e, embaixo, a apresentação do app — o que faz, por que
+  é seguro, como instalar, `#baixar`/`#instalar` e apoio.
 - **Uma página por estação** (`docs/estacoes/<estação>/`, 62) e **por linha**
   (`docs/linhas/<linha>/`, 7), mais as listas `docs/estacoes/` (com filtro;
   aceita `?q=`) e `docs/linhas/`. A estação traz próximas partidas, primeiro
@@ -1967,6 +1997,23 @@ Google já conhece, em pastas próprias — a lite em `docs/app/` não é tocada
   descrição e dados estruturados (`TrainStation`, `BreadcrumbList`) para o
   Google. Parangaba e Expedicionários (duas linhas na mesma estação) são uma
   página só; Padre Cícero do Cariri é `padre-cicero-cariri`.
+  No fim da estação, antes do "Leve no bolso", **Neste site também tem**
+  (`neste_site`, `#neste-site`), para quem chegou pelo Google direto ali: a
+  estação vizinha, o nome curioso de outra estação, literatura, Fortaleza de
+  metrô (no Cariri e em Sobral, Conheça o app) e o passeio.
+- **[Passeio pelo site](docs/passeio/index.html)** (desde 24/11): 8 paradas no
+  desenho do trilho (`PASSEIO` no `site.py`: Horários agora, As linhas, Por que
+  esses nomes?, Fortaleza de metrô, Literatura e artes, Passatempos, Conheça o
+  app, História do app). Tocar numa parada começa o passeio, e cada página
+  passa a mostrar no topo a **faixa** "3 de 8 · Próxima: … ›" com ✕ para sair
+  (fora do roteiro, "Voltar ao passeio"; na última, "Fim da linha!"). A faixa é
+  o [`docs/site/passeio.js`](docs/site/passeio.js), **gerado** pelo `site.py`
+  a partir do `PASSEIO` (não edite à mão); a parada fica no `localStorage` do
+  aparelho. Ele vai no rodapé de todas as páginas geradas e, à mão, na
+  principal, nos passatempos e na lite (`docs/app/index.html`).
+- **[Conheça o app](docs/conheca-o-app/index.html)** (desde 24/11): os mesmos
+  recursos do tour do app (`RECURSOS_APP` no `site.py`), cada um dizendo se é
+  "Só no Android" ou "Android e versão lite", com as telas de `docs/img/`.
 - **Passagem para a Play Store** (`docs/play/`, feita à mão, `noindex`): o
   link da Play na bio do Instagram não abre no Android (o toque não faz nada,
   23/11; o navegador do Instagram não entrega `play.google.com` ao app da
@@ -1986,7 +2033,7 @@ Google já conhece, em pastas próprias — a lite em `docs/app/` não é tocada
   fica em `pagina_faq`. Link em "Dúvidas" no menu do computador e no rodapé.
 - **[Passatempos](docs/passatempos/index.html)**: Caça-estações e Cruzadinha
   (ver [Passatempos](#passatempos)). Fora do menu e do sitemap, `noindex`;
-  chega-se pelo Mais do app e da lite. Cada jogo é um arquivo único, com os
+  chega-se pelo Mais do app e da lite e pela parada 6 do passeio. Cada jogo é um arquivo único, com os
   dados dentro (histórias com as palavras escolhidas à mão; grades montadas
   por gerador a partir de um banco de palavras com dica escrita à mão).
 - **[História do app](docs/historia/index.html)**: a linha do tempo das
