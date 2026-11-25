@@ -2260,17 +2260,27 @@ const RECURSOS_LITE = [
     ir: "../play/?de=lite-conheca", rotulo: "Baixar na Play Store" },
 ];
 
-function telaConheca(inicio) {
-  const n = RECURSOS_LITE.length;
+/**
+ * [primeira]: a primeira visita (como a primeira abertura do app). "Pular" no topo leva à
+ * última tela, que pergunta se a pessoa quer deixar do seu jeito (as perguntas do Conte
+ * sobre você) ou pular; sem "Experimentar", para não sair no meio da apresentação.
+ */
+function telaConheca(inicio, primeira = false) {
+  const itens = primeira ? [...RECURSOS_LITE, { final: true }] : RECURSOS_LITE;
+  const n = itens.length;
   const atual = Math.min(Math.max(inicio, 0), n - 1);
+  const final = `<section class="conheca-item conheca-final" aria-label="${n} de ${n}">
+      <div class="conheca-emoji" aria-hidden="true">🙋</div><h3>Vamos deixar do seu jeito?</h3>
+      <p>3 perguntas rápidas. Com elas, a lite mostra primeiro o que você mais usa.</p>
+      <p>Você pode mudar depois em Mais › Conte sobre você.</p><p class="dica">Fica só neste aparelho. Não tem cadastro.</p></section>`;
   tela.innerHTML = `<div class="conheca">
-    <h2 style="font-size:1.4rem">Conheça o app</h2>
+    <div class="conheca-topo"><h2 style="font-size:1.4rem">Conheça o app</h2>${primeira ? `<button type="button" class="conheca-pular">Pular</button>` : ""}</div>
     <div class="conheca-trilho" tabindex="0" aria-label="Recursos do app, um por vez">
-      ${RECURSOS_LITE.map((r, i) => `<section class="conheca-item" aria-label="${i + 1} de ${n}">
+      ${itens.map((r, i) => r.final ? final : `<section class="conheca-item" aria-label="${i + 1} de ${n}">
         <div class="conheca-cel">${r.img ? `<img src="${r.img}" alt="" loading="lazy">` : `<span aria-hidden="true">${r.ic}</span>`}</div>
         <h3>${esc(r.titulo)}</h3><p>${esc(r.texto)}</p></section>`).join("")}
     </div>
-    <div class="conheca-bolinhas" aria-hidden="true">${RECURSOS_LITE.map(() => "<i></i>").join("")}</div>
+    <div class="conheca-bolinhas" aria-hidden="true">${itens.map(() => "<i></i>").join("")}</div>
     <div class="conheca-acoes"><a class="conheca-exp"></a><button type="button" class="botao">Próximo</button></div>
   </div>`;
   const trilho = tela.querySelector(".conheca-trilho");
@@ -2278,22 +2288,35 @@ function telaConheca(inicio) {
   const exp = tela.querySelector(".conheca-exp");
   const prox = tela.querySelector(".conheca-acoes .botao");
   let i = -1;
+  const pular = tela.querySelector(".conheca-pular");
   const mostrar = (k) => {
     if (k === i) return;
     i = k;
     bolinhas.forEach((b, j) => b.classList.toggle("on", j === k));
-    const r = RECURSOS_LITE[k];
-    exp.style.visibility = r.ir ? "visible" : "hidden";
-    if (r.ir) { exp.href = r.ir; exp.textContent = r.rotulo || "Experimentar"; }
-    prox.textContent = k === n - 1 ? "Concluir" : "Próximo";
+    const r = itens[k];
+    if (r.final) {
+      exp.style.visibility = "visible";
+      exp.href = "#/";
+      exp.textContent = "Pular";
+      prox.textContent = "Personalizar";
+    } else {
+      // Na primeira visita, nada que saia da apresentação (só o convite para o app Android).
+      const ir = primeira && r.ir?.startsWith("#") ? null : r.ir;
+      exp.style.visibility = ir ? "visible" : "hidden";
+      if (ir) { exp.href = ir; exp.textContent = r.rotulo || "Experimentar"; }
+      prox.textContent = k === n - 1 ? "Concluir" : "Próximo";
+    }
+    if (pular) pular.hidden = Boolean(r.final);
     // Guarda o recurso no endereço (sem mudar de tela): a volta do "Experimentar" cai no mesmo.
-    history.replaceState(null, "", `#/conheca/${k}`);
+    history.replaceState(null, "", primeira ? `#/conheca/inicio/${k}` : `#/conheca/${k}`);
   };
   trilho.addEventListener("scroll", () => mostrar(Math.round(trilho.scrollLeft / trilho.clientWidth)), { passive: true });
   prox.addEventListener("click", () => {
-    if (i === n - 1) location.hash = "#/";
+    if (itens[i].final) location.hash = "#/sobre-voce/inicio";
+    else if (i === n - 1) location.hash = "#/";
     else trilho.scrollTo({ left: (i + 1) * trilho.clientWidth, behavior: "smooth" });
   });
+  pular?.addEventListener("click", () => trilho.scrollTo({ left: (n - 1) * trilho.clientWidth, behavior: "smooth" }));
   requestAnimationFrame(() => { trilho.scrollLeft = atual * trilho.clientWidth; mostrar(atual); });
 }
 
@@ -2388,7 +2411,7 @@ function render() {
   else if (partes[0] === "sobre") telaSobre();
   else if (partes[0] === "passagem") telaPassagem(partes[1]);
   else if (partes[0] === "fontes") telaFontes();
-  else if (partes[0] === "conheca") telaConheca(Number(partes[1]) || 0);
+  else if (partes[0] === "conheca") partes[1] === "inicio" ? telaConheca(Number(partes[2]) || 0, true) : telaConheca(Number(partes[1]) || 0);
   else if (partes[0] === "acesso") telaAcesso(partes[1], partes[2]);
   else if (partes[0] === "viagem") telaViagem(partes[1], partes[2]);
   else if (partes[0] === "lugar") telaLugar(partes[1], partes[2]);
@@ -2428,10 +2451,11 @@ function status() {
 }
 
 async function iniciar() {
-  // Primeira visita: as 4 perguntas do Conte sobre você, uma vez só.
+  // Primeira visita: o Conheça o app, que termina perguntando se a pessoa quer responder
+  // o Conte sobre você ou pular. Uma vez só.
   const primeira = lerNumero("visitas") === 0 && !location.hash.replace(/^#\/?/, "");
   try { localStorage.setItem("visitas", String(lerNumero("visitas") + 1)); } catch { /* segue */ }
-  if (primeira) history.replaceState(null, "", "#/sobre-voce/inicio");
+  if (primeira) history.replaceState(null, "", "#/conheca/inicio");
   try {
     estado.dados = await carregar();
   } catch {

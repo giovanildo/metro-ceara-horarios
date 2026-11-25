@@ -461,3 +461,9 @@ dialog.folha[open] { animation: sobe .25s ease-out; }
 .conheca-acoes { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
 .conheca-exp { color: #43568f; font-weight: 600; text-decoration: none; padding: 12px 4px; }
 @media (prefers-color-scheme: dark) { .conheca-exp { color: #b7c4ff; } .conheca-bolinhas i.on { background: #b7c4ff; } }
+.conheca-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.conheca-pular { background: none; border: 0; color: #43568f; font: inherit; font-weight: 600; padding: 10px 4px; cursor: pointer; }
+.conheca-final { display: flex; flex-direction: column; justify-content: center; }
+.conheca-final p + p { margin-top: 10px; }
+.conheca-emoji { font-size: 4rem; }
+@media (prefers-color-scheme: dark) { .conheca-pular { color: #b7c4ff; } }
