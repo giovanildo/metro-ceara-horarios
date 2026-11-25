@@ -312,3 +312,48 @@ main section { margin: 44px 0 0; }
 .tur-ver li { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--linha); }
 .tur-ver .dica { white-space: nowrap; text-align: right; }
 @media (prefers-color-scheme: dark) { .tur-aviso, .tur-aviso-leste { color: #1b1a1f; } }
+
+/* ---------- passeio pelo site (tools/site.py PASSEIO; a faixa do topo vem do passeio.js) */
+.botao.cheio { background: var(--destaque); color: #fff; border-color: var(--destaque); }
+.passeio { list-style: none; margin: 8px 0 0; padding: 0; }
+.passeio li { position: relative; padding: 0 0 22px 46px; }
+.passeio li::before { content: ""; position: absolute; left: 14px; top: 6px; width: 14px; height: 14px; border-radius: 50%;
+  background: var(--papel); border: 4px solid var(--destaque); z-index: 2; }
+.passeio li::after { content: ""; position: absolute; left: 21px; top: 10px; bottom: -6px; width: 6px; background: var(--destaque); z-index: 1; }
+.passeio li:last-child::after { display: none; }
+.passeio li.fim::before { width: 22px; height: 22px; left: 10px; top: 2px; background: var(--destaque); }
+.passeio a { display: block; text-decoration: none; }
+.passeio a:hover strong { text-decoration: underline; }
+.passeio .n { display: block; font-size: .8rem; font-weight: 700; color: var(--suave); letter-spacing: .04em; text-transform: uppercase; }
+.passeio strong { display: block; font-family: var(--titulo); font-size: 1.2rem; line-height: 1.25; }
+.passeio small { display: block; color: var(--suave); font-size: .95rem; line-height: 1.4; }
+
+/* ---------- Conheça o app */
+.recursos { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.recurso { background: var(--papel); border-radius: var(--raio); box-shadow: var(--sombra); padding: 16px; display: flex; gap: 14px; align-items: flex-start; }
+.recurso img { width: 96px; height: 170px; object-fit: cover; object-position: top; border-radius: 14px; border: 4px solid #1d1b1e; flex: none; }
+.recurso-emoji { width: 96px; height: 96px; border-radius: 22px; background: var(--fundo); display: flex; align-items: center; justify-content: center;
+  font-size: 2.8rem; flex: none; }
+.recurso h3 { margin: 2px 0 6px; }
+.recurso p { margin: 0; color: var(--suave); font-size: .97rem; line-height: 1.45; }
+.recurso .onde { display: inline-block; margin-top: 8px; font-size: .82rem; font-weight: 700; border-radius: 999px; padding: 2px 10px; background: var(--fundo); }
+
+/* ---------- "Neste site também tem" (pé da estação) e "Por onde começar?" (início) */
+.neste-site { background: var(--papel); border-radius: var(--raio); box-shadow: var(--sombra); padding: 20px 20px 8px; }
+.neste-site h2 { font-size: 1.35rem; margin-bottom: 4px; }
+.neste-site a, .portas a { display: flex; gap: 12px; align-items: flex-start; text-decoration: none; }
+.neste-site a { padding: 12px 0; border-top: 1px solid var(--linha); }
+.neste-site a:first-of-type { border-top: 0; }
+.neste-site .e { font-size: 1.5rem; width: 32px; flex: none; text-align: center; }
+.neste-site strong, .portas strong { display: block; line-height: 1.3; }
+.neste-site small, .portas small { display: block; color: var(--suave); font-size: .9rem; line-height: 1.35; }
+.neste-site a:hover strong, .portas a:hover strong { text-decoration: underline; }
+.portas { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+.portas a { align-items: center; background: var(--papel); border-radius: var(--raio); box-shadow: var(--sombra); padding: 14px 16px; }
+.portas .e { font-size: 1.6rem; flex: none; width: 46px; height: 46px; border-radius: 14px; background: var(--fundo);
+  display: flex; align-items: center; justify-content: center; }
+.portas strong { font-family: var(--titulo); font-size: 1.1rem; }
+.portas .seta { margin-left: auto; color: var(--suave); font-size: 1.3rem; }
+.surpresa { display: table; margin: 18px auto 0; border: 2px dashed var(--destaque); color: var(--destaque); font-weight: 700;
+  border-radius: 999px; padding: 10px 18px; text-decoration: none; }
+@media (prefers-color-scheme: dark) { .surpresa { color: #ff6b7f; border-color: #ff6b7f; } }

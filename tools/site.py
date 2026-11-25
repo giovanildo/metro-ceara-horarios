@@ -13,6 +13,9 @@ Gera (e só mexe nestes caminhos; a lite em docs/app/ fica intocada):
     docs/linhas/index.html              todas as linhas
     docs/linhas/<linha>/index.html      uma página por linha
     docs/perguntas-frequentes/index.html  as dúvidas comuns, respondidas com os mesmos dados
+    docs/passeio/index.html             o passeio pelo site (PASSEIO), no desenho do trilho
+    docs/conheca-o-app/index.html       o que o app faz além do horário (RECURSOS_APP)
+    docs/site/passeio.js                a faixa "3 de 8" do passeio, gerada a partir do PASSEIO
     docs/sitemap.xml                    reescrito com as páginas fixas e as geradas
     docs/index.html                     só os trechos <!--gerado:...--> (mapas, busca, números);
                                         o resto da página principal é feito à mão
@@ -331,6 +334,7 @@ RODAPE = """<footer class="rodape"><div class="largura">
   <p>Viu algo errado? <a href="{whats}">Conte pelo WhatsApp</a> · <a href="{raiz}perguntas-frequentes/">Perguntas frequentes</a> · <a href="{raiz}">Sobre o app</a> · <a href="{raiz}historia/">História do app</a> · <a href="{raiz}literatura/">Literatura e artes</a> · <a href="{raiz}nomes-das-estacoes/">Nomes das estações</a> · <a href="{raiz}privacidade.html">Privacidade</a></p>
   <p class="gerado">Página gerada em {gerado}.</p>
 </div></footer>
+<script src="{raiz}site/passeio.js" defer></script>
 {scripts}</body>
 </html>
 """
@@ -509,6 +513,7 @@ def pagina_estacao(d, grupo):
     h.append(literatura_de(d, raiz, estacao=grupo["slug"]))
     if fotos:
         h.append(fotos_do_fim(fotos, nome, raiz))
+    h.append(neste_site(d, grupo, raiz))
     h.append(chamada_app(raiz))
     h.append("</main>")
 
@@ -1110,6 +1115,216 @@ def pagina_literatura(d):
                   corpo="\n".join(h))
 
 
+# ---------- passeio pelo site, "Conheça o app" e "Neste site também tem"
+
+# As paradas do passeio, em ordem. Daqui saem a página do passeio e o docs/site/passeio.js
+# (a faixa "3 de 8" que aparece no topo de cada página para quem começou o passeio).
+PASSEIO = [
+    ("app/", "Horários agora", "o próximo metrô ou VLT de qualquer estação, sem instalar nada"),
+    ("linhas/", "As linhas", "Sul, Oeste, Nordeste, VLT Aeroporto, Cariri e Sobral"),
+    ("nomes-das-estacoes/", "Por que esses nomes?", "quem dá nome a cada estação"),
+    ("fortaleza-de-metro/", "Fortaleza de metrô", "onde o metrô chega (e onde não chega)"),
+    ("literatura/", "Na literatura e nas artes", "o trem nos livros, nas músicas e nos quadros"),
+    ("passatempos/", "Passatempos", "caça-palavras e cruzadinha, um novo por dia"),
+    ("conheca-o-app/", "Conheça o app", "o que ele faz além do horário"),
+    ("historia/", "História do app", "como ele nasceu, feito por um passageiro"),
+]
+
+PASSEIO_JS = """// Gerado por tools/site.py (PASSEIO): não edite à mão.
+// A faixa do passeio pelo site: só aparece para quem tocou numa parada da página
+// "Passeio pelo site" (fica guardado só neste aparelho). Mostra em que parada a
+// pessoa está, leva à próxima e o ✕ encerra. Carregada pelas páginas do site, pela
+// lite (docs/app/) e pelos passatempos.
+(() => {
+  const PARADAS = __PARADAS__;
+  const CHAVE = "passeio";
+  const script = document.currentScript;
+  if (!script) return;
+  const raiz = new URL("../", script.src);
+  const ler = () => { try { const n = parseInt(localStorage.getItem(CHAVE), 10); return n >= 0 && n < PARADAS.length ? n : null; } catch { return null; } };
+  const guardar = (n) => { try { n === null ? localStorage.removeItem(CHAVE) : localStorage.setItem(CHAVE, String(n)); } catch { /* sem guardar, sem faixa */ } };
+
+  // Tocar numa parada (na página do passeio ou na faixa) começa ou segue o passeio.
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest && e.target.closest("[data-passeio]");
+    if (a) guardar(parseInt(a.dataset.passeio, 10));
+  });
+
+  let atual = ler();
+  if (atual === null) return;
+  const caminho = location.pathname.startsWith(raiz.pathname)
+    ? location.pathname.slice(raiz.pathname.length).replace(/index\\.html$/, "") : null;
+  const aqui = PARADAS.findIndex((p) => p[0] === caminho);
+  if (aqui >= 0) { atual = aqui; guardar(aqui); }
+  const naParada = aqui >= 0;
+
+  const estilo = document.createElement("style");
+  estilo.textContent = `
+    .passeio-faixa { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 10px;
+      background: #1b1a1f; color: #fff; padding: 9px 14px; font: 600 15px/1.3 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    .topo .passeio-faixa { position: static; margin: 0 -16px; }
+    .passeio-faixa .bolinhas { display: flex; gap: 4px; align-items: center; flex: none; }
+    .passeio-faixa .bolinhas i { width: 9px; height: 9px; border-radius: 50%; border: 2px solid #fff; box-sizing: border-box; }
+    .passeio-faixa .bolinhas i.feita { background: #fff; }
+    .passeio-faixa .bolinhas i.aqui { width: 13px; height: 13px; background: #CE0F2E; border-color: #CE0F2E; }
+    .passeio-faixa .conta { font-weight: 400; white-space: nowrap; }
+    .passeio-faixa a { color: #fff; text-decoration: none; margin-left: auto; text-align: right; }
+    .passeio-faixa button { background: none; border: 0; color: #fff; opacity: .75; font-size: 18px; padding: 0 2px 0 6px; cursor: pointer; }
+    @media (max-width: 359px) { .passeio-faixa .bolinhas { display: none; } }`;
+  document.head.appendChild(estilo);
+
+  const faixa = document.createElement("div");
+  faixa.className = "passeio-faixa";
+  faixa.setAttribute("role", "navigation");
+  faixa.setAttribute("aria-label", "Passeio pelo site");
+  const bolinhas = PARADAS.map((_, i) => `<i class="${i < atual ? "feita" : i === atual ? "aqui" : ""}"></i>`).join("");
+  const ultima = atual === PARADAS.length - 1;
+  let link;
+  if (!naParada) {
+    link = `<a href="${new URL(PARADAS[atual][0], raiz)}" data-passeio="${atual}">Voltar ao passeio: ${PARADAS[atual][1]} ›</a>`;
+  } else if (ultima) {
+    link = `<a href="${new URL("passeio/", raiz)}" class="fim">Fim da linha! Ver o passeio ›</a>`;
+  } else {
+    link = `<a href="${new URL(PARADAS[atual + 1][0], raiz)}" data-passeio="${atual + 1}">Próxima: ${PARADAS[atual + 1][1]} ›</a>`;
+  }
+  faixa.innerHTML = `<span class="bolinhas" aria-hidden="true">${bolinhas}</span>`
+    + `<span class="conta">${atual + 1} de ${PARADAS.length}</span>${link}`
+    + `<button type="button" aria-label="Sair do passeio">✕</button>`;
+  faixa.querySelector("button").addEventListener("click", () => { guardar(null); faixa.remove(); });
+  faixa.querySelector(".fim")?.addEventListener("click", () => guardar(null));
+
+  const topo = document.querySelector("nav.topo .largura") || null;
+  if (topo) {
+    faixa.style.flexBasis = "calc(100% + 32px)";
+    topo.style.flexWrap = "wrap";
+    topo.appendChild(faixa);
+  } else {
+    const cabeca = document.querySelector("body > header");
+    if (cabeca) cabeca.after(faixa); else document.body.prepend(faixa);
+  }
+})();
+"""
+
+
+def passeio_js():
+    paradas = [[c, t] for c, t, _ in PASSEIO]
+    return PASSEIO_JS.replace("__PARADAS__", json.dumps(paradas, ensure_ascii=False))
+
+
+def pagina_passeio(d):
+    raiz = "../"
+    h = ['<header class="faixa"><div class="largura">',
+         migalhas(raiz, [("Passeio pelo site", None)]),
+         "<h1>Passeio pelo site</h1>",
+         f'<p class="endereco">{len(PASSEIO)} paradas, uns 10 minutos. Desce onde quiser: em cada página, uma faixa no topo '
+         "mostra a parada e leva à próxima.</p></div></header>",
+         '<main id="conteudo" class="largura"><section><ol class="passeio">']
+    for i, (caminho, titulo, texto) in enumerate(PASSEIO):
+        fim = i == len(PASSEIO) - 1
+        rotulo = f"Parada {i + 1}" + (" · fim da linha" if fim else "")
+        classe = ' class="fim"' if fim else ""
+        h.append(f'<li{classe}><a href="{raiz}{caminho}" data-passeio="{i}">'
+                 f'<span class="n">{rotulo}</span><strong>{esc(titulo)}</strong><small>{esc(texto)}</small></a></li>')
+    h.append(f'</ol><p class="acoes"><a class="botao cheio" href="{raiz}{PASSEIO[0][0]}" data-passeio="0">Começar o passeio ›</a></p>'
+             '<p class="dica">A faixa do passeio fica guardada só neste aparelho. O ✕ dela encerra o passeio.</p></section>')
+    h.append("</main>")
+    return pagina(d, caminho="passeio/", titulo="Passeio pelo site | Metrô Ceará",
+                  descricao="Um passeio pelo guia do metrô e do VLT do Ceará em 8 paradas: horários, linhas, a origem dos nomes das estações, "
+                            "Fortaleza de metrô, literatura, passatempos e o app.",
+                  corpo="\n".join(h))
+
+
+# O que o app faz além do horário: os mesmos 8 do "Conheça o app" do Mais (app e lite).
+# "onde": só no Android ou também na versão lite (o "Horários agora"), para quem tem iPhone saber.
+RECURSOS_APP = [
+    ("🏠", "Casa e Trabalho", "Marque onde você mora e onde trabalha ou estuda. A tela inicial mostra qual metrô pegar na ida e na volta.",
+     "tela-1.jpg", "Tela inicial com Casa e Trabalho no topo", "Android e versão lite"),
+    ("🔔", "Modo viagem", "Mostra onde você está no caminho e avisa antes da sua estação, mesmo com a tela desligada.",
+     "tela-3.jpg", "Modo viagem com o aviso de descida", "Só no Android"),
+    ("💬", "Avisar alguém", "Mande por mensagem a que horas você chega, estação por estação, pela tabela de horários.",
+     None, None, "Android e versão lite"),
+    ("⏰", "Hora de sair", "Toque no sininho de um horário e o app avisa quando for hora de sair de casa, nos dias que você escolher. "
+     "Na versão lite, vira um lembrete na agenda.", "tela-5.jpg", "Horários de uma estação com o aviso da hora de sair", "Android e versão lite"),
+    ("📱", "Na tela do celular", "Ponha os próximos horários da sua estação na tela inicial do celular, sem abrir o app.",
+     "tela-4.jpg", "Widgets na tela inicial com os próximos horários", "Só no Android"),
+    ("🚲", "Bike no metrô", "Mostra em que horários pode embarcar com a bicicleta em cada estação.", None, None, "Android e versão lite"),
+    ("📢", "Dias especiais e domingo", "Quando o Metrofor muda o horário (feriado, eleição, ENEM), o aviso aparece no topo. "
+     "No domingo comum, mostra que não tem operação.", None, None, "Android e versão lite"),
+    # A Nina fica de fora de propósito: no app ela é só o nome, sem explicar para quem olha a tela.
+]
+RECURSOS_APP.insert(1, ("🔁", "Para onde você vai?", "Diga o destino e o app monta a viagem, com a integração entre as linhas e a hora de cada trecho.",
+                        "tela-6.jpg", "Viagem de São Benedito a Papicu com a integração em Parangaba", "Android e versão lite"))
+
+
+def pagina_conheca_app(d):
+    raiz = "../"
+    h = ['<header class="faixa"><div class="largura">',
+         migalhas(raiz, [("Conheça o app", None)]),
+         "<h1>Conheça o app</h1>",
+         f'<p class="endereco">{len(RECURSOS_APP)} coisas que ele faz além do horário. Grátis, sem anúncios e sem cadastro.</p>'
+         "</div></header>",
+         '<main id="conteudo" class="largura"><section class="recursos">']
+    for emoji, titulo, texto, img, alt, onde in RECURSOS_APP:
+        figura = (f'<img src="{raiz}img/{img}" alt="{esc(alt)}" loading="lazy" width="96" height="170">' if img
+                  else f'<span class="recurso-emoji" aria-hidden="true">{emoji}</span>')
+        h.append(f'<article class="recurso">{figura}<div><h3>{"" if img is None else emoji + " "}{esc(titulo)}</h3>'
+                 f'<p>{esc(texto)}</p><span class="onde">{esc(onde)}</span></div></article>')
+    h.append("</section>")
+    h.append(f'<aside class="chamada"><div><h2>Experimente agora</h2><p>A <strong>versão lite</strong> abre no navegador, em qualquer celular '
+             f'(iPhone também). O <strong>app para Android</strong> tem tudo, com o modo viagem e o widget.</p></div>'
+             f'<p class="acoes"><a class="botao" href="{raiz}app/">▶ Abrir a versão lite</a>'
+             f'<a class="botao vazado-escuro" href="{raiz}play/?de=conheca-o-app">App para Android</a></p></aside>')
+    h.append("</main>")
+    return pagina(d, caminho="conheca-o-app/", titulo="Conheça o app Metrô Ceará: o que ele faz além do horário",
+                  descricao="Casa e Trabalho, modo viagem que avisa antes da sua estação, avisar alguém, hora de sair, widget, bike no metrô, "
+                            "dias especiais e Nina: o que o app de horários do metrô e VLT do Ceará faz.",
+                  corpo="\n".join(h))
+
+
+def primeira_frase(texto, limite=95):
+    frase = re.split(r"(?<=[.!?])\s", texto, maxsplit=1)[0]
+    return frase if len(frase) <= limite else frase[:limite].rsplit(" ", 1)[0] + "…"
+
+
+def neste_site(d, grupo, raiz):
+    """O pé da página da estação: para quem chegou pelo Google direto aqui, o que mais tem no site."""
+    itens = []
+    linha, stop = grupo["linhas"][0]
+    ordem = d.estacoes_da_linha(linha)
+    i = ordem.index(stop)
+    j = i + 1 if i + 1 < len(ordem) else i - 1
+    if 0 <= j < len(ordem) and j != i:
+        vizinha = d.por_stop[ordem[j]]
+        ponta = d.por_stop[ordem[-1] if j > i else ordem[0]]["nome"]
+        itens.append(("🚉", f"Estação vizinha: {vizinha['nome']}", f"na {nome_linha(linha['nome'])}, sentido {ponta}",
+                      f"estacoes/{vizinha['slug']}/"))
+    outras = sorted(s for s in d.nomes if s != grupo["slug"] and s in {g["slug"] for g in d.estacoes})
+    if outras:
+        s = outras[sum(map(ord, grupo["slug"])) % len(outras)]
+        nome_outra = next(g["nome"] for g in d.estacoes if g["slug"] == s)
+        itens.append(("✍️", "Os nomes de todas as estações", f"{nome_outra}: {primeira_frase(d.nomes[s]['texto'])}",
+                      f"nomes-das-estacoes/#{s}"))
+    itens.append(("🎨", "O trem na literatura e nas artes", "livros, músicas e quadros com os trilhos do Ceará", "literatura/"))
+    if grupo["sistema"] == "Fortaleza" and d.turismo:
+        itens.append(("🧭", "Fortaleza de metrô", "passeios de metrô e VLT, e onde os trilhos não chegam", "fortaleza-de-metro/"))
+    else:
+        itens.append(("📱", "Conheça o app", "o que ele faz além do horário", "conheca-o-app/"))
+    itens.append(("🚇", "Passeio pelo site", f"{len(PASSEIO)} paradas para ver tudo o que tem aqui", "passeio/"))
+    return ('<section class="neste-site" id="neste-site"><h2>Neste site também tem</h2>'
+            + "".join(f'<a href="{raiz}{href}"><span class="e" aria-hidden="true">{e}</span><span><strong>{esc(t)}</strong>'
+                      f'<small>{esc(sub)}</small></span></a>' for e, t, sub, href in itens)
+            + "</section>")
+
+
+def surpresas(d):
+    """O 🎲 da página principal: um nome de estação ou um trecho de literatura, sorteado pelo inicio.js."""
+    nomes = {g["slug"]: g["nome"] for g in d.estacoes}
+    itens = [f"estacoes/{s}/#nome" for s in sorted(d.nomes) if s in nomes]
+    itens += [f"literatura/#{o['id']}" for o in d.literatura if o.get("id")]
+    return (f'<a class="surpresa" href="nomes-das-estacoes/" data-itens="{esc(json.dumps(itens))}">'
+            "🎲 Me mostre algo que eu não sei</a>")
+
+
 def chamada_app(raiz):
     return (f'<aside class="chamada"><div><h2>Leve no bolso</h2><p>Na <strong>versão lite</strong>, a próxima partida da estação mais perto, '
             f'em qualquer celular, sem instalar. No <strong>app para Android</strong>, o modo viagem avisa antes da sua estação.</p></div>'
@@ -1596,6 +1811,7 @@ def trechos_da_inicial(d):
         "mapa-cariri": mapa_svg(d, "Cariri", 480, mx=60) + legenda("Cariri"),
         "mapa-sobral": mapa_svg(d, "Sobral", 480, mx=90) + legenda("Sobral"),
         "literatura": trecho_do_dia(d),
+        "surpresa": surpresas(d),
     }
 
 
@@ -1657,7 +1873,7 @@ def main():
     pasta = sys.argv[1] if len(sys.argv) > 1 else None
     d, util, sabado = carregar_dados(pasta)
 
-    caminhos = list(FIXAS) + ["estacoes/", "linhas/", "perguntas-frequentes/", "historia/", "literatura/", "nomes-das-estacoes/"]
+    caminhos = list(FIXAS) + ["estacoes/", "linhas/", "perguntas-frequentes/", "historia/", "literatura/", "nomes-das-estacoes/", "passeio/", "conheca-o-app/"]
     escrever(os.path.join(DOCS, "historia", "index.html"),
              pagina(d, caminho="historia/", titulo="História do app | Metrô Ceará",
                     descricao="Como o Metrô Ceará foi feito: as versões do app de horários de metrô e VLT do Ceará, dia a dia, do primeiro dia à Play Store.",
@@ -1665,6 +1881,9 @@ def main():
     escrever(os.path.join(DOCS, "perguntas-frequentes", "index.html"), pagina_faq(d))
     escrever(os.path.join(DOCS, "literatura", "index.html"), pagina_literatura(d))
     escrever(os.path.join(DOCS, "nomes-das-estacoes", "index.html"), pagina_nomes(d))
+    escrever(os.path.join(DOCS, "passeio", "index.html"), pagina_passeio(d))
+    escrever(os.path.join(DOCS, "conheca-o-app", "index.html"), pagina_conheca_app(d))
+    escrever(os.path.join(DOCS, "site", "passeio.js"), passeio_js())
     if d.turismo:
         escrever(os.path.join(DOCS, "fortaleza-de-metro", "index.html"), pagina_turismo(d))
         caminhos.append("fortaleza-de-metro/")

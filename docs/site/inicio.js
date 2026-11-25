@@ -55,3 +55,15 @@ try {
     onde.textContent = `${t.onde} ›`;
   }
 } catch { /* fica o trecho que veio no HTML */ }
+
+// 🎲 "Me mostre algo que eu não sei": sorteia um nome de estação ou um trecho de literatura
+// (a lista vem pronta do tools/site.py no data-itens; sem JS, o link leva aos nomes das estações).
+const surpresa = document.querySelector("a.surpresa");
+surpresa?.addEventListener("click", (e) => {
+  try {
+    const itens = JSON.parse(surpresa.dataset.itens || "[]");
+    if (!itens.length) return;
+    e.preventDefault();
+    location.href = itens[Math.floor(Math.random() * itens.length)];
+  } catch { /* segue o link normal */ }
+});
