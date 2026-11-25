@@ -88,16 +88,20 @@ fun ProfileQuestionsScreen(
     onPickPlace: (Place) -> Unit,
     onSkip: () -> Unit,
     onFinish: () -> Unit,
+    /** 1 = sem a apresentação (na primeira abertura, ela é a última tela do tour). */
+    startStep: Int = 0,
+    /** O voltar na primeira tela mostrada; sem ele, é o mesmo que Pular. */
+    onBackAtStart: (() -> Unit)? = null,
 ) {
     // 0 = apresentação; 1 a 6 = as perguntas.
-    var step by rememberSaveable { mutableIntStateOf(0) }
+    var step by rememberSaveable { mutableIntStateOf(startStep) }
     // Sim/Não só aparece marcado depois de a pessoa tocar: o padrão do app não é resposta.
     var commute by rememberSaveable { mutableStateOf<Boolean?>(null) }
     var bike by rememberSaveable { mutableStateOf<Boolean?>(null) }
     var halfFare by rememberSaveable { mutableStateOf<Boolean?>(null) }
     var access by rememberSaveable { mutableStateOf<Boolean?>(null) }
 
-    BackHandler { if (step > 0) step-- else onSkip() }
+    BackHandler { if (step > startStep) step-- else (onBackAtStart ?: onSkip)() }
 
     Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {

@@ -5,6 +5,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.os.Build
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
@@ -95,24 +96,48 @@ private val ITEMS = listOf(
 )
 
 /**
- * "Conheça o app" (no Mais): um recurso por vez, passando para o lado, com a tela
- * real em cima. "Experimentar" abre o lugar de verdade; na volta, o tour continua
- * no mesmo recurso ([page] fica com quem chama). Nada aqui abre sozinho.
+ * "Conheça o app": um recurso por vez, passando para o lado, com a tela real em
+ * cima. Pelo Mais, "Experimentar" abre o lugar de verdade e, na volta, o tour
+ * continua no mesmo recurso ([page] fica com quem chama).
+ *
+ * Na primeira abertura depois de instalar ([firstRun]), é a apresentação do app:
+ * "Pular" no topo leva à última tela, que pergunta se a pessoa quer deixar o app do
+ * seu jeito ([onCustomize]: as perguntas do Conte sobre você) ou pular ([onSkipAll]).
+ * Aí não há "Experimentar" (só o "Pôr na tela", que não sai daqui).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TourScreen(page: Int, onPage: (Int) -> Unit, actions: TourActions, onBack: () -> Unit) {
+fun TourScreen(
+    page: Int,
+    onPage: (Int) -> Unit,
+    actions: TourActions,
+    onBack: () -> Unit,
+    firstRun: Boolean = false,
+    onCustomize: () -> Unit = {},
+    onSkipAll: () -> Unit = {},
+) {
     val context = LocalContext.current
-    val pager = rememberPagerState(initialPage = page.coerceIn(0, ITEMS.lastIndex)) { ITEMS.size }
+    val count = ITEMS.size + if (firstRun) 1 else 0
+    val pager = rememberPagerState(initialPage = page.coerceIn(0, count - 1)) { count }
     val scope = rememberCoroutineScope()
     LaunchedEffect(pager) { snapshotFlow { pager.currentPage }.collect(onPage) }
+    val onFinal = firstRun && pager.currentPage == ITEMS.size
+    fun toFinal() = scope.launch { pager.animateScrollToPage(ITEMS.size) }
+    if (firstRun) BackHandler { if (onFinal) onSkipAll() else toFinal() }
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.tour_title)) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+                    if (!firstRun) {
+                        IconButton(onClick = onBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+                        }
+                    }
+                },
+                actions = {
+                    if (firstRun && !onFinal) {
+                        TextButton(onClick = { toFinal() }) { Text(stringResource(R.string.profile_skip)) }
                     }
                 },
             )
@@ -120,16 +145,28 @@ fun TourScreen(page: Int, onPage: (Int) -> Unit, actions: TourActions, onBack: (
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding).navigationBarsPadding()) {
             HorizontalPager(state = pager, modifier = Modifier.weight(1f)) { i ->
-                TourPage(ITEMS[i], position = stringResource(R.string.tour_position, i + 1, ITEMS.size))
+                if (i < ITEMS.size) TourPage(ITEMS[i], position = stringResource(R.string.tour_position, i + 1, count))
+                else FinalPage()
             }
-            Dots(count = ITEMS.size, current = pager.currentPage)
+            Dots(count = count, current = pager.currentPage)
+            if (onFinal) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                ) {
+                    TextButton(onClick = onSkipAll) { Text(stringResource(R.string.profile_skip), fontWeight = FontWeight.Bold) }
+                    Spacer(Modifier.weight(1f))
+                    Button(onClick = onCustomize) { Text(stringResource(R.string.tour_customize)) }
+                }
+                return@Column
+            }
             val item = ITEMS[pager.currentPage]
-            val last = pager.currentPage == ITEMS.lastIndex
+            val last = !firstRun && pager.currentPage == ITEMS.lastIndex
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
             ) {
-                item.tryIt?.let { t ->
+                item.tryIt?.takeIf { !firstRun || it == TourTry.WIDGET }?.let { t ->
                     TextButton(onClick = {
                         when (t) {
                             TourTry.COMMUTE -> actions.onCommute()
@@ -193,6 +230,49 @@ private fun TourPage(item: TourItem, position: String) {
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 8.dp),
+        )
+    }
+}
+
+/** A última tela da primeira abertura: a apresentação do Conte sobre você. */
+@Composable
+private fun FinalPage() {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 28.dp, vertical = 8.dp),
+    ) {
+        Text("🙋", style = MaterialTheme.typography.displayMedium)
+        Text(
+            stringResource(R.string.profile_intro_title),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 16.dp),
+        )
+        Text(
+            stringResource(R.string.profile_intro_text),
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 8.dp),
+        )
+        Text(
+            stringResource(R.string.profile_intro_later),
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 12.dp),
+        )
+        Text(
+            stringResource(R.string.adjust_private),
+            style = MaterialTheme.typography.bodySmall,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 16.dp),
         )
     }
 }

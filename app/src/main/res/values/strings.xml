@@ -710,6 +710,7 @@
     <string name="tour_try">Experimentar</string>
     <string name="tour_next">Próximo</string>
     <string name="tour_done">Concluir</string>
+    <string name="tour_customize">Personalizar</string>
     <string name="tour_example">Exemplo</string>
     <string name="tour_home_title">Casa e Trabalho</string>
     <string name="tour_home_text">Marque onde você mora e onde trabalha ou estuda. A tela inicial mostra qual metrô pegar na ida e na volta.</string>

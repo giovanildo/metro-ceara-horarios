@@ -225,6 +225,10 @@ fun AppRoot() {
     var accessOpen by rememberSaveable { mutableStateOf(false) }
     // "Conte sobre você": as perguntas (sozinhas na primeira abertura) e o resumo.
     var profileQuestions by rememberSaveable { mutableStateOf(HomeLayoutStore.shouldAskProfile(context)) }
+    // Na primeira abertura, antes das perguntas, o tour; a última tela dele é a apresentação
+    // das perguntas, que então começam direto na primeira (profileStart = 1).
+    var firstTour by rememberSaveable { mutableStateOf(profileQuestions) }
+    var profileStart by rememberSaveable { mutableStateOf(0) }
     var profileOpen by rememberSaveable { mutableStateOf(false) }
     var profileJustFinished by rememberSaveable { mutableStateOf(false) }
     var fineSettingsOpen by rememberSaveable { mutableStateOf(false) }
@@ -536,6 +540,7 @@ fun AppRoot() {
             accessOpen = false
             profileOpen = false
             profileQuestions = false
+            firstTour = false
             styleOpen = false
             orderOpen = false
             routeId = route
@@ -567,6 +572,7 @@ fun AppRoot() {
             accessOpen = false
             profileOpen = false
             profileQuestions = false
+            firstTour = false
             styleOpen = false
             orderOpen = false
             journeyOpen = true
@@ -1376,8 +1382,33 @@ fun AppRoot() {
             onStop = { TripTracker.stop(context) },
         )
 
+        firstTour -> TourScreen(
+            page = tourPage,
+            onPage = { tourPage = it },
+            actions = TourActions(onCommute = {}, onJourney = {}, onRoutines = {}),
+            onBack = {},
+            firstRun = true,
+            onCustomize = {
+                profileStart = 1
+                firstTour = false
+            },
+            onSkipAll = {
+                HomeLayoutStore.markProfileSeen(context)
+                profileQuestions = false
+                firstTour = false
+            },
+        )
+
         profileQuestions -> ProfileQuestionsScreen(
             layout = homeLayout,
+            startStep = profileStart,
+            // Começou pelo tour: o voltar na primeira pergunta volta à última tela dele.
+            onBackAtStart = if (profileStart == 1) {
+                {
+                    tourPage = Int.MAX_VALUE
+                    firstTour = true
+                }
+            } else null,
             homeName = places?.get(Place.HOME)?.let(::placeName),
             workName = places?.get(Place.WORK)?.let(::placeName),
             onChange = { HomeLayoutStore.save(context, it) },
