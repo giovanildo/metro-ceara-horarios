@@ -141,6 +141,10 @@ apresentação do Conte sobre você: **Pular** no topo leva à última tela, "Va
 deixar o app do seu jeito?", com **Personalizar** (as perguntas começam direto na
 primeira; voltar dela retorna a essa tela) e **Pular**. Nesse modo não há
 "Experimentar" (só o "Pôr na tela", que não sai do tour). Quem atualiza não vê.
+A marca "já viu" fica no `metrofor_primeira_abertura`, **fora do backup do
+Android** (`res/xml/backup_rules.xml` e `data_extraction_rules.xml`, desde a
+1.119): o backup devolve as configurações a quem reinstala, e com a marca junto o
+tour não aparecia (na 1.118).
 Na lite, a primeira visita abre `#/conheca/inicio` do mesmo jeito, e o
 Personalizar leva a `#/sobre-voce/inicio`.
 
