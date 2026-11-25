@@ -135,8 +135,14 @@ prender ninguém; o que vicia é a sequência com notificação, e isso fica de 
 
 ### Conheça o app e o site
 
-Dois itens no grupo **O app** do Mais (desde a 1.117). **Nada abre sozinho**: a
-primeira abertura já tem o Conte sobre você, e o tour só aparece para quem toca.
+Dois itens no grupo **O app** do Mais (desde a 1.117). **Na primeira abertura
+depois de instalar** (desde a 1.118), o Conheça o app abre sozinho no lugar da
+apresentação do Conte sobre você: **Pular** no topo leva à última tela, "Vamos
+deixar o app do seu jeito?", com **Personalizar** (as perguntas começam direto na
+primeira; voltar dela retorna a essa tela) e **Pular**. Nesse modo não há
+"Experimentar" (só o "Pôr na tela", que não sai do tour). Quem atualiza não vê.
+Na lite, a primeira visita abre `#/conheca/inicio` do mesmo jeito, e o
+Personalizar leva a `#/sobre-voce/inicio`.
 
 - **Conheça o app** ([`ui/TourScreen.kt`](app/src/main/java/io/github/giova/metroceara/ui/TourScreen.kt)):
   um recurso por vez, passando para o lado (`HorizontalPager`), com bolinhas,
@@ -203,8 +209,9 @@ valendo para os outros blocos.
 v1.98) junta tudo o que deixa a tela inicial do jeito da pessoa, sem cadastro e
 sem "perfil" (que lembra login). Na **primeira abertura depois de instalar**
 (`HomeLayoutStore.shouldAskProfile`: `firstInstallTime == lastUpdateTime`; quem
-atualiza de uma versão anterior não vê), uma apresentação e **6 perguntas**, uma
-por tela, com **Pular** em todas e cada resposta gravada na hora:
+atualiza de uma versão anterior não vê), depois do [Conheça o app](#conheça-o-app-e-o-site),
+cuja última tela faz a apresentação, as **6 perguntas**, uma por tela, com
+**Pular** em todas e cada resposta gravada na hora:
 
 1. **Com que frequência você anda de metrô ou VLT?** (`RideFrequency`): *Todo dia
    ou quase* mostra Trabalho e Casa e as rotinas; *Estou conhecendo a cidade*
