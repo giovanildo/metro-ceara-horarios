@@ -6,6 +6,7 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.core.content.ContextCompat
 import io.github.giova.metroceara.alerts.OperationAlerts
+import io.github.giova.metroceara.data.ShareArrival
 import io.github.giova.metroceara.data.LegStation
 import io.github.giova.metroceara.data.DayType
 import io.github.giova.metroceara.data.Landmark
@@ -218,6 +219,9 @@ fun AppRoot() {
     var fareGuideOpen by rememberSaveable { mutableStateOf(false) }
     var sourcesOpen by rememberSaveable { mutableStateOf(false) }
     var passatemposOpen by rememberSaveable { mutableStateOf(false) }
+    // "Conheça o app": aberto e em que recurso está (para voltar ao mesmo depois do "Experimentar").
+    var tourOpen by rememberSaveable { mutableStateOf(false) }
+    var tourPage by rememberSaveable { mutableStateOf(0) }
     var accessOpen by rememberSaveable { mutableStateOf(false) }
     // "Conte sobre você": as perguntas (sozinhas na primeira abertura) e o resumo.
     var profileQuestions by rememberSaveable { mutableStateOf(HomeLayoutStore.shouldAskProfile(context)) }
@@ -528,6 +532,7 @@ fun AppRoot() {
             fareGuideOpen = false
             sourcesOpen = false
             passatemposOpen = false
+            tourOpen = false
             accessOpen = false
             profileOpen = false
             profileQuestions = false
@@ -558,6 +563,7 @@ fun AppRoot() {
             fareGuideOpen = false
             sourcesOpen = false
             passatemposOpen = false
+            tourOpen = false
             accessOpen = false
             profileOpen = false
             profileQuestions = false
@@ -1586,6 +1592,25 @@ fun AppRoot() {
             }
         }
 
+        tourOpen -> {
+            BackHandler { tourOpen = false }
+            TourScreen(
+                page = tourPage,
+                onPage = { tourPage = it },
+                actions = TourActions(
+                    onCommute = { commuteOpen = true },
+                    onJourney = {
+                        journeyFrom = homeState.station
+                        journeyDest = null
+                        journeyLandmark = null
+                        journeyOpen = true
+                    },
+                    onRoutines = { routinesOpen = true },
+                ),
+                onBack = { tourOpen = false },
+            )
+        }
+
         route != null && stop != null -> {
             // Sem estação fixada, o widget mostra a última aberta.
             LaunchedEffect(stop.id, route.id) {
@@ -1691,6 +1716,15 @@ fun AppRoot() {
                 onSources = { sourcesOpen = true },
                 onAbout = { showAbout = true },
                 onShare = { passAppOpen = true },
+                onTour = {
+                    tourPage = 0
+                    tourOpen = true
+                },
+                onSite = {
+                    runCatching {
+                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(ShareArrival.SITE + "passeio/?de=app")))
+                    }
+                },
             ),
             blocks = homeBlocks(homeLayout),
             block = { HomeBlockContent(it, homeLayout) },

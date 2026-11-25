@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material.icons.outlined.Extension
+import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.Face
 import androidx.compose.material.icons.outlined.Repeat
 import androidx.compose.material.icons.outlined.SwapHoriz
@@ -60,6 +62,10 @@ class HomeMenuActions(
     val onSettings: () -> Unit = {},
     val onSources: () -> Unit = {},
     val onAbout: () -> Unit = {},
+    /** "Conheça o app": o tour, um recurso por vez. */
+    val onTour: () -> Unit = {},
+    /** "Conheça o site": o Passeio pelo site, no navegador. */
+    val onSite: () -> Unit = {},
     val onShare: () -> Unit = {},
 )
 
@@ -129,6 +135,8 @@ fun HomeMoreSheet(actions: HomeMenuActions, onDismiss: () -> Unit) {
             MenuRow(Icons.Outlined.Face, R.string.menu_profile, R.string.menu_profile_sub) { go(actions.onProfile) }
             MenuRow(Icons.Outlined.Settings, R.string.settings_title, R.string.menu_settings_sub) { go(actions.onSettings) }
             MenuGroup(R.string.menu_group_app)
+            MenuRow(Icons.Outlined.Explore, R.string.menu_tour, R.string.menu_tour_sub) { go(actions.onTour) }
+            MenuRow(Icons.Outlined.Map, R.string.menu_site, R.string.menu_site_sub) { go(actions.onSite) }
             MenuRow(Icons.Outlined.TravelExplore, R.string.sources_title) { go(actions.onSources) }
             MenuRow(Icons.Outlined.Info, R.string.menu_about) { go(actions.onAbout) }
             MenuRow(Icons.Outlined.QrCode2, R.string.menu_share, R.string.menu_share_sub) { go(actions.onShare) }
