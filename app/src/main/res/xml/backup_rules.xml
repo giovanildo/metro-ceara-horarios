@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Backup do Android até o 11 (fullBackupContent). Vai tudo, menos a marca da primeira
+     abertura (HomeLayoutStore.FIRST_RUN_PREFS): quem reinstala vê a apresentação de novo. -->
+<full-backup-content>
+    <exclude domain="sharedpref" path="metrofor_primeira_abertura.xml" />
+</full-backup-content>

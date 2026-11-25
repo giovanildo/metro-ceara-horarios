@@ -217,11 +217,17 @@ object HomeLayoutStore {
     }
 
     /**
-     * O Conte sobre você aparece sozinho só na primeira abertura depois de instalar.
-     * Quem atualiza de uma versão anterior já arrumou o app do seu jeito: não pergunta.
+     * A apresentação (Conheça o app, depois o Conte sobre você) aparece sozinha só na
+     * primeira abertura depois de instalar. Quem atualiza de uma versão anterior já
+     * arrumou o app do seu jeito: não pergunta.
+     *
+     * A marca "já viu" mora num arquivo fora do backup do Android (res/xml/backup_rules.xml
+     * e data_extraction_rules.xml): quem desinstala e instala de novo recebe as
+     * configurações de volta pelo backup, mas vê a apresentação outra vez. A marca
+     * antiga, no metrofor_home_layout (que vai no backup), não é mais lida.
      */
     fun shouldAskProfile(context: Context): Boolean {
-        val p = prefs(context)
+        val p = firstRunPrefs(context)
         if (p.getBoolean(KEY_PROFILE_SEEN, false)) return false
         val fresh = runCatching {
             val info = context.packageManager.getPackageInfo(context.packageName, 0)
@@ -232,10 +238,16 @@ object HomeLayoutStore {
     }
 
     fun markProfileSeen(context: Context) {
-        prefs(context).edit { putBoolean(KEY_PROFILE_SEEN, true) }
+        firstRunPrefs(context).edit { putBoolean(KEY_PROFILE_SEEN, true) }
     }
 
     private const val KEY_PROFILE_SEEN = "profile_seen"
+
+    /** Fora do backup: o nome do arquivo está nas regras de res/xml (mudou aqui, mude lá). */
+    private const val FIRST_RUN_PREFS = "metrofor_primeira_abertura"
+
+    private fun firstRunPrefs(context: Context) =
+        context.applicationContext.getSharedPreferences(FIRST_RUN_PREFS, Context.MODE_PRIVATE)
 
     // Arquivo próprio: "Restaurar padrões" das configurações não mexe aqui.
     private fun prefs(context: Context) =
