@@ -1,0 +1,1 @@
+• Melhoria no registro de testes usado pelo desenvolvedor para estudar as paradas do metrô nas estações subterrâneas. Nada muda no seu uso do app.
