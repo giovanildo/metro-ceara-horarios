@@ -1855,14 +1855,17 @@ mesmos dados do `app_start`).
 opção, **Gravar movimento nas viagens**, desligada por padrão e só com o registro
 ligado (`DevLog.motionEnabled`). Serve para estudar se as paradas do metrô no
 túnel, onde não há GPS, aparecem no acelerômetro (análise de 19/11/2026); não muda
-nada na viagem. Durante o modo viagem, o acelerômetro é lido ~50 vezes por segundo
+nada na viagem. Durante o modo viagem, o acelerômetro e o giroscópio são lidos ~50 vezes por segundo
 (com a tela apagada, o sensor junta as medições e entrega a cada 5 s) e o registro
 leva **um resumo por segundo**, ~150 KB a cada 15 min. Eventos: `motion_start`
-(os sensores do aparelho: fabricante, nome, wakeup, fila), `motion` (`at` = a hora
+(os sensores do aparelho: fabricante, nome, wakeup, fila; `gyro` desde a 1.120), `motion` (`at` = a hora
 da medição, não da gravação; `n` medições no segundo; médias de `x`, `y`, `z` em
 m/s², com a gravidade — a inclinação mostra freada e arrancada; `mag`, a
 intensidade média; `sd`, o quanto ela variou — a vibração, quase zero parado;
-`rng`; `hpa`, a pressão do barômetro, se o celular tiver), `motion_stop`,
+`rng`; `rot` e `rot_max`, a rotação média e a maior do giroscópio em rad/s,
+desde a 1.120 — o metrô freando quase não gira o celular, a mão mexendo sim, então
+separa "celular na mão" de "metrô andando"; `hpa`, a pressão do barômetro, se o
+celular tiver), `motion_stop`,
 `motion_option` (opção trocada) e `motion_count`. Nenhum começa com `trip_`, então
 não vão para o registro da viagem que a pessoa pode mandar (`TripLog`).
 
