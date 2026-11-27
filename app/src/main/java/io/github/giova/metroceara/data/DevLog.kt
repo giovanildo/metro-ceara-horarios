@@ -28,7 +28,8 @@ import java.util.concurrent.Executors
 object DevLog {
 
     private const val MAX_DAYS = 7
-    private const val MAX_BYTES = 5L * 1024 * 1024
+    /** 20 MB (27/11/2026): com movimento e sinais de rádio, uma viagem de 40 min passa de 1 MB. */
+    private const val MAX_BYTES = 20L * 1024 * 1024
 
     private val writer = Executors.newSingleThreadExecutor()
     private val zone = TimeZone.getTimeZone("America/Fortaleza")
