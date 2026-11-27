@@ -38,6 +38,16 @@
     }
   },
 
+  "volumes": {
+    "_sobre": "Horário para levar compras e volumes grandes (embalados, dentro das medidas), em todas as linhas. Mesmo formato das janelas de bike: [\"20:00\", null] = das 20h até o fim da operação. Na tela da estação (app e lite), menos no domingo e em dia de operação especial, quando o Metrofor não diz a regra. \"medidas\" vai na segunda linha do aviso.",
+    "_fonte": "Notícia do Metrofor 'Black Friday: conheça os centros de compras próximos ao metrô e as regras para transporte de volumes' (26/11/2026): compras e volumes embalados, soma das dimensões até 160 cm e nenhum lado acima de 80 cm, de segunda a sexta das 9h às 15h e das 20h até o encerramento; sábado das 15h até o encerramento. Mochilas, bolsas e bagagens de mão ou de viagem, em qualquer horário. Vale para o metrô e os VLTs.",
+    "fonte_id": "volumes",
+    "medidas": "Embalado, somando até 160 cm (altura + largura + comprimento), nenhum lado acima de 80 cm. Mochila, bolsa e mala podem a qualquer hora.",
+    "dias_uteis": [["09:00", "15:00"], ["20:00", null]],
+    "sabado": [["15:00", null]],
+    "domingo": []
+  },
+
   "datas_especiais": {
     "_sobre": "Regra de bike de um dia especial (feriado, ENEM, eleição), no lugar da do dia da semana. O espelho acrescenta sozinho as que acha nas notícias do Metrofor (tools/datas_especiais.py); as escritas aqui ganham. Formato: \"AAAA-MM-DD\": {\"linhas\": [...] (vazio = todas as que aceitam bike), \"bike\": [[\"09:00\", \"15:00\"]] (vazio = sem bike no dia)}."
   },
@@ -316,8 +326,17 @@
             {
               "titulo": "Pode levar",
               "itens": [
-                "Volume embalado em que altura + largura + comprimento dá até 160 cm, sem nenhum lado passar de 80 cm",
+                "Mochila, bolsa e mala, a qualquer hora",
+                "Compras e volumes embalados em que altura + largura + comprimento dá até 160 cm, sem nenhum lado passar de 80 cm, só nos horários de baixo",
                 "Bike comum, só nos horários liberados (o app avisa na tela da estação)"
+              ]
+            },
+            {
+              "titulo": "Horário das compras e volumes grandes",
+              "itens": [
+                "Segunda a sexta: das 9h às 15h e das 20h até o fim da operação",
+                "Sábado: das 15h até o fim da operação",
+                "Fora desses horários, só mochila, bolsa e mala. O app avisa na tela da estação"
               ]
             },
             {
@@ -903,7 +922,7 @@
       "link": "https://www.ce.gov.br/metrofor/gratuidades/",
       "conferido": "2026-11",
       "revisar_em_meses": 6,
-      "detalhe": "Páginas de tarifas, meia passagem estudantil e gratuidades; notícias de 29/02/2024 (Cartão Múltiplo), 24/04/2025 (renovação dos estudantes) e 27/05/2025 (VaiVem Livre); Ceará Digital (Cartão Gratuidade). Desde 18/11/2026 também o Guia do Passageiro (o que pode levar, troco), a notícia de 24/08/2023 (cartões), a página da Ouvidoria e a consulta de achados e perdidos."
+      "detalhe": "Páginas de tarifas, meia passagem estudantil e gratuidades; notícias de 29/02/2024 (Cartão Múltiplo), 24/04/2025 (renovação dos estudantes) e 27/05/2025 (VaiVem Livre); Ceará Digital (Cartão Gratuidade). Desde 18/11/2026 também o Guia do Passageiro (o que pode levar, troco), a notícia de 24/08/2023 (cartões), a página da Ouvidoria e a consulta de achados e perdidos. Desde 26/11/2026, o horário das compras e volumes grandes (notícia de 26/11/2026)."
     },
     "operacoes": {
       "titulo": "Operação especial e linhas paradas",
@@ -911,6 +930,15 @@
       "fonte": "notícias do Metrofor",
       "link": "https://www.ce.gov.br/metrofor/",
       "diario": true
+    },
+    "volumes": {
+      "titulo": "Horário para levar compras e volumes grandes",
+      "tipo": "metrofor",
+      "fonte": "notícia do Metrofor de 26/11/2026",
+      "link": "https://www.ce.gov.br/metrofor/2026/11/26/black-friday-conheca-os-centros-de-compras-proximos-ao-metro-e-as-regras-para-transporte-de-volumes/",
+      "conferido": "2026-11",
+      "revisar_em_meses": 6,
+      "detalhe": "Compras e volumes embalados (soma das medidas até 160 cm, nenhum lado acima de 80 cm): segunda a sexta das 9h às 15h e das 20h até o fim da operação; sábado das 15h até o fim. Mochila, bolsa e mala a qualquer hora. As medidas também estão no Guia do Passageiro; o horário apareceu pela primeira vez nesta notícia."
     },
     "bike": {
       "titulo": "Bike no metrô e no VLT (Linhas Sul e Nordeste)",
