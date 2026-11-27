@@ -69,6 +69,14 @@ object DevLog {
     /** Gravar torres (e, na versão de teste, Wi-Fi e Bluetooth) nas viagens: registro ligado e a opção marcada. */
     val radioEnabled: Boolean get() = enabled && radio
 
+    @Volatile private var audio = false
+    private val _audioFlow = MutableStateFlow(false)
+    /** A opção "Gravar o som nas viagens" (só na versão de teste). */
+    val audioFlow: StateFlow<Boolean> = _audioFlow.asStateFlow()
+
+    /** Gravar o som nas viagens: versão de teste, registro ligado e a opção marcada. */
+    val audioEnabled: Boolean get() = io.github.giova.metroceara.BuildConfig.TESTE && enabled && audio
+
     fun init(context: Context) {
         val app = context.applicationContext
         appContext = app
@@ -83,6 +91,8 @@ object DevLog {
         _motionFlow.value = motion
         radio = prefs.getBoolean(KEY_RADIO, false)
         _radioFlow.value = radio
+        audio = prefs.getBoolean(KEY_AUDIO, false)
+        _audioFlow.value = audio
         _motionCount.value = prefs.getInt(KEY_MOTION_TRIPS, 0) to prefs.getInt(KEY_MOTION_TUNNEL, 0)
     }
 
@@ -130,6 +140,14 @@ object DevLog {
         prefs(context).edit { putBoolean(KEY_RADIO, on) }
         _radioFlow.value = on
         log("radio_option", "on" to on)
+    }
+
+    /** Liga ou desliga a gravação do som; vale a partir da próxima viagem. */
+    fun setAudio(context: Context, on: Boolean) {
+        audio = on
+        prefs(context).edit { putBoolean(KEY_AUDIO, on) }
+        _audioFlow.value = on
+        log("audio_option", "on" to on)
     }
 
     fun unlock(context: Context) {
@@ -256,6 +274,7 @@ object DevLog {
     private const val KEY_UNLOCKED = "unlocked"
     private const val KEY_MOTION = "motion"
     private const val KEY_RADIO = "radio"
+    private const val KEY_AUDIO = "audio"
     private const val KEY_MOTION_TRIPS = "motion_trips"
     private const val KEY_MOTION_TUNNEL = "motion_tunnel"
     /** Viagens pelo túnel com o movimento gravado para começar a estudar as paradas. */

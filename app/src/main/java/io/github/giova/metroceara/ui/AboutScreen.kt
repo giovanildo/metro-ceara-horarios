@@ -5,9 +5,11 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.Manifest
 import android.widget.Toast
 import io.github.giova.metroceara.BuildConfig
 import io.github.giova.metroceara.trip.BleRecorder
+import io.github.giova.metroceara.trip.TripAudioRecorder
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
@@ -252,10 +254,15 @@ private fun DevOptions() {
     val logOn by DevLog.enabledFlow.collectAsState()
     val motionOn by DevLog.motionFlow.collectAsState()
     val radioOn by DevLog.radioFlow.collectAsState()
+    val audioOn by DevLog.audioFlow.collectAsState()
     // Versão de teste: o Bluetooth da opção de torres e redes pede "dispositivos por perto";
     // sem ela a opção liga do mesmo jeito, só sem o Bluetooth.
     val blePermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         DevLog.setRadio(context, true)
+    }
+    val micPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        DevLog.setAudio(context, granted)
+        if (!granted) Toast.makeText(context, R.string.dev_audio_denied, Toast.LENGTH_LONG).show()
     }
     val motionCount by DevLog.motionCount.collectAsState()
     var refresh by remember { mutableIntStateOf(0) }
@@ -304,6 +311,25 @@ private fun DevOptions() {
                         DevLog.setRadio(context, on)
                     }
                 })
+            }
+            if (BuildConfig.TESTE) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(stringResource(R.string.dev_audio), style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            text = stringResource(R.string.dev_audio_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Switch(checked = audioOn, enabled = logOn, onCheckedChange = { on ->
+                        if (on && !TripAudioRecorder.canRecord(context)) {
+                            micPermission.launch(Manifest.permission.RECORD_AUDIO)
+                        } else {
+                            DevLog.setAudio(context, on)
+                        }
+                    })
+                }
             }
             if (motionOn || motionCount.first > 0) {
                 Text(

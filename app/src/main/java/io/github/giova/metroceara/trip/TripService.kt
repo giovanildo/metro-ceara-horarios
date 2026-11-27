@@ -50,6 +50,8 @@ class TripService : Service() {
     private var motion: MotionRecorder? = null
     /** Torres de celular (e Wi-Fi/Bluetooth na versão de teste) para estudo (só opção de desenvolvedor). */
     private var radio: RadioRecorder? = null
+    /** Som da viagem para estudo (só versão de teste e opção de desenvolvedor). */
+    private var audio: TripAudioRecorder? = null
     /** A viagem com movimento gravado entrou ou saiu do túnel (para a contagem). */
     private var motionTunnel = false
     private var motionSimulated = false
@@ -86,12 +88,19 @@ class TripService : Service() {
         )
         var lastLogged: Triple<Int, TripFix, Boolean>? = null
         var trip = ActiveTrip(plan, estimator.progress(nowMinutes()), alerted = false, arrived = false)
+        // Gravar o som (versão de teste) pede o serviço também do tipo microfone.
+        val withAudio = DevLog.audioEnabled && TripAudioRecorder.canRecord(this) &&
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
         val started = runCatching {
             ServiceCompat.startForeground(
                 this,
                 TripNotifications.ONGOING_ID,
                 TripNotifications.ongoing(this, trip),
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION else 0,
+                when {
+                    withAudio -> ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION or ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+                    else -> 0
+                },
             )
         }
         if (started.isFailure) {
@@ -103,6 +112,8 @@ class TripService : Service() {
         stopMotion()
         motion = if (DevLog.motionEnabled) MotionRecorder(this).also { it.start() } else null
         radio = if (DevLog.radioEnabled) RadioRecorder(this).also { it.start() } else null
+        audio = if (withAudio) TripAudioRecorder(this).also { it.start() } else null
+        if (DevLog.audioEnabled && !withAudio) DevLog.log("audio_start", "error" to "sem permissão de microfone")
         motionTunnel = false
         motionSimulated = plan.simulated
 
@@ -340,6 +351,8 @@ class TripService : Service() {
     private fun stopMotion() {
         radio?.stop()
         radio = null
+        audio?.stop()
+        audio = null
         val recorder = motion ?: return
         motion = null
         recorder.stop()
