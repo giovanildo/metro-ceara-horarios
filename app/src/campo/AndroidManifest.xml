@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Só na versão de teste (build "campo"): permissões dos experimentos de campo do
+     modo viagem, nas opções de desenvolvedor. O app da Play não tem nenhuma delas. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Ver as redes Wi-Fi e pedir uma busca (RadioRecorder). Não conecta a nenhuma rede. -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+</manifest>

@@ -26,6 +26,7 @@ android {
         targetSdk = 36
         versionCode = 123
         versionName = "1.122"
+        buildConfigField("boolean", "TESTE", "false")
     }
 
     signingConfigs {
@@ -45,6 +46,17 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+        // Versão de teste, só para o desenvolvedor: instala ao lado da da Play
+        // ("Metrô Ceará teste") e traz as permissões dos experimentos de campo
+        // que o app da Play não tem (src/campo/AndroidManifest.xml).
+        // Gerar com ./gradlew assembleCampo. ("teste" não pode: o Gradle reserva nomes com "test".)
+        create("campo") {
+            initWith(getByName("release"))
+            applicationIdSuffix = ".teste"
+            versionNameSuffix = "-teste"
+            matchingFallbacks += "release"
+            buildConfigField("boolean", "TESTE", "true")
         }
     }
 
