@@ -1861,7 +1861,8 @@ versão para liberar as **Opções de desenvolvedor**. Lá dá para ligar o
 e apagar. Desligado por padrão; quando desligado não grava nada.
 
 Ligado, grava um evento por linha (JSON) em `files/devlog/AAAA-MM-DD.jsonl`,
-no fuso de Fortaleza, guardando no máximo 7 dias e 5 MB (sai o mais antigo).
+no fuso de Fortaleza, guardando no máximo 7 dias e 20 MB (sai o mais antigo;
+5 MB até 26/11/2026, antes dos sinais de rádio e do magnetômetro).
 O botão de salvar junta tudo em `Download/metro-ceara-log-AAAA-MM-DD.log`
 (no Android 9 ou anterior, na pasta do app em `Android/data/…/files/Download`).
 Sem pasta escolhida, nada sai do aparelho sozinho: o arquivo é copiado pelo
@@ -1903,16 +1904,20 @@ mesmos dados do `app_start`).
 opção, **Gravar movimento nas viagens**, desligada por padrão e só com o registro
 ligado (`DevLog.motionEnabled`). Serve para estudar se as paradas do metrô no
 túnel, onde não há GPS, aparecem no acelerômetro (análise de 19/11/2026); não muda
-nada na viagem. Durante o modo viagem, o acelerômetro e o giroscópio são lidos ~50 vezes por segundo
+nada na viagem. Durante o modo viagem, o acelerômetro, o giroscópio e o magnetômetro são lidos ~50 vezes por segundo
 (com a tela apagada, o sensor junta as medições e entrega a cada 5 s) e o registro
 leva **um resumo por segundo**, ~150 KB a cada 15 min. Eventos: `motion_start`
-(os sensores do aparelho: fabricante, nome, wakeup, fila; `gyro` desde a 1.120), `motion` (`at` = a hora
+(os sensores do aparelho: fabricante, nome, wakeup, fila; `gyro` desde a 1.120, `magnet` desde 27/11/2026), `motion` (`at` = a hora
 da medição, não da gravação; `n` medições no segundo; médias de `x`, `y`, `z` em
 m/s², com a gravidade — a inclinação mostra freada e arrancada; `mag`, a
 intensidade média; `sd`, o quanto ela variou — a vibração, quase zero parado;
 `rng`; `rot` e `rot_max`, a rotação média e a maior do giroscópio em rad/s,
 desde a 1.120 — o metrô freando quase não gira o celular, a mão mexendo sim, então
-separa "celular na mão" de "metrô andando"; `hpa`, a pressão do barômetro, se o
+separa "celular na mão" de "metrô andando"; `mf`, `mf_sd` e `mf_rng`, a
+intensidade média do campo magnético em µT, o quanto variou e a maior menos a menor,
+desde 27/11/2026 — o motor elétrico puxando ou freando mexe no campo e, parado, ele
+fica estável; a intensidade não muda quando o celular gira, então vale também com o
+celular na mão, quando o acelerômetro não serve; `hpa`, a pressão do barômetro, se o
 celular tiver), `motion_stop`,
 `motion_option` (opção trocada) e `motion_count`. Nenhum começa com `trip_`, então
 não vão para o registro da viagem que a pessoa pode mandar (`TripLog`).
@@ -1924,6 +1929,55 @@ simulação) com 5 min ou mais gravados. Na 10ª pelo túnel (`DevLog.MOTION_GOA
 uma notificação avisa uma vez que já dá para mandar os registros; o botão Zerar
 recomeça a contagem. Como o aparelho guarda só 7 dias, a cópia na nuvem precisa
 ficar ligada até lá.
+
+**Torres e redes nas viagens** (desde 27/11/2026, `trip/RadioRecorder.kt`): a
+terceira opção, **Gravar torres e redes nas viagens**, também desligada por padrão
+e só com o registro ligado (`DevLog.radioEnabled`). A ideia é ver se cada estação
+subterrânea tem uma "assinatura" de rádio que diga onde o metrô está quando o GPS
+some (análise de 27/11/2026: na viagem desse dia, a rede do celular já tinha
+corrigido Benfica). Não muda nada na viagem. Eventos: `radio_start` (permissões,
+Wi-Fi ligado, operadora), `cell` a cada 5 s (cada torre que o celular vê, em `c`:
+o tipo — `lte`, `nr`, `wcdma`, `gsm` —, se é a que está em uso (`reg`), `ci`,
+`pci`, `tac`/`lac`, o sinal em `dbm` e a idade da medição em `age`), `radio_stop`
+e `radio_option`. No app da Play só há as torres, que usam a permissão de
+localização que o app já tem; Wi-Fi e Bluetooth existem só na versão de teste
+(abaixo).
+
+### Versão de teste (build `campo`)
+
+Para os experimentos de campo que pedem permissões que o app da Play não tem, há
+um tipo de build à parte, **`campo`** (`./gradlew assembleCampo` →
+`app/build/outputs/apk/campo/app-campo.apk`; "teste" não pode como nome, o Gradle
+reserva nomes começados por "test"). É a release com o pacote
+`io.github.giova.metroceara.teste`, o nome **Metrô Ceará teste** e a versão
+`X.Y-teste`: instala ao lado do app da Play, cada um com seus dados. As permissões
+a mais ficam só em `app/src/campo/AndroidManifest.xml`, e o código pergunta
+`BuildConfig.TESTE`. É uma fase **temporária** de coleta: depois das viagens de
+teste, ficam os sinais que ajudarem a previsão, com a privacidade avaliada de novo.
+
+- **Wi-Fi** (dentro de "Torres e redes"): uma busca a cada 30 s — o Android deixa
+  um app fazer 4 a cada 2 min; a busca recusada vira `wifi_scan` — e `wifi` a cada
+  resultado novo, com as redes em `w`: o endereço resumido em 8 letras (`h`, os
+  primeiros caracteres do SHA-256: o mesmo em toda viagem, sem guardar o endereço),
+  o sinal (`l`), a frequência (`f`) e a idade (`age`). O nome da rede (`s`) só vai
+  se parecer do metrô, do governo ou pública; redes de casas e lojas ficam só no
+  código. Não conecta a nenhuma rede.
+- **Bluetooth** (`trip/BleRecorder.kt`, também em "Torres e redes"; pede
+  "dispositivos por perto" ao ligar): busca BLE contínua e `ble` a cada 5 s com os
+  aparelhos vistos (`d`: `h` em 8 letras, o sinal mais forte `l`, quantos anúncios
+  `k`, o fabricante `m` — 76 Apple, 6 Microsoft, 117 Samsung — e se aceita conexão
+  `c`). Serve para ver se algum equipamento fixo marca cada estação; celulares
+  trocam de endereço a cada poucos minutos. Não liga o Bluetooth: desligado,
+  `ble_start` diz e nada é gravado.
+- **Som** (`trip/TripAudioRecorder.kt`, opção **Gravar o som nas viagens**, pede o
+  microfone): o som inteiro do modo viagem, um arquivo por viagem em
+  `Download/MetroCearaTeste/viagem-AAAA-MM-DD-HHMMSS.m4a` (AAC mono, 32 kHz,
+  48 kbit/s: ~17 MB a cada 40 min), para estudar os avisos sonoros do metrô, as
+  portas e o motor. O serviço da viagem passa a ser também do tipo microfone.
+  `audio_start` (arquivo, fonte `unprocessed` ou `mic`) e `audio_stop` (duração)
+  vão para o registro, para alinhar o som com os sensores. O som pega as conversas
+  de quem estiver perto: fica só no aparelho de quem testa, não vai para o git nem
+  para pasta compartilhada, e é apagado depois de processado.
 
 ## Versão lite (web)
 
