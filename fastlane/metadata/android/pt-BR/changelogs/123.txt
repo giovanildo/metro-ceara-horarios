@@ -1,0 +1,1 @@
+• Nova opção em Configurações → Avisos → Notícias do Metrofor: além das notícias que mudam o horário (o padrão), você pode ver todas as notícias do site do Metrofor dos últimos 7 dias na tela inicial. Toque na manchete para abrir a notícia.
