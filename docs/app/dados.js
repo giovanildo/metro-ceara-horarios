@@ -317,6 +317,21 @@ export function regraBike(regras, nomeEstacao, nomeLinha) {
 }
 
 /**
+ * "Todas as notícias": as do site do Metrofor (regras.noticias, posto pelo espelho)
+ * dos últimos [dias] dias até [hoje], da mais nova para a mais antiga, no máximo
+ * [max]. Sai a que já é aviso de operação especial (mesmo link). Igual ao app.
+ */
+export function noticiasRecentes(regras, hoje, dias = 7, max = 3) {
+  const antiga = somarDias(hoje, -dias);
+  const avisadas = new Set(Object.entries(regras?.operacoes || {})
+    .filter(([d, o]) => !d.startsWith("_") && d >= hoje && o?.link).map(([, o]) => o.link));
+  return (regras?.noticias || [])
+    .filter((n) => n?.titulo && n.data >= antiga && n.data <= hoje && !(n.link && avisadas.has(n.link)))
+    .sort((a, b) => b.data.localeCompare(a.data))
+    .slice(0, max);
+}
+
+/**
  * As janelas para levar compras e volumes grandes hoje (regras.volumes, iguais em
  * todas as linhas), ou null quando não há o que avisar: sem a regra, no domingo e
  * em dia de operação especial (a notícia do dia não fala de volumes). Igual ao app.

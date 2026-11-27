@@ -1,5 +1,5 @@
 import {
-  agora, bikeAgora, carregar, dataCurta, distancia, falta, hora, infoEstacao, janelasBike, janelasVolumes, metros, minutosAte, passagem,
+  agora, bikeAgora, carregar, dataCurta, distancia, falta, hora, infoEstacao, janelasBike, janelasVolumes, noticiasRecentes, metros, minutosAte, passagem,
   diaEspecial, linhaParada, voltaDaSegunda, passagemDaLinha, fonteLinha, proximas, somarDias, veiculo, avisosDaLinha,
   esperasLongas, duracaoCurta, regraBike, nomeOficial,
 } from "./dados.js";
@@ -216,6 +216,39 @@ function avisosMetrofor(soHoje = false, soProximos = false) {
   }).join("");
 }
 
+/** As outras notícias do Metrofor, só para quem escolheu "Todas as notícias" (Mais → Notícias do Metrofor). */
+function noticiasMetrofor() {
+  if (estado.config.noticias !== "todas") return "";
+  const t = agora();
+  return noticiasRecentes(estado.dados.regras, t.data).map((n) => {
+    const [, m, d] = n.data.split("-").map(Number);
+    const dia = n.data === t.data ? "hoje" : n.data === somarDias(t.data, -1) ? "ontem" : `${d}/${m}`;
+    const texto = `<strong>Metrofor, ${dia}:</strong> ${esc(n.titulo)}`;
+    return /^https:\/\//.test(n.link || "")
+      ? `<p class="aviso-metrofor"><a href="${esc(n.link)}" target="_blank" rel="noopener">${texto} ›</a></p>`
+      : `<p class="aviso-metrofor">${texto}</p>`;
+  }).join("");
+}
+
+/** Item do Mais: só as notícias que mudam o horário (padrão) ou todas. */
+function telaNoticias() {
+  const atual = estado.config.noticias === "todas" ? "todas" : "operacao";
+  const opcoes = [
+    ["operacao", "Só as que mudam o horário", "Feriado, Enem, eleição e linha parada, quando o Metrofor anuncia. É o padrão."],
+    ["todas", "Todas as notícias", "Também as outras notícias do site do Metrofor dos últimos 7 dias, na tela inicial. Tocar abre a notícia."],
+  ];
+  tela.innerHTML = `<h2 class="titulo-aba">Notícias do Metrofor</h2>
+    <p class="dica">O que aparece no topo da tela inicial. Fica só neste aparelho.</p>
+    ${opcoes.map(([id, nome, desc]) => `<label class="estilo"><input type="radio" name="noticias" value="${id}" ${id === atual ? "checked" : ""}>
+      <span><strong>${nome}</strong><small>${desc}</small></span></label>`).join("")}
+    ${atual === "todas" ? `<p class="grupo">Últimos 7 dias</p>${noticiasMetrofor() || `<p class="dica">Nenhuma notícia nova nos últimos 7 dias.</p>`}` : ""}`;
+  tela.querySelectorAll('input[name="noticias"]').forEach((i) => i.addEventListener("change", () => {
+    estado.config.noticias = i.value;
+    salvarConfig();
+    telaNoticias();
+  }));
+}
+
 /** "hoje", "amanhã", "sábado (14/11)"; até três dias em lista, mais que isso de um a outro. */
 function diasDoAviso(dias) {
   const t = agora();
@@ -337,7 +370,7 @@ function telaInicio() {
   // Metrofor. "Para onde você vai?" fica em "Planeje sua viagem" (com Casa e
   // Trabalho de novo) e as linhas em Linhas, na barra de baixo. Domingo fica no topo.
   // Os avisos do Metrofor ficam juntos, no topo, antes de tudo.
-  let html = avisosMetrofor() + convite() + avisoDomingo(t);
+  let html = avisosMetrofor() + noticiasMetrofor() + convite() + avisoDomingo(t);
   // Com a ida e volta pronta, o bloco dela; sem Casa nem Trabalho, a viagem mais
   // recente vai para o cartão da estação aberta, no lugar dos atalhos.
   const ultima = ultimaViagemGuardada();
@@ -995,6 +1028,7 @@ function abrirMais() {
     <h4>Do seu jeito</h4>
     <a href="#/ida-volta"><span class="ic">⇄</span><span>Sua ida e volta<small>casa, trabalho ou faculdade e seus horários</small></span></a>
     <a href="#/sobre-voce"><span class="ic">🙋</span><span>Conte sobre você<small>o visual e o que você usa</small></span></a>
+    <a href="#/noticias"><span class="ic">📰</span><span>Notícias do Metrofor<small>só as que mudam o horário ou todas</small></span></a>
     <h4>O app</h4>
     <a href="#/conheca"><span class="ic">🧭</span><span>Conheça o app<small>o que ele faz além do horário, com exemplos</small></span></a>
     <a href="../passeio/"><span class="ic">🗺️</span><span>Conheça o site<small>passeio pelas estações, nomes e histórias</small></span></a>
@@ -2438,6 +2472,7 @@ function render() {
   else if (partes[0] === "lugar") telaLugar(partes[1], partes[2]);
   else if (partes[0] === "ida-volta") telaIdaVolta();
   else if (partes[0] === "personalizar") telaPersonalizar();
+  else if (partes[0] === "noticias") telaNoticias();
   else if (partes[0] === "sobre-voce") telaSobreVoce(partes[1] === "inicio");
   else if (partes[0] === "ir") irParaLugar(partes[1]);
   else if (partes[0] === "rotas") telaRotas();
