@@ -64,6 +64,8 @@ data class AppSettings(
     val transferExtraMinutes: Int = 0,
     /** Quanto tempo antes da partida toca o alarme da hora de sair (lembrado da última vez). */
     val leaveBeforeMinutes: Int = 15,
+    /** Na tela inicial, além do aviso de operação especial, as últimas notícias do Metrofor. */
+    val allNews: Boolean = false,
 ) {
     companion object {
         const val THEME_AUTO = 0
@@ -119,6 +121,7 @@ object SettingsStore {
             putString("mobility", settings.mobility.key)
             putInt("transfer_extra_min", settings.transferExtraMinutes)
             putInt("leave_before_min", settings.leaveBeforeMinutes)
+            putBoolean("all_news", settings.allNews)
         }
         state.value = settings
     }
@@ -158,6 +161,7 @@ object SettingsStore {
             mobility = Mobility.entries.firstOrNull { it.key == p.getString("mobility", null) } ?: d.mobility,
             transferExtraMinutes = p.getInt("transfer_extra_min", d.transferExtraMinutes),
             leaveBeforeMinutes = p.getInt("leave_before_min", d.leaveBeforeMinutes),
+            allNews = p.getBoolean("all_news", d.allNews),
         )
     }
 

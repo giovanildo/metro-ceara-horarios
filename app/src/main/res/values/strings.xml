@@ -34,6 +34,8 @@
     <string name="direction_unpublished">O Metrofor não publicou os horários deste sentido hoje.</string>
     <string name="notice_days">Metrofor, %1$s:</string>
     <string name="notice_days_range">de %1$s a %2$s</string>
+    <string name="news_today">hoje</string>
+    <string name="news_yesterday">ontem</string>
     <string name="today_word">hoje</string>
     <string name="and_word">e</string>
     <string name="operations_offer">Quer receber uma notificação quando o Metrofor anunciar ENEM, eleição ou feriado, mesmo com o app fechado?</string>
@@ -422,6 +424,11 @@
     <string name="trip_arrived_belongings">Você chegou a %1$s. Confira se está levando tudo.</string>
     <string name="settings_belongings">Lembrar dos pertences</string>
     <string name="settings_belongings_desc">No aviso de descida e na chegada, o app lembra de não esquecer bolsa, celular e outros pertences.</string>
+    <string name="settings_news">Notícias do Metrofor</string>
+    <string name="settings_news_operations">Só as que mudam o horário</string>
+    <string name="settings_news_operations_desc">Feriado, Enem, eleição e linha parada, quando o Metrofor anuncia. É o padrão.</string>
+    <string name="settings_news_all">Todas as notícias</string>
+    <string name="settings_news_all_desc">Também as outras notícias do site do Metrofor dos últimos 7 dias, na tela inicial. Tocar abre a notícia.</string>
     <string name="about_copy_link">Copiar link</string>
     <string name="about_privacy_title">Privacidade</string>
     <string name="about_privacy">Sem anúncios, sem cadastro e sem rastreadores. A localização é usada só no celular, para achar a estação mais perto e acompanhar a viagem; nada é enviado para ninguém.</string>

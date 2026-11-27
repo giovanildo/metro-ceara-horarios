@@ -84,6 +84,11 @@ object ScheduleStore {
         .apply { timeZone = zone }
         .format(Calendar.getInstance(zone).apply { add(Calendar.DAY_OF_MONTH, 1) }.time)
 
+    /** O dia [days] dias atrás ("AAAA-MM-DD"): o mais antigo das notícias recentes. */
+    fun daysAgo(days: Int): String = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        .apply { timeZone = zone }
+        .format(Calendar.getInstance(zone).apply { add(Calendar.DAY_OF_MONTH, -days) }.time)
+
     fun tomorrowType(): DayType = typeOf(Calendar.getInstance(zone).apply { add(Calendar.DAY_OF_MONTH, 1) })
 
     /** Depois de amanhã: a segunda, quando amanhã é domingo. */

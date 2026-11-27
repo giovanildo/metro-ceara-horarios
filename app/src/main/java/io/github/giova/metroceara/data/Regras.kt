@@ -6,6 +6,9 @@ import java.text.Normalizer
 import org.json.JSONArray
 import org.json.JSONObject
 
+/** Uma notícia do site do Metrofor ("noticias", posto pelo espelho): dia ("AAAA-MM-DD"), manchete e link. */
+data class MetroforNews(val day: String, val title: String, val link: String?)
+
 /** A regra de bike de um dia especial: as linhas (vazio = todas com bike) e as janelas (vazio = sem bike). */
 data class BikeSpecialDay(val lines: Set<String>, val windows: List<BikeWindow>)
 
@@ -165,7 +168,21 @@ class Regras(
     val nameStories: Map<String, NameStory> = emptyMap(),
     /** Horário para levar compras e volumes grandes (bloco "volumes"), igual em todas as linhas. */
     val volumes: VolumeRule? = null,
+    /** As últimas notícias do site do Metrofor, para quem escolheu "Todas as notícias". */
+    val news: List<MetroforNews> = emptyList(),
 ) {
+    /**
+     * As notícias de [oldest] até [today] ("AAAA-MM-DD"), da mais nova para a mais
+     * antiga, no máximo [max]. Sai a que já aparece como aviso de operação especial
+     * (mesmo link), para a manchete não vir duas vezes.
+     */
+    fun recentNews(today: String, oldest: String, max: Int = 3): List<MetroforNews> {
+        val shown = operations.filterKeys { it >= today }.values.mapNotNull { it.link }.toSet()
+        return news.filter { it.day in oldest..today && (it.link == null || it.link !in shown) }
+            .sortedByDescending { it.day }
+            .take(max)
+    }
+
     /** Por que a estação tem esse nome, se a pesquisa achou com fonte. */
     fun nameStory(stationName: String): NameStory? = nameStories[NameStory.slug(stationName)]
 
@@ -383,6 +400,9 @@ class Regras(
                 },
                 lineNotices = root.optJSONObject("avisos_das_linhas")?.let(::lineNotices).orEmpty(),
                 nameStories = root.optJSONObject("nomes")?.let(::nameStories).orEmpty(),
+                news = root.optJSONArray("noticias")?.let { a ->
+                    runCatching { news(a) }.onFailure { DevLog.log("noticias_erro", "erro" to it.toString()) }.getOrNull()
+                }.orEmpty(),
             )
         }
 
@@ -430,6 +450,15 @@ class Regras(
 
         /** "HH:MM" em minutos desde a meia-noite. */
         private fun clock(text: String): Int = text.split(":").let { (h, m) -> h.toInt() * 60 + m.toInt() }
+
+        private fun news(a: JSONArray): List<MetroforNews> = (0 until a.length()).map { i ->
+            val o = a.getJSONObject(i)
+            MetroforNews(
+                day = o.getString("data"),
+                title = o.getString("titulo").trim(),
+                link = o.optString("link").takeIf { it.startsWith("https://") },
+            )
+        }.filter { it.title.isNotEmpty() }
 
         private fun parseVolumes(o: JSONObject) = VolumeRule(
             rule = BikeRule(

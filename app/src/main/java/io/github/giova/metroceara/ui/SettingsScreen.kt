@@ -117,6 +117,34 @@ fun SettingsScreen(
                 description = R.string.settings_belongings_desc,
                 checked = settings.remindBelongings,
             ) { onChange(settings.copy(remindBelongings = it)) }
+            // Notícias do Metrofor: o padrão é só a que muda o horário; a outra opção traz as demais.
+            Text(
+                text = stringResource(R.string.settings_news),
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(top = 12.dp),
+            )
+            listOf(
+                false to (R.string.settings_news_operations to R.string.settings_news_operations_desc),
+                true to (R.string.settings_news_all to R.string.settings_news_all_desc),
+            ).forEach { (all, texts) ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onChange(settings.copy(allNews = all)) }
+                        .padding(vertical = 4.dp),
+                ) {
+                    RadioButton(selected = settings.allNews == all, onClick = { onChange(settings.copy(allNews = all)) })
+                    Column {
+                        Text(stringResource(texts.first), style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            text = stringResource(texts.second),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
 
             SectionTitle(R.string.settings_mobility)
             Text(

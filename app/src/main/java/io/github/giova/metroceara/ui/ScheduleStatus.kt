@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import io.github.giova.metroceara.R
 import io.github.giova.metroceara.alerts.OperationAlerts
 import io.github.giova.metroceara.data.DayType
+import io.github.giova.metroceara.data.MetroforNews
 import io.github.giova.metroceara.data.Regras
 import io.github.giova.metroceara.data.ShareTexts
 import io.github.giova.metroceara.data.ScheduleSource
@@ -137,6 +138,40 @@ fun MetroforNotices(notices: List<ScheduleStore.Notice>, modifier: Modifier = Mo
         )
         // O aviso pronto para mandar a um grupo (só o que muda o horário).
         noticeShareText(notice)?.let { text -> ShareTextButton(text = { text }) }
+    }
+}
+
+/**
+ * As últimas notícias do Metrofor, para quem escolheu "Todas as notícias" nas
+ * Configurações: "Metrofor, 26/11: manchete ›". Tocar abre a notícia no navegador.
+ */
+@Composable
+fun MetroforNewsList(news: List<MetroforNews>, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val today = ScheduleStore.today()
+    val yesterday = ScheduleStore.daysAgo(1)
+    news.forEach { item ->
+        val day = when (item.day) {
+            today -> stringResource(R.string.news_today)
+            yesterday -> stringResource(R.string.news_yesterday)
+            else -> item.day.split("-").let { (_, m, d) -> "${d.toInt()}/${m.toInt()}" }
+        }
+        Text(
+            text = buildAnnotatedString {
+                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(stringResource(R.string.notice_days, day)) }
+                append(" ")
+                append(item.title)
+                if (item.link != null) append(" ›")
+            },
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = modifier.then(
+                item.link?.let { link ->
+                    Modifier.clickable {
+                        runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link))) }
+                    }
+                } ?: Modifier,
+            ),
+        )
     }
 }
 

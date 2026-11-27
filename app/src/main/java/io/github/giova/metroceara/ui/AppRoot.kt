@@ -87,6 +87,7 @@ import io.github.giova.metroceara.data.ShownFix
 import io.github.giova.metroceara.data.keepsOver
 import io.github.giova.metroceara.data.logFields
 import io.github.giova.metroceara.data.MetroforDatabase
+import io.github.giova.metroceara.data.MetroforNews
 import io.github.giova.metroceara.data.PinnedStation
 import io.github.giova.metroceara.data.Place
 import io.github.giova.metroceara.data.Places
@@ -122,6 +123,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 private const val TICK_MILLIS = 15_000L
+/** "Todas as notícias": as dos últimos 7 dias. */
+private const val NEWS_DAYS = 7
 
 /** GPS da tela inicial: no intervalo das configurações, ou ao andar 30 m. */
 private const val HOME_GPS_MIN_METERS = 30f
@@ -165,6 +168,9 @@ fun AppRoot() {
     // Com o app aberto na virada das 00:40, baixa a grade do dia sem esperar reabrir.
     var feedReady by remember { mutableStateOf(!ScheduleStore.beforeFeedTime()) }
     var notices by remember { mutableStateOf(ScheduleStore.notices()) }
+    // As outras notícias do Metrofor, só para quem escolheu "Todas as notícias".
+    var news by remember { mutableStateOf(Regras.current.recentNews(ScheduleStore.today(), ScheduleStore.daysAgo(NEWS_DAYS))) }
+    val shownNews = if (settings.allNews) news else emptyList()
     LaunchedEffect(today, opened, feedReady) {
         scheduleSyncing = true
         DevLog.log("sync_start")
@@ -189,6 +195,7 @@ fun AppRoot() {
         if (result?.isSuccess == true) scheduleVersion++
         // As notícias de operação especial vêm no regras.json, já baixado acima.
         notices = ScheduleStore.notices()
+        news = Regras.current.recentNews(ScheduleStore.today(), ScheduleStore.daysAgo(NEWS_DAYS))
         // Com o app aberto o aviso está na tela: não precisa de notificação depois.
         OperationAlerts.markSeen(context)
         StationWidget.update(context)
@@ -1142,7 +1149,7 @@ fun AppRoot() {
             HomeBlock.PLACES -> !tripInStation(layout)
             HomeBlock.STATIONS, HomeBlock.SEARCH -> true
             HomeBlock.ROUTINES -> !routinesList.isNullOrEmpty()
-            HomeBlock.NOTICES -> notices.isNotEmpty()
+            HomeBlock.NOTICES -> notices.isNotEmpty() || shownNews.isNotEmpty()
             HomeBlock.BIKE -> homeBike != null
             HomeBlock.LINES -> false
         }
@@ -1286,6 +1293,7 @@ fun AppRoot() {
 
             HomeBlock.NOTICES -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 MetroforNotices(notices)
+                MetroforNewsList(shownNews)
                 OperationNotificationOffer()
             }
 
