@@ -1767,6 +1767,13 @@ reais de Benfica → Papicu) rodam com:
 ./gradlew testDebugUnitTest
 ```
 
+O GitHub roda os mesmos testes sozinho: a tarefa
+[`testes.yml`](.github/workflows/testes.yml) dispara a cada push na `main` que
+mexa no app, no Gradle ou no build (os commits do bot com dados novos em
+`app/src/main/assets` também entram: dado que quebra a leitura aparece ali). Se
+falhar, o relatório dos testes fica anexado à execução, em Actions. Para rodar à
+mão: Actions → "Testes" → Run workflow.
+
 Em terminais novos, carregue o ambiente antes de usar `gradle` ou `adb`:
 
 ```bash
