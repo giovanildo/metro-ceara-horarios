@@ -83,3 +83,25 @@ private fun toMinutes(hhmm: String): Int {
     val (h, m) = hhmm.trim().split(":").map { it.toInt() }
     return h * 60 + m
 }
+
+/**
+ * Horário para levar compras e volumes grandes: as janelas no mesmo formato das
+ * de bike ([rule]) e as medidas ([sizes]), da segunda linha do aviso.
+ */
+data class VolumeRule(val rule: BikeRule, val sizes: String?)
+
+/**
+ * Se dá para levar volume grande agora, ou `null` quando não há o que avisar:
+ * sem a regra, sem mais metrô hoje ([runningToday]), no domingo e em dia de
+ * operação especial (a notícia do dia não fala de volumes).
+ */
+fun volumeBoarding(
+    volumes: VolumeRule?,
+    runningToday: Boolean,
+    specialToday: Boolean,
+    dayOfWeek: Int,
+    minutes: Int,
+): BikeBoarding? {
+    if (volumes == null || !runningToday || specialToday || dayOfWeek == Calendar.SUNDAY) return null
+    return bikeBoarding(volumes.rule, dayOfWeek, minutes)
+}

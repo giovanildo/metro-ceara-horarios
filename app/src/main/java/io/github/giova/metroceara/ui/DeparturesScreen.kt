@@ -23,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.filled.Share
 import io.github.giova.metroceara.data.normalBikeRule
+import io.github.giova.metroceara.data.volumeBoarding
 import io.github.giova.metroceara.data.ShareTexts
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -180,6 +181,14 @@ fun DeparturesScreen(
                 else -> null
             }
         }
+    }
+    // Compras e volumes grandes: o mesmo horário em todas as linhas, menos domingo e dia especial.
+    val volumeRule = remember(route.id, now, runningToday) {
+        volumeBoarding(
+            Regras.current.volumes, runningToday,
+            specialToday = Regras.current.operations[ScheduleStore.today()] != null,
+            dayOfWeek = nowDayOfWeek(), minutes = now,
+        )
     }
 
     Scaffold(
@@ -440,6 +449,19 @@ fun DeparturesScreen(
                                 modifier = Modifier.padding(start = 12.dp),
                             )
                         }
+                        }
+                    }
+                }
+
+                if (volumeRule != null) {
+                    item {
+                        Column {
+                            VolumeBoardingNotice(
+                                volumeRule, vehicle = vehicleName(route.name),
+                                // As medidas só quando ainda dá para levar hoje.
+                                sizes = Regras.current.volumes?.sizes?.takeIf { volumeRule.allowed || volumeRule.boundary != null },
+                            )
+                            SourceLine(Regras.current.volumes?.rule?.sourceId, Modifier.padding(start = 24.dp))
                         }
                     }
                 }

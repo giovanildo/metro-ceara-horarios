@@ -163,6 +163,8 @@ class Regras(
     val lineNotices: Map<String, List<LineNotice>> = emptyMap(),
     /** "Por que esse nome?" (bloco "nomes"), pelo slug da página da estação no site. */
     val nameStories: Map<String, NameStory> = emptyMap(),
+    /** Horário para levar compras e volumes grandes (bloco "volumes"), igual em todas as linhas. */
+    val volumes: VolumeRule? = null,
 ) {
     /** Por que a estação tem esse nome, se a pesquisa achou com fonte. */
     fun nameStory(stationName: String): NameStory? = nameStories[NameStory.slug(stationName)]
@@ -360,6 +362,12 @@ class Regras(
                 fareLines = fareLines,
                 fareGuide = fareGuide,
                 bikeForbidden = bike.optString("proibidas").trim().takeIf { it.isNotEmpty() },
+                // Bloco com erro tira só o aviso de volumes, não as outras regras.
+                volumes = root.optJSONObject("volumes")?.let { o ->
+                    runCatching { parseVolumes(o) }
+                        .onFailure { DevLog.log("volumes_erro", "erro" to it.toString()) }
+                        .getOrNull()
+                },
                 landmarks = landmarks(root.optJSONObject("lugares")?.optJSONArray("lista")),
                 // Fontes com erro tiram só as linhas de fonte, não as regras.
                 sources = root.optJSONObject("fontes")?.let { o ->
@@ -422,6 +430,16 @@ class Regras(
 
         /** "HH:MM" em minutos desde a meia-noite. */
         private fun clock(text: String): Int = text.split(":").let { (h, m) -> h.toInt() * 60 + m.toInt() }
+
+        private fun parseVolumes(o: JSONObject) = VolumeRule(
+            rule = BikeRule(
+                weekday = windows(o.getJSONArray("dias_uteis")),
+                saturday = windows(o.getJSONArray("sabado")),
+                sunday = windows(o.optJSONArray("domingo") ?: JSONArray()),
+                sourceId = o.optString("fonte_id").takeIf { it.isNotBlank() },
+            ),
+            sizes = o.optString("medidas").trim().takeIf { it.isNotEmpty() },
+        )
 
         private fun windows(array: JSONArray): List<BikeWindow> = (0 until array.length()).map { i ->
             val w = array.getJSONArray(i)

@@ -89,6 +89,11 @@
     <string name="bike_boarding_unknown">Operação especial: o Metrofor não informou se dá para embarcar com bike hoje</string>
     <string name="bike_boarding_not_today">Hoje não há embarque com bike no %1$s</string>
     <string name="bike_boarding_no_more_today">Não há mais horário hoje para embarcar com bike no %1$s</string>
+    <string name="volume_boarding_until">Compras e volumes grandes no %1$s: pode levar agora, até as %2$s</string>
+    <string name="volume_boarding_until_close">Compras e volumes grandes no %1$s: pode levar agora, até o fim da operação</string>
+    <string name="volume_boarding_from">Compras e volumes grandes no %1$s só a partir das %2$s</string>
+    <string name="volume_boarding_no_more_today">Compras e volumes grandes no %1$s: não pode mais hoje</string>
+    <string name="volume_boarding_not_today">Hoje não pode levar compras e volumes grandes no %1$s</string>
 
     <string name="sunday_warning">Hoje é domingo: metrô e VLT não circulam. Só há operação aos domingos quando o Metrofor anuncia (eleição, ENEM, eventos).</string>
     <string name="sunday_off_monday_stopped">Hoje é domingo: metrô e VLT não circulam. O Metrofor avisou que esta linha também não circula segunda.</string>
