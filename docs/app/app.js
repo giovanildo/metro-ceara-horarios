@@ -1,5 +1,5 @@
 import {
-  agora, bikeAgora, carregar, dataCurta, distancia, falta, hora, infoEstacao, janelasBike, metros, minutosAte, passagem,
+  agora, bikeAgora, carregar, dataCurta, distancia, falta, hora, infoEstacao, janelasBike, janelasVolumes, metros, minutosAte, passagem,
   diaEspecial, linhaParada, voltaDaSegunda, passagemDaLinha, fonteLinha, proximas, somarDias, veiculo, avisosDaLinha,
   esperasLongas, duracaoCurta, regraBike, nomeOficial,
 } from "./dados.js";
@@ -1237,6 +1237,7 @@ function telaEstacao(linhaId, stopId, sentidoId) {
   }
   html += `<p class="dica">Toque em qualquer horário de hoje (aqui ou em "Todos os horários", mais abaixo) para criar um lembrete na agenda.</p>`;
   html += avisoBike(linha, stopId, t);
+  html += avisoVolumes(linha, stopId, t);
   html += blocoIntegracao(stopId, t);
   html += `<a class="botao secundario largo" href="#/viagem/${linha.id}/${stopId}">${LUPA} Ir daqui para outra estação</a>`;
   html += blocoPerto(stopId);
@@ -1992,6 +1993,26 @@ function cartaoRoteiro(o, grade, dia, perfil, ape = null) {
     }
   }
   return html + `</div>`;
+}
+
+/** "Compras e volumes grandes no metrô: pode levar agora, até as 15:00" — mesmas regras e frases do app. */
+function avisoVolumes(linha, stopId, t) {
+  const { grade, regras } = estado.dados;
+  // Sem mais partidas (ou com a linha parada hoje), não há o que levar.
+  const aindaHoje = grade.sentidosDePartida(linha, stopId).some((s) => grade.partidas(s, stopId).some((m) => m >= t.minutos));
+  if (!aindaHoje || linhaParada(regras, t.data, linha.nome)) return "";
+  const janelas = janelasVolumes(regras, t.diaSemana, t.data);
+  if (!janelas) return "";
+  const v = veiculo(linha.nome);
+  const b = bikeAgora(janelas, t.minutos);
+  const texto = b.pode
+    ? (b.limite != null ? `Compras e volumes grandes no ${v}: pode levar agora, até as ${hora(b.limite)}`
+      : `Compras e volumes grandes no ${v}: pode levar agora, até o fim da operação`)
+    : b.limite != null ? `Compras e volumes grandes no ${v} só a partir das ${hora(b.limite)}`
+      : janelas.length ? `Compras e volumes grandes no ${v}: não pode mais hoje` : `Hoje não pode levar compras e volumes grandes no ${v}`;
+  // As medidas só quando ainda dá para levar hoje.
+  const extra = (b.pode || b.limite != null) && janelas.medidas;
+  return `<p class="bike">🛍️ ${texto}${extra ? `<br><span class="dica">${esc(extra)}</span>` : ""}</p>${fonte(janelas.fonteId, "margin-top:-8px")}`;
 }
 
 /** "Pode embarcar com bike no metrô agora, até as 15:00" — mesmas regras e frases do app. */

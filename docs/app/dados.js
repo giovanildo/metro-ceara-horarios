@@ -316,6 +316,22 @@ export function regraBike(regras, nomeEstacao, nomeLinha) {
   return (id && bike.regulamentos[id]) || null;
 }
 
+/**
+ * As janelas para levar compras e volumes grandes hoje (regras.volumes, iguais em
+ * todas as linhas), ou null quando não há o que avisar: sem a regra, no domingo e
+ * em dia de operação especial (a notícia do dia não fala de volumes). Igual ao app.
+ */
+export function janelasVolumes(regras, diaSemana, data) {
+  const v = regras?.volumes;
+  if (!v || diaSemana === 0 || regras.operacoes?.[data]) return null;
+  const lista = diaSemana === 6 ? v.sabado : v.dias_uteis;
+  const janelas = (lista || []).map(([ini, fim]) => ({ ini: minDe(ini), fim: fim == null ? null : minDe(fim) }))
+    .sort((a, b) => a.ini - b.ini);
+  janelas.medidas = v.medidas || null;
+  janelas.fonteId = v.fonte_id || null;
+  return janelas;
+}
+
 /** Igual ao app: { pode, limite } — limite = fim da janela atual, ou começo da próxima de hoje. */
 export function bikeAgora(janelas, minutos) {
   for (const j of janelas) {
