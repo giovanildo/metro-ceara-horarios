@@ -855,6 +855,31 @@ regra própria: é só editar o arquivo e gerar uma versão nova. Ficam fora das
 Configurações de propósito — são regra do Metrofor, não preferência de quem usa
 o app.
 
+### Compras e volumes grandes: o horário na tela da estação (1.121)
+
+A notícia do Metrofor de 26/11/2026 (Black Friday) trouxe pela primeira vez o
+**horário para levar compras e volumes grandes**. Antes só havia as medidas, no
+Guia do Passageiro: embalado, altura + largura + comprimento até 160 cm e
+nenhum lado acima de 80 cm. O horário é de segunda a sexta, das 9h às 15h e das
+20h até o fim da operação, e no sábado, das 15h até o fim. Mochila, bolsa e mala
+podem a qualquer hora. Vale para o metrô e os VLTs.
+
+Na tela da estação (app e lite), logo abaixo do aviso de bike, uma linha diz o
+que vale agora: "Compras e volumes grandes no metrô: pode levar agora, até as
+15:00", "… só a partir das 20:00" ou "… não pode mais hoje". Enquanto ainda dá
+para levar no dia, a segunda linha traz as medidas. Embaixo vai a fonte. O aviso
+não aparece no domingo, em dia de operação especial (a notícia do dia não fala
+de volumes) nem depois do último metrô do dia.
+
+A regra fica no bloco `volumes` do `regras.json`, com janelas no mesmo formato
+das de bike (`dias_uteis`, `sabado`, `domingo`), as `medidas` da segunda linha e
+a fonte `volumes`. O app lê com `VolumeRule` e decide com `volumeBoarding`, em
+[`BikeBoarding.kt`](app/src/main/java/io/github/giova/metroceara/data/BikeBoarding.kt)
+(testes em `VolumeBoardingTest`), e mostra com `VolumeBoardingNotice`. Na lite,
+o mesmo trabalho é feito por `janelasVolumes` ([`docs/app/dados.js`](docs/app/dados.js))
+e `avisoVolumes` ([`docs/app/app.js`](docs/app/app.js)). O tema "O que pode levar"
+também ganhou o horário.
+
 ### Estação renomeada: Jereissati → Francisco Alves Marinho
 
 A Lei estadual 19.272, de 05/06/2025, deu à estação Jereissati (Linha Sul,
@@ -1039,7 +1064,8 @@ Desde a 1.106, um segundo bloco, **"Bom saber antes de ir"** (`mais_temas`
 no `regras.json`, no mesmo formato dos temas), traz mais quatro telas:
 
 - **O que pode levar**: o tamanho máximo do volume (altura + largura +
-  comprimento até 160 cm, nenhum lado acima de 80 cm), o que não pode
+  comprimento até 160 cm, nenhum lado acima de 80 cm), o horário das compras e
+  volumes grandes (desde 26/11/2026, ver abaixo), o que não pode
   embarcar, as regras dentro do vagão (lanche só na estação, fone de ouvido)
   e o cão-guia, garantido pela Lei federal 11.126/2005;
 - **Cartões do metrô**: Unitário (vale só no dia da compra), Múltiplo,

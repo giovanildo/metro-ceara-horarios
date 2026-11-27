@@ -135,6 +135,21 @@ Sobral 98,25, Nordeste 99,77 (carta anual 2023). O acompanhamento da operação
   vale-transporte, estudante, gratuidades), para integração tarifária e operacional
   com os ônibus. Quando entrar em operação, a seção `passagem` do `regras.json` muda.
 
+## Volumes e compras
+
+- O Guia do Passageiro só dava as medidas: embalado, altura + largura +
+  comprimento até 160 cm e nenhum lado acima de 80 cm.
+- A notícia de 26/11/2026 (Black Friday) trouxe pela primeira vez o horário:
+  segunda a sexta das 9h às 15h e das 20h até o encerramento, sábado das 15h até o
+  encerramento. Mochila, bolsa e mala podem em qualquer horário. São as mesmas
+  janelas da bike na Sul e na Nordeste. Não há notícia anterior com esse horário
+  entre as 1.168 guardadas. No app, o horário está no bloco `volumes` do
+  `regras.json` (desde a 1.121).
+- A mesma notícia lista shoppings perto das estações, com distância: Benfica (ao
+  lado), Parangaba (300 m), Centro Fashion pela Moura Brasil (650 m), Iandê pela
+  Caucaia (650 m), North Maracanaú (700 m), RioMar Kennedy pela Álvaro Weyne (1 km)
+  e Iguatemi Bosque pela Antônio Sales (1,7 km).
+
 ## Outros canais de informação
 
 - **Portal de horários e planejamento de viagens** do Metrofor (2025), em
