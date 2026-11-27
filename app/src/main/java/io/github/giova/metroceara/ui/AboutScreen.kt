@@ -249,6 +249,7 @@ private fun DevOptions() {
     val context = LocalContext.current
     val logOn by DevLog.enabledFlow.collectAsState()
     val motionOn by DevLog.motionFlow.collectAsState()
+    val radioOn by DevLog.radioFlow.collectAsState()
     val motionCount by DevLog.motionCount.collectAsState()
     var refresh by remember { mutableIntStateOf(0) }
     val (bytes, days) = remember(refresh, logOn) { DevLog.stats() }
@@ -279,6 +280,17 @@ private fun DevOptions() {
                     )
                 }
                 Switch(checked = motionOn, enabled = logOn, onCheckedChange = { DevLog.setMotion(context, it) })
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(stringResource(R.string.dev_radio), style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        text = stringResource(R.string.dev_radio_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Switch(checked = radioOn, enabled = logOn, onCheckedChange = { DevLog.setRadio(context, it) })
             }
             if (motionOn || motionCount.first > 0) {
                 Text(

@@ -449,6 +449,8 @@
     <string name="dev_motion">Gravar movimento nas viagens</string>
     <string name="dev_motion_desc">Acelerômetro, giroscópio e magnetômetro (e barômetro, se o celular tiver) durante o modo viagem, um resumo por segundo no registro de testes. Só para estudar as paradas no túnel: não muda nada na viagem. Uns 150 KB a cada 15 minutos. Vale a partir da próxima viagem.</string>
     <string name="dev_motion_count">Gravadas: %1$d viagem(ns), %2$d pelo túnel (meta: %3$d pelo túnel). Conta quem gravou 5 min ou mais. O celular guarda só 7 dias: deixe a cópia na nuvem ligada.</string>
+    <string name="dev_radio">Gravar torres e redes nas viagens</string>
+    <string name="dev_radio_desc">Torres de celular a cada 5 s durante o modo viagem (na versão de teste, também redes Wi-Fi a cada 30 s), para ver se cada estação subterrânea tem uma assinatura. As redes ficam como um código de 8 letras; o nome só se parecer do metrô ou pública. Não conecta a nada. Vale a partir da próxima viagem.</string>
     <string name="dev_motion_reset">Zerar a contagem</string>
     <string name="dev_motion_goal_title">Movimento: meta alcançada</string>
     <string name="dev_motion_goal_text">Já são %1$d viagens pelo túnel com o movimento gravado. Pode mandar os registros para a análise.</string>

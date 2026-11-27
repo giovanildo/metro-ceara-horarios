@@ -61,6 +61,14 @@ object DevLog {
     /** Gravar o movimento nas viagens: só com o registro ligado e a opção marcada. */
     val motionEnabled: Boolean get() = enabled && motion
 
+    @Volatile private var radio = false
+    private val _radioFlow = MutableStateFlow(false)
+    /** A opção "Gravar torres e redes nas viagens", à parte do registro. */
+    val radioFlow: StateFlow<Boolean> = _radioFlow.asStateFlow()
+
+    /** Gravar torres (e, na versão de teste, Wi-Fi e Bluetooth) nas viagens: registro ligado e a opção marcada. */
+    val radioEnabled: Boolean get() = enabled && radio
+
     fun init(context: Context) {
         val app = context.applicationContext
         appContext = app
@@ -73,6 +81,8 @@ object DevLog {
         _unlocked.value = prefs.getBoolean(KEY_UNLOCKED, false)
         motion = prefs.getBoolean(KEY_MOTION, false)
         _motionFlow.value = motion
+        radio = prefs.getBoolean(KEY_RADIO, false)
+        _radioFlow.value = radio
         _motionCount.value = prefs.getInt(KEY_MOTION_TRIPS, 0) to prefs.getInt(KEY_MOTION_TUNNEL, 0)
     }
 
@@ -112,6 +122,14 @@ object DevLog {
         prefs(context).edit { putBoolean(KEY_MOTION, on) }
         _motionFlow.value = on
         log("motion_option", "on" to on)
+    }
+
+    /** Liga ou desliga a gravação de torres e redes; vale a partir da próxima viagem. */
+    fun setRadio(context: Context, on: Boolean) {
+        radio = on
+        prefs(context).edit { putBoolean(KEY_RADIO, on) }
+        _radioFlow.value = on
+        log("radio_option", "on" to on)
     }
 
     fun unlock(context: Context) {
@@ -237,6 +255,7 @@ object DevLog {
     private const val KEY_ENABLED = "enabled"
     private const val KEY_UNLOCKED = "unlocked"
     private const val KEY_MOTION = "motion"
+    private const val KEY_RADIO = "radio"
     private const val KEY_MOTION_TRIPS = "motion_trips"
     private const val KEY_MOTION_TUNNEL = "motion_tunnel"
     /** Viagens pelo túnel com o movimento gravado para começar a estudar as paradas. */
