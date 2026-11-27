@@ -6,6 +6,8 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import io.github.giova.metroceara.BuildConfig
+import io.github.giova.metroceara.trip.BleRecorder
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
@@ -250,6 +252,11 @@ private fun DevOptions() {
     val logOn by DevLog.enabledFlow.collectAsState()
     val motionOn by DevLog.motionFlow.collectAsState()
     val radioOn by DevLog.radioFlow.collectAsState()
+    // Versão de teste: o Bluetooth da opção de torres e redes pede "dispositivos por perto";
+    // sem ela a opção liga do mesmo jeito, só sem o Bluetooth.
+    val blePermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+        DevLog.setRadio(context, true)
+    }
     val motionCount by DevLog.motionCount.collectAsState()
     var refresh by remember { mutableIntStateOf(0) }
     val (bytes, days) = remember(refresh, logOn) { DevLog.stats() }
@@ -290,7 +297,13 @@ private fun DevOptions() {
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                Switch(checked = radioOn, enabled = logOn, onCheckedChange = { DevLog.setRadio(context, it) })
+                Switch(checked = radioOn, enabled = logOn, onCheckedChange = { on ->
+                    if (on && BuildConfig.TESTE && !BleRecorder.canScan(context)) {
+                        blePermission.launch(BleRecorder.permissions())
+                    } else {
+                        DevLog.setRadio(context, on)
+                    }
+                })
             }
             if (motionOn || motionCount.first > 0) {
                 Text(

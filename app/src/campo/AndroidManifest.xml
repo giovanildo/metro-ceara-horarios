@@ -7,4 +7,9 @@
     <!-- Ver as redes Wi-Fi e pedir uma busca (RadioRecorder). Não conecta a nenhuma rede. -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <!-- Buscar aparelhos Bluetooth por perto (BleRecorder). Não conecta a nenhum.
+         Sem neverForLocation de propósito: a ideia é justamente reconhecer o lugar. -->
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
 </manifest>
