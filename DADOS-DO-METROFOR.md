@@ -135,6 +135,17 @@ Sobral 98,25, Nordeste 99,77 (carta anual 2023). O acompanhamento da operação
   vale-transporte, estudante, gratuidades), para integração tarifária e operacional
   com os ônibus. Quando entrar em operação, a seção `passagem` do `regras.json` muda.
 
+## Tags das notícias do site
+
+- Conferido em 27/11/2026 pela API do WordPress: só 37 das 300 notícias mais
+  recentes (mai/2020 a nov/2026) têm tags, e 16 das 34 de 2026. A mesma notícia
+  de feriado ora vem só com `metrofor`, ora sem nada, e há tag com erro
+  (`Operaççao Especial`). Em 2025, duas notícias têm hashtags do Instagram como
+  nome da tag (`#LinhaSul #ArteNoMetro…`, `#crochetaço…`). A Black Friday
+  (26/11/2026) é a única com `blackfriday`.
+- Por isso as tags **não servem de critério**: o `tools/operacoes.py` continua
+  lendo título e texto, e "Todas as notícias" (1.122) não depende delas.
+
 ## Volumes e compras
 
 - O Guia do Passageiro só dava as medidas: embalado, altura + largura +

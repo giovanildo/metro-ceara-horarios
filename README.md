@@ -1515,8 +1515,23 @@ Detalhes que valem saber:
   suspensões da pandemia vêm como intervalo de datas). Uma data posta à mão em `operacoes` do
   `regras.json` ganha da tirada das notícias.
 
-  O `noticias.json` do espelho, com as últimas notícias sem filtro, continua
-  sendo publicado só para quem ainda tem o app até a versão 1.45.
+  O `noticias.json` do espelho, com as 5 últimas notícias sem filtro, continua
+  sendo publicado para quem ainda tem o app até a versão 1.45.
+
+  **Todas as notícias (opcional, desde a 1.122).** O padrão continua sendo só a
+  notícia que muda o horário. Quem quiser escolhe **Todas as notícias**: no app,
+  em Configurações → Avisos → Notícias do Metrofor; na lite, em Mais → Notícias
+  do Metrofor (guardado no navegador, em `config.noticias`). Com essa opção, a
+  tela inicial mostra também as outras notícias do site dos últimos 7 dias, até
+  3, da mais nova para a mais antiga: "Metrofor, 26/11: manchete ›", e o toque
+  abre a notícia. A notícia que já é aviso de operação especial não aparece duas
+  vezes (mesmo link). As manchetes chegam no próprio `regras.json` publicado
+  (`noticias`, as mesmas 5 do `noticias.json`; se o site falhar, ficam as da
+  publicação anterior), então o app não faz nenhuma conexão nova e nunca vai
+  direto ao site do Metrofor. O app usa `Regras.recentNews` (testes em
+  `RecentNewsTest`), `MetroforNewsList` e `AppSettings.allNews`. A lite usa
+  `noticiasRecentes` ([`docs/app/dados.js`](docs/app/dados.js)) e
+  `noticiasMetrofor`/`telaNoticias` ([`docs/app/app.js`](docs/app/app.js)).
 - **Sem mais partidas hoje**, além da frase, aparece o último horário de hoje e
   o primeiro do próximo dia com metrô — amanhã, ou a segunda quando amanhã é
   domingo: "Último de hoje: 17:12 · primeiro de segunda: 05:44 (domingo, só em
