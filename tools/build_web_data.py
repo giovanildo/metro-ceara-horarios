@@ -27,7 +27,8 @@ Arquivos em SAIDA:
                                 (tools/operacoes.py) tiradas das noticias
     paginas.json                paginas oficiais lidas hoje, para comparar com as conferidas (tools/paginas.py)
     noticias.json               ultimas noticias do site do Metrofor: titulo, data e link
-                                (so para o app ate a versao 1.45; hoje o aviso e o de operacoes)
+                                (lido pelo app ate a versao 1.45; desde a 1.122 as mesmas
+                                vao no regras.json, "noticias", para "Todas as noticias")
 """
 import html
 import io
@@ -328,14 +329,23 @@ def main():
             for n, nome, bairro, vagas, lat, lon in bikes
         ])
 
-    escrever(os.path.join(out, "regras.json"), regras)
-    # Os avisos sao um extra: se o site falhar, fica o arquivo anterior e os
-    # horarios seguem normalmente.
+    # As ultimas noticias sao um extra: se o site falhar, ficam as da publicacao
+    # anterior e os horarios seguem normalmente. Vao no regras.json ("noticias"),
+    # para quem escolheu "Todas as noticias" no app e na lite, e no noticias.json,
+    # que os apps ate a 1.45 ainda leem.
     try:
-        escrever(os.path.join(out, "noticias.json"), avisos_do_metrofor())
+        noticias = avisos_do_metrofor()
+        escrever(os.path.join(out, "noticias.json"), noticias)
         leitura_boa(saude, "noticias")
     except Exception as e:  # noqa: BLE001
         print(f"avisos do Metrofor: {e}")
+        try:
+            with open(os.path.join(out, "noticias.json"), encoding="utf-8") as fh:
+                noticias = json.load(fh)
+        except (OSError, ValueError):
+            noticias = []
+    regras["noticias"] = noticias
+    escrever(os.path.join(out, "regras.json"), regras)
     indice["atualizado"] = agora.isoformat(timespec="seconds")
     escrever(indice_path, indice)
 
