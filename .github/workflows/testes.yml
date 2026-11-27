@@ -1,0 +1,47 @@
+# Roda os testes unitarios do app a cada push na main que mexa no app ou no
+# build. Pega antes da Play (onde uma recusa custa uma semana) o que quebrou.
+# Os dados (regras.json, banco) tambem entram: dado novo que quebra a leitura
+# aparece aqui.
+name: Testes
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - app/**
+      - gradle/**
+      - "*.gradle.kts"
+      - gradle.properties
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: testes-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # O build roda em JDK 21 (ver compileOptions em app/build.gradle.kts).
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Testes unitarios
+        run: ./gradlew testDebugUnitTest
+
+      - name: Relatorio dos testes (so quando falha)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-testes
+          path: app/build/reports/tests/
