@@ -8,7 +8,6 @@ import android.net.Uri
 import android.Manifest
 import android.widget.Toast
 import io.github.giova.metroceara.BuildConfig
-import io.github.giova.metroceara.trip.BleRecorder
 import io.github.giova.metroceara.trip.TripAudioRecorder
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
@@ -255,11 +254,6 @@ private fun DevOptions() {
     val motionOn by DevLog.motionFlow.collectAsState()
     val radioOn by DevLog.radioFlow.collectAsState()
     val audioOn by DevLog.audioFlow.collectAsState()
-    // Versão de teste: o Bluetooth da opção de torres e redes pede "dispositivos por perto";
-    // sem ela a opção liga do mesmo jeito, só sem o Bluetooth.
-    val blePermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-        DevLog.setRadio(context, true)
-    }
     val micPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         DevLog.setAudio(context, granted)
         if (!granted) Toast.makeText(context, R.string.dev_audio_denied, Toast.LENGTH_LONG).show()
@@ -304,13 +298,7 @@ private fun DevOptions() {
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                Switch(checked = radioOn, enabled = logOn, onCheckedChange = { on ->
-                    if (on && BuildConfig.TESTE && !BleRecorder.canScan(context)) {
-                        blePermission.launch(BleRecorder.permissions())
-                    } else {
-                        DevLog.setRadio(context, on)
-                    }
-                })
+                Switch(checked = radioOn, enabled = logOn, onCheckedChange = { DevLog.setRadio(context, it) })
             }
             if (BuildConfig.TESTE) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {

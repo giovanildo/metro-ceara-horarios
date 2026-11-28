@@ -21,7 +21,6 @@ import android.telephony.CellIdentityNr
 import android.telephony.CellSignalStrengthNr
 import android.telephony.TelephonyManager
 import androidx.core.content.ContextCompat
-import io.github.giova.metroceara.BuildConfig
 import io.github.giova.metroceara.data.DevLog
 import org.json.JSONArray
 import org.json.JSONObject
@@ -44,8 +43,8 @@ import java.security.MessageDigest
  *   frequência (`f`). O nome da rede só vai (`s`) se parecer da estação ou pública
  *   ([PUBLIC_SSID]): redes de casas e lojas ficam só no hash.
  * - `wifi_scan` quando o Android recusa a busca (ele limita a 4 a cada 2 minutos).
- * - `ble`: aparelhos Bluetooth por perto ([BleRecorder]).
- * Wi-Fi e Bluetooth só existem na versão de teste (build "campo"); no app da Play ficam só as torres.
+ * O Wi-Fi só existe na versão de teste (build "campo"); no app da Play ficam só as torres.
+ * (O Bluetooth foi testado em 27/11/2026 e saiu: não mostrou nada característico das estações.)
  */
 class RadioRecorder(private val context: Context) {
 
@@ -56,8 +55,6 @@ class RadioRecorder(private val context: Context) {
     private val thread = HandlerThread("radio").apply { start() }
     private val handler = Handler(thread.looper)
     private var running = false
-    /** Bluetooth só na versão de teste. */
-    private val ble = if (BuildConfig.TESTE) BleRecorder(context, handler) else null
     /** A busca de Wi-Fi mais nova já gravada (relógio desde o boot, µs). */
     private var lastWifiMicros = 0L
 
@@ -102,7 +99,6 @@ class RadioRecorder(private val context: Context) {
             handler.post(wifiTick)
         }
         if (telephony != null) handler.post(cellTick)
-        ble?.let { b -> handler.post { b.start() } }
     }
 
     fun stop() {
@@ -113,7 +109,6 @@ class RadioRecorder(private val context: Context) {
         running = false
         runCatching { context.unregisterReceiver(receiver) }
         handler.post {
-            ble?.stop()
             handler.removeCallbacksAndMessages(null)
             DevLog.log("radio_stop")
             thread.quitSafely()

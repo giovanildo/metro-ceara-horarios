@@ -66,7 +66,7 @@ object DevLog {
     /** A opção "Gravar torres e redes nas viagens", à parte do registro. */
     val radioFlow: StateFlow<Boolean> = _radioFlow.asStateFlow()
 
-    /** Gravar torres (e, na versão de teste, Wi-Fi e Bluetooth) nas viagens: registro ligado e a opção marcada. */
+    /** Gravar torres (e, na versão de teste, Wi-Fi) nas viagens: registro ligado e a opção marcada. */
     val radioEnabled: Boolean get() = enabled && radio
 
     @Volatile private var audio = false

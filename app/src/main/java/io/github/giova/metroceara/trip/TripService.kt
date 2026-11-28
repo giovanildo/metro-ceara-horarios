@@ -48,7 +48,7 @@ class TripService : Service() {
     private var lastTrip: ActiveTrip? = null
     /** Movimento do celular para estudo (só opção de desenvolvedor). */
     private var motion: MotionRecorder? = null
-    /** Torres de celular (e Wi-Fi/Bluetooth na versão de teste) para estudo (só opção de desenvolvedor). */
+    /** Torres de celular (e Wi-Fi na versão de teste) para estudo (só opção de desenvolvedor). */
     private var radio: RadioRecorder? = null
     /** Som da viagem para estudo (só versão de teste e opção de desenvolvedor). */
     private var audio: TripAudioRecorder? = null
