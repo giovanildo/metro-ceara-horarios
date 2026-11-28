@@ -1940,8 +1940,7 @@ Wi-Fi ligado, operadora), `cell` a cada 5 s (cada torre que o celular vê, em `c
 o tipo — `lte`, `nr`, `wcdma`, `gsm` —, se é a que está em uso (`reg`), `ci`,
 `pci`, `tac`/`lac`, o sinal em `dbm` e a idade da medição em `age`), `radio_stop`
 e `radio_option`. No app da Play só há as torres, que usam a permissão de
-localização que o app já tem; Wi-Fi e Bluetooth existem só na versão de teste
-(abaixo).
+localização que o app já tem; o Wi-Fi existe só na versão de teste (abaixo).
 
 ### Versão de teste (build `campo`)
 
@@ -1961,14 +1960,15 @@ teste, ficam os sinais que ajudarem a previsão, com a privacidade avaliada de n
   primeiros caracteres do SHA-256: o mesmo em toda viagem, sem guardar o endereço),
   o sinal (`l`), a frequência (`f`) e a idade (`age`). O nome da rede (`s`) só vai
   se parecer do metrô, do governo ou pública; redes de casas e lojas ficam só no
-  código. Não conecta a nenhuma rede.
-- **Bluetooth** (`trip/BleRecorder.kt`, também em "Torres e redes"; pede
-  "dispositivos por perto" ao ligar): busca BLE contínua e `ble` a cada 5 s com os
-  aparelhos vistos (`d`: `h` em 8 letras, o sinal mais forte `l`, quantos anúncios
-  `k`, o fabricante `m` — 76 Apple, 6 Microsoft, 117 Samsung — e se aceita conexão
-  `c`). Serve para ver se algum equipamento fixo marca cada estação; celulares
-  trocam de endereço a cada poucos minutos. Não liga o Bluetooth: desligado,
-  `ble_start` diz e nada é gravado.
+  código. Não conecta a nenhuma rede. **Achado da 1ª viagem (27/11/2026, Padre
+  Cícero → Carlito):** cada estação tem as suas redes **"METROFOR"** ou
+  **"METROFOR-WIFI"** (2,4 e 5 GHz, endereços próprios), vistas só com o metrô nela
+  ou chegando (até ~100 m) — nas 13 estações com gabarito do GPS; Benfica, que é
+  subterrânea, também tem (visto por quem testou). É o sinal mais promissor para
+  saber a estação no túnel, sem GPS; falta uma viagem pelo túnel na versão de teste.
+- **Bluetooth:** testado em 27/11/2026 (busca BLE, evento `ble`) e retirado: em
+  Benfica e na volta para Carlito não apareceu nenhum aparelho característico das
+  estações, só celulares de passageiros, e a busca parava com a tela apagada.
 - **Som** (`trip/TripAudioRecorder.kt`, opção **Gravar o som nas viagens**, pede o
   microfone): o som inteiro do modo viagem, um arquivo por viagem em
   `Download/MetroCearaTeste/viagem-AAAA-MM-DD-HHMMSS.m4a` (AAC mono, 32 kHz,
